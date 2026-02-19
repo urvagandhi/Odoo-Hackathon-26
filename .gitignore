@@ -1,43 +1,82 @@
 # ── Python ────────────────────────────────────────────
 __pycache__/
 *.py[cod]
+*.pyo
 *.egg-info/
 *.egg
 dist/
 build/
 .eggs/
 *.so
+pip-wheel-metadata/
 .venv/
 venv/
 env/
 
-# ── Node ──────────────────────────────────────────────
+# ── Database / SQLite (used by pytest + aiosqlite) ────
+*.db
+*.sqlite3
+*.sqlite
+
+# ── Alembic ───────────────────────────────────────────
+# migration scripts are tracked; only ignore compiled cache
+alembic/__pycache__/
+
+# ── Node / Frontend ───────────────────────────────────
 node_modules/
-dist/
+dist-ssr/
 .cache/
 *.tsbuildinfo
+*.tgz
+
+# ── Vite ──────────────────────────────────────────────
+vite.config.*.timestamp-*
 
 # ── Environment ───────────────────────────────────────
 .env
 .env.local
 .env.*.local
+.env.development
+.env.staging
+.env.production
+
+# ── Security ──────────────────────────────────────────
+*.pem
+*.key
+*.cert
+*.p12
 
 # ── IDE ───────────────────────────────────────────────
 .vscode/
 .idea/
 *.swp
 *.swo
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
 *~
 .DS_Store
+Thumbs.db
+ehthumbs.db
+Desktop.ini
 
-# ── Docker ────────────────────────────────────────────
+# ── Docker / Volumes ──────────────────────────────────
 postgres_data/
 
-# ── Testing ───────────────────────────────────────────
+# ── Testing & Coverage ────────────────────────────────
 coverage/
 htmlcov/
 .coverage
+.coverage.*
 .pytest_cache/
+.tox/
 
-# ── Misc ──────────────────────────────────────────────
+# ── Logs ──────────────────────────────────────────────
 *.log
+logs/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*

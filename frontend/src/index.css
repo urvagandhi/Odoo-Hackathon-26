@@ -1,5 +1,10 @@
 @import "tailwindcss";
 
+/* ── Scroll ───────────────────────────────────────────── */
+html {
+  scroll-behavior: smooth;
+}
+
 /* ── Custom Design Tokens ─────────────────────────────── */
 :root {
   --color-primary: #6366f1;
@@ -42,3 +47,50 @@ body {
     transform: translateY(0);
   }
 }
+
+/* ── Shimmer (skeleton loading) ───────────────────────── */
+@keyframes shimmer {
+  100% { transform: translateX(100%); }
+}
+
+.animate-shimmer {
+  animation: shimmer 1.5s infinite;
+}
+
+/* ── Shake (form validation error) ───────────────────── */
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  20%      { transform: translateX(-6px); }
+  40%      { transform: translateX(6px); }
+  60%      { transform: translateX(-4px); }
+  80%      { transform: translateX(4px); }
+}
+
+.animate-shake {
+  animation: shake 0.3s ease-out;
+}
+
+/* ── Animated gradient (login left panel) ─────────────── */
+@keyframes gradientShift {
+  0%, 100% { background-position: 0% 50%; }
+  50%      { background-position: 100% 50%; }
+}
+
+.animated-gradient {
+  background-size: 200% 200%;
+  animation: gradientShift 10s ease infinite;
+}
+
+/* ── Floating blob pulse ──────────────────────────────── */
+@keyframes blobPulse {
+  0%, 100% { transform: scale(1) translate(0, 0); }
+  33%      { transform: scale(1.05) translate(8px, -8px); }
+  66%      { transform: scale(0.96) translate(-6px, 6px); }
+}
+
+.animate-blob {
+  animation: blobPulse 10s ease-in-out infinite;
+}
+
+.animation-delay-2000 { animation-delay: 2s; }
+.animation-delay-4000 { animation-delay: 4s; }

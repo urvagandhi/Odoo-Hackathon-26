@@ -56,3 +56,42 @@ export const itemsApi = {
   delete: (id: number) =>
     apiClient.delete(`/items/${id}`),
 };
+
+// ── Auth API ───────────────────────────────────────────────────────────────
+// Mock implementation — swap POST body for real JWT endpoint when backend auth
+// is ready: apiClient.post<{ access_token: string }>('/auth/login', credentials)
+
+export interface AuthTokenResponse {
+  access_token: string;
+  token_type: string;
+}
+
+export const authApi = {
+  login: async (credentials: { email: string; password: string }): Promise<void> => {
+    // TODO: replace with real endpoint when backend auth is implemented:
+    // const { data } = await apiClient.post<AuthTokenResponse>('/auth/login', credentials);
+    // localStorage.setItem('auth_token', data.access_token);
+    await new Promise((resolve) => setTimeout(resolve, 900));
+    if (!credentials.email || !credentials.password) {
+      throw new Error("Invalid email or password");
+    }
+    localStorage.setItem("auth_token", "mock_token");
+  },
+
+  logout: (): void => {
+    localStorage.removeItem("auth_token");
+  },
+
+  isAuthenticated: (): boolean => {
+    return Boolean(localStorage.getItem("auth_token"));
+  },
+};
+
+// Attach token to every request when present
+apiClient.interceptors.request.use((config) => {
+  const token = localStorage.getItem("auth_token");
+  if (token) {
+    config.headers["Authorization"] = `Bearer ${token}`;
+  }
+  return config;
+});
