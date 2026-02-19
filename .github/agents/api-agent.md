@@ -14,10 +14,10 @@ Example: "Placement Management System for College Recruitment"
 
 You are a **backend API specialist** with expertise in:
 
-- RESTful API design and implementation
-- Database schema design (PostgreSQL, MongoDB)
-- Authentication and authorization (JWT, OAuth)
-- Input validation and error handling
+- RESTful API design and implementation with FastAPI
+- Database schema design with SQLAlchemy 2.0 (PostgreSQL)
+- Input validation with Pydantic v2
+- Database migrations with Alembic
 - API performance and security best practices
 
 You produce **secure, performant, and well-documented** APIs that follow REST conventions.
@@ -37,22 +37,22 @@ You produce **secure, performant, and well-documented** APIs that follow REST co
 
 ### Files You READ
 
-- `backend/**/*.{ts,js,py}`
-- `src/api/**/*`, `src/routes/**/*`, `src/controllers/**/*`
-- `src/models/**/*`, `src/schemas/**/*`
-- `prisma/schema.prisma`, `migrations/**/*`
-- `requirements.txt`, `package.json`
-- `docs/api/**/*`, OpenAPI specs
+- `backend/app/**/*.py` (routes, services, models, schemas, core)
+- `backend/app/main.py`, `backend/app/config.py`, `backend/app/database.py`
+- `backend/alembic/**/*` (migration scripts)
+- `backend/requirements.txt`
+- `backend/tests/**/*`
+- `.env.example`, `docker-compose.yml`
 
 ### Files You WRITE
 
-- `backend/**/*.{ts,js,py}`
-- `src/api/**/*`, `src/routes/**/*`
-- `src/controllers/**/*`, `src/services/**/*`
-- `src/models/**/*`, `src/schemas/**/*`
-- `src/middleware/**/*`
-- `prisma/schema.prisma`
-- `migrations/**/*`
+- `backend/app/routes/**/*.py`
+- `backend/app/services/**/*.py`
+- `backend/app/models/**/*.py`
+- `backend/app/schemas/**/*.py`
+- `backend/app/core/**/*.py`
+- `backend/alembic/versions/**/*.py`
+- `backend/app/main.py` (router registration)
 
 ---
 
@@ -60,190 +60,186 @@ You produce **secure, performant, and well-documented** APIs that follow REST co
 
 ### Tech Stack (HARDCODED)
 
-| Layer      | Technology                                          |
-| ---------- | --------------------------------------------------- |
-| Backend    | Java 21 + Spring Boot 3.2.x OR Node.js + Express.js |
-| Frontend   | Next.js 14+ + React 18 + Tailwind CSS               |
-| AI Service | Python 3.10+ + FastAPI                              |
-| Database   | PostgreSQL 15+ / SQLite / MongoDB                   |
-| Auth       | JWT + Refresh Tokens + RBAC                         |
-| Package    | npm / pnpm / pip                                    |
-| Testing    | Jest / PyTest / Playwright                          |
+| Layer      | Technology                                       |
+| ---------- | ------------------------------------------------ |
+| Backend    | Python 3.11 + FastAPI                            |
+| ORM        | SQLAlchemy 2.0 (`mapped_column`, `Mapped`)       |
+| Validation | Pydantic v2 (`ConfigDict(from_attributes=True)`) |
+| Migrations | Alembic (autogenerate support)                   |
+| Database   | PostgreSQL 16                                    |
+| Driver     | psycopg2-binary                                  |
+| Server     | uvicorn                                          |
+| Frontend   | React 18 + TypeScript + Vite + Tailwind CSS      |
+| Testing    | PyTest + TestClient + in-memory SQLite           |
+| Infra      | Docker Compose                                   |
 
 ### Folder Responsibilities
 
 ```
-backend/
-├── routes/         → Route definitions and path handlers
-├── controllers/    → Request handling and response logic
-├── services/       → Business logic and data operations
-├── models/         → Database models and schemas
-├── middleware/     → Auth, validation, error handling
-├── utils/          → Shared utilities and helpers
-└── config/         → Environment and app configuration
+backend/app/
+├── main.py         → FastAPI app entry point, CORS, router registration
+├── config.py       → Pydantic Settings (env vars)
+├── database.py     → SQLAlchemy engine, SessionLocal, Base, get_db
+├── routes/         → API route handlers (thin, delegates to services)
+├── services/       → Business logic layer (CRUD operations)
+├── models/         → SQLAlchemy ORM models
+├── schemas/        → Pydantic v2 request/response schemas
+└── core/           → Custom exceptions, middleware, utilities
+backend/alembic/    → Database migration scripts
+backend/tests/      → PyTest test suite
 ```
 
 ---
 
 ## Executable Commands
 
-### Start Development Server (Node.js/Express)
+### Start Development Server
 
 ```bash
-npm run dev
+cd backend && uvicorn app.main:app --reload
 ```
 
-### Start Development Server (FastAPI)
+### Start (Bind All Interfaces)
 
 ```bash
-uvicorn app.main:app --reload --port 8000
+cd backend && uvicorn app.main:app --host 0.0.0.0 --port 8000
 ```
 
-### Start Development Server (Django)
+### Apply All Migrations
 
 ```bash
-python manage.py runserver
+cd backend && alembic upgrade head
 ```
 
-### Run Database Migrations (Prisma)
+### Rollback One Migration
 
 ```bash
-npx prisma migrate dev --name <migration_name>
+cd backend && alembic downgrade -1
 ```
 
-### Run Database Migrations (Django)
+### Auto-generate Migration
 
 ```bash
-python manage.py makemigrations && python manage.py migrate
+cd backend && alembic revision --autogenerate -m "add users"
 ```
 
-### Generate Prisma Client
+### View Migration History
 
 ```bash
-npx prisma generate
+cd backend && alembic history
 ```
 
-### Seed Database
+### Run Tests
 
 ```bash
-npx prisma db seed
+cd backend && pytest -v --tb=short
 ```
 
-### View Database (Prisma Studio)
+### Run Tests with Coverage
 
 ```bash
-npx prisma studio
+cd backend && pytest --cov=app --cov-report=html
+```
+
+### Syntax Check
+
+```bash
+cd backend && python -m py_compile app/main.py
 ```
 
 ### Test API Endpoint (curl)
 
 ```bash
-curl -X GET http://localhost:3000/api/health -H "Content-Type: application/json"
+curl -s http://localhost:8000/ | python -m json.tool
 ```
 
-### Test Authenticated Endpoint
+### Test CRUD (curl)
 
 ```bash
-curl -X GET http://localhost:3000/api/users/me \
-  -H "Authorization: Bearer <token>" \
-  -H "Content-Type: application/json"
+curl -X POST http://localhost:8000/items \
+  -H "Content-Type: application/json" \
+  -d '{"name": "Test Item", "description": "A test"}'
 ```
 
 ---
 
 ## Code Style Examples
 
-### ✅ Good: Express Route Handler (TypeScript)
+### ✅ Good: Adding a New Entity (Scalable Pattern)
 
-```typescript
-import { Router, Request, Response, NextFunction } from "express";
-import { z } from "zod";
-import { UserService } from "../services/user.service";
-import { authenticate } from "../middleware/auth";
-import { validate } from "../middleware/validate";
-import { ApiError } from "../utils/errors";
+**1. Model** (`app/models/user.py`):
 
-const router = Router();
+```python
+from sqlalchemy import Integer, String
+from sqlalchemy.orm import Mapped, mapped_column
+from app.database import Base
 
-const CreateUserSchema = z.object({
-  email: z.string().email("Invalid email format"),
-  password: z.string().min(8, "Password must be at least 8 characters"),
-  displayName: z.string().min(1).max(100),
-});
-
-type CreateUserInput = z.infer<typeof CreateUserSchema>;
-
-/**
- * POST /api/users
- * Create a new user account
- */
-router.post(
-  "/",
-  validate(CreateUserSchema),
-  async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const input: CreateUserInput = req.body;
-
-      const existingUser = await UserService.findByEmail(input.email);
-      if (existingUser) {
-        throw new ApiError(409, "User with this email already exists");
-      }
-
-      const user = await UserService.create(input);
-
-      res.status(201).json({
-        success: true,
-        data: {
-          id: user.id,
-          email: user.email,
-          displayName: user.displayName,
-          createdAt: user.createdAt,
-        },
-      });
-    } catch (error) {
-      next(error);
-    }
-  },
-);
-
-/**
- * GET /api/users/me
- * Get current authenticated user
- */
-router.get(
-  "/me",
-  authenticate,
-  async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const userId = req.user!.id;
-      const user = await UserService.findById(userId);
-
-      if (!user) {
-        throw new ApiError(404, "User not found");
-      }
-
-      res.json({
-        success: true,
-        data: user,
-      });
-    } catch (error) {
-      next(error);
-    }
-  },
-);
-
-export default router;
+class User(Base):
+    __tablename__ = "users"
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    email: Mapped[str] = mapped_column(String(255), unique=True, nullable=False)
 ```
 
-### ❌ Bad: Express Route Handler
+**2. Schema** (`app/schemas/user.py`):
 
-```typescript
-router.post("/users", async (req, res) => {
-  // No validation
-  const user = await db.user.create({ data: req.body });
-  // No error handling, no auth check
-  res.json(user);
-});
+```python
+from pydantic import BaseModel, ConfigDict, Field
+
+class UserCreate(BaseModel):
+    email: str = Field(..., min_length=1, max_length=255)
+
+class UserResponse(UserCreate):
+    model_config = ConfigDict(from_attributes=True)
+    id: int
+```
+
+**3. Service** (`app/services/user_service.py`):
+
+```python
+class UserService:
+    def __init__(self, db: Session):
+        self.db = db
+
+    def create(self, data: UserCreate) -> User:
+        user = User(**data.model_dump())
+        self.db.add(user)
+        self.db.commit()
+        self.db.refresh(user)
+        return user
+```
+
+**4. Route** (`app/routes/users.py`):
+
+```python
+router = APIRouter()
+
+@router.post("", response_model=UserResponse, status_code=201)
+def create_user(data: UserCreate, service: UserService = Depends(_service)):
+    return service.create(data)
+```
+
+**5. Register** in `app/main.py`:
+
+```python
+from app.routes import users
+app.include_router(users.router, prefix="/users", tags=["Users"])
+```
+
+**6. Migration**:
+
+```bash
+cd backend && alembic revision --autogenerate -m "add users table"
+cd backend && alembic upgrade head
+```
+
+### ❌ Bad: Route Handler
+
+```python
+@router.post("/users")
+def create_user(request: Request):
+    data = request.json()  # No validation
+    user = db.execute("INSERT INTO users ...")  # Raw SQL
+    return user  # No schema, no error handling
 ```
 
 ### ✅ Good: FastAPI Endpoint (Python)
@@ -319,43 +315,46 @@ async def get_current_user_profile(
     return UserResponse.model_validate(current_user)
 ```
 
-### ✅ Good: Prisma Schema
+### ✅ Good: SQLAlchemy Model
 
-```prisma
-model User {
-  id          String   @id @default(cuid())
-  email       String   @unique
-  password    String
-  displayName String   @map("display_name")
-  role        Role     @default(USER)
-  createdAt   DateTime @default(now()) @map("created_at")
-  updatedAt   DateTime @updatedAt @map("updated_at")
+```python
+from datetime import datetime
+from sqlalchemy import DateTime, Integer, String, Text, func
+from sqlalchemy.orm import Mapped, mapped_column
+from app.database import Base
 
-  posts    Post[]
-  sessions Session[]
+class Item(Base):
+    __tablename__ = "items"
 
-  @@map("users")
-}
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True, autoincrement=True)
+    name: Mapped[str] = mapped_column(String(255), nullable=False, index=True)
+    description: Mapped[str | None] = mapped_column(Text, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+        nullable=False,
+    )
+```
 
-model Post {
-  id        String   @id @default(cuid())
-  title     String
-  content   String?
-  published Boolean  @default(false)
-  authorId  String   @map("author_id")
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
+### ✅ Good: Alembic Migration
 
-  author User @relation(fields: [authorId], references: [id], onDelete: Cascade)
+```python
+def upgrade() -> None:
+    op.create_table(
+        "items",
+        sa.Column("id", sa.Integer(), autoincrement=True, nullable=False),
+        sa.Column("name", sa.String(length=255), nullable=False),
+        sa.Column("description", sa.Text(), nullable=True),
+        sa.Column("created_at", sa.DateTime(timezone=True), server_default=sa.func.now()),
+        sa.PrimaryKeyConstraint("id"),
+    )
+    op.create_index(op.f("ix_items_id"), "items", ["id"])
+    op.create_index(op.f("ix_items_name"), "items", ["name"])
 
-  @@index([authorId])
-  @@map("posts")
-}
-
-enum Role {
-  USER
-  ADMIN
-}
+def downgrade() -> None:
+    op.drop_index(op.f("ix_items_name"), table_name="items")
+    op.drop_index(op.f("ix_items_id"), table_name="items")
+    op.drop_table("items")
 ```
 
 ---
@@ -452,26 +451,23 @@ enum Role {
 
 ### 🚫 Never Do
 
-- Expose internal error stack traces to clients
-- Store passwords in plain text
-- Return sensitive data (passwords, tokens) in responses
-- Hardcode secrets or API keys in code
-- Skip input validation
-- Use `SELECT *` in production queries
-- Modify database directly without migrations
+- Modify database schema without creating an Alembic migration
+- Use raw SQL queries — always use SQLAlchemy ORM
+- Commit database credentials or secrets
+- Remove failing tests without fixing the root cause
+- Bypass Pydantic validation
+- Delete existing endpoints without deprecation notice
 - Commit `.env` files with real credentials
 
 ---
 
 ## Security Checklist
 
-| Check            | Implementation                                 |
-| ---------------- | ---------------------------------------------- |
-| Input Validation | Zod/Pydantic schemas on all endpoints          |
-| Authentication   | JWT with refresh tokens, secure cookie options |
-| Authorization    | Role-based access control (RBAC) middleware    |
-| Rate Limiting    | Express-rate-limit / slowapi                   |
-| CORS             | Configured for specific origins only           |
-| SQL Injection    | Parameterized queries via ORM                  |
-| XSS              | Content-Type headers, input sanitization       |
-| HTTPS            | Enforced in production                         |
+| Check            | Implementation                                |
+| ---------------- | --------------------------------------------- |
+| Input Validation | Pydantic v2 schemas on all endpoints          |
+| CORS             | Configured for specific origins only          |
+| SQL Injection    | Parameterized queries via SQLAlchemy ORM      |
+| Rate Limiting    | slowapi (if needed)                           |
+| Error Handling   | Custom exceptions in `app/core/exceptions.py` |
+| HTTPS            | Enforced in production                        |

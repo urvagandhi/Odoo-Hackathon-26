@@ -34,12 +34,11 @@ You produce **clear, scannable, and maintainable** documentation that enables ra
 
 ### Files You READ
 
-- `src/**/*.{ts,tsx,js,jsx,py}`
-- `backend/**/*.{py,java,ts}`
-- `frontend/**/*.{ts,tsx}`
-- `package.json`, `pyproject.toml`, `requirements.txt`
+- `backend/app/**/*.py` (FastAPI routes, services, models, schemas)
+- `frontend/src/**/*.{ts,tsx}` (React components, hooks, pages)
+- `package.json`, `requirements.txt`
 - Existing `docs/**/*.md`
-- `*.config.{js,ts,json}`
+- `vite.config.ts`, `alembic.ini`, `docker-compose.yml`
 
 ### Files You WRITE
 
@@ -57,88 +56,111 @@ You produce **clear, scannable, and maintainable** documentation that enables ra
 
 ### Tech Stack (HARDCODED)
 
-| Layer      | Technology                                          |
-| ---------- | --------------------------------------------------- |
-| Backend    | Java 21 + Spring Boot 3.2.x OR Node.js + Express.js |
-| Frontend   | Next.js 14+ + React 18 + Tailwind CSS               |
-| AI Service | Python 3.10+ + FastAPI                              |
-| Database   | PostgreSQL 15+ / SQLite / MongoDB                   |
-| Auth       | JWT + Refresh Tokens + RBAC                         |
-| Package    | npm / pnpm / pip                                    |
-| Testing    | Jest / PyTest / Playwright                          |
+| Layer      | Technology                                      |
+| ---------- | ----------------------------------------------- |
+| Backend    | Python 3.11 + FastAPI                           |
+| ORM        | SQLAlchemy 2.0 + Alembic migrations             |
+| Validation | Pydantic v2 (backend) + Zod (frontend)          |
+| Frontend   | React 18 + TypeScript + Vite                    |
+| Styling    | Tailwind CSS v4                                 |
+| Routing    | React Router v6                                 |
+| Database   | PostgreSQL 16                                   |
+| HTTP       | Axios (frontend) + uvicorn (backend)            |
+| Testing    | PyTest (backend) + Jest + React Testing Library |
+| Infra      | Docker Compose                                  |
 
 ### Folder Responsibilities
 
 ```
-src/           → Document component APIs, hooks, utilities
-frontend/      → Document UI components, state management
-backend/       → Document API endpoints, services, models
-tests/         → Document test utilities and fixtures
-docs/          → Primary documentation output location
-.github/       → Document workflows and CI/CD processes
+backend/app/       → FastAPI app (main.py, config.py, database.py)
+backend/app/models/    → SQLAlchemy ORM models
+backend/app/schemas/   → Pydantic v2 request/response schemas
+backend/app/routes/    → API route handlers
+backend/app/services/  → Business logic layer
+backend/app/core/      → Exceptions, middleware, utilities
+backend/tests/         → PyTest test suite
+backend/alembic/       → Database migration scripts
+frontend/src/pages/        → Route-level page components
+frontend/src/components/   → Reusable UI components
+frontend/src/api/          → Axios client & API functions
+frontend/src/hooks/        → Custom React hooks
+frontend/src/validators/   → Zod validation schemas
+frontend/src/routes/       → React Router configuration
+.github/agents/            → AI agent configurations
 ```
 
 ---
 
 ## Executable Commands
 
-### Generate API Documentation (TypeScript)
+### Verify Swagger Docs (FastAPI)
 
 ```bash
-npx typedoc --out docs/api src/
+curl -s http://localhost:8000/docs | head -20
 ```
 
-### Generate API Documentation (Python - FastAPI)
+### Generate OpenAPI JSON
 
 ```bash
-python -c "from app.main import app; import json; print(json.dumps(app.openapi(), indent=2))" > docs/api/openapi.json
+cd backend && python -c "from app.main import app; import json; print(json.dumps(app.openapi(), indent=2))" > docs/api/openapi.json
+```
+
+### Check Backend Docstrings
+
+```bash
+grep -rn '"""' backend/app/routes/ backend/app/services/
+```
+
+### Check Frontend JSDoc Comments
+
+```bash
+grep -rn '/\*\*' frontend/src/
 ```
 
 ### Validate Markdown Links
 
 ```bash
-npx markdown-link-check README.md docs/**/*.md
-```
-
-### Preview Documentation Locally
-
-```bash
-npx docsify-cli serve docs/
-```
-
-### Check Documentation Coverage
-
-```bash
-npx documentation lint src/**/*.ts
+npx markdown-link-check README.md GIT_WORKFLOW.md
 ```
 
 ---
 
 ## Code Style Examples
 
-### ✅ Good: Function Documentation (TypeScript)
+### ✅ Good: Backend Docstring (Python — Google style)
+
+```python
+@router.post("", response_model=ItemResponse, status_code=201)
+def create_item(data: ItemCreate, service: ItemService = Depends(_service)):
+    """Create a new item.
+
+    Args:
+        data: Validated item creation payload.
+        service: Injected item service.
+
+    Returns:
+        The newly created item.
+
+    Raises:
+        BadRequestException: If name is empty.
+    """
+    return service.create(data)
+```
+
+### ✅ Good: Frontend JSDoc (TypeScript)
 
 ```typescript
 /**
- * Authenticates a user and returns a JWT token.
+ * Custom hook for Items CRUD operations.
+ * Provides items list, loading/error states, and CRUD functions.
  *
- * @param credentials - User login credentials
- * @param credentials.email - User's email address
- * @param credentials.password - User's password (min 8 characters)
- * @returns Promise resolving to authentication result with token
- * @throws {AuthError} When credentials are invalid
+ * @returns Object with items array, loading flag, error message,
+ *          and createItem / deleteItem / updateItem functions.
  *
  * @example
- * const result = await authenticateUser({
- *   email: 'user@example.com',
- *   password: 'securePassword123'
- * });
+ * const { items, loading, createItem } = useItems();
  */
-export async function authenticateUser(
-  credentials: LoginCredentials,
-): Promise<AuthResult> {
-  // implementation
-}
+export function useItems() { ... }
 ```
 
 ### ❌ Bad: Function Documentation
@@ -157,17 +179,23 @@ function authenticateUser(credentials) {
 
 ### Prerequisites
 
+- Python 3.11+
 - Node.js 18+
-- PostgreSQL 14+
+- PostgreSQL 16+ (or Docker)
 
 ### Installation
 
 ```bash
 git clone https://github.com/team/project.git
 cd project
-npm install
 cp .env.example .env
-npm run dev
+
+# Backend
+cd backend && pip install -r requirements.txt
+uvicorn app.main:app --reload
+
+# Frontend (new terminal)
+cd frontend && npm install && npm run dev
 ```
 ````
 

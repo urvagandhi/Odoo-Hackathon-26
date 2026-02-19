@@ -38,21 +38,19 @@ You produce **reliable, fast, and maintainable** tests that catch bugs before pr
 
 ### Files You READ
 
-- `src/**/*.{ts,tsx,js,jsx,py}`
-- `backend/**/*.{py,java,ts}`
-- `frontend/**/*.{ts,tsx}`
-- `tests/**/*`
-- `jest.config.*`, `vitest.config.*`, `pytest.ini`, `pyproject.toml`
-- `playwright.config.ts`
+- `backend/app/**/*.py` (routes, services, models, schemas)
+- `frontend/src/**/*.{ts,tsx}` (components, hooks, pages)
+- `backend/tests/**/*`
+- `frontend/src/**/*.test.{ts,tsx}`
+- `vite.config.ts`, `backend/alembic.ini`
 
 ### Files You WRITE
 
-- `tests/**/*.test.{ts,tsx,js}`
-- `tests/**/*.spec.{ts,tsx,js}`
-- `tests/**/*_test.py`
+- `backend/tests/test_*.py`
+- `backend/tests/conftest.py`
+- `frontend/src/**/*.test.{ts,tsx}`
 - `tests/fixtures/**/*`
 - `tests/mocks/**/*`
-- `__tests__/**/*`
 
 ---
 
@@ -60,84 +58,87 @@ You produce **reliable, fast, and maintainable** tests that catch bugs before pr
 
 ### Tech Stack (HARDCODED)
 
-
-| Layer      | Technology                                          |
-| ---------- | --------------------------------------------------- |
-| Backend    | Java 21 + Spring Boot 3.2.x OR Node.js + Express.js |
-| Frontend   | Next.js 14+ + React 18 + Tailwind CSS               |
-| AI Service | Python 3.10+ + FastAPI                              |
-| Database   | PostgreSQL 15+ / SQLite / MongoDB                   |
-| Auth       | JWT + Refresh Tokens + RBAC                         |
-| Package    | npm / pnpm / pip                                    |
-| Testing    | Jest / PyTest / Playwright                          |
+| Layer            | Technology                                 |
+| ---------------- | ------------------------------------------ |
+| Backend          | Python 3.11 + FastAPI                      |
+| ORM              | SQLAlchemy 2.0 + Alembic                   |
+| Validation       | Pydantic v2 (backend) + Zod (frontend)     |
+| Frontend         | React 18 + TypeScript + Vite               |
+| Styling          | Tailwind CSS v4                            |
+| Database         | PostgreSQL 16 (SQLite in-memory for tests) |
+| Backend Testing  | PyTest + TestClient + in-memory SQLite     |
+| Frontend Testing | Jest + React Testing Library               |
+| Infra            | Docker Compose                             |
 
 ### Folder Responsibilities
 
 ```
-tests/
-├── unit/           → Isolated function/component tests
-├── integration/    → API and database tests
-├── e2e/            → Full user flow tests (Playwright)
-├── fixtures/       → Test data and factories
-└── mocks/          → Mock implementations
+backend/tests/
+├── conftest.py         → PyTest fixtures (test DB, TestClient)
+├── test_items.py       → Item CRUD endpoint tests
+└── __init__.py
+
+frontend/src/
+├── **/*.test.tsx       → Component and hook tests
+└── **/*.test.ts        → Utility and validator tests
 ```
 
 ---
 
 ## Executable Commands
 
-### Run All Tests (JavaScript/TypeScript)
+### Run All Backend Tests
 
 ```bash
-npm test
+cd backend && pytest
 ```
 
-### Run Tests with Coverage
+### Run Backend Tests (Verbose)
 
 ```bash
-npm test -- --coverage --coverageReporters=text-summary
+cd backend && pytest -v --tb=short
+```
+
+### Stop on First Failure
+
+```bash
+cd backend && pytest -x
 ```
 
 ### Run Specific Test File
 
 ```bash
-npm test -- tests/unit/auth.test.ts
+cd backend && pytest tests/test_items.py
 ```
 
-### Run Tests in Watch Mode
+### Run Matching Tests
 
 ```bash
-npm test -- --watch
+cd backend && pytest -k "test_create"
 ```
 
-### Run Python Tests
+### Backend Coverage Report
 
 ```bash
-pytest tests/ -v --tb=short
+cd backend && pytest --cov=app --cov-report=html
 ```
 
-### Run Python Tests with Coverage
+### Run Frontend Tests
 
 ```bash
-pytest tests/ --cov=src --cov-report=term-missing
+cd frontend && npm test
 ```
 
-### Run Playwright E2E Tests
+### Frontend Tests (CI mode)
 
 ```bash
-npx playwright test
+cd frontend && npm test -- --watchAll=false
 ```
 
-### Run Playwright with UI
+### Frontend Coverage
 
 ```bash
-npx playwright test --ui
-```
-
-### Update Snapshots
-
-```bash
-npm test -- --updateSnapshot
+cd frontend && npm test -- --coverage
 ```
 
 ---
@@ -217,42 +218,40 @@ test("discount works", () => {
 });
 ```
 
-### ✅ Good: API Integration Test (Python/PyTest)
+### ✅ Good: API Integration Test (PyTest + TestClient)
 
 ```python
-import pytest
-from httpx import AsyncClient
-from app.main import app
+"""Tests for the Items CRUD endpoints."""
 
-@pytest.fixture
-async def authenticated_client(db_session):
-    """Create an authenticated test client with a seeded user."""
-    user = await create_test_user(db_session, email="test@example.com")
-    token = create_access_token(user.id)
-
-    async with AsyncClient(app=app, base_url="http://test") as client:
-        client.headers["Authorization"] = f"Bearer {token}"
-        yield client
-
-class TestUserEndpoints:
-    """Tests for /api/users endpoints."""
-
-    async def test_get_current_user_returns_authenticated_user(
-        self, authenticated_client: AsyncClient
-    ):
-        response = await authenticated_client.get("/api/users/me")
-
-        assert response.status_code == 200
+class TestCreateItem:
+    def test_create_item_success(self, client):
+        response = client.post("/items", json={"name": "Test Item", "description": "A test"})
+        assert response.status_code == 201
         data = response.json()
-        assert data["email"] == "test@example.com"
-        assert "password" not in data
+        assert data["name"] == "Test Item"
+        assert data["description"] == "A test"
+        assert "id" in data
+        assert "created_at" in data
 
-    async def test_get_current_user_rejects_unauthenticated_request(self):
-        async with AsyncClient(app=app, base_url="http://test") as client:
-            response = await client.get("/api/users/me")
+    def test_create_item_without_description(self, client):
+        response = client.post("/items", json={"name": "No Desc"})
+        assert response.status_code == 201
+        assert response.json()["description"] is None
 
-        assert response.status_code == 401
-        assert response.json()["detail"] == "Not authenticated"
+    def test_create_item_empty_name_fails(self, client):
+        response = client.post("/items", json={"name": "", "description": "Bad"})
+        assert response.status_code == 422
+
+
+class TestDeleteItem:
+    def test_delete_item_success(self, client):
+        create_resp = client.post("/items", json={"name": "Delete Me"})
+        item_id = create_resp.json()["id"]
+        response = client.delete(f"/items/{item_id}")
+        assert response.status_code == 204
+        # Verify it's gone
+        get_resp = client.get(f"/items/{item_id}")
+        assert get_resp.status_code == 404
 ```
 
 ### ✅ Good: E2E Test (Playwright)

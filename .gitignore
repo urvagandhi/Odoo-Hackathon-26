@@ -1,0 +1,43 @@
+# ── Python ────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*.egg-info/
+*.egg
+dist/
+build/
+.eggs/
+*.so
+.venv/
+venv/
+env/
+
+# ── Node ──────────────────────────────────────────────
+node_modules/
+dist/
+.cache/
+*.tsbuildinfo
+
+# ── Environment ───────────────────────────────────────
+.env
+.env.local
+.env.*.local
+
+# ── IDE ───────────────────────────────────────────────
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# ── Docker ────────────────────────────────────────────
+postgres_data/
+
+# ── Testing ───────────────────────────────────────────
+coverage/
+htmlcov/
+.coverage
+.pytest_cache/
+
+# ── Misc ──────────────────────────────────────────────
+*.log
