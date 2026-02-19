@@ -8,7 +8,7 @@ import ItemsList from "../pages/ItemsList";
 import CreateItem from "../pages/CreateItem";
 import Login from "../pages/Login";
 import NotFound from "../pages/NotFound";
-import ToastDemo from "../pages/ToastDemo";
+import UIDemo from "../pages/UIDemo";
 
 export const router = createBrowserRouter([
   {
@@ -22,7 +22,7 @@ export const router = createBrowserRouter([
       { index: true, element: <Dashboard /> },
       { path: "items", element: <ItemsList /> },
       { path: "items/new", element: <CreateItem /> },
-      { path: "toast-demo", element: <ToastDemo /> },
+      { path: "demo", element: <UIDemo /> },
     ],
   },
   {
@@ -30,4 +30,3 @@ export const router = createBrowserRouter([
     element: <NotFound />,
   },
 ]);
-
