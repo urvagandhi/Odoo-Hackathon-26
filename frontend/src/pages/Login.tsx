@@ -531,28 +531,93 @@ export default function Login() {
               )}
             </motion.button>
 
-            {/* Progress bar — sits right below the Sign in button */}
+            {/* Progress indicator — premium multi-stage bar */}
             <AnimatePresence>
               {loading && (
                 <motion.div
-                  key="progress"
-                  initial={{ opacity: 0, scaleX: 0.96 }}
-                  animate={{ opacity: 1, scaleX: 1 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: 0.2, ease: [0.4, 0, 0.2, 1] }}
-                  className={`h-1 w-full rounded-full overflow-hidden ${
-                    isDark ? "bg-slate-700" : "bg-slate-200"
-                  }`}
+                  key="progress-wrapper"
+                  initial={{ opacity: 0, y: -4 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -4 }}
+                  transition={{ duration: 0.25, ease: [0.4, 0, 0.2, 1] as const }}
+                  className="space-y-2.5"
                 >
+                  {/* Bar track */}
+                  <div
+                    className={`relative h-1.5 w-full rounded-full overflow-hidden ${
+                      isDark ? "bg-slate-700/80" : "bg-slate-200"
+                    }`}
+                  >
+                    {/* Animated fill with gradient */}
+                    <motion.div
+                      className="absolute inset-y-0 left-0 rounded-full"
+                      style={{
+                        background:
+                          "linear-gradient(90deg, #6366f1, #8b5cf6, #a78bfa)",
+                      }}
+                      initial={{ width: "0%" }}
+                      animate={{ width: `${progress}%` }}
+                      transition={{
+                        duration: progress === 100 ? 0.2 : 0.6,
+                        ease: [0.4, 0, 0.2, 1] as const,
+                      }}
+                    />
+
+                    {/* Shimmer sweep overlay */}
+                    <motion.div
+                      className="absolute inset-y-0 w-24 rounded-full"
+                      style={{
+                        background:
+                          "linear-gradient(90deg, transparent, rgba(255,255,255,0.35), transparent)",
+                      }}
+                      initial={{ x: "-100%" }}
+                      animate={{ x: "400%" }}
+                      transition={{
+                        duration: 1.4,
+                        repeat: Infinity,
+                        repeatDelay: 0.4,
+                        ease: "linear",
+                      }}
+                    />
+
+                    {/* Glow effect at the leading edge */}
+                    <motion.div
+                      className="absolute top-1/2 -translate-y-1/2 w-4 h-4 rounded-full blur-md bg-indigo-400/60"
+                      initial={{ left: "0%" }}
+                      animate={{ left: `${Math.max(0, progress - 2)}%` }}
+                      transition={{
+                        duration: progress === 100 ? 0.2 : 0.6,
+                        ease: [0.4, 0, 0.2, 1] as const,
+                      }}
+                    />
+                  </div>
+
+                  {/* Step label */}
                   <motion.div
-                    className="h-full rounded-full bg-indigo-500"
-                    initial={{ width: "0%" }}
-                    animate={{ width: `${progress}%` }}
-                    transition={{
-                      duration: progress === 100 ? 0.15 : 0.8,
-                      ease: [0.4, 0, 0.2, 1],
-                    }}
-                  />
+                    className="flex items-center justify-between"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 0.15, duration: 0.2 }}
+                  >
+                    <p
+                      className={`text-xs font-medium ${
+                        isDark ? "text-slate-400" : "text-slate-500"
+                      }`}
+                    >
+                      {progress < 80
+                        ? "Authenticating your credentials..."
+                        : progress < 100
+                        ? "Verifying session..."
+                        : "Redirecting to dashboard..."}
+                    </p>
+                    <span
+                      className={`text-xs tabular-nums font-semibold ${
+                        isDark ? "text-indigo-400" : "text-indigo-600"
+                      }`}
+                    >
+                      {progress}%
+                    </span>
+                  </motion.div>
                 </motion.div>
               )}
             </AnimatePresence>

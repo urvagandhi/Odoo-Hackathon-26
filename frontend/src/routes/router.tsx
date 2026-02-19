@@ -7,6 +7,7 @@ import Dashboard from "../pages/Dashboard";
 import ItemsList from "../pages/ItemsList";
 import CreateItem from "../pages/CreateItem";
 import Login from "../pages/Login";
+import NotFound from "../pages/NotFound";
 
 export const router = createBrowserRouter([
   {
@@ -21,5 +22,9 @@ export const router = createBrowserRouter([
       { path: "items", element: <ItemsList /> },
       { path: "items/new", element: <CreateItem /> },
     ],
+  },
+  {
+    path: "*",
+    element: <NotFound />,
   },
 ]);
