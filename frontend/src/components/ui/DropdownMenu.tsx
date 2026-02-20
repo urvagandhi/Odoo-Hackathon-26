@@ -176,7 +176,8 @@ export function DropdownMenuContent({
     let left: number;
     if (align === "start") left = rect.left + window.scrollX;
     else if (align === "center") left = rect.left + rect.width / 2 + window.scrollX;
-    else left = rect.right + window.scrollX; // end — adjusted in CSS with translateX
+    else left = rect.right + window.scrollX; // end — adjusted carefully
+
     setPos({ top, left });
   }, [open, align, sideOffset, triggerRef]);
 
@@ -189,21 +190,20 @@ export function DropdownMenuContent({
         <motion.div
           ref={contentRef}
           key="dm-content"
-          initial={{ opacity: 0, scale: 0.95, y: -4 }}
-          animate={{ opacity: 1, scale: 1, y: 0 }}
-          exit={{ opacity: 0, scale: 0.95, y: -4 }}
+          initial={{ opacity: 0, scale: 0.95, y: -4, x: translateX }}
+          animate={{ opacity: 1, scale: 1, y: 0, x: translateX }}
+          exit={{ opacity: 0, scale: 0.95, y: -4, x: translateX }}
           transition={{ duration: 0.12, ease: [0.16, 1, 0.3, 1] }}
           style={{
             position: "absolute",
             top: pos.top,
             left: pos.left,
-            transform: `translateX(${translateX})`,
             transformOrigin,
             zIndex: 9950,
           }}
           className={`
-            min-w-36 bg-white rounded-lg border border-slate-200
-            shadow-lg shadow-black/10 p-1
+            min-w-[220px] bg-white rounded-xl border border-slate-200
+            shadow-xl shadow-black/8 p-1.5
             ${className}
           `}
         >

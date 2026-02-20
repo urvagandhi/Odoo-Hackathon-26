@@ -9,6 +9,8 @@ import CreateItem from "../pages/CreateItem";
 import Login from "../pages/Login";
 import NotFound from "../pages/NotFound";
 import UIDemo from "../pages/UIDemo";
+import Profile from "../pages/Profile";
+import Settings from "../pages/Settings";
 
 export const router = createBrowserRouter([
   {
@@ -23,6 +25,8 @@ export const router = createBrowserRouter([
       { path: "items", element: <ItemsList /> },
       { path: "items/new", element: <CreateItem /> },
       { path: "demo", element: <UIDemo /> },
+      { path: "profile", element: <Profile /> },
+      { path: "settings", element: <Settings /> },
     ],
   },
   {
