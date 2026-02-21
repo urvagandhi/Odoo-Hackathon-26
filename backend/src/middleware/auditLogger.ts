@@ -1,4 +1,4 @@
-import { AuditAction } from '@prisma/client';
+import { AuditAction, Prisma } from '@prisma/client';
 import prisma from '../prisma';
 
 interface AuditLogInput {
@@ -27,8 +27,8 @@ export async function writeAuditLog(input: AuditLogInput): Promise<void> {
                 entity: input.entity,
                 entityId: input.entityId,
                 action: input.action,
-                oldValues: input.oldValues ?? undefined,
-                newValues: input.newValues ?? undefined,
+                oldValues: (input.oldValues ?? undefined) as Prisma.InputJsonValue | undefined,
+                newValues: (input.newValues ?? undefined) as Prisma.InputJsonValue | undefined,
                 reason: input.reason,
                 ipAddress: input.ipAddress,
                 userAgent: input.userAgent,

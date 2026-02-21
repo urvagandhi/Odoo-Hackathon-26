@@ -25,6 +25,13 @@ export class LocationsController {
             res.json({ success: true, data: locations });
         } catch (err) { next(err); }
     }
+
+    async getLatestAll(req: Request, res: Response, next: NextFunction): Promise<void> {
+        try {
+            const locations = await locationsService.getLatestLocationsAllVehicles();
+            res.json({ success: true, data: locations });
+        } catch (err) { next(err); }
+    }
 }
 
 export const locationsController = new LocationsController();

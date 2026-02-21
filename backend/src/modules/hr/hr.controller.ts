@@ -70,6 +70,17 @@ export class HrController {
             res.json({ success: true, data: drivers });
         } catch (err) { next(err); }
     }
+
+    async linkUser(req: Request, res: Response, next: NextFunction): Promise<void> {
+        try {
+            const driverId = BigInt(req.params.id);
+            const actorId = BigInt(req.user!.sub);
+            // userId: null = unlink, number = link
+            const userId = req.body.userId != null ? BigInt(req.body.userId) : null;
+            const driver = await hrService.linkUserToDriver(driverId, userId, actorId);
+            res.json({ success: true, data: driver });
+        } catch (err) { next(err); }
+    }
 }
 
 export const hrController = new HrController();

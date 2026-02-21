@@ -176,6 +176,46 @@ export class HrService {
             orderBy: { licenseExpiryDate: 'asc' },
         });
     }
+
+    /**
+     * Manager-only: link a system User account to a Driver record.
+     * Enables driver self-service (status updates, GPS location posting).
+     * Passing userId=null unlinks the account.
+     */
+    async linkUserToDriver(driverId: bigint, userId: bigint | null, actorId: bigint) {
+        const driver = await prisma.driver.findFirst({ where: { id: driverId, isDeleted: false } });
+        if (!driver) throw new ApiError(404, `Driver #${driverId} not found.`);
+
+        if (userId !== null) {
+            const user = await prisma.user.findUnique({ where: { id: userId } });
+            if (!user) throw new ApiError(404, `User #${userId} not found.`);
+            if (!user.isActive) throw new ApiError(400, 'Cannot link a deactivated user account.');
+
+            // Check no other driver is already linked to this user
+            const conflict = await prisma.driver.findFirst({ where: { userId, isDeleted: false } });
+            if (conflict && conflict.id !== driverId) {
+                throw new ApiError(409, `User #${userId} is already linked to driver #${conflict.id}.`);
+            }
+        }
+
+        const updated = await prisma.driver.update({
+            where: { id: driverId },
+            data: { userId },
+            select: { id: true, fullName: true, licenseNumber: true, userId: true },
+        });
+
+        await writeAuditLog({
+            userId: actorId,
+            entity: 'Driver',
+            entityId: driverId,
+            action: 'UPDATE',
+            oldValues: { userId: driver.userId?.toString() ?? null },
+            newValues: { userId: userId?.toString() ?? null },
+            reason: userId ? `Linked to user #${userId}` : 'User account unlinked',
+        });
+
+        return updated;
+    }
 }
 
 export const hrService = new HrService();
