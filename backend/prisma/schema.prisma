@@ -90,14 +90,16 @@ enum AuditAction {
 // ─────────────────────────────────────────────────────────────────
 
 model User {
-  id           BigInt    @id @default(autoincrement())
-  email        String    @unique
-  passwordHash String    // bcrypt, minimum 60 chars
-  fullName     String
-  role         UserRole  @default(DISPATCHER)
-  isActive     Boolean   @default(true)
-  createdAt    DateTime  @default(now()) @db.Timestamptz
-  updatedAt    DateTime  @updatedAt @db.Timestamptz
+  id                BigInt    @id @default(autoincrement())
+  email             String    @unique
+  passwordHash      String    // bcrypt, minimum 60 chars
+  fullName          String
+  role              UserRole  @default(DISPATCHER)
+  isActive          Boolean   @default(true)
+  resetToken        String?   @unique
+  resetTokenExpiry  DateTime?
+  createdAt         DateTime  @default(now()) @db.Timestamptz
+  updatedAt         DateTime  @updatedAt @db.Timestamptz
 
   // Relations
   auditLogs    AuditLog[]
