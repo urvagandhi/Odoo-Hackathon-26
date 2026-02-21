@@ -11,13 +11,14 @@ export default function RoleDashboard() {
   const { user } = useAuth();
 
   switch (user?.role) {
-    case "ADMIN":
+    case "SUPER_ADMIN":
+    case "MANAGER":
       return <AdminDashboard />;
     case "DISPATCHER":
       return <DispatcherDashboard />;
     case "SAFETY_OFFICER":
       return <SafetyOfficerDashboard />;
-    case "FINANCE":
+    case "FINANCE_ANALYST":
       return <FinanceDashboard />;
     default:
       return <AdminDashboard />;

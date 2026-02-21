@@ -3,20 +3,17 @@
  * Single login page for all roles. Role is determined from the database.
  */
 import { createBrowserRouter, Navigate } from "react-router-dom";
-import Layout from "../components/Layout";
 import ProtectedRoute from "../components/ProtectedRoute";
-import Dashboard from "../pages/Dashboard";
-import ItemsList from "../pages/ItemsList";
-import CreateItem from "../pages/CreateItem";
 import Login from "../pages/Login";
 import ForgotPassword from "../pages/ForgotPassword";
 import ResetPassword from "../pages/ResetPassword";
 import NotFound from "../pages/NotFound";
-import UIDemo from "../pages/UIDemo";
 import Profile from "../pages/Profile";
 import Settings from "../pages/Settings";
 import DashboardShell from "../layouts/DashboardShell";
 import { RoleDashboard, AdminDashboard, DispatcherDashboard, SafetyOfficerDashboard, FinanceDashboard } from "../pages/dashboards";
+import VehicleRegistry from "../pages/VehicleRegistry";
+import ComingSoon from "../pages/ComingSoon";
 
 export const router = createBrowserRouter([
   // ── Public auth routes ──────────────────────────────────
@@ -48,33 +45,32 @@ export const router = createBrowserRouter([
       { path: "dashboard/dispatcher", element: <DispatcherDashboard /> },
       { path: "dashboard/safety", element: <SafetyOfficerDashboard /> },
       { path: "dashboard/finance", element: <FinanceDashboard /> },
-      { path: "settings", element: <Settings /> },
-      { path: "profile", element: <Profile /> },
-      { path: "items", element: <ItemsList /> },
-      { path: "items/new", element: <CreateItem /> },
-      { path: "demo", element: <UIDemo /> },
-      { path: "fleet/*", element: <RoleDashboard /> },
-      { path: "dispatch/*", element: <RoleDashboard /> },
-      { path: "hr/*", element: <RoleDashboard /> },
-      { path: "finance/*", element: <RoleDashboard /> },
-      { path: "safety/*", element: <RoleDashboard /> },
-      { path: "maintenance/*", element: <RoleDashboard /> },
-      { path: "analytics", element: <RoleDashboard /> },
-      { path: "notifications", element: <RoleDashboard /> },
-    ],
-  },
 
-  // ── Legacy layout (kept for compatibility) ───────────────
-  {
-    path: "/legacy",
-    element: <Layout />,
-    children: [
-      { index: true, element: <Dashboard /> },
-      { path: "items", element: <ItemsList /> },
-      { path: "items/new", element: <CreateItem /> },
-      { path: "demo", element: <UIDemo /> },
-      { path: "profile", element: <Profile /> },
+      // ── Domain pages ─────────────────────────────────────
+      { path: "fleet/vehicles", element: <VehicleRegistry /> },
+      { path: "dispatch/trips", element: <ComingSoon /> },
+      { path: "dispatch/new", element: <ComingSoon /> },
+      { path: "hr/drivers", element: <ComingSoon /> },
+      { path: "hr/performance", element: <ComingSoon /> },
+      { path: "fleet/maintenance", element: <ComingSoon /> },
+      { path: "finance/fuel", element: <ComingSoon /> },
+      { path: "finance/expenses", element: <ComingSoon /> },
+      { path: "finance/ledger", element: <ComingSoon /> },
+      { path: "finance/reports", element: <ComingSoon /> },
+      { path: "finance/pnl", element: <ComingSoon /> },
+      { path: "finance/cost-analysis", element: <ComingSoon /> },
+      { path: "analytics", element: <ComingSoon /> },
+      { path: "safety/licenses", element: <ComingSoon /> },
+      { path: "safety/reports", element: <ComingSoon /> },
+      { path: "notifications", element: <ComingSoon /> },
+      { path: "messages", element: <ComingSoon /> },
+      { path: "activity", element: <ComingSoon /> },
+      { path: "support", element: <ComingSoon /> },
+
+      // ── Utility pages ────────────────────────────────────
       { path: "settings", element: <Settings /> },
+      { path: "settings/general", element: <Settings /> },
+      { path: "profile", element: <Profile /> },
     ],
   },
 

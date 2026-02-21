@@ -35,37 +35,6 @@ apiClient.interceptors.response.use(
 
 export default apiClient;
 
-/* ─── Item API functions ──────────────────────────────── */
-
-export interface ItemPayload {
-  name: string;
-  description?: string | null;
-}
-
-export interface ItemResponse {
-  id: number;
-  name: string;
-  description: string | null;
-  created_at: string;
-}
-
-export const itemsApi = {
-  getAll: (skip = 0, limit = 100) =>
-    apiClient.get<ItemResponse[]>('/items', { params: { skip, limit } }),
-
-  getById: (id: number) =>
-    apiClient.get<ItemResponse>(`/items/${id}`),
-
-  create: (data: ItemPayload) =>
-    apiClient.post<ItemResponse>('/items', data),
-
-  update: (id: number, data: Partial<ItemPayload>) =>
-    apiClient.put<ItemResponse>(`/items/${id}`, data),
-
-  delete: (id: number) =>
-    apiClient.delete(`/items/${id}`),
-};
-
 // ── Auth API ───────────────────────────────────────────────────────────────
 
 export type UserRole = "SUPER_ADMIN" | "MANAGER" | "DISPATCHER" | "SAFETY_OFFICER" | "FINANCE_ANALYST";
@@ -178,3 +147,100 @@ apiClient.interceptors.request.use((config) => {
   }
   return config;
 });
+
+// ── Fleet (Vehicles) API ────────────────────────────────────────────────────
+
+export const fleetApi = {
+  listVehicles: (params?: Record<string, unknown>) =>
+    apiClient.get('/api/v1/fleet/vehicles', { params }),
+
+  getVehicle: (id: string) =>
+    apiClient.get(`/api/v1/fleet/vehicles/${id}`),
+
+  createVehicle: (data: Record<string, unknown>) =>
+    apiClient.post('/api/v1/fleet/vehicles', data),
+
+  updateVehicle: (id: string, data: Record<string, unknown>) =>
+    apiClient.patch(`/api/v1/fleet/vehicles/${id}`, data),
+
+  updateVehicleStatus: (id: string, data: Record<string, unknown>) =>
+    apiClient.patch(`/api/v1/fleet/vehicles/${id}/status`, data),
+
+  deleteVehicle: (id: string) =>
+    apiClient.delete(`/api/v1/fleet/vehicles/${id}`),
+
+  listVehicleTypes: () =>
+    apiClient.get('/api/v1/fleet/types'),
+
+  getVehicleMaintenanceLogs: (id: string) =>
+    apiClient.get(`/api/v1/fleet/vehicles/${id}/maintenance`),
+};
+
+// ── Drivers (HR) API ────────────────────────────────────────────────────────
+
+export const driversApi = {
+  listDrivers: (params?: Record<string, unknown>) =>
+    apiClient.get('/api/v1/drivers', { params }),
+
+  getDriver: (id: string) =>
+    apiClient.get(`/api/v1/drivers/${id}`),
+
+  createDriver: (data: Record<string, unknown>) =>
+    apiClient.post('/api/v1/drivers', data),
+
+  updateDriver: (id: string, data: Record<string, unknown>) =>
+    apiClient.patch(`/api/v1/drivers/${id}`, data),
+
+  updateDriverStatus: (id: string, data: Record<string, unknown>) =>
+    apiClient.patch(`/api/v1/drivers/${id}/status`, data),
+
+  adjustSafetyScore: (id: string, data: Record<string, unknown>) =>
+    apiClient.patch(`/api/v1/drivers/${id}/safety-score`, data),
+
+  deleteDriver: (id: string) =>
+    apiClient.delete(`/api/v1/drivers/${id}`),
+
+  getExpiringLicenses: () =>
+    apiClient.get('/api/v1/drivers/expiring'),
+};
+
+// ── Trips (Dispatch) API ────────────────────────────────────────────────────
+
+export const tripsApi = {
+  listTrips: (params?: Record<string, unknown>) =>
+    apiClient.get('/api/v1/trips', { params }),
+
+  getTrip: (id: string) =>
+    apiClient.get(`/api/v1/trips/${id}`),
+
+  createTrip: (data: Record<string, unknown>) =>
+    apiClient.post('/api/v1/trips', data),
+
+  updateTrip: (id: string, data: Record<string, unknown>) =>
+    apiClient.patch(`/api/v1/trips/${id}`, data),
+
+  transitionTrip: (id: string, data: Record<string, unknown>) =>
+    apiClient.patch(`/api/v1/trips/${id}/status`, data),
+
+  getTripLedger: (id: string) =>
+    apiClient.get(`/api/v1/trips/${id}/ledger`),
+};
+
+// ── Finance API ─────────────────────────────────────────────────────────────
+
+export const financeApi = {
+  createFuelLog: (data: Record<string, unknown>) =>
+    apiClient.post('/api/v1/finance/fuel', data),
+
+  listFuelLogs: (params?: Record<string, unknown>) =>
+    apiClient.get('/api/v1/finance/fuel', { params }),
+
+  createExpense: (data: Record<string, unknown>) =>
+    apiClient.post('/api/v1/finance/expenses', data),
+
+  listExpenses: (params?: Record<string, unknown>) =>
+    apiClient.get('/api/v1/finance/expenses', { params }),
+
+  createMaintenanceLog: (data: Record<string, unknown>) =>
+    apiClient.post('/api/v1/finance/maintenance', data),
+};
