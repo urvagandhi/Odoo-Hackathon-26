@@ -396,6 +396,89 @@ export class AnalyticsService {
 
         return [headers.join(','), ...rows].join('\n');
     }
+
+    // ─────────────────────────────────────────────────────────────
+    //  Driver Performance
+    // ─────────────────────────────────────────────────────────────
+
+    async getDriverPerformance(startDate?: Date, endDate?: Date) {
+        const dateFilter = startDate && endDate
+            ? { gte: startDate, lte: endDate }
+            : undefined;
+
+        const drivers = await prisma.driver.findMany({
+            where: { isDeleted: false },
+            select: {
+                id: true,
+                fullName: true,
+                licenseNumber: true,
+                status: true,
+                safetyScore: true,
+                licenseExpiryDate: true,
+                trips: {
+                    where: dateFilter ? { dispatchTime: dateFilter } : undefined,
+                    select: {
+                        id: true,
+                        status: true,
+                        distanceActual: true,
+                        revenue: true,
+                        dispatchTime: true,
+                        completionTime: true,
+                    },
+                },
+                incidents: {
+                    where: dateFilter ? { incidentDate: dateFilter } : undefined,
+                    select: { id: true, incidentType: true, status: true },
+                },
+            },
+            orderBy: { safetyScore: 'desc' },
+        });
+
+        return drivers.map((d) => {
+            const completed  = d.trips.filter((t) => t.status === 'COMPLETED');
+            const cancelled  = d.trips.filter((t) => t.status === 'CANCELLED');
+            const totalKm    = completed.reduce((sum, t) => sum + Number(t.distanceActual ?? 0), 0);
+            const totalRev   = completed.reduce((sum, t) => sum + Number(t.revenue ?? 0), 0);
+
+            // Average trip duration in hours (dispatched → completed)
+            const durations = completed
+                .filter((t) => t.dispatchTime && t.completionTime)
+                .map((t) => (t.completionTime!.getTime() - t.dispatchTime!.getTime()) / 3_600_000);
+            const avgDurationHrs = durations.length
+                ? durations.reduce((a, b) => a + b, 0) / durations.length
+                : null;
+
+            return {
+                driverId:          Number(d.id),
+                fullName:          d.fullName,
+                licenseNumber:     d.licenseNumber,
+                status:            d.status,
+                safetyScore:       Number(d.safetyScore),
+                licenseExpiryDate: d.licenseExpiryDate.toISOString().split('T')[0],
+                trips: {
+                    total:     d.trips.length,
+                    completed: completed.length,
+                    cancelled: cancelled.length,
+                    active:    d.trips.length - completed.length - cancelled.length,
+                },
+                performance: {
+                    totalKm:          Math.round(totalKm * 100) / 100,
+                    totalRevenue:     Math.round(totalRev * 100) / 100,
+                    avgTripDurationHrs: avgDurationHrs !== null
+                        ? Math.round(avgDurationHrs * 100) / 100
+                        : null,
+                },
+                incidents: {
+                    total:    d.incidents.length,
+                    open:     d.incidents.filter((i) => i.status === 'OPEN').length,
+                    byType:   d.incidents.reduce<Record<string, number>>((acc, i) => {
+                        acc[i.incidentType] = (acc[i.incidentType] ?? 0) + 1;
+                        return acc;
+                    }, {}),
+                },
+            };
+        });
+    }
 }
 
 export const analyticsService = new AnalyticsService();

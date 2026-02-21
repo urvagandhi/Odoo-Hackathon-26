@@ -54,6 +54,17 @@ export class AnalyticsController {
         } catch (err) { next(err); }
     }
 
+    async getDriverPerformance(req: Request, res: Response, next: NextFunction): Promise<void> {
+        try {
+            const { startDate, endDate } = DateRangeSchema.parse(req.query);
+            const data = await analyticsService.getDriverPerformance(
+                startDate ? new Date(startDate) : undefined,
+                endDate ? new Date(endDate) : undefined,
+            );
+            res.json({ success: true, data });
+        } catch (err) { next(err); }
+    }
+
     async exportCSV(req: Request, res: Response, next: NextFunction): Promise<void> {
         try {
             const { startDate, endDate } = CSVExportSchema.parse(req.query);

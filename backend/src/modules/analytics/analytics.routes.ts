@@ -39,6 +39,13 @@ analyticsRouter.get(
     analyticsController.getMonthlyReport.bind(analyticsController),
 );
 
+// GET /api/v1/analytics/driver-performance?startDate=...&endDate=...
+analyticsRouter.get(
+    '/driver-performance',
+    authorize([UserRole.MANAGER, UserRole.SAFETY_OFFICER]),
+    analyticsController.getDriverPerformance.bind(analyticsController),
+);
+
 // GET /api/v1/analytics/export/csv?startDate=...&endDate=...
 analyticsRouter.get(
     '/export/csv',
