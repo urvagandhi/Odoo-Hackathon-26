@@ -1,0 +1,63 @@
+# ── Node / Backend ────────────────────────────────────
+node_modules/
+dist/
+*.tsbuildinfo
+
+# ── Frontend ─────────────────────────────────────────
+dist-ssr/
+.cache/
+*.tgz
+
+# ── Vite ──────────────────────────────────────────────
+vite.config.*.timestamp-*
+
+# ── Environment ───────────────────────────────────────
+.env
+.env.local
+.env.*.local
+.env.development
+.env.staging
+.env.production
+
+# ── Security ──────────────────────────────────────────
+*.pem
+*.key
+*.cert
+*.p12
+
+# ── IDE ───────────────────────────────────────────────
+.vscode/
+.idea/
+*.swp
+*.swo
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*~
+.DS_Store
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# ── Docker / Volumes ──────────────────────────────────
+postgres_data/
+
+# ── Testing & Coverage ────────────────────────────────
+coverage/
+htmlcov/
+.jest-cache/
+
+# ── Logs ──────────────────────────────────────────────
+*.log
+logs/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# ── Database ─────────────────────────────────────────
+*.db
+*.sqlite3
+*.sqlite
