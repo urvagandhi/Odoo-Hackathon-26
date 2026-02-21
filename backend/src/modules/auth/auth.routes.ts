@@ -1,18 +1,39 @@
 import { Router } from 'express';
 import { UserRole } from '@prisma/client';
+import rateLimit from 'express-rate-limit';
 import { authController } from './auth.controller';
 import { authenticate } from '../../middleware/authenticate';
 import { authorize } from '../../middleware/authorize';
 
 export const authRouter = Router();
 
+// ── Rate limiters ─────────────────────────────────────────────────
+
+/** 5 login attempts per 15 minutes per IP */
+const loginLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 5,
+    message: { success: false, error_code: 'RATE_LIMIT_EXCEEDED', message: 'Too many login attempts. Please try again in 15 minutes.' },
+    standardHeaders: true,
+    legacyHeaders: false,
+});
+
+/** 3 forgot-password requests per 15 minutes per IP */
+const forgotPasswordLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 3,
+    message: { success: false, error_code: 'RATE_LIMIT_EXCEEDED', message: 'Too many password reset requests. Please try again later.' },
+    standardHeaders: true,
+    legacyHeaders: false,
+});
+
 // ── Public ────────────────────────────────────────────────────────
 
 // POST /api/v1/auth/login
-authRouter.post('/login', authController.login.bind(authController));
+authRouter.post('/login', loginLimiter, authController.login.bind(authController));
 
 // POST /api/v1/auth/forgot-password
-authRouter.post('/forgot-password', authController.forgotPassword.bind(authController));
+authRouter.post('/forgot-password', forgotPasswordLimiter, authController.forgotPassword.bind(authController));
 
 // POST /api/v1/auth/reset-password
 authRouter.post('/reset-password', authController.resetPassword.bind(authController));

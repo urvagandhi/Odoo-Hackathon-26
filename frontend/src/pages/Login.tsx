@@ -20,6 +20,7 @@ import {
   BarChart3,
   Shield,
   Zap,
+  KeyRound,
 } from "lucide-react";
 import { loginSchema } from "../validators/auth";
 import { useAuth } from "../context/AuthContext";
@@ -37,6 +38,7 @@ export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [serverError, setServerError] = useState<string | null>(null);
+  const [shake, setShake] = useState(false);
 
   const validateField = (field: "email" | "password", value: string) => {
     const result = loginSchema.shape[field].safeParse(value);
@@ -74,6 +76,8 @@ export default function Login() {
         if (field) fieldErrors[field] = issue.message;
       }
       setErrors(fieldErrors);
+      setShake(true);
+      setTimeout(() => setShake(false), 500);
       return;
     }
 
@@ -246,7 +250,12 @@ export default function Login() {
           )}
 
           {/* Form */}
-          <form onSubmit={handleSubmit} className="space-y-5">
+          <motion.form
+            onSubmit={handleSubmit}
+            className="space-y-5"
+            animate={shake ? { x: [0, -8, 8, -6, 6, -4, 4, 0] } : { x: 0 }}
+            transition={{ duration: 0.4 }}
+          >
             {/* Email */}
             <div>
               <label
@@ -270,21 +279,21 @@ export default function Login() {
                   placeholder="your@email.com"
                   className={`w-full pl-11 pr-4 py-3 rounded-xl text-sm focus:outline-none focus:ring-2 transition-all ${
                     isDark
-                      ? `bg-neutral-900 border text-white placeholder:text-neutral-600 ${
+                      ? `border text-white placeholder:text-neutral-600 ${
                           errors.email
-                            ? "border-red-500/50 focus:ring-red-500/40"
-                            : "border-neutral-800 focus:ring-emerald-500/40 focus:border-transparent"
+                            ? "bg-red-500/10 border-red-500/50 focus:ring-red-500/40"
+                            : "bg-neutral-900 border-neutral-800 focus:ring-emerald-500/40 focus:border-transparent"
                         }`
-                      : `bg-white border text-neutral-900 placeholder:text-neutral-400 ${
+                      : `border text-neutral-900 placeholder:text-neutral-400 ${
                           errors.email
-                            ? "border-red-300 focus:ring-red-500/30"
-                            : "border-neutral-300 focus:ring-emerald-500/30 focus:border-transparent"
+                            ? "bg-red-50 border-red-300 focus:ring-red-500/30"
+                            : "bg-white border-neutral-300 focus:ring-emerald-500/30 focus:border-transparent"
                         }`
                   }`}
                 />
               </div>
               {errors.email && (
-                <p className="mt-1.5 text-xs text-red-400">{errors.email}</p>
+                <p className={`mt-1.5 text-xs ${isDark ? "text-red-400" : "text-red-600"}`}>{errors.email}</p>
               )}
             </div>
 
@@ -319,15 +328,15 @@ export default function Login() {
                   placeholder="Enter password"
                   className={`w-full pl-11 pr-12 py-3 rounded-xl text-sm focus:outline-none focus:ring-2 transition-all ${
                     isDark
-                      ? `bg-neutral-900 border text-white placeholder:text-neutral-600 ${
+                      ? `border text-white placeholder:text-neutral-600 ${
                           errors.password
-                            ? "border-red-500/50 focus:ring-red-500/40"
-                            : "border-neutral-800 focus:ring-emerald-500/40 focus:border-transparent"
+                            ? "bg-red-500/10 border-red-500/50 focus:ring-red-500/40"
+                            : "bg-neutral-900 border-neutral-800 focus:ring-emerald-500/40 focus:border-transparent"
                         }`
-                      : `bg-white border text-neutral-900 placeholder:text-neutral-400 ${
+                      : `border text-neutral-900 placeholder:text-neutral-400 ${
                           errors.password
-                            ? "border-red-300 focus:ring-red-500/30"
-                            : "border-neutral-300 focus:ring-emerald-500/30 focus:border-transparent"
+                            ? "bg-red-50 border-red-300 focus:ring-red-500/30"
+                            : "bg-white border-neutral-300 focus:ring-emerald-500/30 focus:border-transparent"
                         }`
                   }`}
                 />
@@ -348,7 +357,7 @@ export default function Login() {
                 </button>
               </div>
               {errors.password && (
-                <p className="mt-1.5 text-xs text-red-400">{errors.password}</p>
+                <p className={`mt-1.5 text-xs ${isDark ? "text-red-400" : "text-red-600"}`}>{errors.password}</p>
               )}
             </div>
 
@@ -367,7 +376,7 @@ export default function Login() {
                 </>
               )}
             </button>
-          </form>
+          </motion.form>
 
           <p
             className={`mt-8 text-center text-xs ${
@@ -381,12 +390,12 @@ export default function Login() {
           <div className={`mt-6 rounded-xl p-4 border text-xs ${
             isDark ? "bg-neutral-900 border-neutral-800" : "bg-neutral-50 border-neutral-200"
           }`}>
-            <p className={`font-semibold mb-2 ${isDark ? "text-neutral-400" : "text-neutral-500"}`}>
-              🚀 Demo Credentials
+            <p className={`flex items-center gap-1.5 font-semibold mb-2 ${isDark ? "text-neutral-400" : "text-neutral-500"}`}>
+              <KeyRound className="w-3.5 h-3.5" />
+              Demo Credentials
             </p>
             <div className="space-y-1">
               {[
-                { role: "Super Admin",    email: "superadmin@fleetflow.io", pw: "FleetFlow@2025" },
                 { role: "Manager",        email: "manager@fleetflow.io",    pw: "FleetFlow@2025" },
                 { role: "Dispatcher",     email: "dispatcher@fleetflow.io", pw: "FleetFlow@2025" },
                 { role: "Safety Officer", email: "safety@fleetflow.io",     pw: "FleetFlow@2025" },

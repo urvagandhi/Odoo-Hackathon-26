@@ -8,7 +8,7 @@ const passwordSchema = z
 
 export const LoginSchema = z.object({
     email: z.string().email('Invalid email address'),
-    password: z.string().min(6, 'Password must be at least 6 characters'),
+    password: passwordSchema,
 });
 
 // Admin-only: create a new user with an explicit role assignment.

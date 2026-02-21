@@ -164,18 +164,18 @@ export class AuthService {
         }
 
         const token = crypto.randomBytes(32).toString('hex');
-        const expiry = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
+        const hashedToken = await bcrypt.hash(token, 10);
+        const expiry = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes
 
         await prisma.user.update({
             where: { id: user.id },
-            data: { resetToken: token, resetTokenExpiry: expiry },
+            data: { resetToken: hashedToken, resetTokenExpiry: expiry },
         });
 
         // NOTE: In production, send an email with the reset link instead.
-        // For development / hackathon, we return the token directly.
+        // For development / hackathon, we return the raw token directly.
         return {
             message: 'If an account with that email exists, a password reset link has been sent.',
-            // DEV ONLY — remove in production:
             resetToken: token,
         };
     }
@@ -184,12 +184,21 @@ export class AuthService {
      * Reset password — validates token, updates password, clears token.
      */
     async resetPassword(input: ResetPasswordInput) {
-        const user = await prisma.user.findFirst({
+        // Find all users with a non-expired reset token, then compare hashes
+        const candidates = await prisma.user.findMany({
             where: {
-                resetToken: input.token,
+                resetToken: { not: null },
                 resetTokenExpiry: { gt: new Date() },
             },
         });
+
+        let user: (typeof candidates)[0] | null = null;
+        for (const candidate of candidates) {
+            if (candidate.resetToken && await bcrypt.compare(input.token, candidate.resetToken)) {
+                user = candidate;
+                break;
+            }
+        }
 
         if (!user) {
             throw new ApiError(400, 'Invalid or expired reset token.');

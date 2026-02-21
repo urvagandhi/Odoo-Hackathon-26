@@ -50,10 +50,10 @@ export const router = createBrowserRouter([
     children: [
       { index: true, element: <Navigate to="/dashboard" replace /> },
       { path: "dashboard", element: <RoleDashboard /> },
-      { path: "dashboard/admin", element: <AdminDashboard /> },
-      { path: "dashboard/dispatcher", element: <DispatcherDashboard /> },
-      { path: "dashboard/safety", element: <SafetyOfficerDashboard /> },
-      { path: "dashboard/finance", element: <FinanceDashboard /> },
+      { path: "dashboard/admin", element: <ProtectedRoute roles={["MANAGER"]}><AdminDashboard /></ProtectedRoute> },
+      { path: "dashboard/dispatcher", element: <ProtectedRoute roles={["DISPATCHER", "MANAGER"]}><DispatcherDashboard /></ProtectedRoute> },
+      { path: "dashboard/safety", element: <ProtectedRoute roles={["SAFETY_OFFICER", "MANAGER"]}><SafetyOfficerDashboard /></ProtectedRoute> },
+      { path: "dashboard/finance", element: <ProtectedRoute roles={["FINANCE_ANALYST", "MANAGER"]}><FinanceDashboard /></ProtectedRoute> },
 
       // ── Domain pages ─────────────────────────────────────
       { path: "fleet/vehicles", element: <VehicleRegistry /> },
