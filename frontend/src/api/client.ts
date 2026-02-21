@@ -241,8 +241,36 @@ export const financeApi = {
   listExpenses: (params?: Record<string, unknown>) =>
     apiClient.get('/api/v1/finance/expenses', { params }),
 
+  listMaintenanceLogs: (params?: Record<string, unknown>) =>
+    apiClient.get('/api/v1/finance/maintenance', { params }),
+
   createMaintenanceLog: (data: Record<string, unknown>) =>
     apiClient.post('/api/v1/finance/maintenance', data),
+
+  closeMaintenanceLog: (id: string) =>
+    apiClient.patch(`/api/v1/finance/maintenance/${id}/close`),
+};
+
+// ── Analytics API ───────────────────────────────────────────────────────────
+
+export const analyticsApi = {
+  getDashboardKPIs: () =>
+    apiClient.get('/api/v1/analytics/kpi'),
+
+  getFuelEfficiency: (params?: Record<string, unknown>) =>
+    apiClient.get('/api/v1/analytics/fuel-efficiency', { params }),
+
+  getVehicleROI: (params?: Record<string, unknown>) =>
+    apiClient.get('/api/v1/analytics/roi', { params }),
+
+  getMonthlyReport: (params?: Record<string, unknown>) =>
+    apiClient.get('/api/v1/analytics/monthly', { params }),
+
+  getDriverPerformance: (params?: Record<string, unknown>) =>
+    apiClient.get('/api/v1/analytics/driver-performance', { params }),
+
+  exportCSV: (params: Record<string, unknown>) =>
+    apiClient.get('/api/v1/analytics/export/csv', { params, responseType: 'blob' }),
 };
 
 // ── Analytics API ────────────────────────────────────────────────────────────

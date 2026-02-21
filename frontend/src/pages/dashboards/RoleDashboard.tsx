@@ -1,8 +1,9 @@
 /**
  * RoleDashboard — routes to the correct dashboard based on the current user's role.
+ * SUPER_ADMIN / MANAGER now use the real-data CommandCenter.
  */
 import { useAuth } from "../../hooks/useAuth";
-import AdminDashboard from "./AdminDashboard";
+import CommandCenter from "../CommandCenter";
 import DispatcherDashboard from "./DispatcherDashboard";
 import SafetyOfficerDashboard from "./SafetyOfficerDashboard";
 import FinanceDashboard from "./FinanceDashboard";
@@ -13,7 +14,7 @@ export default function RoleDashboard() {
   switch (user?.role) {
     case "SUPER_ADMIN":
     case "MANAGER":
-      return <AdminDashboard />;
+      return <CommandCenter />;
     case "DISPATCHER":
       return <DispatcherDashboard />;
     case "SAFETY_OFFICER":
@@ -21,6 +22,6 @@ export default function RoleDashboard() {
     case "FINANCE_ANALYST":
       return <FinanceDashboard />;
     default:
-      return <AdminDashboard />;
+      return <CommandCenter />;
   }
 }

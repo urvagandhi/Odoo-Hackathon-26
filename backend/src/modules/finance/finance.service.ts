@@ -72,6 +72,10 @@ export class FinanceService {
                 ...(vehicleId ? { vehicleId } : {}),
                 ...(tripId ? { tripId } : {}),
             },
+            include: {
+                vehicle: { select: { id: true, licensePlate: true, make: true, model: true } },
+                trip: { select: { id: true, origin: true, destination: true, status: true } },
+            },
             orderBy: { loggedAt: 'desc' },
         });
     }
@@ -117,7 +121,23 @@ export class FinanceService {
                 ...(vehicleId ? { vehicleId } : {}),
                 ...(tripId ? { tripId } : {}),
             },
+            include: {
+                vehicle: { select: { id: true, licensePlate: true, make: true, model: true } },
+                trip: { select: { id: true, origin: true, destination: true, status: true } },
+            },
             orderBy: { dateLogged: 'desc' },
+        });
+    }
+
+    async listMaintenanceLogs(vehicleId?: bigint) {
+        return prisma.maintenanceLog.findMany({
+            where: {
+                ...(vehicleId ? { vehicleId } : {}),
+            },
+            include: {
+                vehicle: { select: { id: true, licensePlate: true, make: true, model: true, status: true } },
+            },
+            orderBy: { serviceDate: 'desc' },
         });
     }
 

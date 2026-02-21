@@ -15,6 +15,10 @@ import { RoleDashboard, AdminDashboard, DispatcherDashboard, SafetyOfficerDashbo
 import VehicleRegistry from "../pages/VehicleRegistry";
 import DriverManagement from "../pages/DriverManagement";
 import TripDispatcher from "../pages/TripDispatcher";
+import Maintenance from "../pages/Maintenance";
+import Expenses from "../pages/Expenses";
+import CommandCenter from "../pages/CommandCenter";
+import Analytics from "../pages/Analytics";
 import ComingSoon from "../pages/ComingSoon";
 
 export const router = createBrowserRouter([
@@ -50,18 +54,18 @@ export const router = createBrowserRouter([
 
       // ── Domain pages ─────────────────────────────────────
       { path: "fleet/vehicles", element: <VehicleRegistry /> },
+      { path: "fleet/maintenance", element: <Maintenance /> },
       { path: "dispatch/trips", element: <TripDispatcher /> },
       { path: "dispatch/new", element: <ComingSoon /> },
       { path: "hr/drivers", element: <DriverManagement /> },
       { path: "hr/performance", element: <ComingSoon /> },
-      { path: "fleet/maintenance", element: <ComingSoon /> },
-      { path: "finance/fuel", element: <ComingSoon /> },
-      { path: "finance/expenses", element: <ComingSoon /> },
+      { path: "finance/fuel", element: <Expenses /> },
+      { path: "finance/expenses", element: <Expenses /> },
       { path: "finance/ledger", element: <ComingSoon /> },
       { path: "finance/reports", element: <ComingSoon /> },
       { path: "finance/pnl", element: <ComingSoon /> },
       { path: "finance/cost-analysis", element: <ComingSoon /> },
-      { path: "analytics", element: <ComingSoon /> },
+      { path: "analytics", element: <Analytics /> },
       { path: "safety/licenses", element: <ComingSoon /> },
       { path: "safety/reports", element: <ComingSoon /> },
       { path: "notifications", element: <ComingSoon /> },
