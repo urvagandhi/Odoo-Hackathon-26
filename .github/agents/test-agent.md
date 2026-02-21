@@ -1,13 +1,12 @@
 ---
 name: test-agent
-description: Testing & Quality Assurance specialist ensuring robust validation, edge case handling, security checks, performance testing, and logical correctness across all layers of the FastAPI + React application.
+description: Testing & Quality Assurance specialist ensuring robust validation, edge case handling, security checks, performance testing, and logical correctness across all layers of the Express.js + React application.
 ---
 
 # Test Agent
 
 <!--
-HACKATHON_TOPIC: [INSERT PROBLEM STATEMENT HERE ON DAY OF EVENT]
-Example: "Placement Management System for College Recruitment"
+HACKATHON_TOPIC: FleetFlow – Modular Fleet & Logistics Management System
 
 CRITICAL REQUIREMENT: The app MUST NOT CRASH during the demo.
 -->
@@ -44,16 +43,17 @@ You produce **reliable, fast, maintainable, and security-conscious** tests that 
 
 ### Files You READ
 
-- `backend/app/**/*.py` (routes, services, models, schemas)
+- `backend/src/**/*.ts` (routes, services, middleware, validators)
 - `frontend/src/**/*.{ts,tsx}` (components, hooks, pages)
 - `backend/tests/**/*`
 - `frontend/src/**/*.test.{ts,tsx}`
-- `vite.config.ts`, `backend/alembic.ini`
+- `vite.config.ts`, `backend/prisma/schema.prisma`
 
 ### Files You WRITE
 
-- `backend/tests/test_*.py`
-- `backend/tests/conftest.py`
+- `backend/tests/**/*.test.ts`
+- `backend/tests/setup.ts`
+- `backend/tests/helpers/**/*`
 - `frontend/src/**/*.test.{ts,tsx}`
 - `tests/fixtures/**/*`
 - `tests/mocks/**/*`
@@ -64,29 +64,29 @@ You produce **reliable, fast, maintainable, and security-conscious** tests that 
 
 ### Tech Stack (HARDCODED)
 
-| Layer            | Technology                                 |
-| ---------------- | ------------------------------------------ |
-| Backend          | Python 3.11 + FastAPI                      |
-| ORM              | SQLAlchemy 2.0 + Alembic                   |
-| Validation       | Pydantic v2 (backend) + Zod v4 (frontend)  |
-| Frontend         | React 19 + TypeScript + Vite               |
-| Styling          | Tailwind CSS v4                            |
-| Database         | PostgreSQL 16 (SQLite in-memory for tests) |
-| Backend Testing  | PyTest + TestClient + in-memory SQLite     |
-| Frontend Testing | Jest + React Testing Library               |
-| E2E Testing      | Playwright                                 |
-| Infra            | Docker Compose                             |
+| Layer            | Technology                        |
+| ---------------- | --------------------------------- |
+| Backend          | Node.js 22 + Express.js 5         |
+| ORM              | Prisma ORM + Prisma Migrate       |
+| Validation       | Zod (backend) + Zod v4 (frontend) |
+| Frontend         | React 19 + TypeScript + Vite      |
+| Styling          | Tailwind CSS v4                   |
+| Database         | PostgreSQL 16                     |
+| Backend Testing  | Jest + Supertest                  |
+| Frontend Testing | Vitest + React Testing Library    |
+| E2E Testing      | Playwright                        |
+| Infra            | Docker Compose                    |
 
 ### Folder Responsibilities
 
 ```
 backend/tests/
-├── conftest.py           → PyTest fixtures (test DB, TestClient)
-├── test_items.py         → Item CRUD endpoint tests
-├── test_auth.py          → Auth flow tests (login, register, JWT)
-├── test_security.py      → Security-specific test cases
-├── test_performance.py   → Performance and pagination tests
-└── __init__.py
+├── setup.ts              → Jest setup (test DB, Prisma reset)
+├── helpers/              → Test utilities, factories, fixtures
+├── items.test.ts         → Item CRUD endpoint tests
+├── auth.test.ts          → Auth flow tests (login, register, JWT)
+├── security.test.ts      → Security-specific test cases
+└── performance.test.ts   → Performance and pagination tests
 
 frontend/src/
 ├── **/*.test.tsx         → Component and hook tests
@@ -100,49 +100,49 @@ frontend/src/
 ### Run All Backend Tests
 
 ```bash
-cd backend && pytest
+cd backend && npm test
 ```
 
 ### Run Backend Tests (Verbose)
 
 ```bash
-cd backend && pytest -v --tb=short
+cd backend && npm test -- --verbose
 ```
 
 ### Stop on First Failure
 
 ```bash
-cd backend && pytest -x
+cd backend && npm test -- --bail
 ```
 
 ### Run Specific Test File
 
 ```bash
-cd backend && pytest tests/test_items.py
+cd backend && npm test -- tests/items.test.ts
 ```
 
 ### Run Matching Tests
 
 ```bash
-cd backend && pytest -k "test_create"
+cd backend && npm test -- -t "create"
 ```
 
 ### Run Security Tests Only
 
 ```bash
-cd backend && pytest tests/test_security.py -v
+cd backend && npm test -- tests/security.test.ts --verbose
 ```
 
 ### Run Performance Tests Only
 
 ```bash
-cd backend && pytest tests/test_performance.py -v
+cd backend && npm test -- tests/performance.test.ts --verbose
 ```
 
 ### Backend Coverage Report
 
 ```bash
-cd backend && pytest --cov=app --cov-report=html
+cd backend && npm test -- --coverage
 ```
 
 ### Run Frontend Tests
@@ -154,7 +154,7 @@ cd frontend && npm test
 ### Frontend Tests (CI mode)
 
 ```bash
-cd frontend && npm test -- --watchAll=false
+cd frontend && npm test -- --run
 ```
 
 ### Frontend Coverage
@@ -189,30 +189,44 @@ Every function that contains business logic MUST have explicit unit tests coveri
 | ---------------- | ----------------------------------------------------------------- |
 | Validation logic | Valid inputs pass; invalid inputs raise correct errors            |
 | Service logic    | Correct return values, correct DB calls, rollback on failure      |
-| Edge cases       | Empty strings, `None`, zero, negative numbers, max-length values  |
+| Edge cases       | Empty strings, `null`, zero, negative numbers, max-length values  |
 | Email format     | Valid RFC-5322 emails pass; missing `@`, double dots, spaces fail |
 
-```python
-# ✅ Good: Unit tests for email validation service
-class TestEmailValidation:
-    def test_valid_email_passes(self):
-        assert validate_email("user@example.com") is True
+```typescript
+// ✅ Good: Unit tests for email validation
+describe("Email validation", () => {
+  it("accepts valid email", () => {
+    const result = userCreateSchema.safeParse({
+      email: "user@example.com",
+      password: "SecurePass1!",
+    });
+    expect(result.success).toBe(true);
+  });
 
-    def test_missing_at_symbol_fails(self):
-        assert validate_email("useremail.com") is False
+  it("rejects missing @ symbol", () => {
+    const result = userCreateSchema.safeParse({
+      email: "useremail.com",
+      password: "SecurePass1!",
+    });
+    expect(result.success).toBe(false);
+  });
 
-    def test_double_dot_in_domain_fails(self):
-        assert validate_email("user@exam..ple.com") is False
+  it("rejects empty string", () => {
+    const result = userCreateSchema.safeParse({
+      email: "",
+      password: "SecurePass1!",
+    });
+    expect(result.success).toBe(false);
+  });
 
-    def test_leading_space_fails(self):
-        assert validate_email(" user@example.com") is False
-
-    def test_empty_string_fails(self):
-        assert validate_email("") is False
-
-    def test_none_raises_type_error(self):
-        with pytest.raises(TypeError):
-            validate_email(None)
+  it("rejects leading space", () => {
+    const result = userCreateSchema.safeParse({
+      email: " user@example.com",
+      password: "SecurePass1!",
+    });
+    expect(result.success).toBe(false);
+  });
+});
 ```
 
 ### 2. Integration Tests
@@ -226,34 +240,41 @@ class TestEmailValidation:
 | Error scenarios   | 404, 409, 422, 500 responses and their bodies    |
 | Concurrent access | Duplicate record prevention under race condition |
 
-```python
-# ✅ Good: Integration test for auth flow
-class TestAuthFlow:
-    def test_register_and_login_success(self, client):
-        # Register
-        reg = client.post("/auth/register", json={
-            "email": "test@example.com", "password": "SecurePass123!"
-        })
-        assert reg.status_code == 201
+```typescript
+// ✅ Good: Integration test for auth flow using Supertest
+import request from "supertest";
+import { app } from "../src/index";
 
-        # Login
-        login = client.post("/auth/login", json={
-            "email": "test@example.com", "password": "SecurePass123!"
-        })
-        assert login.status_code == 200
-        assert "access_token" in login.json()["data"]
-        assert "refresh_token" in login.json()["data"]
+describe("Auth Flow", () => {
+  it("registers and logs in successfully", async () => {
+    // Register
+    const reg = await request(app)
+      .post("/api/v1/auth/register")
+      .send({ email: "test@example.com", password: "SecurePass123!" });
+    expect(reg.status).toBe(201);
 
-    def test_login_with_nonexistent_email_returns_401(self, client):
-        res = client.post("/auth/login", json={
-            "email": "ghost@example.com", "password": "any"
-        })
-        assert res.status_code == 401
-        assert res.json()["error_code"] == "INVALID_CREDENTIALS"
+    // Login
+    const login = await request(app)
+      .post("/api/v1/auth/login")
+      .send({ email: "test@example.com", password: "SecurePass123!" });
+    expect(login.status).toBe(200);
+    expect(login.body.data).toHaveProperty("accessToken");
+    expect(login.body.data).toHaveProperty("refreshToken");
+  });
 
-    def test_protected_route_without_token_returns_401(self, client):
-        res = client.get("/users/me")
-        assert res.status_code == 401
+  it("returns 401 for nonexistent email", async () => {
+    const res = await request(app)
+      .post("/api/v1/auth/login")
+      .send({ email: "ghost@example.com", password: "any" });
+    expect(res.status).toBe(401);
+    expect(res.body.error_code).toBe("INVALID_CREDENTIALS");
+  });
+
+  it("returns 401 for protected route without token", async () => {
+    const res = await request(app).get("/api/v1/users/me");
+    expect(res.status).toBe(401);
+  });
+});
 ```
 
 ### 3. Security Tests
@@ -271,95 +292,110 @@ class TestAuthFlow:
 | Mass assignment         | Extra unexpected fields ignored, not stored            |
 | Rate limit              | Repeated login attempts trigger `429`                  |
 
-```python
-# ✅ Good: Security test cases
-class TestSecurityVulnerabilities:
-    SQL_INJECTION_PAYLOADS = [
-        "' OR '1'='1",
-        "'; DROP TABLE users; --",
-        "1 UNION SELECT * FROM users--",
-        "\" OR \"\"=\"",
-    ]
+```typescript
+// ✅ Good: Security test cases
+import request from "supertest";
+import { app } from "../src/index";
 
-    @pytest.mark.parametrize("payload", SQL_INJECTION_PAYLOADS)
-    def test_sql_injection_in_email_field(self, client, payload):
-        res = client.post("/auth/login", json={
-            "email": payload, "password": "anything"
-        })
-        # Must not return 200 or 500 — only 422 or 401
-        assert res.status_code in (401, 422)
+describe("Security Vulnerabilities", () => {
+  const SQL_INJECTION_PAYLOADS = [
+    "' OR '1'='1",
+    "'; DROP TABLE users; --",
+    "1 UNION SELECT * FROM users--",
+    '" OR ""="',
+  ];
 
-    def test_duplicate_email_registration_returns_409(self, client):
-        data = {"email": "dup@example.com", "password": "StrongPass1!"}
-        client.post("/auth/register", json=data)
-        res = client.post("/auth/register", json=data)
-        assert res.status_code == 409
-        assert res.json()["error_code"] == "EMAIL_ALREADY_EXISTS"
+  it.each(SQL_INJECTION_PAYLOADS)(
+    "rejects SQL injection payload: %s",
+    async (payload) => {
+      const res = await request(app)
+        .post("/api/v1/auth/login")
+        .send({ email: payload, password: "anything" });
+      expect([401, 422]).toContain(res.status);
+    },
+  );
 
-    def test_expired_jwt_returns_401(self, client, expired_token):
-        res = client.get("/users/me", headers={"Authorization": f"Bearer {expired_token}"})
-        assert res.status_code == 401
-        assert res.json()["error_code"] == "TOKEN_EXPIRED"
+  it("returns 409 for duplicate email registration", async () => {
+    const data = { email: "dup@example.com", password: "StrongPass1!" };
+    await request(app).post("/api/v1/auth/register").send(data);
+    const res = await request(app).post("/api/v1/auth/register").send(data);
+    expect(res.status).toBe(409);
+    expect(res.body.error_code).toBe("EMAIL_ALREADY_EXISTS");
+  });
 
-    def test_forged_jwt_returns_401(self, client):
-        forged = "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxIn0.FORGED_SIGNATURE"
-        res = client.get("/users/me", headers={"Authorization": f"Bearer {forged}"})
-        assert res.status_code == 401
+  it("returns 401 for forged JWT", async () => {
+    const forged = "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxIn0.FORGED_SIGNATURE";
+    const res = await request(app)
+      .get("/api/v1/users/me")
+      .set("Authorization", `Bearer ${forged}`);
+    expect(res.status).toBe(401);
+  });
 
-    def test_missing_required_field_returns_422(self, client):
-        res = client.post("/auth/register", json={"email": "no-password@example.com"})
-        assert res.status_code == 422
-        body = res.json()
-        assert body["success"] is False
-        assert body["error_code"] == "VALIDATION_ERROR"
-        assert any(d["field"] == "body.password" for d in body["details"])
+  it("returns 422 when required field missing", async () => {
+    const res = await request(app)
+      .post("/api/v1/auth/register")
+      .send({ email: "no-password@example.com" });
+    expect(res.status).toBe(422);
+    expect(res.body.success).toBe(false);
+    expect(res.body.error_code).toBe("VALIDATION_ERROR");
+    expect(res.body.details.some((d: any) => d.field === "password")).toBe(
+      true,
+    );
+  });
+});
 ```
 
 ### 4. Performance Tests
 
 **Scope**: Large dataset retrieval, pagination behaviour, API response time.
 
-| Category          | Test Case                                                           |
-| ----------------- | ------------------------------------------------------------------- |
-| Large datasets    | Retrieve 1000+ records — must respond < 500ms                       |
-| Pagination        | Page 1 returns correct `page_size`; last page has `has_next: false` |
-| Cursor pagination | `last_id`-based cursor returns correct next page                    |
-| API response time | Core endpoints must respond < 200ms with empty DB                   |
-| DB N+1 detection  | Query count stays constant regardless of result set size            |
+| Category          | Test Case                                                         |
+| ----------------- | ----------------------------------------------------------------- |
+| Large datasets    | Retrieve 1000+ records — must respond < 500ms                     |
+| Pagination        | Page 1 returns correct `pageSize`; last page has `hasNext: false` |
+| Cursor pagination | Cursor-based pagination returns correct next page                 |
+| API response time | Core endpoints must respond < 200ms with empty DB                 |
 
-```python
-# ✅ Good: Performance and pagination tests
-import time
+```typescript
+// ✅ Good: Performance and pagination tests
+import request from "supertest";
+import { app } from "../src/index";
 
-class TestPerformance:
-    def test_list_endpoint_responds_within_500ms_for_1000_records(self, client, seed_1000_items):
-        start = time.perf_counter()
-        res = client.get("/items?limit=20")
-        elapsed = time.perf_counter() - start
-        assert res.status_code == 200
-        assert elapsed < 0.5, f"Response took {elapsed:.2f}s — too slow"
+describe("Performance", () => {
+  it("responds within 500ms for paginated list", async () => {
+    const start = performance.now();
+    const res = await request(app).get("/api/v1/items?take=20");
+    const elapsed = performance.now() - start;
+    expect(res.status).toBe(200);
+    expect(elapsed).toBeLessThan(500);
+  });
 
-    def test_pagination_returns_correct_page_size(self, client, seed_1000_items):
-        res = client.get("/items?page=1&page_size=20")
-        assert res.status_code == 200
-        data = res.json()
-        assert len(data["data"]) == 20
-        assert data["meta"]["page_size"] == 20
+  it("returns correct page size", async () => {
+    const res = await request(app).get("/api/v1/items?take=20");
+    expect(res.status).toBe(200);
+    expect(res.body.data.length).toBeLessThanOrEqual(20);
+  });
 
-    def test_last_page_has_no_next(self, client, seed_5_items):
-        res = client.get("/items?page=1&page_size=10")
-        assert res.json()["meta"]["has_next"] is False
+  it("cursor pagination produces no duplicates", async () => {
+    const seenIds = new Set<number>();
+    let cursor: number | undefined;
 
-    def test_cursor_pagination_no_duplicates(self, client, seed_50_items):
-        seen_ids = set()
-        last_id = 0
-        for _ in range(3):  # Fetch 3 pages
-            res = client.get(f"/items?last_id={last_id}&limit=20")
-            ids = [item["id"] for item in res.json()["data"]]
-            assert not seen_ids.intersection(ids), "Duplicate items across pages"
-            seen_ids.update(ids)
-            if ids:
-                last_id = max(ids)
+    for (let i = 0; i < 3; i++) {
+      const url = cursor
+        ? `/api/v1/items?take=20&cursor=${cursor}`
+        : "/api/v1/items?take=20";
+      const res = await request(app).get(url);
+      const ids: number[] = res.body.data.map((item: any) => item.id);
+
+      for (const id of ids) {
+        expect(seenIds.has(id)).toBe(false);
+        seenIds.add(id);
+      }
+
+      if (ids.length > 0) cursor = ids[ids.length - 1];
+    }
+  });
+});
 ```
 
 ### 5. UX Tests
@@ -378,7 +414,7 @@ class TestPerformance:
 
 ```typescript
 // ✅ Good: UX test with React Testing Library
-import { render, screen, fireEvent, waitFor } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import LoginForm from "../pages/Login";
 
@@ -390,26 +426,22 @@ describe("LoginForm — Validation UX", () => {
   });
 
   it("does not call the API when form is invalid", async () => {
-    const mockLogin = jest.fn();
+    const mockLogin = vi.fn();
     render(<LoginForm onSubmit={mockLogin} />);
     await userEvent.click(screen.getByRole("button", { name: /sign in/i }));
     expect(mockLogin).not.toHaveBeenCalled();
   });
 
   it("shows error toast on 401 response", async () => {
-    // Mock API to return 401
     render(<LoginForm />);
     await userEvent.type(screen.getByLabelText(/email/i), "bad@example.com");
     await userEvent.type(screen.getByLabelText(/password/i), "wrongpass");
     await userEvent.click(screen.getByRole("button", { name: /sign in/i }));
-    await waitFor(() =>
-      expect(screen.getByRole("alert")).toHaveTextContent(/invalid credentials/i)
-    );
+    expect(await screen.findByRole("alert")).toHaveTextContent(/invalid credentials/i);
   });
 
   it("disables submit button while request is in flight", async () => {
     render(<LoginForm />);
-    // Trigger loading state
     const btn = screen.getByRole("button", { name: /sign in/i });
     await userEvent.click(btn);
     expect(btn).toBeDisabled();
@@ -429,7 +461,7 @@ Enumerate every test case: name, type (unit/integration/security/performance/UX)
 
 ### 2. Edge Cases
 
-List non-obvious inputs: boundary values, empty strings, `None`/`null`, max-length, special characters, Unicode.
+List non-obvious inputs: boundary values, empty strings, `null`/`undefined`, max-length, special characters, Unicode.
 
 ### 3. Failure Cases
 
@@ -444,9 +476,7 @@ Show the exact JSON shape the test asserts against:
   "success": false,
   "error_code": "VALIDATION_ERROR",
   "message": "Invalid request data",
-  "details": [
-    { "field": "body.email", "message": "value is not a valid email address" }
-  ]
+  "details": [{ "field": "email", "message": "Invalid email address" }]
 }
 ```
 
@@ -485,17 +515,6 @@ describe("calculateDiscount", () => {
     });
   });
 
-  describe("when user is not a member", () => {
-    it("applies no discount", () => {
-      const order = { total: 100, userId: "user-2" };
-      const user = { id: "user-2", tier: "standard" };
-
-      const result = calculateDiscount(order, user);
-
-      expect(result.discount).toBe(0);
-    });
-  });
-
   describe("edge cases", () => {
     it("handles zero total gracefully", () => {
       const order = { total: 0, userId: "user-1" };
@@ -527,40 +546,40 @@ test("discount works", () => {
 });
 ```
 
-### ✅ Good: API Integration Test (PyTest + TestClient)
+### ✅ Good: API Integration Test (Jest + Supertest)
 
-```python
-"""Tests for the Items CRUD endpoints."""
+```typescript
+import request from "supertest";
+import { app } from "../src/index";
 
-class TestCreateItem:
-    def test_create_item_success(self, client):
-        response = client.post("/items", json={"name": "Test Item", "description": "A test"})
-        assert response.status_code == 201
-        data = response.json()
-        assert data["name"] == "Test Item"
-        assert data["description"] == "A test"
-        assert "id" in data
-        assert "created_at" in data
+describe("Items CRUD", () => {
+  it("creates an item successfully", async () => {
+    const res = await request(app)
+      .post("/api/v1/items")
+      .send({ name: "Test Item", description: "A test" });
+    expect(res.status).toBe(201);
+    expect(res.body.data.name).toBe("Test Item");
+    expect(res.body.data).toHaveProperty("id");
+    expect(res.body.data).toHaveProperty("createdAt");
+  });
 
-    def test_create_item_without_description(self, client):
-        response = client.post("/items", json={"name": "No Desc"})
-        assert response.status_code == 201
-        assert response.json()["description"] is None
+  it("returns 422 for empty name", async () => {
+    const res = await request(app)
+      .post("/api/v1/items")
+      .send({ name: "", description: "Bad" });
+    expect(res.status).toBe(422);
+  });
 
-    def test_create_item_empty_name_fails(self, client):
-        response = client.post("/items", json={"name": "", "description": "Bad"})
-        assert response.status_code == 422
+  it("deletes an item and confirms 404", async () => {
+    const created = await request(app)
+      .post("/api/v1/items")
+      .send({ name: "Delete Me" });
+    const id = created.body.data.id;
 
-
-class TestDeleteItem:
-    def test_delete_item_success(self, client):
-        create_resp = client.post("/items", json={"name": "Delete Me"})
-        item_id = create_resp.json()["id"]
-        response = client.delete(f"/items/{item_id}")
-        assert response.status_code == 204
-        # Verify it's gone
-        get_resp = client.get(f"/items/{item_id}")
-        assert get_resp.status_code == 404
+    await request(app).delete(`/api/v1/items/${id}`).expect(204);
+    await request(app).get(`/api/v1/items/${id}`).expect(404);
+  });
+});
 ```
 
 ### ✅ Good: E2E Test (Playwright)
@@ -646,7 +665,7 @@ Use the pattern: `[unit under test]_[scenario]_[expected result]`
 // Function: validateEmail
 // Scenario: email is missing @ symbol
 // Expected: returns false
-test("validateEmail_whenMissingAtSymbol_returnsFalse", () => {
+it("validateEmail rejects email missing @ symbol", () => {
   expect(validateEmail("invalidemail.com")).toBe(false);
 });
 ```

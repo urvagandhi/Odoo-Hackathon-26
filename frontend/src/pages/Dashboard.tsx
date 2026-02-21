@@ -143,13 +143,13 @@ export default function Dashboard() {
               <QuickLink 
                 title="Swagger UI" 
                 desc="Interactive API documentation"
-                href="http://localhost:8000/docs" 
+                href="http://localhost:5000/docs" 
                 external 
               />
               <QuickLink 
                 title="ReDoc" 
                 desc="Alternative API reference"
-                href="http://localhost:8000/redoc" 
+                href="http://localhost:5000/redoc" 
                 external 
               />
               <QuickLink 

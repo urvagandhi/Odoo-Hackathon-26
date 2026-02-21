@@ -1,32 +1,11 @@
-# ── Python ────────────────────────────────────────────
-__pycache__/
-*.py[cod]
-*.pyo
-*.egg-info/
-*.egg
-dist/
-build/
-.eggs/
-*.so
-pip-wheel-metadata/
-.venv/
-venv/
-env/
-
-# ── Database / SQLite (used by pytest + aiosqlite) ────
-*.db
-*.sqlite3
-*.sqlite
-
-# ── Alembic ───────────────────────────────────────────
-# migration scripts are tracked; only ignore compiled cache
-alembic/__pycache__/
-
-# ── Node / Frontend ───────────────────────────────────
+# ── Node / Backend ────────────────────────────────────
 node_modules/
+dist/
+*.tsbuildinfo
+
+# ── Frontend ─────────────────────────────────────────
 dist-ssr/
 .cache/
-*.tsbuildinfo
 *.tgz
 
 # ── Vite ──────────────────────────────────────────────
@@ -67,10 +46,7 @@ postgres_data/
 # ── Testing & Coverage ────────────────────────────────
 coverage/
 htmlcov/
-.coverage
-.coverage.*
-.pytest_cache/
-.tox/
+.jest-cache/
 
 # ── Logs ──────────────────────────────────────────────
 *.log
@@ -80,3 +56,8 @@ yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
+
+# ── Database ─────────────────────────────────────────
+*.db
+*.sqlite3
+*.sqlite

@@ -6,8 +6,7 @@ description: Senior UI/UX Engineering Agent responsible for clean & responsive U
 # UI/UX Agent
 
 <!--
-HACKATHON_TOPIC: [INSERT PROBLEM STATEMENT HERE ON DAY OF EVENT]
-Example: "Placement Management System for College Recruitment"
+HACKATHON_TOPIC: FleetFlow – Modular Fleet & Logistics Management System
 
 CRITICAL: This agent handles ONLY frontend UI/UX. It does NOT touch backend logic, database schemas, or API contracts.
 -->
@@ -66,9 +65,9 @@ You produce **psychologically responsive, visually disciplined, production-polis
 
 - `backend/**/*`
 - `docker-compose.yml`
-- `backend/app/routes/**/*`
-- `backend/app/models/**/*`
-- `backend/app/schemas/**/*`
+- `backend/src/routes/**/*`
+- `backend/prisma/schema.prisma`
+- `backend/src/validators/**/*`
 - Any `.env` or database configuration
 
 ---
@@ -77,17 +76,17 @@ You produce **psychologically responsive, visually disciplined, production-polis
 
 ### Tech Stack (HARDCODED)
 
-| Layer       | Technology                                            |
-| ----------- | ----------------------------------------------------- |
-| Frontend    | React 19 + TypeScript                                 |
-| Bundler     | Vite 7                                                |
-| Styling     | Tailwind CSS v4 (via `@tailwindcss/vite`)             |
-| Routing     | React Router v7 (`createBrowserRouter`)               |
-| Validation  | Zod v4                                                |
-| HTTP Client | Axios                                                 |
-| Animation   | Framer Motion + CSS transitions                       |
-| Icons       | Lucide React (NO emojis anywhere)                     |
-| Backend     | Python 3.11 + FastAPI (via REST, read-only reference) |
+| Layer       | Technology                                              |
+| ----------- | ------------------------------------------------------- |
+| Frontend    | React 19 + TypeScript                                   |
+| Bundler     | Vite 7                                                  |
+| Styling     | Tailwind CSS v4 (via `@tailwindcss/vite`)               |
+| Routing     | React Router v7 (`createBrowserRouter`)                 |
+| Validation  | Zod v4                                                  |
+| HTTP Client | Axios                                                   |
+| Animation   | Framer Motion + CSS transitions                         |
+| Icons       | Lucide React (NO emojis anywhere)                       |
+| Backend     | Node.js 22 + Express.js (via REST, read-only reference) |
 
 ### Folder Responsibilities
 
