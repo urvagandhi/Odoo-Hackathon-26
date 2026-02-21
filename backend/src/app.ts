@@ -3,9 +3,11 @@ import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
 import rateLimit from 'express-rate-limit';
+import swaggerUi from 'swagger-ui-express';
 
 import { env } from './config/env';
 import { errorHandler } from './middleware/errorHandler';
+import { swaggerSpec } from './config/swagger';
 
 // Module routers
 import { authRouter } from './modules/auth/auth.routes';
@@ -14,6 +16,7 @@ import { dispatchRouter } from './modules/dispatch/dispatch.routes';
 import { hrRouter } from './modules/hr/hr.routes';
 import { financeRouter } from './modules/finance/finance.routes';
 import { locationsRouter } from './modules/locations/locations.routes';
+import { analyticsRouter } from './modules/analytics/analytics.routes';
 
 export function createApp(): Application {
     const app = express();
@@ -66,6 +69,21 @@ export function createApp(): Application {
         });
     });
 
+    // ── Swagger UI — GET /api/docs ────────────────────────────────
+    // Helmet sets a strict CSP globally; override it for the docs route
+    // so Swagger UI can load its inline scripts and styles.
+    app.use('/api/docs', (_req: Request, res: Response, next: NextFunction) => {
+        res.setHeader(
+            'Content-Security-Policy',
+            "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:;",
+        );
+        next();
+    });
+    app.use('/api/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
+        customSiteTitle: 'FleetFlow API Docs',
+        swaggerOptions: { persistAuthorization: true },
+    }));
+
     // ── API v1 Routes ─────────────────────────────────────────────
     const v1 = '/api/v1';
     app.use(`${v1}/auth`, authRouter);
@@ -74,6 +92,7 @@ export function createApp(): Application {
     app.use(`${v1}/drivers`, hrRouter);
     app.use(`${v1}/finance`, financeRouter);
     app.use(`${v1}/locations`, locationsRouter);
+    app.use(`${v1}/analytics`, analyticsRouter);
 
     // ── 404 catch-all ─────────────────────────────────────────────
     app.use((req: Request, res: Response) => {

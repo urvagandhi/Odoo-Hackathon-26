@@ -1,335 +1,467 @@
--- CreateEnum
+-- ─────────────────────────────────────────────────────────────────
+--  FleetFlow — Initial Database Migration
+--  Snake_case columns throughout (Prisma @map decorators align TS
+--  camelCase field names to these snake_case PostgreSQL columns).
+--  Includes:
+--    • CHECK constraints for all business-rule validations
+--    • fn_set_updated_at() trigger for automatic updated_at stamping
+--    • Partial indexes for soft-delete dispatch pool queries
+-- ─────────────────────────────────────────────────────────────────
+
+-- ── Enums ─────────────────────────────────────────────────────────
 CREATE TYPE "UserRole" AS ENUM ('SUPER_ADMIN', 'MANAGER', 'DISPATCHER', 'SAFETY_OFFICER', 'FINANCE_ANALYST');
-
--- CreateEnum
 CREATE TYPE "VehicleType" AS ENUM ('TRUCK', 'VAN', 'BIKE', 'PLANE');
-
--- CreateEnum
 CREATE TYPE "VehicleStatus" AS ENUM ('AVAILABLE', 'ON_TRIP', 'IN_SHOP', 'RETIRED');
-
--- CreateEnum
 CREATE TYPE "DriverStatus" AS ENUM ('ON_DUTY', 'OFF_DUTY', 'ON_TRIP', 'SUSPENDED');
-
--- CreateEnum
 CREATE TYPE "TripStatus" AS ENUM ('DRAFT', 'DISPATCHED', 'COMPLETED', 'CANCELLED');
-
--- CreateEnum
 CREATE TYPE "ExpenseCategory" AS ENUM ('TOLL', 'LODGING', 'MAINTENANCE_EN_ROUTE', 'MISC');
-
--- CreateEnum
 CREATE TYPE "AuditAction" AS ENUM ('CREATE', 'UPDATE', 'DELETE');
 
--- CreateTable
-CREATE TABLE "users" (
-    "id" BIGSERIAL NOT NULL,
-    "email" TEXT NOT NULL,
-    "passwordHash" TEXT NOT NULL,
-    "fullName" TEXT NOT NULL,
-    "role" "UserRole" NOT NULL DEFAULT 'DISPATCHER',
-    "isActive" BOOLEAN NOT NULL DEFAULT true,
-    "createdAt" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMPTZ NOT NULL,
+-- ── updated_at trigger function ───────────────────────────────────
+-- Applied to all mutable tables so the DB itself keeps updated_at
+-- current even if Prisma's @updatedAt behaviour is bypassed (e.g.
+-- raw SQL migrations or direct DB operations).
+CREATE OR REPLACE FUNCTION fn_set_updated_at()
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.updated_at = NOW();
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
 
-    CONSTRAINT "users_pkey" PRIMARY KEY ("id")
+-- ── Table: users ──────────────────────────────────────────────────
+CREATE TABLE "users" (
+    "id"            BIGSERIAL       NOT NULL,
+    "email"         TEXT            NOT NULL,
+    "password_hash" TEXT            NOT NULL,
+    "full_name"     TEXT            NOT NULL,
+    "role"          "UserRole"      NOT NULL DEFAULT 'DISPATCHER',
+    "is_active"     BOOLEAN         NOT NULL DEFAULT true,
+    "created_at"    TIMESTAMPTZ     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at"    TIMESTAMPTZ     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "users_pkey" PRIMARY KEY ("id"),
+    CONSTRAINT "chk_users_email_format"
+        CHECK ("email" ~* '^[A-Za-z0-9._%+\-]+@[A-Za-z0-9.\-]+\.[A-Za-z]{2,}$'),
+    CONSTRAINT "chk_users_password_hash_len"
+        CHECK (char_length("password_hash") >= 60),
+    CONSTRAINT "chk_users_full_name_nonempty"
+        CHECK (char_length(trim("full_name")) > 0)
 );
 
--- CreateTable
+CREATE TRIGGER "trg_users_updated_at"
+    BEFORE UPDATE ON "users"
+    FOR EACH ROW EXECUTE FUNCTION fn_set_updated_at();
+
+-- ── Table: vehicle_types ──────────────────────────────────────────
 CREATE TABLE "vehicle_types" (
-    "id" BIGSERIAL NOT NULL,
-    "name" "VehicleType" NOT NULL,
+    "id"          BIGSERIAL       NOT NULL,
+    "name"        "VehicleType"   NOT NULL,
     "description" TEXT,
-    "createdAt" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "created_at"  TIMESTAMPTZ     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at"  TIMESTAMPTZ     NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "vehicle_types_pkey" PRIMARY KEY ("id")
 );
 
--- CreateTable
+CREATE TRIGGER "trg_vehicle_types_updated_at"
+    BEFORE UPDATE ON "vehicle_types"
+    FOR EACH ROW EXECUTE FUNCTION fn_set_updated_at();
+
+-- ── Table: vehicles ───────────────────────────────────────────────
 CREATE TABLE "vehicles" (
-    "id" BIGSERIAL NOT NULL,
-    "licensePlate" TEXT NOT NULL,
-    "make" TEXT NOT NULL,
-    "model" TEXT NOT NULL,
-    "year" INTEGER NOT NULL,
-    "color" TEXT,
-    "vin" TEXT,
-    "vehicleTypeId" BIGINT NOT NULL,
-    "status" "VehicleStatus" NOT NULL DEFAULT 'AVAILABLE',
-    "currentOdometer" DECIMAL(15,2) NOT NULL DEFAULT 0,
-    "capacityWeight" DECIMAL(10,2),
-    "capacityVolume" DECIMAL(10,2),
-    "isDeleted" BOOLEAN NOT NULL DEFAULT false,
-    "deletedAt" TIMESTAMPTZ,
-    "createdAt" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMPTZ NOT NULL,
+    "id"               BIGSERIAL       NOT NULL,
+    "license_plate"    TEXT            NOT NULL,
+    "make"             TEXT            NOT NULL,
+    "model"            TEXT            NOT NULL,
+    "year"             INTEGER         NOT NULL,
+    "color"            TEXT,
+    "vin"              TEXT,
+    "vehicle_type_id"  BIGINT          NOT NULL,
+    "status"           "VehicleStatus" NOT NULL DEFAULT 'AVAILABLE',
+    "current_odometer" DECIMAL(15,2)   NOT NULL DEFAULT 0,
+    "capacity_weight"  DECIMAL(10,2),
+    "capacity_volume"  DECIMAL(10,2),
+    "is_deleted"       BOOLEAN         NOT NULL DEFAULT false,
+    "deleted_at"       TIMESTAMPTZ,
+    "created_at"       TIMESTAMPTZ     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at"       TIMESTAMPTZ     NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
-    CONSTRAINT "vehicles_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "vehicles_pkey" PRIMARY KEY ("id"),
+    CONSTRAINT "chk_vehicles_year_range"
+        CHECK ("year" BETWEEN 1900 AND 2100),
+    CONSTRAINT "chk_vehicles_odometer_non_negative"
+        CHECK ("current_odometer" >= 0),
+    CONSTRAINT "chk_vehicles_capacity_weight_pos"
+        CHECK ("capacity_weight" IS NULL OR "capacity_weight" > 0),
+    CONSTRAINT "chk_vehicles_capacity_volume_pos"
+        CHECK ("capacity_volume" IS NULL OR "capacity_volume" > 0),
+    CONSTRAINT "chk_vehicles_make_nonempty"
+        CHECK (char_length(trim("make")) > 0),
+    CONSTRAINT "chk_vehicles_model_nonempty"
+        CHECK (char_length(trim("model")) > 0)
 );
 
--- CreateTable
+CREATE TRIGGER "trg_vehicles_updated_at"
+    BEFORE UPDATE ON "vehicles"
+    FOR EACH ROW EXECUTE FUNCTION fn_set_updated_at();
+
+-- ── Table: drivers ────────────────────────────────────────────────
 CREATE TABLE "drivers" (
-    "id" BIGSERIAL NOT NULL,
-    "licenseNumber" TEXT NOT NULL,
-    "fullName" TEXT NOT NULL,
-    "phone" TEXT,
-    "email" TEXT,
-    "dateOfBirth" DATE,
-    "licenseExpiryDate" DATE NOT NULL,
-    "licenseClass" TEXT,
-    "status" "DriverStatus" NOT NULL DEFAULT 'OFF_DUTY',
-    "safetyScore" DECIMAL(5,2) NOT NULL DEFAULT 100,
-    "isDeleted" BOOLEAN NOT NULL DEFAULT false,
-    "deletedAt" TIMESTAMPTZ,
-    "createdAt" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMPTZ NOT NULL,
+    "id"                  BIGSERIAL       NOT NULL,
+    "license_number"      TEXT            NOT NULL,
+    "full_name"           TEXT            NOT NULL,
+    "phone"               TEXT,
+    "email"               TEXT,
+    "date_of_birth"       DATE,
+    "license_expiry_date" DATE            NOT NULL,
+    "license_class"       TEXT,
+    "status"              "DriverStatus"  NOT NULL DEFAULT 'OFF_DUTY',
+    "safety_score"        DECIMAL(5,2)    NOT NULL DEFAULT 100,
+    "is_deleted"          BOOLEAN         NOT NULL DEFAULT false,
+    "deleted_at"          TIMESTAMPTZ,
+    "created_at"          TIMESTAMPTZ     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at"          TIMESTAMPTZ     NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
-    CONSTRAINT "drivers_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "drivers_pkey" PRIMARY KEY ("id"),
+    CONSTRAINT "chk_drivers_safety_score_range"
+        CHECK ("safety_score" BETWEEN 0 AND 100),
+    CONSTRAINT "chk_drivers_full_name_nonempty"
+        CHECK (char_length(trim("full_name")) > 0),
+    CONSTRAINT "chk_drivers_license_number_nonempty"
+        CHECK (char_length(trim("license_number")) > 0)
 );
 
--- CreateTable
+CREATE TRIGGER "trg_drivers_updated_at"
+    BEFORE UPDATE ON "drivers"
+    FOR EACH ROW EXECUTE FUNCTION fn_set_updated_at();
+
+-- ── Table: trips ──────────────────────────────────────────────────
 CREATE TABLE "trips" (
-    "id" BIGSERIAL NOT NULL,
-    "vehicleId" BIGINT NOT NULL,
-    "driverId" BIGINT NOT NULL,
-    "origin" TEXT NOT NULL,
-    "destination" TEXT NOT NULL,
-    "distanceEstimated" DECIMAL(10,2) NOT NULL,
-    "distanceActual" DECIMAL(10,2),
-    "cargoWeight" DECIMAL(10,2),
-    "cargoDescription" TEXT,
-    "odometerStart" DECIMAL(15,2),
-    "odometerEnd" DECIMAL(15,2),
-    "revenue" DECIMAL(15,2),
-    "clientName" TEXT,
-    "invoiceReference" TEXT,
-    "status" "TripStatus" NOT NULL DEFAULT 'DRAFT',
-    "dispatchTime" TIMESTAMPTZ,
-    "completionTime" TIMESTAMPTZ,
-    "cancelledReason" TEXT,
-    "createdAt" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMPTZ NOT NULL,
+    "id"                 BIGSERIAL       NOT NULL,
+    "vehicle_id"         BIGINT          NOT NULL,
+    "driver_id"          BIGINT          NOT NULL,
+    "origin"             TEXT            NOT NULL,
+    "destination"        TEXT            NOT NULL,
+    "distance_estimated" DECIMAL(10,2)   NOT NULL,
+    "distance_actual"    DECIMAL(10,2),
+    "cargo_weight"       DECIMAL(10,2),
+    "cargo_description"  TEXT,
+    "odometer_start"     DECIMAL(15,2),
+    "odometer_end"       DECIMAL(15,2),
+    "revenue"            DECIMAL(15,2),
+    "client_name"        TEXT,
+    "invoice_reference"  TEXT,
+    "status"             "TripStatus"    NOT NULL DEFAULT 'DRAFT',
+    "dispatch_time"      TIMESTAMPTZ,
+    "completion_time"    TIMESTAMPTZ,
+    "cancelled_reason"   TEXT,
+    "created_at"         TIMESTAMPTZ     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at"         TIMESTAMPTZ     NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
-    CONSTRAINT "trips_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "trips_pkey" PRIMARY KEY ("id"),
+    CONSTRAINT "chk_trips_distance_estimated_pos"
+        CHECK ("distance_estimated" > 0),
+    CONSTRAINT "chk_trips_distance_actual_pos"
+        CHECK ("distance_actual" IS NULL OR "distance_actual" > 0),
+    CONSTRAINT "chk_trips_cargo_weight_pos"
+        CHECK ("cargo_weight" IS NULL OR "cargo_weight" > 0),
+    CONSTRAINT "chk_trips_revenue_non_negative"
+        CHECK ("revenue" IS NULL OR "revenue" >= 0),
+    CONSTRAINT "chk_trips_odometer_range"
+        CHECK ("odometer_end" IS NULL OR "odometer_start" IS NULL OR "odometer_end" >= "odometer_start"),
+    CONSTRAINT "chk_trips_origin_nonempty"
+        CHECK (char_length(trim("origin")) > 0),
+    CONSTRAINT "chk_trips_destination_nonempty"
+        CHECK (char_length(trim("destination")) > 0),
+    -- Cross-column temporal integrity: completion must be after dispatch
+    CONSTRAINT "chk_trips_completion_after_dispatch"
+        CHECK ("completion_time" IS NULL OR "dispatch_time" IS NULL OR "completion_time" >= "dispatch_time")
 );
 
--- CreateTable
+CREATE TRIGGER "trg_trips_updated_at"
+    BEFORE UPDATE ON "trips"
+    FOR EACH ROW EXECUTE FUNCTION fn_set_updated_at();
+
+-- ── Table: fuel_logs ──────────────────────────────────────────────
 CREATE TABLE "fuel_logs" (
-    "id" BIGSERIAL NOT NULL,
-    "vehicleId" BIGINT NOT NULL,
-    "tripId" BIGINT,
-    "liters" DECIMAL(10,2) NOT NULL,
-    "costPerLiter" DECIMAL(10,4) NOT NULL,
-    "totalCost" DECIMAL(15,2) NOT NULL,
-    "odometerAtFill" DECIMAL(15,2) NOT NULL,
-    "fuelStation" TEXT,
-    "loggedAt" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "createdAt" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "id"               BIGSERIAL       NOT NULL,
+    "vehicle_id"       BIGINT          NOT NULL,
+    "trip_id"          BIGINT,
+    "liters"           DECIMAL(10,2)   NOT NULL,
+    "cost_per_liter"   DECIMAL(10,4)   NOT NULL,
+    "total_cost"       DECIMAL(15,2)   NOT NULL,
+    "odometer_at_fill" DECIMAL(15,2)   NOT NULL,
+    "fuel_station"     TEXT,
+    "logged_at"        TIMESTAMPTZ     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "created_at"       TIMESTAMPTZ     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at"       TIMESTAMPTZ     NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
-    CONSTRAINT "fuel_logs_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "fuel_logs_pkey" PRIMARY KEY ("id"),
+    CONSTRAINT "chk_fuel_logs_liters_pos"
+        CHECK ("liters" > 0),
+    CONSTRAINT "chk_fuel_logs_cost_per_liter_pos"
+        CHECK ("cost_per_liter" > 0),
+    CONSTRAINT "chk_fuel_logs_total_cost_pos"
+        CHECK ("total_cost" > 0),
+    CONSTRAINT "chk_fuel_logs_odometer_non_negative"
+        CHECK ("odometer_at_fill" >= 0)
 );
 
--- CreateTable
+CREATE TRIGGER "trg_fuel_logs_updated_at"
+    BEFORE UPDATE ON "fuel_logs"
+    FOR EACH ROW EXECUTE FUNCTION fn_set_updated_at();
+
+-- ── Table: maintenance_logs ───────────────────────────────────────
 CREATE TABLE "maintenance_logs" (
-    "id" BIGSERIAL NOT NULL,
-    "vehicleId" BIGINT NOT NULL,
-    "serviceType" TEXT NOT NULL,
-    "description" TEXT,
-    "cost" DECIMAL(15,2) NOT NULL,
-    "odometerAtService" DECIMAL(15,2) NOT NULL,
-    "technicianName" TEXT,
-    "shopName" TEXT,
-    "serviceDate" TIMESTAMPTZ NOT NULL,
-    "nextServiceDue" TIMESTAMPTZ,
-    "createdAt" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "id"                  BIGSERIAL       NOT NULL,
+    "vehicle_id"          BIGINT          NOT NULL,
+    "service_type"        TEXT            NOT NULL,
+    "description"         TEXT,
+    "cost"                DECIMAL(15,2)   NOT NULL,
+    "odometer_at_service" DECIMAL(15,2)   NOT NULL,
+    "technician_name"     TEXT,
+    "shop_name"           TEXT,
+    "service_date"        TIMESTAMPTZ     NOT NULL,
+    "next_service_due"    TIMESTAMPTZ,
+    "created_at"          TIMESTAMPTZ     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at"          TIMESTAMPTZ     NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
-    CONSTRAINT "maintenance_logs_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "maintenance_logs_pkey" PRIMARY KEY ("id"),
+    CONSTRAINT "chk_maintenance_cost_non_negative"
+        CHECK ("cost" >= 0),
+    CONSTRAINT "chk_maintenance_odometer_non_negative"
+        CHECK ("odometer_at_service" >= 0),
+    CONSTRAINT "chk_maintenance_service_type_nonempty"
+        CHECK (char_length(trim("service_type")) > 0),
+    -- Cross-column temporal integrity: next service must be after service date
+    CONSTRAINT "chk_maintenance_next_due_after_service"
+        CHECK ("next_service_due" IS NULL OR "next_service_due" > "service_date")
 );
 
--- CreateTable
+CREATE TRIGGER "trg_maintenance_logs_updated_at"
+    BEFORE UPDATE ON "maintenance_logs"
+    FOR EACH ROW EXECUTE FUNCTION fn_set_updated_at();
+
+-- ── Table: expenses ───────────────────────────────────────────────
 CREATE TABLE "expenses" (
-    "id" BIGSERIAL NOT NULL,
-    "vehicleId" BIGINT NOT NULL,
-    "tripId" BIGINT,
-    "amount" DECIMAL(15,2) NOT NULL,
-    "category" "ExpenseCategory" NOT NULL,
-    "description" TEXT,
-    "loggedByUserId" BIGINT,
-    "dateLogged" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "createdAt" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "id"                BIGSERIAL           NOT NULL,
+    "vehicle_id"        BIGINT              NOT NULL,
+    "trip_id"           BIGINT,
+    "amount"            DECIMAL(15,2)       NOT NULL,
+    "category"          "ExpenseCategory"   NOT NULL,
+    "description"       TEXT,
+    "logged_by_user_id" BIGINT,
+    "date_logged"       TIMESTAMPTZ         NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "created_at"        TIMESTAMPTZ         NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at"        TIMESTAMPTZ         NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
-    CONSTRAINT "expenses_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "expenses_pkey" PRIMARY KEY ("id"),
+    CONSTRAINT "chk_expenses_amount_non_negative"
+        CHECK ("amount" >= 0)
 );
 
--- CreateTable
+CREATE TRIGGER "trg_expenses_updated_at"
+    BEFORE UPDATE ON "expenses"
+    FOR EACH ROW EXECUTE FUNCTION fn_set_updated_at();
+
+-- ── Table: vehicle_locations ──────────────────────────────────────
 CREATE TABLE "vehicle_locations" (
-    "id" BIGSERIAL NOT NULL,
-    "vehicleId" BIGINT NOT NULL,
-    "latitude" DECIMAL(10,7) NOT NULL,
-    "longitude" DECIMAL(11,7) NOT NULL,
-    "speed" DECIMAL(6,2),
-    "heading" DECIMAL(5,2),
-    "accuracy" DECIMAL(6,2),
-    "recordedAt" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "id"          BIGSERIAL       NOT NULL,
+    "vehicle_id"  BIGINT          NOT NULL,
+    "latitude"    DECIMAL(10,7)   NOT NULL,
+    "longitude"   DECIMAL(11,7)   NOT NULL,
+    "speed"       DECIMAL(6,2),
+    "heading"     DECIMAL(5,2),
+    "accuracy"    DECIMAL(6,2),
+    "recorded_at" TIMESTAMPTZ     NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
-    CONSTRAINT "vehicle_locations_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "vehicle_locations_pkey" PRIMARY KEY ("id"),
+    CONSTRAINT "chk_vehicle_locations_latitude_range"
+        CHECK ("latitude" BETWEEN -90 AND 90),
+    CONSTRAINT "chk_vehicle_locations_longitude_range"
+        CHECK ("longitude" BETWEEN -180 AND 180),
+    CONSTRAINT "chk_vehicle_locations_speed_non_negative"
+        CHECK ("speed" IS NULL OR "speed" >= 0),
+    CONSTRAINT "chk_vehicle_locations_heading_range"
+        CHECK ("heading" IS NULL OR "heading" BETWEEN 0 AND 360),
+    CONSTRAINT "chk_vehicle_locations_accuracy_non_negative"
+        CHECK ("accuracy" IS NULL OR "accuracy" >= 0)
 );
 
--- CreateTable
+-- ── Table: audit_logs ─────────────────────────────────────────────
 CREATE TABLE "audit_logs" (
-    "id" BIGSERIAL NOT NULL,
-    "userId" BIGINT,
-    "entity" TEXT NOT NULL,
-    "entityId" BIGINT NOT NULL,
-    "action" "AuditAction" NOT NULL,
-    "oldValues" JSONB,
-    "newValues" JSONB,
-    "reason" TEXT,
-    "ipAddress" TEXT,
-    "userAgent" TEXT,
-    "timestamp" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "id"          BIGSERIAL       NOT NULL,
+    "user_id"     BIGINT,
+    "entity"      TEXT            NOT NULL,
+    "entity_id"   BIGINT          NOT NULL,
+    "action"      "AuditAction"   NOT NULL,
+    "old_values"  JSONB,
+    "new_values"  JSONB,
+    "reason"      TEXT,
+    "ip_address"  TEXT,
+    "user_agent"  TEXT,
+    "timestamp"   TIMESTAMPTZ     NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
-    CONSTRAINT "audit_logs_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "audit_logs_pkey" PRIMARY KEY ("id"),
+    CONSTRAINT "chk_audit_logs_entity_nonempty"
+        CHECK (char_length(trim("entity")) > 0)
 );
 
--- CreateIndex
-CREATE UNIQUE INDEX "users_email_key" ON "users"("email");
+-- ─────────────────────────────────────────────────────────────────
+--  Unique indexes
+-- ─────────────────────────────────────────────────────────────────
+CREATE UNIQUE INDEX "users_email_key"              ON "users"("email");
+CREATE UNIQUE INDEX "vehicle_types_name_key"       ON "vehicle_types"("name");
+CREATE UNIQUE INDEX "vehicles_license_plate_key"   ON "vehicles"("license_plate");
+CREATE UNIQUE INDEX "vehicles_vin_key"             ON "vehicles"("vin");
+CREATE UNIQUE INDEX "drivers_license_number_key"   ON "drivers"("license_number");
+CREATE UNIQUE INDEX "drivers_email_key"            ON "drivers"("email");
+CREATE UNIQUE INDEX "trips_invoice_reference_key"  ON "trips"("invoice_reference");
 
--- CreateIndex
-CREATE INDEX "users_email_idx" ON "users"("email");
+-- ─────────────────────────────────────────────────────────────────
+--  Standard indexes (hot query paths)
+-- ─────────────────────────────────────────────────────────────────
+CREATE INDEX "users_email_idx"       ON "users"("email");
+CREATE INDEX "users_role_idx"        ON "users"("role");
+CREATE INDEX "users_is_active_idx"   ON "users"("is_active");
 
--- CreateIndex
-CREATE INDEX "users_role_idx" ON "users"("role");
+CREATE INDEX "vehicles_status_idx"            ON "vehicles"("status");
+CREATE INDEX "vehicles_is_deleted_idx"        ON "vehicles"("is_deleted");
+CREATE INDEX "vehicles_vehicle_type_id_idx"   ON "vehicles"("vehicle_type_id");
+CREATE INDEX "vehicles_status_is_deleted_idx" ON "vehicles"("status", "is_deleted");
 
--- CreateIndex
-CREATE INDEX "users_isActive_idx" ON "users"("isActive");
+CREATE INDEX "drivers_status_idx"              ON "drivers"("status");
+CREATE INDEX "drivers_is_deleted_idx"          ON "drivers"("is_deleted");
+CREATE INDEX "drivers_license_expiry_date_idx" ON "drivers"("license_expiry_date");
+CREATE INDEX "drivers_status_is_deleted_idx"   ON "drivers"("status", "is_deleted");
 
--- CreateIndex
-CREATE UNIQUE INDEX "vehicle_types_name_key" ON "vehicle_types"("name");
+CREATE INDEX "trips_vehicle_id_status_idx" ON "trips"("vehicle_id", "status");
+CREATE INDEX "trips_driver_id_status_idx"  ON "trips"("driver_id", "status");
+CREATE INDEX "trips_status_idx"            ON "trips"("status");
+CREATE INDEX "trips_created_at_idx"        ON "trips"("created_at");
+CREATE INDEX "trips_dispatch_time_idx"     ON "trips"("dispatch_time");
 
--- CreateIndex
-CREATE UNIQUE INDEX "vehicles_licensePlate_key" ON "vehicles"("licensePlate");
+CREATE INDEX "fuel_logs_vehicle_id_idx" ON "fuel_logs"("vehicle_id");
+CREATE INDEX "fuel_logs_trip_id_idx"    ON "fuel_logs"("trip_id");
+CREATE INDEX "fuel_logs_logged_at_idx"  ON "fuel_logs"("logged_at");
 
--- CreateIndex
-CREATE UNIQUE INDEX "vehicles_vin_key" ON "vehicles"("vin");
+CREATE INDEX "maintenance_logs_vehicle_id_idx"   ON "maintenance_logs"("vehicle_id");
+CREATE INDEX "maintenance_logs_service_date_idx" ON "maintenance_logs"("service_date");
 
--- CreateIndex
-CREATE INDEX "vehicles_status_idx" ON "vehicles"("status");
+CREATE INDEX "expenses_vehicle_id_idx"        ON "expenses"("vehicle_id");
+CREATE INDEX "expenses_trip_id_idx"           ON "expenses"("trip_id");
+CREATE INDEX "expenses_category_idx"          ON "expenses"("category");
+CREATE INDEX "expenses_date_logged_idx"       ON "expenses"("date_logged");
+-- logged_by_user_id is a denormalized FK (no join needed for audit speed)
+-- but must be indexed per agent rule: "never define FK without @@index on the column"
+CREATE INDEX "expenses_logged_by_user_id_idx" ON "expenses"("logged_by_user_id");
 
--- CreateIndex
-CREATE INDEX "vehicles_isDeleted_idx" ON "vehicles"("isDeleted");
+-- vehicle_locations: composite B-Tree for primary "latest ping per vehicle" query
+CREATE INDEX "vehicle_locations_vehicle_id_recorded_at_idx"
+    ON "vehicle_locations"("vehicle_id", "recorded_at" DESC);
+-- vehicle_locations: BRIN for time-range scans — append-only, naturally ordered table.
+-- BRIN stores min/max per 128-page block range. Orders of magnitude smaller than B-Tree.
+-- Ideal for "all pings in the last hour" without caring about vehicle_id.
+CREATE INDEX "vehicle_locations_recorded_at_brin_idx"
+    ON "vehicle_locations" USING BRIN ("recorded_at");
 
--- CreateIndex
-CREATE INDEX "vehicles_vehicleTypeId_idx" ON "vehicles"("vehicleTypeId");
+CREATE INDEX "audit_logs_user_id_idx"          ON "audit_logs"("user_id");
+CREATE INDEX "audit_logs_entity_entity_id_idx" ON "audit_logs"("entity", "entity_id");
+CREATE INDEX "audit_logs_entity_idx"           ON "audit_logs"("entity");
+-- audit_logs: BRIN for timestamp-range audit lookups — immutable append-only table,
+-- records always inserted in timestamp order. BRIN << B-Tree in size at 10M+ rows.
+CREATE INDEX "audit_logs_timestamp_brin_idx"   ON "audit_logs" USING BRIN ("timestamp");
 
--- CreateIndex
-CREATE INDEX "vehicles_status_isDeleted_idx" ON "vehicles"("status", "isDeleted");
+-- ─────────────────────────────────────────────────────────────────
+--  Partial indexes — Dispatcher hot paths
+--  Filters out soft-deleted rows at the index level so the planner
+--  never touches deleted records when building dispatch pools.
+-- ─────────────────────────────────────────────────────────────────
+CREATE INDEX "vehicles_active_dispatch_pool_idx"
+    ON "vehicles"("status")
+    WHERE "is_deleted" = false;
 
--- CreateIndex
-CREATE UNIQUE INDEX "drivers_licenseNumber_key" ON "drivers"("licenseNumber");
+CREATE INDEX "vehicles_available_pool_idx"
+    ON "vehicles"("id")
+    WHERE "is_deleted" = false AND "status" = 'AVAILABLE';
 
--- CreateIndex
-CREATE UNIQUE INDEX "drivers_email_key" ON "drivers"("email");
+CREATE INDEX "drivers_active_dispatch_pool_idx"
+    ON "drivers"("status")
+    WHERE "is_deleted" = false;
 
--- CreateIndex
-CREATE INDEX "drivers_status_idx" ON "drivers"("status");
+CREATE INDEX "drivers_on_duty_pool_idx"
+    ON "drivers"("id")
+    WHERE "is_deleted" = false AND "status" = 'ON_DUTY';
 
--- CreateIndex
-CREATE INDEX "drivers_isDeleted_idx" ON "drivers"("isDeleted");
+-- ─────────────────────────────────────────────────────────────────
+--  Covering indexes — enable index-only scans (no heap access)
+--  Agent spec: "INCLUDE extra columns to enable index-only scans"
+-- ─────────────────────────────────────────────────────────────────
 
--- CreateIndex
-CREATE INDEX "drivers_licenseExpiryDate_idx" ON "drivers"("licenseExpiryDate");
+-- Dispatch board loads all DRAFT/DISPATCHED trips; INCLUDE avoids heap fetch
+-- for the most common dashboard read: status filter + vehicle/driver/route display.
+CREATE INDEX "trips_dispatch_board_covering_idx"
+    ON "trips"("status") INCLUDE ("vehicle_id", "driver_id", "origin", "destination", "revenue")
+    WHERE "status" IN ('DRAFT', 'DISPATCHED');
 
--- CreateIndex
-CREATE INDEX "drivers_status_isDeleted_idx" ON "drivers"("status", "isDeleted");
+-- ─────────────────────────────────────────────────────────────────
+--  Foreign Keys
+-- ─────────────────────────────────────────────────────────────────
+ALTER TABLE "vehicles"
+    ADD CONSTRAINT "vehicles_vehicle_type_id_fkey"
+    FOREIGN KEY ("vehicle_type_id") REFERENCES "vehicle_types"("id")
+    ON DELETE RESTRICT ON UPDATE CASCADE;
 
--- CreateIndex
-CREATE UNIQUE INDEX "trips_invoiceReference_key" ON "trips"("invoiceReference");
+ALTER TABLE "trips"
+    ADD CONSTRAINT "trips_vehicle_id_fkey"
+    FOREIGN KEY ("vehicle_id") REFERENCES "vehicles"("id")
+    ON DELETE RESTRICT ON UPDATE CASCADE;
 
--- CreateIndex
-CREATE INDEX "trips_vehicleId_status_idx" ON "trips"("vehicleId", "status");
+ALTER TABLE "trips"
+    ADD CONSTRAINT "trips_driver_id_fkey"
+    FOREIGN KEY ("driver_id") REFERENCES "drivers"("id")
+    ON DELETE RESTRICT ON UPDATE CASCADE;
 
--- CreateIndex
-CREATE INDEX "trips_driverId_status_idx" ON "trips"("driverId", "status");
+ALTER TABLE "fuel_logs"
+    ADD CONSTRAINT "fuel_logs_vehicle_id_fkey"
+    FOREIGN KEY ("vehicle_id") REFERENCES "vehicles"("id")
+    ON DELETE RESTRICT ON UPDATE CASCADE;
 
--- CreateIndex
-CREATE INDEX "trips_status_idx" ON "trips"("status");
+ALTER TABLE "fuel_logs"
+    ADD CONSTRAINT "fuel_logs_trip_id_fkey"
+    FOREIGN KEY ("trip_id") REFERENCES "trips"("id")
+    ON DELETE SET NULL ON UPDATE CASCADE;
 
--- CreateIndex
-CREATE INDEX "trips_createdAt_idx" ON "trips"("createdAt");
+ALTER TABLE "maintenance_logs"
+    ADD CONSTRAINT "maintenance_logs_vehicle_id_fkey"
+    FOREIGN KEY ("vehicle_id") REFERENCES "vehicles"("id")
+    ON DELETE RESTRICT ON UPDATE CASCADE;
 
--- CreateIndex
-CREATE INDEX "trips_dispatchTime_idx" ON "trips"("dispatchTime");
+ALTER TABLE "expenses"
+    ADD CONSTRAINT "expenses_vehicle_id_fkey"
+    FOREIGN KEY ("vehicle_id") REFERENCES "vehicles"("id")
+    ON DELETE RESTRICT ON UPDATE CASCADE;
 
--- CreateIndex
-CREATE INDEX "fuel_logs_vehicleId_idx" ON "fuel_logs"("vehicleId");
+ALTER TABLE "expenses"
+    ADD CONSTRAINT "expenses_trip_id_fkey"
+    FOREIGN KEY ("trip_id") REFERENCES "trips"("id")
+    ON DELETE SET NULL ON UPDATE CASCADE;
 
--- CreateIndex
-CREATE INDEX "fuel_logs_tripId_idx" ON "fuel_logs"("tripId");
+ALTER TABLE "vehicle_locations"
+    ADD CONSTRAINT "vehicle_locations_vehicle_id_fkey"
+    FOREIGN KEY ("vehicle_id") REFERENCES "vehicles"("id")
+    ON DELETE CASCADE ON UPDATE CASCADE;
 
--- CreateIndex
-CREATE INDEX "fuel_logs_loggedAt_idx" ON "fuel_logs"("loggedAt");
+ALTER TABLE "audit_logs"
+    ADD CONSTRAINT "audit_logs_user_id_fkey"
+    FOREIGN KEY ("user_id") REFERENCES "users"("id")
+    ON DELETE SET NULL ON UPDATE CASCADE;
 
--- CreateIndex
-CREATE INDEX "maintenance_logs_vehicleId_idx" ON "maintenance_logs"("vehicleId");
-
--- CreateIndex
-CREATE INDEX "maintenance_logs_serviceDate_idx" ON "maintenance_logs"("serviceDate");
-
--- CreateIndex
-CREATE INDEX "expenses_vehicleId_idx" ON "expenses"("vehicleId");
-
--- CreateIndex
-CREATE INDEX "expenses_tripId_idx" ON "expenses"("tripId");
-
--- CreateIndex
-CREATE INDEX "expenses_category_idx" ON "expenses"("category");
-
--- CreateIndex
-CREATE INDEX "expenses_dateLogged_idx" ON "expenses"("dateLogged");
-
--- CreateIndex
-CREATE INDEX "vehicle_locations_vehicleId_recordedAt_idx" ON "vehicle_locations"("vehicleId", "recordedAt" DESC);
-
--- CreateIndex
-CREATE INDEX "vehicle_locations_recordedAt_idx" ON "vehicle_locations"("recordedAt");
-
--- CreateIndex
-CREATE INDEX "audit_logs_userId_idx" ON "audit_logs"("userId");
-
--- CreateIndex
-CREATE INDEX "audit_logs_entity_entityId_idx" ON "audit_logs"("entity", "entityId");
-
--- CreateIndex
-CREATE INDEX "audit_logs_entity_idx" ON "audit_logs"("entity");
-
--- CreateIndex
-CREATE INDEX "audit_logs_timestamp_idx" ON "audit_logs"("timestamp");
-
--- AddForeignKey
-ALTER TABLE "vehicles" ADD CONSTRAINT "vehicles_vehicleTypeId_fkey" FOREIGN KEY ("vehicleTypeId") REFERENCES "vehicle_types"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "trips" ADD CONSTRAINT "trips_vehicleId_fkey" FOREIGN KEY ("vehicleId") REFERENCES "vehicles"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "trips" ADD CONSTRAINT "trips_driverId_fkey" FOREIGN KEY ("driverId") REFERENCES "drivers"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "fuel_logs" ADD CONSTRAINT "fuel_logs_vehicleId_fkey" FOREIGN KEY ("vehicleId") REFERENCES "vehicles"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "fuel_logs" ADD CONSTRAINT "fuel_logs_tripId_fkey" FOREIGN KEY ("tripId") REFERENCES "trips"("id") ON DELETE SET NULL ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "maintenance_logs" ADD CONSTRAINT "maintenance_logs_vehicleId_fkey" FOREIGN KEY ("vehicleId") REFERENCES "vehicles"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "expenses" ADD CONSTRAINT "expenses_vehicleId_fkey" FOREIGN KEY ("vehicleId") REFERENCES "vehicles"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "expenses" ADD CONSTRAINT "expenses_tripId_fkey" FOREIGN KEY ("tripId") REFERENCES "trips"("id") ON DELETE SET NULL ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "vehicle_locations" ADD CONSTRAINT "vehicle_locations_vehicleId_fkey" FOREIGN KEY ("vehicleId") REFERENCES "vehicles"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "audit_logs" ADD CONSTRAINT "audit_logs_userId_fkey" FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+-- expenses.logged_by_user_id is denormalized (no Prisma @relation, kept for audit speed)
+-- but still requires a FK constraint for referential integrity at DB level.
+-- ON DELETE SET NULL: expense record preserved; auditor field nulled if user deactivated.
+ALTER TABLE "expenses"
+    ADD CONSTRAINT "expenses_logged_by_user_id_fkey"
+    FOREIGN KEY ("logged_by_user_id") REFERENCES "users"("id")
+    ON DELETE SET NULL ON UPDATE CASCADE;
