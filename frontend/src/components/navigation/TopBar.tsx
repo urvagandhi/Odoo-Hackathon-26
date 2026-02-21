@@ -1,51 +1,54 @@
 /**
  * TopBar — Drivergo-inspired clean white header.
- * Page title + Status dropdown on left, search + bell + user avatar on right.
- * Supports dark mode. Uses correct backend UserRole values.
+ * Page title on left, search + bell + user avatar + logout on right.
+ * Supports dark mode.
  */
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Bell,
   ChevronDown,
   Search,
+  LogOut,
+  User,
 } from "lucide-react";
 import { useAuth } from "../../hooks/useAuth";
 import { useTheme } from "../../context/ThemeContext";
 
 const ROLE_LABELS: Record<string, string> = {
-  SUPER_ADMIN: "Super Admin",
   MANAGER: "Manager",
   DISPATCHER: "Dispatcher",
   SAFETY_OFFICER: "Safety Officer",
-  FINANCE_ANALYST: "Finance",
+  FINANCE_ANALYST: "Finance Analyst",
 };
 
-const ALL_ROLES = ["SUPER_ADMIN", "MANAGER", "DISPATCHER", "SAFETY_OFFICER", "FINANCE_ANALYST"] as const;
-
 const PAGE_TITLES: Record<string, string> = {
-  SUPER_ADMIN: "Shipment Track",
-  MANAGER: "Shipment Track",
+  MANAGER: "Fleet Management",
   DISPATCHER: "Trip Dispatch",
   SAFETY_OFFICER: "Safety Center",
   FINANCE_ANALYST: "Financial Reports",
 };
 
 export default function TopBar() {
-  const { user, switchRole } = useAuth();
+  const { user, logout } = useAuth();
   const { isDark } = useTheme();
-  const [roleMenuOpen, setRoleMenuOpen] = useState(false);
+  const navigate = useNavigate();
+  const [menuOpen, setMenuOpen] = useState(false);
 
-  const role = user?.role ?? "SUPER_ADMIN";
+  const role = user?.role ?? "MANAGER";
+
+  const handleLogout = () => {
+    logout();
+    navigate("/login");
+  };
 
   return (
     <header className={`h-16 border-b px-6 flex items-center gap-4 shrink-0 ${isDark ? 'bg-neutral-900 border-neutral-800' : 'bg-white border-slate-100'}`}>
-      {/* Left — Page title + Status */}
+      {/* Left — Page title */}
       <div className="flex items-center gap-4">
-        <h1 className={`text-xl font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>{PAGE_TITLES[role]}</h1>
-        <button className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[13px] font-medium transition-colors ${isDark ? 'bg-neutral-800 text-neutral-400 hover:bg-neutral-700' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}>
-          Status
-          <ChevronDown className={`w-3.5 h-3.5 ${isDark ? 'text-neutral-500' : 'text-slate-400'}`} />
-        </button>
+        <h1 className={`text-xl font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>
+          {PAGE_TITLES[role]}
+        </h1>
       </div>
 
       {/* Spacer */}
@@ -67,16 +70,15 @@ export default function TopBar() {
         {/* Divider */}
         <div className={`w-px h-8 ${isDark ? 'bg-neutral-700' : 'bg-slate-200'}`} />
 
-        {/* User + Role Switcher */}
+        {/* User menu */}
         <div className="relative">
           <button
-            onClick={() => setRoleMenuOpen(!roleMenuOpen)}
-            onBlur={() => setTimeout(() => setRoleMenuOpen(false), 200)}
+            onClick={() => setMenuOpen(!menuOpen)}
+            onBlur={() => setTimeout(() => setMenuOpen(false), 200)}
             className={`flex items-center gap-3 rounded-xl px-2 py-1.5 transition-colors ${isDark ? 'hover:bg-neutral-800' : 'hover:bg-slate-50'}`}
           >
-            {/* Avatar */}
             <img
-              src={`https://ui-avatars.com/api/?name=${encodeURIComponent(user?.fullName ?? "Admin")}&background=7c3aed&color=fff&size=36&font-size=0.4&bold=true`}
+              src={`https://ui-avatars.com/api/?name=${encodeURIComponent(user?.fullName ?? "User")}&background=7c3aed&color=fff&size=36&font-size=0.4&bold=true`}
               alt="Avatar"
               className="w-9 h-9 rounded-full object-cover"
             />
@@ -85,40 +87,32 @@ export default function TopBar() {
                 {user?.fullName ?? "User"}
               </p>
               <p className={`text-[11px] leading-tight ${isDark ? 'text-neutral-500' : 'text-slate-400'}`}>
-                {ROLE_LABELS[role]}
+                {ROLE_LABELS[role] ?? role}
               </p>
             </div>
-            <ChevronDown className={`w-3.5 h-3.5 transition-transform ${isDark ? 'text-neutral-600' : 'text-slate-300'} ${roleMenuOpen ? "rotate-180" : ""}`} />
+            <ChevronDown className={`w-3.5 h-3.5 transition-transform ${isDark ? 'text-neutral-600' : 'text-slate-300'} ${menuOpen ? "rotate-180" : ""}`} />
           </button>
 
-          {roleMenuOpen && (
+          {menuOpen && (
             <div className={`absolute right-0 top-full mt-2 w-48 rounded-xl border shadow-xl py-1 z-50 ${isDark ? 'bg-neutral-800 border-neutral-700' : 'bg-white border-slate-200'}`}>
               <div className={`px-3 py-2 border-b ${isDark ? 'border-neutral-700' : 'border-slate-100'}`}>
-                <p className={`text-[10px] font-semibold uppercase tracking-wider ${isDark ? 'text-neutral-500' : 'text-slate-400'}`}>Switch Role</p>
+                <p className={`text-[11px] font-semibold ${isDark ? 'text-neutral-300' : 'text-slate-700'}`}>{user?.email}</p>
+                <p className={`text-[10px] ${isDark ? 'text-neutral-500' : 'text-slate-400'}`}>{ROLE_LABELS[role] ?? role}</p>
               </div>
-              {ALL_ROLES.map((r) => (
-                <button
-                  key={r}
-                  onClick={() => {
-                    switchRole(r);
-                    setRoleMenuOpen(false);
-                  }}
-                  className={`
-                    w-full text-left px-3 py-2.5 text-[13px] transition-colors
-                    ${r === role
-                      ? isDark
-                        ? "bg-violet-900/30 text-violet-400 font-medium"
-                        : "bg-violet-50 text-violet-700 font-medium"
-                      : isDark
-                        ? "text-neutral-400 hover:text-white hover:bg-neutral-700"
-                        : "text-slate-600 hover:text-slate-800 hover:bg-slate-50"
-                    }
-                  `}
-                >
-                  {ROLE_LABELS[r]}
-                  {r === role && <span className={`float-right ${isDark ? 'text-violet-400' : 'text-violet-600'}`}>●</span>}
-                </button>
-              ))}
+              <button
+                onClick={() => { setMenuOpen(false); navigate("/profile"); }}
+                className={`w-full text-left flex items-center gap-2.5 px-3 py-2.5 text-[13px] transition-colors ${isDark ? 'text-neutral-400 hover:text-white hover:bg-neutral-700' : 'text-slate-600 hover:text-slate-800 hover:bg-slate-50'}`}
+              >
+                <User className="w-4 h-4" />
+                My Profile
+              </button>
+              <button
+                onClick={handleLogout}
+                className={`w-full text-left flex items-center gap-2.5 px-3 py-2.5 text-[13px] transition-colors text-red-500 hover:text-red-600 ${isDark ? 'hover:bg-neutral-700' : 'hover:bg-red-50'}`}
+              >
+                <LogOut className="w-4 h-4" />
+                Logout
+              </button>
             </div>
           )}
         </div>

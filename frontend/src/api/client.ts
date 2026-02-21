@@ -37,7 +37,7 @@ export default apiClient;
 
 // ── Auth API ───────────────────────────────────────────────────────────────
 
-export type UserRole = "SUPER_ADMIN" | "MANAGER" | "DISPATCHER" | "SAFETY_OFFICER" | "FINANCE_ANALYST";
+export type UserRole = "MANAGER" | "DISPATCHER" | "SAFETY_OFFICER" | "FINANCE_ANALYST";
 
 export interface AuthUser {
   id: string;
@@ -243,4 +243,78 @@ export const financeApi = {
 
   createMaintenanceLog: (data: Record<string, unknown>) =>
     apiClient.post('/api/v1/finance/maintenance', data),
+};
+
+// ── Analytics API ────────────────────────────────────────────────────────────
+
+export interface KpiData {
+  fleet: { total: number; active: number; available: number; onTrip: number; inShop: number; retired: number; utilizationRate: string };
+  drivers: { total: number; onDuty: number; suspended: number; expiringLicenses: number };
+  trips: { pending: number; active: number; completedToday: number };
+  alerts: { maintenanceAlerts: number; expiringLicenses: number; suspendedDrivers: number };
+}
+
+export interface MonthlyData {
+  month: number;
+  label: string;
+  tripsCompleted: number;
+  totalDistanceKm: number;
+  revenue: number;
+  fuelCost: number;
+  maintenanceCost: number;
+  otherExpenses: number;
+  totalCost: number;
+  profit: number;
+}
+
+export interface DriverPerformanceData {
+  driverId: string;
+  driverName: string;
+  licenseNumber: string;
+  tripsCompleted: number;
+  totalDistanceKm: number;
+  avgSafetyScore: number;
+  safetyScore: number;
+  status: string;
+}
+
+export interface FuelEfficiencyData {
+  vehicleId: string;
+  licensePlate: string;
+  make: string;
+  model: string;
+  totalDistanceKm: number;
+  totalFuelLiters: number;
+  kmPerLiter: number | null;
+}
+
+export const analyticsApi = {
+  getKpi: async (): Promise<KpiData> => {
+    const { data } = await apiClient.get<{ success: boolean; data: KpiData }>('/api/v1/analytics/kpi');
+    return data.data;
+  },
+
+  getMonthly: async (year?: number): Promise<MonthlyData[]> => {
+    const { data } = await apiClient.get<{ success: boolean; data: MonthlyData[] }>(
+      '/api/v1/analytics/monthly',
+      { params: year ? { year } : {} }
+    );
+    return data.data;
+  },
+
+  getDriverPerformance: async (params?: { startDate?: string; endDate?: string }): Promise<DriverPerformanceData[]> => {
+    const { data } = await apiClient.get<{ success: boolean; data: DriverPerformanceData[] }>(
+      '/api/v1/analytics/driver-performance',
+      { params }
+    );
+    return data.data;
+  },
+
+  getFuelEfficiency: async (params?: { startDate?: string; endDate?: string }): Promise<FuelEfficiencyData[]> => {
+    const { data } = await apiClient.get<{ success: boolean; data: FuelEfficiencyData[] }>(
+      '/api/v1/analytics/fuel-efficiency',
+      { params }
+    );
+    return data.data;
+  },
 };

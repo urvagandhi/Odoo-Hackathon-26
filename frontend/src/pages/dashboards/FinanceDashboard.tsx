@@ -1,22 +1,24 @@
 /**
- * FinanceDashboard — Drivergo-inspired finance overview dashboard.
- * Layout:
- *  Row 1 — 4 stat cards (Total Expenses, Profit, Revenue, Labour Hours)
- *  Row 2 — Revenue area chart (2/3) + Expenses donut (1/3)
- *  Row 3 — Fleets Performance table (2/3) + CO2 Emission bar chart (1/3)
+ * FinanceDashboard — Finance overview from real backend analytics.
+ * Row 1 — 4 stat cards (YTD Expenses, Profit, Revenue, Fuel Cost)
+ * Row 2 — Revenue vs Costs area chart (2/3) + Expenses donut (1/3)
+ * Row 3 — Fleet Fuel Efficiency table (2/3) + Monthly Fuel Cost chart (1/3)
  * Accent: violet-600 (#7c3aed)
  */
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import {
   DollarSign,
   TrendingUp,
   TrendingDown,
   Briefcase,
-  Clock,
+  Droplets,
   Filter,
   ArrowUpDown,
+  Loader2,
 } from "lucide-react";
+import { analyticsApi } from "../../api/client";
+import type { MonthlyData, FuelEfficiencyData } from "../../api/client";
 
 /* ── Animation ──────────────────────────────────────────── */
 const fadeIn = {
@@ -28,91 +30,17 @@ const stagger = {
   visible: { opacity: 1, transition: { staggerChildren: 0.07 } },
 };
 
-/* ── Stat cards ─────────────────────────────────────────── */
-const STAT_CARDS = [
-  {
-    label: "Total Expenses",
-    value: "$124K",
-    change: "+2.1%",
-    up: false,
-    icon: DollarSign,
-    iconBg: "bg-emerald-100",
-    iconColor: "text-emerald-600",
-  },
-  {
-    label: "Profit",
-    value: "$134K",
-    change: "+5.3%",
-    up: true,
-    icon: TrendingUp,
-    iconBg: "bg-violet-100",
-    iconColor: "text-violet-600",
-  },
-  {
-    label: "Revenue",
-    value: "$100K",
-    change: "+1.8%",
-    up: true,
-    icon: Briefcase,
-    iconBg: "bg-blue-100",
-    iconColor: "text-blue-600",
-  },
-  {
-    label: "Labour Hours",
-    value: "300K",
-    change: "-0.9%",
-    up: false,
-    icon: Clock,
-    iconBg: "bg-amber-100",
-    iconColor: "text-amber-600",
-  },
-];
+/* ── Helpers ──────────────────────────────────────────────── */
+function fmt(value: number): string {
+  if (value >= 100000) return `₹${(value / 100000).toFixed(1)}L`;
+  if (value >= 1000) return `₹${(value / 1000).toFixed(0)}K`;
+  return `₹${value.toFixed(0)}`;
+}
 
-/* ── Revenue chart data ─────────────────────────────────── */
-const REVENUE_POINTS = [40, 65, 45, 70, 55, 80, 60, 90, 75, 85, 70, 95];
-const LAST_YEAR_POINTS = [30, 50, 35, 55, 45, 65, 50, 72, 60, 70, 55, 78];
-
-/* ── Expense donut segments ─────────────────────────────── */
-const EXPENSE_SEGMENTS = [
-  { label: "Maintenance", value: 32, color: "#7c3aed" },
-  { label: "Labour Cost", value: 25, color: "#06b6d4" },
-  { label: "Fuel", value: 15, color: "#10b981" },
-  { label: "Other", value: 3, color: "#f59e0b" },
-];
-const EXPENSE_DISPLAY = [
-  { label: "Maintenance", amount: "$32K", color: "bg-violet-600" },
-  { label: "Labour Cost", amount: "$25K", color: "bg-cyan-500" },
-  { label: "Fuel", amount: "$15K", color: "bg-emerald-500" },
-  { label: "Other", amount: "$3K", color: "bg-amber-400" },
-];
-
-/* ── Fleet performance rows ─────────────────────────────── */
-const FLEET_ROWS = [
-  { id: "#WO 123456", rate: 85, revenue: "$56,780", up: true },
-  { id: "#WO 736252", rate: 75, revenue: "$48,780", up: true },
-  { id: "#WO 876394", rate: 65, revenue: "$26,500", up: false },
-  { id: "#WO 834564", rate: 45, revenue: "$30,700", up: false },
-  { id: "#WO 092639", rate: 22, revenue: "$40,000", up: false },
-];
-
-/* ── CO2 emission months ────────────────────────────────── */
-const CO2_MONTHS = [
-  { month: "Mar", value: 8500 },
-  { month: "Apr", value: 6200 },
-  { month: "May", value: 9800 },
-  { month: "Jun", value: 5400 },
-  { month: "Jul", value: 8100 },
-  { month: "Aug", value: 7300 },
-  { month: "Sep", value: 9200 },
-  { month: "Oct", value: 4800 },
-  { month: "Nov", value: 7600 },
-];
-const CO2_MAX = 10000;
-
-/* ── Helpers ─────────────────────────────────────────────── */
 function buildAreaPath(points: number[], w: number, h: number, fill = false) {
+  if (points.length < 2) return "";
   const step = w / (points.length - 1);
-  const max = Math.max(...points);
+  const max = Math.max(...points, 1);
   const coords = points.map((p, i) => [i * step, h - (p / max) * (h - 8)]);
   const line = coords.map(([x, y], i) => `${i === 0 ? "M" : "L"}${x},${y}`).join(" ");
   if (!fill) return line;
@@ -132,6 +60,7 @@ function buildDonut(
   r: number
 ) {
   const total = segments.reduce((s, seg) => s + seg.value, 0);
+  if (total === 0) return segments.map((seg) => ({ ...seg, d: "" }));
   let angle = -90;
   return segments.map((seg) => {
     const sweep = (seg.value / total) * 360;
@@ -150,21 +79,74 @@ function buildDonut(
 
 /* ── Component ───────────────────────────────────────────── */
 export default function FinanceDashboard() {
+  const [monthly, setMonthly] = useState<MonthlyData[]>([]);
+  const [fuelData, setFuelData] = useState<FuelEfficiencyData[]>([]);
+  const [loading, setLoading] = useState(true);
   const [revenueTab, setRevenueTab] = useState<"DAY" | "MONTH" | "YEAR">("MONTH");
-  const [co2Tab, setCo2Tab] = useState<"DAY" | "MONTH" | "YEAR">("MONTH");
+  const [fuelTab, setFuelTab] = useState<"DAY" | "MONTH" | "YEAR">("MONTH");
 
-  const donutSlices = buildDonut(EXPENSE_SEGMENTS, 80, 80, 65);
+  useEffect(() => {
+    Promise.all([
+      analyticsApi.getMonthly(),
+      analyticsApi.getFuelEfficiency(),
+    ])
+      .then(([monthlyData, fuelEfficiency]) => {
+        setMonthly(monthlyData);
+        setFuelData(fuelEfficiency);
+      })
+      .catch(console.error)
+      .finally(() => setLoading(false));
+  }, []);
+
+  const currentMonthIdx = new Date().getMonth();
+  const currentMonth = monthly[currentMonthIdx];
+  const ytdRevenue = monthly.reduce((s, m) => s + m.revenue, 0);
+  const ytdCost = monthly.reduce((s, m) => s + m.totalCost, 0);
+  const ytdProfit = monthly.reduce((s, m) => s + m.profit, 0);
+  const ytdFuel = monthly.reduce((s, m) => s + m.fuelCost, 0);
+
+  const revenuePoints = monthly.map((m) => m.revenue);
+  const costPoints = monthly.map((m) => m.totalCost);
+
+  const expenseSegments = [
+    { label: "Maintenance", value: currentMonth?.maintenanceCost ?? 0, color: "#7c3aed" },
+    { label: "Fuel", value: currentMonth?.fuelCost ?? 0, color: "#10b981" },
+    { label: "Other", value: currentMonth?.otherExpenses ?? 0, color: "#f59e0b" },
+  ];
+  const expenseTotal = expenseSegments.reduce((s, e) => s + e.value, 0);
+  const donutSlices = buildDonut(expenseSegments, 80, 80, 65);
+
+  // Fleet performance: normalize kmPerLiter to 0-100%
+  const maxKpl = Math.max(...fuelData.map((f) => f.kmPerLiter ?? 0), 1);
+  const fleetRows = fuelData.slice(0, 5).map((f) => ({
+    id: f.licensePlate,
+    rate: Math.round(((f.kmPerLiter ?? 0) / maxKpl) * 100),
+    value: `${(f.totalDistanceKm ?? 0).toFixed(0)} km`,
+    up: (f.kmPerLiter ?? 0) >= maxKpl * 0.6,
+  }));
+
+  // Monthly fuel cost for bar chart (last 9 months)
+  const fuelMonths = monthly.slice(-9).map((m) => ({ label: m.label.slice(0, 3), value: m.fuelCost }));
+  const fuelMax = Math.max(...fuelMonths.map((m) => m.value), 1);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <Loader2 className="w-8 h-8 animate-spin text-violet-600" />
+      </div>
+    );
+  }
 
   return (
-    <motion.div
-      className="space-y-5"
-      initial="hidden"
-      animate="visible"
-      variants={stagger}
-    >
+    <motion.div className="space-y-5" initial="hidden" animate="visible" variants={stagger}>
       {/* ══ ROW 1 — Stat Cards ══════════════════════════════════════ */}
       <motion.div variants={stagger} className="grid grid-cols-4 gap-5">
-        {STAT_CARDS.map((card) => {
+        {[
+          { label: "Total Expenses (YTD)", value: fmt(ytdCost), icon: DollarSign, iconBg: "bg-emerald-100", iconColor: "text-emerald-600", up: false },
+          { label: "Profit (YTD)", value: fmt(ytdProfit), icon: TrendingUp, iconBg: "bg-violet-100", iconColor: "text-violet-600", up: ytdProfit > 0 },
+          { label: "Revenue (YTD)", value: fmt(ytdRevenue), icon: Briefcase, iconBg: "bg-blue-100", iconColor: "text-blue-600", up: true },
+          { label: "Fuel Cost (YTD)", value: fmt(ytdFuel), icon: Droplets, iconBg: "bg-amber-100", iconColor: "text-amber-600", up: false },
+        ].map((card) => {
           const Icon = card.icon;
           return (
             <motion.div
@@ -178,9 +160,9 @@ export default function FinanceDashboard() {
               <div className="min-w-0">
                 <p className="text-xs text-slate-400 font-medium truncate">{card.label}</p>
                 <p className="text-xl font-bold text-slate-800 leading-tight">{card.value}</p>
-                <p className={`text-xs font-medium mt-0.5 flex items-center gap-0.5 ${card.up ? "text-emerald-500" : "text-red-400"}`}>
+                <p className={`text-xs font-medium mt-0.5 flex items-center gap-0.5 ${card.up ? "text-emerald-500" : "text-slate-400"}`}>
                   {card.up ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
-                  {card.change}
+                  Year to date
                 </p>
               </div>
             </motion.div>
@@ -190,19 +172,17 @@ export default function FinanceDashboard() {
 
       {/* ══ ROW 2 — Revenue chart + Expenses donut ══════════════════ */}
       <motion.div variants={stagger} className="grid grid-cols-3 gap-5">
-        {/* Revenue area chart */}
+        {/* Revenue vs Costs area chart */}
         <motion.div variants={fadeIn} className="col-span-2 bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-sm font-semibold text-slate-700">Revenue</h3>
+            <h3 className="text-sm font-semibold text-slate-700">Revenue vs Costs</h3>
             <div className="flex items-center gap-1 bg-slate-50 rounded-lg p-0.5">
               {(["DAY", "MONTH", "YEAR"] as const).map((t) => (
                 <button
                   key={t}
                   onClick={() => setRevenueTab(t)}
                   className={`px-3 py-1 rounded-md text-xs font-medium transition-colors ${
-                    revenueTab === t
-                      ? "bg-violet-600 text-white shadow-sm"
-                      : "text-slate-400 hover:text-slate-600"
+                    revenueTab === t ? "bg-violet-600 text-white shadow-sm" : "text-slate-400 hover:text-slate-600"
                   }`}
                 >
                   {t}
@@ -211,93 +191,86 @@ export default function FinanceDashboard() {
             </div>
           </div>
 
-          {/* Sub-metrics */}
           <div className="flex flex-wrap items-center gap-6 mb-5">
             <div>
-              <p className="text-xs text-slate-400">Avg Revenue</p>
-              <p className="text-lg font-bold text-slate-800">$124K</p>
+              <p className="text-xs text-slate-400">YTD Revenue</p>
+              <p className="text-lg font-bold text-slate-800">{fmt(ytdRevenue)}</p>
               <p className="text-xs text-emerald-500 flex items-center gap-0.5">
-                <TrendingUp className="w-3 h-3" />0.5%
+                <TrendingUp className="w-3 h-3" />This year
               </p>
             </div>
             <div>
-              <p className="text-xs text-slate-400">Avg Income</p>
-              <p className="text-lg font-bold text-slate-800">$500K</p>
-              <p className="text-xs text-emerald-500 flex items-center gap-0.5">
-                <TrendingUp className="w-3 h-3" />0.5%
+              <p className="text-xs text-slate-400">YTD Profit</p>
+              <p className="text-lg font-bold text-slate-800">{fmt(ytdProfit)}</p>
+              <p className={`text-xs flex items-center gap-0.5 ${ytdProfit >= 0 ? "text-emerald-500" : "text-red-400"}`}>
+                {ytdProfit >= 0 ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
+                {ytdProfit >= 0 ? "Positive" : "Loss"}
               </p>
             </div>
             <div>
-              <p className="text-xs text-slate-400">Avg Outcome</p>
-              <p className="text-lg font-bold text-slate-800">$378K</p>
+              <p className="text-xs text-slate-400">YTD Costs</p>
+              <p className="text-lg font-bold text-slate-800">{fmt(ytdCost)}</p>
               <p className="text-xs text-red-400 flex items-center gap-0.5">
-                <TrendingDown className="w-3 h-3" />0.5%
+                <TrendingDown className="w-3 h-3" />Expenses
               </p>
             </div>
             <div className="ml-auto flex items-center gap-4 text-xs text-slate-400">
               <span className="flex items-center gap-1.5">
                 <span className="w-6 h-0.5 bg-violet-500 inline-block rounded-full" />
-                Income
+                Revenue
               </span>
               <span className="flex items-center gap-1.5">
-                <span
-                  className="w-6 h-0 inline-block border-t border-dashed border-emerald-400"
-                  style={{ borderTopWidth: "2px" }}
-                />
-                Last Year Income
+                <span className="w-6 h-0 inline-block border-t border-dashed border-emerald-400" style={{ borderTopWidth: "2px" }} />
+                Costs
               </span>
             </div>
           </div>
 
-          {/* SVG area chart */}
           <div className="h-36">
-            <svg viewBox="0 0 480 112" className="w-full h-full" preserveAspectRatio="none">
-              {[0, 37, 74, 111].map((y) => (
-                <line key={y} x1="0" y1={y} x2="480" y2={y} stroke="#f1f5f9" strokeWidth="1" />
-              ))}
-              {/* Last year area */}
-              <path d={buildAreaPath(LAST_YEAR_POINTS, 480, 112, true)} fill="#10b98112" />
-              <path
-                d={buildAreaPath(LAST_YEAR_POINTS, 480, 112, false)}
-                fill="none"
-                stroke="#10b981"
-                strokeWidth="1.5"
-                strokeDasharray="5 3"
-              />
-              {/* Income area */}
-              <path d={buildAreaPath(REVENUE_POINTS, 480, 112, true)} fill="#7c3aed14" />
-              <path
-                d={buildAreaPath(REVENUE_POINTS, 480, 112, false)}
-                fill="none"
-                stroke="#7c3aed"
-                strokeWidth="2"
-              />
-            </svg>
+            {revenuePoints.length > 1 ? (
+              <svg viewBox="0 0 480 112" className="w-full h-full" preserveAspectRatio="none">
+                {[0, 37, 74, 111].map((y) => (
+                  <line key={y} x1="0" y1={y} x2="480" y2={y} stroke="#f1f5f9" strokeWidth="1" />
+                ))}
+                <path d={buildAreaPath(costPoints, 480, 112, true)} fill="#10b98112" />
+                <path d={buildAreaPath(costPoints, 480, 112, false)} fill="none" stroke="#10b981" strokeWidth="1.5" strokeDasharray="5 3" />
+                <path d={buildAreaPath(revenuePoints, 480, 112, true)} fill="#7c3aed14" />
+                <path d={buildAreaPath(revenuePoints, 480, 112, false)} fill="none" stroke="#7c3aed" strokeWidth="2" />
+              </svg>
+            ) : (
+              <div className="flex items-center justify-center h-full text-slate-300 text-sm">No data yet</div>
+            )}
           </div>
         </motion.div>
 
-        {/* Expenses donut */}
+        {/* Expenses donut (current month) */}
         <motion.div variants={fadeIn} className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-sm font-semibold text-slate-700">Expenses</h3>
+            <h3 className="text-sm font-semibold text-slate-700">Expenses (this month)</h3>
             <DollarSign className="w-4 h-4 text-slate-300" />
           </div>
 
-          {/* Donut SVG */}
           <div className="flex justify-center mb-5">
             <svg width="160" height="160" viewBox="0 0 160 160">
-              {donutSlices.map((slice) => (
-                <path key={slice.label} d={slice.d} fill={slice.color} />
-              ))}
+              {expenseTotal > 0 ? (
+                donutSlices.map((slice) => <path key={slice.label} d={slice.d} fill={slice.color} />)
+              ) : (
+                <circle cx="80" cy="80" r="65" fill="#f1f5f9" />
+              )}
               <circle cx="80" cy="80" r="42" fill="white" />
-              <text x="80" y="75" textAnchor="middle" fontSize="12" fontWeight="700" fill="#1e293b">$124K</text>
-              <text x="80" y="90" textAnchor="middle" fontSize="8" fill="#94a3b8">Total Expenses</text>
+              <text x="80" y="75" textAnchor="middle" fontSize="12" fontWeight="700" fill="#1e293b">
+                {fmt(expenseTotal)}
+              </text>
+              <text x="80" y="90" textAnchor="middle" fontSize="8" fill="#94a3b8">This Month</text>
             </svg>
           </div>
 
-          {/* Legend */}
           <div className="space-y-2.5">
-            {EXPENSE_DISPLAY.map((seg) => (
+            {[
+              { label: "Maintenance", amount: fmt(currentMonth?.maintenanceCost ?? 0), color: "bg-violet-600" },
+              { label: "Fuel", amount: fmt(currentMonth?.fuelCost ?? 0), color: "bg-emerald-500" },
+              { label: "Other", amount: fmt(currentMonth?.otherExpenses ?? 0), color: "bg-amber-400" },
+            ].map((seg) => (
               <div key={seg.label} className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <span className={`w-2.5 h-2.5 rounded-sm shrink-0 ${seg.color}`} />
@@ -310,12 +283,12 @@ export default function FinanceDashboard() {
         </motion.div>
       </motion.div>
 
-      {/* ══ ROW 3 — Fleet Performance table + CO2 Emission ══════════ */}
+      {/* ══ ROW 3 — Fleet Fuel Efficiency + Monthly Fuel Cost ══════════ */}
       <motion.div variants={stagger} className="grid grid-cols-3 gap-5">
-        {/* Fleets Performance table */}
+        {/* Fleet Fuel Efficiency table */}
         <motion.div variants={fadeIn} className="col-span-2 bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
           <div className="flex items-center justify-between mb-5">
-            <h3 className="text-sm font-semibold text-slate-700">Fleets Performance</h3>
+            <h3 className="text-sm font-semibold text-slate-700">Fleet Fuel Efficiency</h3>
             <div className="flex items-center gap-2">
               <button className="flex items-center gap-1 text-xs text-slate-400 hover:text-violet-600 transition-colors px-2 py-1 rounded-lg hover:bg-violet-50">
                 <Filter className="w-3.5 h-3.5" />
@@ -328,52 +301,48 @@ export default function FinanceDashboard() {
             </div>
           </div>
 
-          {/* Table header */}
           <div className="grid grid-cols-[1fr_2fr_auto] gap-4 mb-3 px-1">
-            <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">Fleet #</p>
-            <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">Performance Rate</p>
-            <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider text-right">Revenue</p>
+            <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">Vehicle</p>
+            <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">Efficiency Rate</p>
+            <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider text-right">Distance</p>
           </div>
 
-          {/* Table rows */}
-          <div className="space-y-3.5">
-            {FLEET_ROWS.map((row) => (
-              <div key={row.id} className="grid grid-cols-[1fr_2fr_auto] gap-4 items-center px-1">
-                <p className="text-xs font-mono font-medium text-slate-600">{row.id}</p>
-                <div className="flex items-center gap-2">
-                  <div className="flex-1 h-1.5 bg-slate-100 rounded-full overflow-hidden">
-                    <div
-                      className={`h-full rounded-full ${getBarColor(row.rate)}`}
-                      style={{ width: `${row.rate}%` }}
-                    />
+          {fleetRows.length === 0 ? (
+            <div className="py-8 text-center text-slate-400 text-sm">No fuel efficiency data yet.</div>
+          ) : (
+            <div className="space-y-3.5">
+              {fleetRows.map((row) => (
+                <div key={row.id} className="grid grid-cols-[1fr_2fr_auto] gap-4 items-center px-1">
+                  <p className="text-xs font-mono font-medium text-slate-600">{row.id}</p>
+                  <div className="flex items-center gap-2">
+                    <div className="flex-1 h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                      <div className={`h-full rounded-full ${getBarColor(row.rate)}`} style={{ width: `${row.rate}%` }} />
+                    </div>
+                    <span className="text-xs text-slate-400 w-8 text-right">{row.rate}%</span>
                   </div>
-                  <span className="text-xs text-slate-400 w-8 text-right">{row.rate}%</span>
+                  <div className={`flex items-center gap-1 text-xs font-semibold ${row.up ? "text-emerald-500" : "text-red-400"}`}>
+                    {row.up ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
+                    {row.value}
+                  </div>
                 </div>
-                <div className={`flex items-center gap-1 text-xs font-semibold ${row.up ? "text-emerald-500" : "text-red-400"}`}>
-                  {row.up ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
-                  {row.revenue}
-                </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </motion.div>
 
-        {/* CO2 Emission */}
+        {/* Monthly Fuel Cost chart */}
         <motion.div variants={fadeIn} className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
           <div className="flex items-center justify-between mb-2">
-            <h3 className="text-sm font-semibold text-slate-700">Co2 Emission</h3>
+            <h3 className="text-sm font-semibold text-slate-700">Monthly Fuel Cost</h3>
           </div>
 
-          {/* Tab buttons */}
           <div className="flex items-center gap-1 bg-slate-50 rounded-lg p-0.5 w-fit mb-4">
             {(["DAY", "MONTH", "YEAR"] as const).map((t) => (
               <button
                 key={t}
-                onClick={() => setCo2Tab(t)}
+                onClick={() => setFuelTab(t)}
                 className={`px-2.5 py-1 rounded-md text-xs font-medium transition-colors ${
-                  co2Tab === t
-                    ? "bg-violet-600 text-white shadow-sm"
-                    : "text-slate-400 hover:text-slate-600"
+                  fuelTab === t ? "bg-violet-600 text-white shadow-sm" : "text-slate-400 hover:text-slate-600"
                 }`}
               >
                 {t}
@@ -381,30 +350,28 @@ export default function FinanceDashboard() {
             ))}
           </div>
 
-          {/* Average stat */}
           <div className="mb-4">
-            <p className="text-xl font-bold text-slate-800">7.000T</p>
-            <p className="text-xs text-emerald-500 flex items-center gap-0.5 mt-0.5">
-              <TrendingUp className="w-3 h-3" />0.5% average
-            </p>
+            <p className="text-xl font-bold text-slate-800">{fmt(currentMonth?.fuelCost ?? 0)}</p>
+            <p className="text-xs text-slate-400 mt-0.5">This month</p>
           </div>
 
-          {/* Horizontal bar chart */}
           <div className="space-y-2.5">
-            {CO2_MONTHS.map((row) => (
-              <div key={row.month} className="flex items-center gap-2">
-                <span className="text-[10px] text-slate-400 w-7 shrink-0">{row.month}</span>
-                <div className="flex-1 h-2 bg-slate-100 rounded-full overflow-hidden">
-                  <div
-                    className="h-full rounded-full bg-emerald-500"
-                    style={{ width: `${(row.value / CO2_MAX) * 100}%` }}
-                  />
+            {fuelMonths.length === 0 ? (
+              <p className="text-xs text-slate-300 text-center py-4">No data yet</p>
+            ) : (
+              fuelMonths.map((row) => (
+                <div key={row.label} className="flex items-center gap-2">
+                  <span className="text-[10px] text-slate-400 w-7 shrink-0">{row.label}</span>
+                  <div className="flex-1 h-2 bg-slate-100 rounded-full overflow-hidden">
+                    <div
+                      className="h-full rounded-full bg-emerald-500"
+                      style={{ width: `${(row.value / fuelMax) * 100}%` }}
+                    />
+                  </div>
+                  <span className="text-[10px] text-slate-400 w-14 text-right">{fmt(row.value)}</span>
                 </div>
-                <span className="text-[10px] text-slate-400 w-10 text-right">
-                  {(row.value / 1000).toFixed(1)}k
-                </span>
-              </div>
-            ))}
+              ))
+            )}
           </div>
         </motion.div>
       </motion.div>

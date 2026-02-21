@@ -15,10 +15,7 @@ interface AuthContextValue {
   isAuthenticated: boolean;
   login: (email: string, password: string) => Promise<AuthUser>;
   logout: () => void;
-  /** Quick helper — e.g. hasRole("SUPER_ADMIN") or hasRole(["SUPER_ADMIN","DISPATCHER"]) */
   hasRole: (role: UserRole | UserRole[]) => boolean;
-  /** Switch role for demo purposes */
-  switchRole: (role: string) => void;
 }
 
 export const AuthContext = createContext<AuthContextValue | null>(null);
@@ -42,29 +39,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setLoading(false);
   }, []);
 
-  // ── Mock users for demo (matches backend seed data) ──────────────────
-  const MOCK_USERS: Record<string, AuthUser & { password: string }> = {
-    "superadmin@fleetflow.io": { id: "1", fullName: "Super Admin",      email: "superadmin@fleetflow.io", role: "SUPER_ADMIN",     password: "FleetFlow@2025" },
-    "manager@fleetflow.io":    { id: "2", fullName: "Fleet Manager",    email: "manager@fleetflow.io",    role: "MANAGER",         password: "FleetFlow@2025" },
-    "dispatcher@fleetflow.io": { id: "3", fullName: "Lead Dispatcher",  email: "dispatcher@fleetflow.io", role: "DISPATCHER",      password: "FleetFlow@2025" },
-    "safety@fleetflow.io":     { id: "4", fullName: "Safety Officer",   email: "safety@fleetflow.io",     role: "SAFETY_OFFICER",  password: "FleetFlow@2025" },
-    "finance@fleetflow.io":    { id: "5", fullName: "Finance Analyst",  email: "finance@fleetflow.io",    role: "FINANCE_ANALYST", password: "FleetFlow@2025" },
-  };
-
-  // ── Login ─────────────────────────────────────────────────────────────
+  // ── Login — calls real backend ─────────────────────────────────────────
   const login = useCallback(async (email: string, password: string): Promise<AuthUser> => {
-    // Always use mock credentials — bypasses backend/network entirely
-    const mock = MOCK_USERS[email.toLowerCase().trim()];
-    if (mock && mock.password === password) {
-      const { password: _pw, ...user } = mock;
-      void _pw;
-      localStorage.setItem("auth_token", "mock-token-" + user.id);
-      localStorage.setItem("auth_user", JSON.stringify(user));
-      setUser(user);
-      return user;
-    }
-    // Wrong credentials — throw a friendly error (no network call)
-    throw new Error("Invalid email or password. Use demo credentials below.");
+    const result = await authApi.login({ email, password });
+    setUser(result.user);
+    return result.user;
   }, []);
 
   // ── Logout ────────────────────────────────────────────────────────────
@@ -83,27 +62,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     [user]
   );
 
-  // ── Switch role (for demo role-switcher in TopBar) ────────────────────
-  const ROLE_EMAILS: Record<string, string> = {
-    SUPER_ADMIN: "superadmin@fleetflow.io",
-    MANAGER: "manager@fleetflow.io",
-    DISPATCHER: "dispatcher@fleetflow.io",
-    SAFETY_OFFICER: "safety@fleetflow.io",
-    FINANCE_ANALYST: "finance@fleetflow.io",
-  };
-
-  const switchRole = useCallback((role: string) => {
-    const email = ROLE_EMAILS[role];
-    if (!email) return;
-    const mock = MOCK_USERS[email];
-    if (!mock) return;
-    const { password: _pw, ...u } = mock;
-    void _pw;
-    localStorage.setItem("auth_token", "mock-token-" + u.id);
-    localStorage.setItem("auth_user", JSON.stringify(u));
-    setUser(u);
-  }, []);
-
   return (
     <AuthContext.Provider
       value={{
@@ -113,7 +71,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         login,
         logout,
         hasRole,
-        switchRole,
       }}
     >
       {children}

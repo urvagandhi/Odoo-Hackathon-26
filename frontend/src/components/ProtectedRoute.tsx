@@ -10,7 +10,7 @@ import LoadingSpinner from "./LoadingSpinner";
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
-  /** Optional: only allow specific roles. SUPER_ADMIN always passes. */
+  /** Optional: only allow specific roles. */
   roles?: UserRole[];
 }
 
@@ -30,8 +30,7 @@ export default function ProtectedRoute({ children, roles }: ProtectedRouteProps)
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-  // Role-based gating: SUPER_ADMIN bypasses all checks
-  if (roles && user && user.role !== "SUPER_ADMIN" && !roles.includes(user.role)) {
+  if (roles && user && !roles.includes(user.role)) {
     return <Navigate to="/" replace />;
   }
 

@@ -51,6 +51,10 @@ const hoursAgo = (n: number): Date => {
     return d;
 };
 
+// Fixed date for a specific calendar date (used for historical seeding)
+const cal = (year: number, month: number, day: number, hour = 12): Date =>
+    new Date(year, month - 1, day, hour, 0, 0);
+
 // ── Main ────────────────────────────────────────────────────────────
 async function main() {
     console.log('🌱  Starting FleetFlow seed...\n');
@@ -805,6 +809,627 @@ async function main() {
         }),
     ]);
     console.log('  ✅  6 vehicle locations seeded.\n');
+
+    // ──────────────────────────────────────────────────────────────
+    //  Step 10: Historical Data — January 2026
+    //  Fills last month so analytics charts show 2 months of data.
+    // ──────────────────────────────────────────────────────────────
+    console.log('  → Seeding January 2026 historical data...');
+
+    // ── January trips (all COMPLETED) ───────────────────────────
+    const [janT1, janT2, janT3, janT4, janT5] = await Promise.all([
+        // Jan-1: Mumbai → Pune  (Truck1, Ramesh)
+        prisma.trip.create({
+            data: {
+                vehicleId: truck1.id,
+                driverId: ramesh.id,
+                origin: 'Mumbai, Maharashtra',
+                destination: 'Pune, Maharashtra',
+                distanceEstimated: 156,
+                distanceActual: 162,
+                cargoWeight: 14_000,
+                cargoDescription: 'Steel coils — JSW Steel Pune plant supply',
+                odometerStart: 44_900,
+                odometerEnd: 45_062,
+                revenue: 32_000,
+                clientName: 'JSW Steel Ltd.',
+                invoiceReference: 'INV-FF-2025-0006',
+                status: TripStatus.COMPLETED,
+                dispatchTime: cal(2026, 1, 5, 6),
+                completionTime: cal(2026, 1, 5, 15),
+                createdAt: cal(2026, 1, 4),
+            },
+        }),
+        // Jan-2: Delhi → Agra  (Van1, Anjali)
+        prisma.trip.create({
+            data: {
+                vehicleId: van1.id,
+                driverId: anjali.id,
+                origin: 'Delhi, NCT',
+                destination: 'Agra, Uttar Pradesh',
+                distanceEstimated: 200,
+                distanceActual: 204,
+                cargoWeight: 900,
+                cargoDescription: 'Consumer electronics — Amazon warehouse replenishment',
+                odometerStart: 12_100,
+                odometerEnd: 12_304,
+                revenue: 10_500,
+                clientName: 'Amazon India Pvt. Ltd.',
+                invoiceReference: 'INV-FF-2025-0007',
+                status: TripStatus.COMPLETED,
+                dispatchTime: cal(2026, 1, 8, 8),
+                completionTime: cal(2026, 1, 8, 17),
+                createdAt: cal(2026, 1, 7),
+            },
+        }),
+        // Jan-3: Bangalore → Chennai  (Van1, Ramesh)
+        prisma.trip.create({
+            data: {
+                vehicleId: van1.id,
+                driverId: ramesh.id,
+                origin: 'Bangalore, Karnataka',
+                destination: 'Chennai, Tamil Nadu',
+                distanceEstimated: 345,
+                distanceActual: 352,
+                cargoWeight: 750,
+                cargoDescription: 'IT peripherals — HP India distribution',
+                odometerStart: 12_304,
+                odometerEnd: 12_656,
+                revenue: 26_000,
+                clientName: 'HP India Pvt. Ltd.',
+                invoiceReference: 'INV-FF-2025-0008',
+                status: TripStatus.COMPLETED,
+                dispatchTime: cal(2026, 1, 12, 7),
+                completionTime: cal(2026, 1, 13, 9),
+                createdAt: cal(2026, 1, 11),
+            },
+        }),
+        // Jan-4: Mumbai → Delhi air freight  (Plane1, Anjali)
+        prisma.trip.create({
+            data: {
+                vehicleId: plane1.id,
+                driverId: anjali.id,
+                origin: 'CSIA Mumbai (BOM)',
+                destination: 'IGI Delhi (DEL)',
+                distanceEstimated: 1_415,
+                distanceActual: 1_410,
+                cargoWeight: 950,
+                cargoDescription: 'Pharma cold-chain — Cipla API batch',
+                odometerStart: 8_150,
+                odometerEnd: 8_890,
+                revenue: 195_000,
+                clientName: 'Cipla Ltd.',
+                invoiceReference: 'INV-FF-2025-0009',
+                status: TripStatus.COMPLETED,
+                dispatchTime: cal(2026, 1, 18, 5),
+                completionTime: cal(2026, 1, 18, 8),
+                createdAt: cal(2026, 1, 17),
+            },
+        }),
+        // Jan-5: Mumbai local  (Bike1, Mohan)
+        prisma.trip.create({
+            data: {
+                vehicleId: bike1.id,
+                driverId: mohan.id,
+                origin: 'Andheri East, Mumbai',
+                destination: 'Nariman Point, Mumbai',
+                distanceEstimated: 22,
+                distanceActual: 26,
+                cargoWeight: 15,
+                cargoDescription: 'Legal courier — signed contracts, banking documents',
+                odometerStart: 3_160,
+                odometerEnd: 3_186,
+                revenue: 3_200,
+                clientName: 'Cyril Amarchand Mangaldas',
+                invoiceReference: 'INV-FF-2025-0010',
+                status: TripStatus.COMPLETED,
+                dispatchTime: cal(2026, 1, 22, 10),
+                completionTime: cal(2026, 1, 22, 12),
+                createdAt: cal(2026, 1, 22),
+            },
+        }),
+    ]);
+
+    // ── January fuel logs ────────────────────────────────────────
+    await Promise.all([
+        prisma.fuelLog.create({
+            data: {
+                vehicleId: truck1.id,
+                tripId: janT1.id,
+                liters: 85,
+                costPerLiter: 94.10,
+                totalCost: 7_998.5,
+                odometerAtFill: 44_940,
+                fuelStation: 'HP Petrol Pump, Khopoli, NH-48',
+                loggedAt: cal(2026, 1, 5, 5),
+            },
+        }),
+        prisma.fuelLog.create({
+            data: {
+                vehicleId: van1.id,
+                tripId: janT2.id,
+                liters: 32,
+                costPerLiter: 96.50,
+                totalCost: 3_088,
+                odometerAtFill: 12_120,
+                fuelStation: 'Indian Oil, Mathura Road, NH-19',
+                loggedAt: cal(2026, 1, 8, 7),
+            },
+        }),
+        prisma.fuelLog.create({
+            data: {
+                vehicleId: van1.id,
+                tripId: janT3.id,
+                liters: 45,
+                costPerLiter: 96.50,
+                totalCost: 4_342.5,
+                odometerAtFill: 12_380,
+                fuelStation: 'BPCL, Hosur Road, Bangalore',
+                loggedAt: cal(2026, 1, 12, 6),
+            },
+        }),
+        prisma.fuelLog.create({
+            data: {
+                vehicleId: plane1.id,
+                tripId: janT4.id,
+                liters: 460,
+                costPerLiter: 87.90,
+                totalCost: 40_434,
+                odometerAtFill: 8_155,
+                fuelStation: 'CSIA Cargo Terminal, Mumbai',
+                loggedAt: cal(2026, 1, 18, 4),
+            },
+        }),
+        prisma.fuelLog.create({
+            data: {
+                vehicleId: bike1.id,
+                tripId: janT5.id,
+                liters: 6,
+                costPerLiter: 105.41,
+                totalCost: 632.46,
+                odometerAtFill: 3_161,
+                fuelStation: 'Shell, Andheri East, Mumbai',
+                loggedAt: cal(2026, 1, 22, 9),
+            },
+        }),
+    ]);
+
+    // ── January maintenance log ──────────────────────────────────
+    await prisma.maintenanceLog.create({
+        data: {
+            vehicleId: van2.id,
+            serviceType: 'OIL_CHANGE',
+            description: 'Engine oil change (10W-30, 12 litres) and oil filter. Coolant top-up.',
+            cost: 3_800,
+            odometerAtService: 58_200,
+            technicianName: 'Kishore Auto Works',
+            shopName: 'Force Motors ASC, Whitefield, Bangalore',
+            serviceDate: cal(2026, 1, 15),
+            nextServiceDue: cal(2026, 7, 15),
+        },
+    });
+
+    // ── January expenses ─────────────────────────────────────────
+    await Promise.all([
+        prisma.expense.create({
+            data: {
+                vehicleId: truck1.id,
+                tripId: janT1.id,
+                amount: 780,
+                category: ExpenseCategory.TOLL,
+                description: 'Mumbai-Pune Expressway toll (heavy commercial)',
+                loggedByUserId: dispatcher.id,
+                dateLogged: cal(2026, 1, 5, 16),
+            },
+        }),
+        prisma.expense.create({
+            data: {
+                vehicleId: van1.id,
+                tripId: janT3.id,
+                amount: 1_200,
+                category: ExpenseCategory.TOLL,
+                description: 'NH-44 toll plazas, Bangalore-Chennai corridor',
+                loggedByUserId: dispatcher.id,
+                dateLogged: cal(2026, 1, 13, 10),
+            },
+        }),
+        prisma.expense.create({
+            data: {
+                vehicleId: plane1.id,
+                tripId: janT4.id,
+                amount: 8_200,
+                category: ExpenseCategory.MISC,
+                description: 'CSIA cold-chain cargo handling + DGCA documentation fees',
+                loggedByUserId: financeAnalyst.id,
+                dateLogged: cal(2026, 1, 18, 9),
+            },
+        }),
+    ]);
+
+    // Suppress unused variable warnings for janT2/janT5
+    void janT2; void janT5;
+
+    console.log('  ✅  Jan 2026: 5 trips + 5 fuel logs + 1 maintenance + 3 expenses seeded.\n');
+
+    // ──────────────────────────────────────────────────────────────
+    //  Step 11: Historical Data — December 2025
+    //  Provides realistic older history visible in trip lists,
+    //  driver performance aggregates, and fuel efficiency stats.
+    // ──────────────────────────────────────────────────────────────
+    console.log('  → Seeding December 2025 historical data...');
+
+    // ── December 2025 trips (all COMPLETED) ──────────────────────
+    const [decT1, decT2, decT3, decT4, decT5, decT6, decT7, decT8] = await Promise.all([
+        // Dec-1: Mumbai → Pune  (Truck1, Ramesh)
+        prisma.trip.create({
+            data: {
+                vehicleId: truck1.id,
+                driverId: ramesh.id,
+                origin: 'Mumbai, Maharashtra',
+                destination: 'Pune, Maharashtra',
+                distanceEstimated: 156,
+                distanceActual: 160,
+                cargoWeight: 13_500,
+                cargoDescription: 'Auto components — Bosch India plant supply',
+                odometerStart: 44_580,
+                odometerEnd: 44_740,
+                revenue: 30_000,
+                clientName: 'Bosch India Ltd.',
+                invoiceReference: 'INV-FF-2025-DEC-001',
+                status: TripStatus.COMPLETED,
+                dispatchTime: cal(2025, 12, 3, 6),
+                completionTime: cal(2025, 12, 3, 14),
+                createdAt: cal(2025, 12, 2),
+            },
+        }),
+        // Dec-2: Delhi → Jaipur  (Van1, Anjali)
+        prisma.trip.create({
+            data: {
+                vehicleId: van1.id,
+                driverId: anjali.id,
+                origin: 'Delhi, NCT',
+                destination: 'Jaipur, Rajasthan',
+                distanceEstimated: 270,
+                distanceActual: 275,
+                cargoWeight: 650,
+                cargoDescription: 'Textile goods — Manyavar Jaipur showroom restocking',
+                odometerStart: 11_620,
+                odometerEnd: 11_895,
+                revenue: 18_500,
+                clientName: 'Manyavar (Vedant Fashions Ltd.)',
+                invoiceReference: 'INV-FF-2025-DEC-002',
+                status: TripStatus.COMPLETED,
+                dispatchTime: cal(2025, 12, 5, 7),
+                completionTime: cal(2025, 12, 5, 16),
+                createdAt: cal(2025, 12, 4),
+            },
+        }),
+        // Dec-3: Mumbai → Hyderabad  (Truck2, Suresh) — long haul
+        prisma.trip.create({
+            data: {
+                vehicleId: truck2.id,
+                driverId: suresh.id,
+                origin: 'Mumbai, Maharashtra',
+                destination: 'Hyderabad, Telangana',
+                distanceEstimated: 710,
+                distanceActual: 718,
+                cargoWeight: 19_000,
+                cargoDescription: 'FMCG goods — HUL distribution to Hyderabad warehouses',
+                odometerStart: 37_350,
+                odometerEnd: 38_068,
+                revenue: 72_000,
+                clientName: 'Hindustan Unilever Ltd.',
+                invoiceReference: 'INV-FF-2025-DEC-003',
+                status: TripStatus.COMPLETED,
+                dispatchTime: cal(2025, 12, 8, 5),
+                completionTime: cal(2025, 12, 9, 11),
+                createdAt: cal(2025, 12, 7),
+            },
+        }),
+        // Dec-4: Mumbai → Delhi air freight  (Plane1, Anjali)
+        prisma.trip.create({
+            data: {
+                vehicleId: plane1.id,
+                driverId: anjali.id,
+                origin: 'CSIA Mumbai (BOM)',
+                destination: 'IGI Delhi (DEL)',
+                distanceEstimated: 1_415,
+                distanceActual: 1_408,
+                cargoWeight: 880,
+                cargoDescription: 'Pharma cold-chain — Dr. Reddy\'s API express consignment',
+                odometerStart: 7_700,
+                odometerEnd: 8_408,
+                revenue: 185_000,
+                clientName: 'Dr. Reddy\'s Laboratories Ltd.',
+                invoiceReference: 'INV-FF-2025-DEC-004',
+                status: TripStatus.COMPLETED,
+                dispatchTime: cal(2025, 12, 12, 5),
+                completionTime: cal(2025, 12, 12, 8),
+                createdAt: cal(2025, 12, 11),
+            },
+        }),
+        // Dec-5: Pune → Nashik  (Van1, Ramesh)
+        prisma.trip.create({
+            data: {
+                vehicleId: van1.id,
+                driverId: ramesh.id,
+                origin: 'Pune, Maharashtra',
+                destination: 'Nashik, Maharashtra',
+                distanceEstimated: 215,
+                distanceActual: 218,
+                cargoWeight: 420,
+                cargoDescription: 'Wine cases — Sula Vineyards festive season bulk order',
+                odometerStart: 11_895,
+                odometerEnd: 12_113,
+                revenue: 12_000,
+                clientName: 'Sula Vineyards Pvt. Ltd.',
+                invoiceReference: 'INV-FF-2025-DEC-005',
+                status: TripStatus.COMPLETED,
+                dispatchTime: cal(2025, 12, 15, 9),
+                completionTime: cal(2025, 12, 15, 17),
+                createdAt: cal(2025, 12, 14),
+            },
+        }),
+        // Dec-6: Mumbai local  (Bike1, Mohan)
+        prisma.trip.create({
+            data: {
+                vehicleId: bike1.id,
+                driverId: mohan.id,
+                origin: 'Lower Parel, Mumbai',
+                destination: 'Fort, Mumbai',
+                distanceEstimated: 20,
+                distanceActual: 23,
+                cargoWeight: 12,
+                cargoDescription: 'Banking documents — HDFC corporate courier, urgent',
+                odometerStart: 3_100,
+                odometerEnd: 3_123,
+                revenue: 2_500,
+                clientName: 'HDFC Bank Ltd.',
+                invoiceReference: 'INV-FF-2025-DEC-006',
+                status: TripStatus.COMPLETED,
+                dispatchTime: cal(2025, 12, 20, 10),
+                completionTime: cal(2025, 12, 20, 12),
+                createdAt: cal(2025, 12, 20),
+            },
+        }),
+        // Dec-7: Bangalore → Mumbai  (Truck1, Suresh) — cross-country
+        prisma.trip.create({
+            data: {
+                vehicleId: truck1.id,
+                driverId: suresh.id,
+                origin: 'Bangalore, Karnataka',
+                destination: 'Mumbai, Maharashtra',
+                distanceEstimated: 985,
+                distanceActual: 992,
+                cargoWeight: 16_000,
+                cargoDescription: 'Electronics — Samsung India B2B bulk shipment',
+                odometerStart: 44_740,
+                odometerEnd: 45_732,
+                revenue: 65_000,
+                clientName: 'Samsung India Electronics Pvt. Ltd.',
+                invoiceReference: 'INV-FF-2025-DEC-007',
+                status: TripStatus.COMPLETED,
+                dispatchTime: cal(2025, 12, 22, 6),
+                completionTime: cal(2025, 12, 23, 18),
+                createdAt: cal(2025, 12, 21),
+            },
+        }),
+        // Dec-8: Delhi → Lucknow  (Van1, Anjali)
+        prisma.trip.create({
+            data: {
+                vehicleId: van1.id,
+                driverId: anjali.id,
+                origin: 'Delhi, NCT',
+                destination: 'Lucknow, Uttar Pradesh',
+                distanceEstimated: 550,
+                distanceActual: 558,
+                cargoWeight: 700,
+                cargoDescription: 'Medical supplies — Apollo Pharmacy UP warehouse stock',
+                odometerStart: 12_113,
+                odometerEnd: 12_671,
+                revenue: 28_000,
+                clientName: 'Apollo Pharmacy Ltd.',
+                invoiceReference: 'INV-FF-2025-DEC-008',
+                status: TripStatus.COMPLETED,
+                dispatchTime: cal(2025, 12, 28, 7),
+                completionTime: cal(2025, 12, 28, 22),
+                createdAt: cal(2025, 12, 27),
+            },
+        }),
+    ]);
+
+    // ── December 2025 fuel logs ──────────────────────────────────
+    await Promise.all([
+        prisma.fuelLog.create({
+            data: {
+                vehicleId: truck1.id,
+                tripId: decT1.id,
+                liters: 82,
+                costPerLiter: 93.80,
+                totalCost: 7_691.6,
+                odometerAtFill: 44_600,
+                fuelStation: 'Indian Oil, Khopoli, NH-48',
+                loggedAt: cal(2025, 12, 3, 5),
+            },
+        }),
+        prisma.fuelLog.create({
+            data: {
+                vehicleId: van1.id,
+                tripId: decT2.id,
+                liters: 38,
+                costPerLiter: 96.20,
+                totalCost: 3_655.6,
+                odometerAtFill: 11_640,
+                fuelStation: 'BPCL, NH-48, Gurgaon',
+                loggedAt: cal(2025, 12, 5, 6),
+            },
+        }),
+        prisma.fuelLog.create({
+            data: {
+                vehicleId: truck2.id,
+                tripId: decT3.id,
+                liters: 125,
+                costPerLiter: 93.80,
+                totalCost: 11_725,
+                odometerAtFill: 37_380,
+                fuelStation: 'HP Petrol Pump, Pune Bypass, NH-65',
+                loggedAt: cal(2025, 12, 8, 4),
+            },
+        }),
+        prisma.fuelLog.create({
+            data: {
+                vehicleId: plane1.id,
+                tripId: decT4.id,
+                liters: 452,
+                costPerLiter: 87.50,
+                totalCost: 39_550,
+                odometerAtFill: 7_705,
+                fuelStation: 'CSIA Cargo Terminal, Mumbai',
+                loggedAt: cal(2025, 12, 12, 4),
+            },
+        }),
+        prisma.fuelLog.create({
+            data: {
+                vehicleId: van1.id,
+                tripId: decT5.id,
+                liters: 28,
+                costPerLiter: 96.20,
+                totalCost: 2_693.6,
+                odometerAtFill: 11_910,
+                fuelStation: 'Shell, Pune-Nashik Highway',
+                loggedAt: cal(2025, 12, 15, 8),
+            },
+        }),
+        prisma.fuelLog.create({
+            data: {
+                vehicleId: truck1.id,
+                tripId: decT7.id,
+                liters: 110,
+                costPerLiter: 93.80,
+                totalCost: 10_318,
+                odometerAtFill: 44_850,
+                fuelStation: 'Indian Oil, Tumkur Road, Bangalore',
+                loggedAt: cal(2025, 12, 22, 5),
+            },
+        }),
+        prisma.fuelLog.create({
+            data: {
+                vehicleId: van1.id,
+                tripId: decT8.id,
+                liters: 55,
+                costPerLiter: 96.20,
+                totalCost: 5_291,
+                odometerAtFill: 12_130,
+                fuelStation: 'BPCL, NH-19, Aligarh',
+                loggedAt: cal(2025, 12, 28, 6),
+            },
+        }),
+    ]);
+
+    // ── December 2025 maintenance logs ──────────────────────────
+    await Promise.all([
+        prisma.maintenanceLog.create({
+            data: {
+                vehicleId: truck2.id,
+                serviceType: 'OIL_CHANGE',
+                description: 'Full engine oil change (15W-40, 22 litres) and all filters. Pre-winter servicing.',
+                cost: 5_500,
+                odometerAtService: 37_350,
+                technicianName: 'Tata Motors ASC Thane',
+                shopName: 'Tata Motors Authorized Workshop, Thane',
+                serviceDate: cal(2025, 12, 1),
+                nextServiceDue: cal(2026, 6, 1),
+            },
+        }),
+        prisma.maintenanceLog.create({
+            data: {
+                vehicleId: van1.id,
+                serviceType: 'TYRE_ROTATION',
+                description: 'Tyre rotation and balancing. Front tyres swapped. Tread depth verified.',
+                cost: 1_800,
+                odometerAtService: 11_620,
+                technicianName: 'Suresh Tyre Service',
+                shopName: 'Bridgestone Tyre Centre, Connaught Place, Delhi',
+                serviceDate: cal(2025, 12, 10),
+                nextServiceDue: cal(2026, 6, 10),
+            },
+        }),
+    ]);
+
+    // ── December 2025 expenses ──────────────────────────────────
+    await Promise.all([
+        prisma.expense.create({
+            data: {
+                vehicleId: truck2.id,
+                tripId: decT3.id,
+                amount: 1_380,
+                category: ExpenseCategory.TOLL,
+                description: 'NH-65 toll plazas — Solapur, Bidar, Zaheerabad (heavy commercial)',
+                loggedByUserId: dispatcher.id,
+                dateLogged: cal(2025, 12, 9, 12),
+            },
+        }),
+        prisma.expense.create({
+            data: {
+                vehicleId: truck2.id,
+                tripId: decT3.id,
+                amount: 1_800,
+                category: ExpenseCategory.LODGING,
+                description: 'Driver overnight stay — Hotel Sai Grand, Solapur',
+                loggedByUserId: dispatcher.id,
+                dateLogged: cal(2025, 12, 8, 22),
+            },
+        }),
+        prisma.expense.create({
+            data: {
+                vehicleId: plane1.id,
+                tripId: decT4.id,
+                amount: 8_000,
+                category: ExpenseCategory.MISC,
+                description: 'CSIA cold-chain handling fee + DGCA pharma clearance charges',
+                loggedByUserId: financeAnalyst.id,
+                dateLogged: cal(2025, 12, 12, 9),
+            },
+        }),
+        prisma.expense.create({
+            data: {
+                vehicleId: truck1.id,
+                tripId: decT7.id,
+                amount: 1_960,
+                category: ExpenseCategory.TOLL,
+                description: 'NH-48 toll — Tumkur, Pune Expressway (heavy vehicle rate)',
+                loggedByUserId: dispatcher.id,
+                dateLogged: cal(2025, 12, 23, 8),
+            },
+        }),
+        prisma.expense.create({
+            data: {
+                vehicleId: truck1.id,
+                tripId: decT7.id,
+                amount: 1_800,
+                category: ExpenseCategory.LODGING,
+                description: 'Driver lodging — Hotel Highway Inn, Kolhapur (overnight)',
+                loggedByUserId: dispatcher.id,
+                dateLogged: cal(2025, 12, 22, 21),
+            },
+        }),
+        prisma.expense.create({
+            data: {
+                vehicleId: van1.id,
+                tripId: decT8.id,
+                amount: 920,
+                category: ExpenseCategory.TOLL,
+                description: 'Yamuna Expressway + Agra-Lucknow Expressway tolls',
+                loggedByUserId: dispatcher.id,
+                dateLogged: cal(2025, 12, 28, 23),
+            },
+        }),
+    ]);
+
+    // Suppress unused variable warnings
+    void decT6;
+
+    console.log('  ✅  Dec 2025: 8 trips + 7 fuel logs + 2 maintenance + 6 expenses seeded.\n');
 
     // ──────────────────────────────────────────────────────────────
     //  Summary
