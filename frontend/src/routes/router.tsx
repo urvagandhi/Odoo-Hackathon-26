@@ -13,6 +13,8 @@ import Settings from "../pages/Settings";
 import DashboardShell from "../layouts/DashboardShell";
 import { RoleDashboard, AdminDashboard, DispatcherDashboard, SafetyOfficerDashboard, FinanceDashboard } from "../pages/dashboards";
 import VehicleRegistry from "../pages/VehicleRegistry";
+import DriverManagement from "../pages/DriverManagement";
+import TripDispatcher from "../pages/TripDispatcher";
 import ComingSoon from "../pages/ComingSoon";
 
 export const router = createBrowserRouter([
@@ -48,9 +50,9 @@ export const router = createBrowserRouter([
 
       // ── Domain pages ─────────────────────────────────────
       { path: "fleet/vehicles", element: <VehicleRegistry /> },
-      { path: "dispatch/trips", element: <ComingSoon /> },
+      { path: "dispatch/trips", element: <TripDispatcher /> },
       { path: "dispatch/new", element: <ComingSoon /> },
-      { path: "hr/drivers", element: <ComingSoon /> },
+      { path: "hr/drivers", element: <DriverManagement /> },
       { path: "hr/performance", element: <ComingSoon /> },
       { path: "fleet/maintenance", element: <ComingSoon /> },
       { path: "finance/fuel", element: <ComingSoon /> },
