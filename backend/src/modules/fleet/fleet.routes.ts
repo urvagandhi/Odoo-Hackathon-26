@@ -2,7 +2,16 @@ import { Router } from 'express';
 import { fleetController } from './fleet.controller';
 import { authenticate } from '../../middleware/authenticate';
 import { authorize } from '../../middleware/authorize';
+import { validate } from '../../middleware/validate';
 import { UserRole } from '@prisma/client';
+import {
+    CreateVehicleSchema,
+    UpdateVehicleSchema,
+    VehicleStatusUpdateSchema,
+    VehicleQuerySchema,
+    CreateVehicleDocumentSchema,
+    UpdateVehicleDocumentSchema,
+} from './fleet.validator';
 
 export const fleetRouter = Router();
 
@@ -13,7 +22,11 @@ fleetRouter.use(authenticate);
 fleetRouter.get('/types', fleetController.listVehicleTypes.bind(fleetController));
 
 // GET  /api/v1/fleet/vehicles  — all roles
-fleetRouter.get('/vehicles', fleetController.list.bind(fleetController));
+fleetRouter.get(
+    '/vehicles',
+    validate(VehicleQuerySchema, 'query'),
+    fleetController.list.bind(fleetController),
+);
 
 // GET  /api/v1/fleet/vehicles/:id  — all roles
 fleetRouter.get('/vehicles/:id', fleetController.getById.bind(fleetController));
@@ -25,6 +38,7 @@ fleetRouter.get('/vehicles/:id/maintenance', fleetController.getMaintenanceLogs.
 fleetRouter.post(
     '/vehicles',
     authorize([UserRole.MANAGER]),
+    validate(CreateVehicleSchema),
     fleetController.create.bind(fleetController),
 );
 
@@ -32,6 +46,7 @@ fleetRouter.post(
 fleetRouter.patch(
     '/vehicles/:id',
     authorize([UserRole.MANAGER]),
+    validate(UpdateVehicleSchema),
     fleetController.update.bind(fleetController),
 );
 
@@ -40,6 +55,7 @@ fleetRouter.patch(
 fleetRouter.patch(
     '/vehicles/:id/status',
     authorize([UserRole.MANAGER, UserRole.SAFETY_OFFICER]),
+    validate(VehicleStatusUpdateSchema),
     fleetController.updateStatus.bind(fleetController),
 );
 
@@ -69,6 +85,7 @@ fleetRouter.get('/vehicles/:id/documents/:docId', fleetController.getDocument.bi
 fleetRouter.post(
     '/vehicles/:id/documents',
     authorize([UserRole.MANAGER, UserRole.SAFETY_OFFICER]),
+    validate(CreateVehicleDocumentSchema),
     fleetController.addDocument.bind(fleetController),
 );
 
@@ -76,6 +93,7 @@ fleetRouter.post(
 fleetRouter.patch(
     '/vehicles/:id/documents/:docId',
     authorize([UserRole.MANAGER, UserRole.SAFETY_OFFICER]),
+    validate(UpdateVehicleDocumentSchema),
     fleetController.updateDocument.bind(fleetController),
 );
 

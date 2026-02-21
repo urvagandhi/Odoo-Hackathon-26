@@ -9,11 +9,15 @@ export const CreateVehicleSchema = z.object({
     vin: z.string().max(17).optional(),
     vehicleTypeId: z.number().int().positive(),
     currentOdometer: z.number().nonnegative().default(0),
-    capacityWeight: z.number().positive().optional(),
+    capacityWeight: z.number().positive('Capacity must be greater than 0'),
     capacityVolume: z.number().positive().optional(),
 });
 
-export const UpdateVehicleSchema = CreateVehicleSchema.partial().omit({ licensePlate: true });
+// licensePlate is the immutable unique key; currentOdometer is monotonically
+// increasing and must only be updated via trip-completion (dispatch module).
+export const UpdateVehicleSchema = CreateVehicleSchema
+    .partial()
+    .omit({ licensePlate: true, currentOdometer: true });
 
 export const VehicleStatusUpdateSchema = z.object({
     status: z.enum(['AVAILABLE', 'IN_SHOP', 'RETIRED']),
@@ -23,6 +27,7 @@ export const VehicleStatusUpdateSchema = z.object({
 export const VehicleQuerySchema = z.object({
     status: z.enum(['AVAILABLE', 'ON_TRIP', 'IN_SHOP', 'RETIRED']).optional(),
     vehicleTypeId: z.coerce.number().optional(),
+    search: z.string().trim().optional(),
     page: z.coerce.number().int().positive().default(1),
     limit: z.coerce.number().int().positive().max(100).default(20),
 });

@@ -13,13 +13,20 @@ import {
 
 export class FleetService {
     async listVehicles(query: VehicleQueryInput) {
-        const { status, vehicleTypeId, page, limit } = query;
+        const { status, vehicleTypeId, search, page, limit } = query;
         const skip = (page - 1) * limit;
 
         const where = {
             isDeleted: false,
             ...(status ? { status } : {}),
             ...(vehicleTypeId ? { vehicleTypeId: BigInt(vehicleTypeId) } : {}),
+            ...(search ? {
+                OR: [
+                    { licensePlate: { contains: search, mode: 'insensitive' as const } },
+                    { make: { contains: search, mode: 'insensitive' as const } },
+                    { model: { contains: search, mode: 'insensitive' as const } },
+                ],
+            } : {}),
         };
 
         const [vehicles, total] = await prisma.$transaction([
