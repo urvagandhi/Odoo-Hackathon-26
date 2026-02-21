@@ -1,6 +1,6 @@
 # ⚡ HackStack — Full-Stack Hackathon Boilerplate
 
-**React 18 + TypeScript + Vite** · **FastAPI + PostgreSQL** · **Docker Ready**
+**React 19 + TypeScript + Vite** · **Express.js + Prisma + PostgreSQL** · **Docker Ready**
 
 ---
 
@@ -10,18 +10,20 @@
 project-root/
 │
 ├── backend/
-│   ├── app/
-│   │   ├── main.py            # FastAPI entry point
-│   │   ├── config.py          # Pydantic settings
-│   │   ├── database.py        # SQLAlchemy engine & session
-│   │   ├── models/            # ORM models
-│   │   ├── schemas/           # Pydantic request/response schemas
-│   │   ├── routes/            # API route handlers
+│   ├── src/
+│   │   ├── index.ts           # Express entry point
+│   │   ├── config.ts          # Environment config + Prisma client
+│   │   ├── routes/            # Express route handlers
 │   │   ├── services/          # Business logic layer
-│   │   └── core/              # Exceptions, middleware, utils
-│   ├── tests/                 # PyTest test suite
-│   ├── alembic/               # Database migrations
-│   ├── requirements.txt
+│   │   ├── middleware/        # Auth, error handling, validation
+│   │   ├── validators/        # Zod request/response schemas
+│   │   └── utils/             # Password hashing, JWT, custom errors
+│   ├── prisma/
+│   │   ├── schema.prisma      # Database schema (source of truth)
+│   │   └── migrations/        # Prisma migration history
+│   ├── tests/                 # Jest + Supertest test suite
+│   ├── package.json
+│   ├── tsconfig.json
 │   └── Dockerfile
 │
 ├── frontend/
@@ -56,8 +58,8 @@ docker compose up --build
 | Service    | URL                          |
 |------------|------------------------------|
 | Frontend   | http://localhost:3000         |
-| Backend    | http://localhost:8000         |
-| Swagger    | http://localhost:8000/docs    |
+| Backend    | http://localhost:5000         |
+| Health     | http://localhost:5000/api/v1/health |
 | PostgreSQL | localhost:5432               |
 
 ### Option 2: Local Development
@@ -65,9 +67,10 @@ docker compose up --build
 **Backend:**
 ```bash
 cd backend
-python -m venv .venv && source .venv/bin/activate
-pip install -r requirements.txt
-uvicorn app.main:app --reload
+npm install
+cp ../.env.example .env    # or create backend/.env
+npx prisma migrate dev
+npm run dev
 ```
 
 **Frontend:**
@@ -84,9 +87,6 @@ docker run -d --name hackathon-db \
   -e POSTGRES_DB=hackathon_db \
   -e POSTGRES_PASSWORD=postgres \
   -p 5432:5432 postgres:16-alpine
-
-# Run migrations
-cd backend && alembic upgrade head
 ```
 
 ---
@@ -95,7 +95,7 @@ cd backend && alembic upgrade head
 
 ```bash
 # Backend
-cd backend && pytest
+cd backend && npm test
 
 # Frontend
 cd frontend && npm test
@@ -105,14 +105,14 @@ cd frontend && npm test
 
 ## 📋 API Endpoints
 
-| Method | Endpoint        | Description        |
-|--------|-----------------|--------------------|
-| GET    | /               | Health check       |
-| POST   | /items          | Create item        |
-| GET    | /items          | List all items     |
-| GET    | /items/{id}     | Get single item    |
-| PUT    | /items/{id}     | Update item        |
-| DELETE | /items/{id}     | Delete item        |
+| Method | Endpoint             | Description        |
+|--------|----------------------|--------------------|
+| GET    | /api/v1/health       | Health check       |
+| POST   | /api/v1/items        | Create item        |
+| GET    | /api/v1/items        | List all items     |
+| GET    | /api/v1/items/:id    | Get single item    |
+| PUT    | /api/v1/items/:id    | Update item        |
+| DELETE | /api/v1/items/:id    | Delete item        |
 
 ---
 
@@ -120,12 +120,12 @@ cd frontend && npm test
 
 **Adding a new entity** (e.g., `User`):
 
-1. **Model** → `backend/app/models/user.py`
-2. **Schema** → `backend/app/schemas/user.py`
-3. **Service** → `backend/app/services/user_service.py`
-4. **Route** → `backend/app/routes/users.py`
-5. **Register** → Add router in `main.py`
-6. **Migration** → `alembic revision --autogenerate -m "add users"`
+1. **Prisma Model** → `backend/prisma/schema.prisma`
+2. **Migration** → `npx prisma migrate dev --name add_users`
+3. **Validator** → `backend/src/validators/user.ts` (Zod schemas)
+4. **Service** → `backend/src/services/user.service.ts`
+5. **Route** → `backend/src/routes/users.ts`
+6. **Register** → Add router in `src/index.ts`
 7. **Frontend API** → `frontend/src/api/client.ts`
 8. **Validator** → `frontend/src/validators/user.ts`
 9. **Hook** → `frontend/src/hooks/useUsers.ts`
@@ -133,7 +133,26 @@ cd frontend && npm test
 
 ---
 
+## 🛠️ Useful Commands
+
+```bash
+# Prisma
+npx prisma migrate dev       # Create + apply migration
+npx prisma migrate deploy    # Apply in production
+npx prisma studio            # Visual DB browser
+npx prisma generate          # Regenerate Prisma Client
+
+# Backend
+npm run dev                  # Start dev server (hot reload)
+npm run build                # Compile TypeScript
+npm test                     # Run tests
+npx tsc --noEmit             # Type check
+```
+
+---
+
 ## 📖 More
 
 - [Git Workflow](./GIT_WORKFLOW.md)
-- [Swagger Docs](http://localhost:8000/docs) (when running)
+- [Health Check](http://localhost:5000/api/v1/health) (when running)
+# Odoo-Hackathon-26
