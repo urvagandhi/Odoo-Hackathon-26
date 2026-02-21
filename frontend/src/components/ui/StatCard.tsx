@@ -4,6 +4,7 @@
  */
 import { TrendingUp, TrendingDown, Minus } from "lucide-react";
 import { motion } from "framer-motion";
+import { useTheme } from "../../context/ThemeContext";
 
 type Trend = "up" | "down" | "neutral";
 
@@ -37,6 +38,7 @@ export function StatCard({
   loading = false,
   className = "",
 }: StatCardProps) {
+  const { isDark } = useTheme();
   const trendCfg = trend ? TREND_CONFIG[trend] : null;
   const TrendIcon = trendCfg?.icon;
 
@@ -45,7 +47,7 @@ export function StatCard({
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] as const }}
-      className={`bg-white rounded-xl border border-slate-200 p-5 shadow-sm hover:shadow-md transition-shadow duration-200 ${className}`}
+      className={`rounded-xl border p-5 shadow-sm hover:shadow-md transition-shadow duration-200 ${isDark ? 'bg-neutral-800 border-neutral-700' : 'bg-white border-slate-200'} ${className}`}
     >
       <div className="flex items-start justify-between gap-3">
         {/* Icon */}
@@ -65,17 +67,17 @@ export function StatCard({
       <div className="mt-3">
         {loading ? (
           <div className="space-y-2">
-            <div className="relative h-7 w-24 rounded-md bg-slate-100 overflow-hidden">
-              <div className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/60 to-transparent animate-shimmer" />
+            <div className={`relative h-7 w-24 rounded-md overflow-hidden ${isDark ? 'bg-neutral-700' : 'bg-slate-100'}`}>
+              <div className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/20 to-transparent animate-shimmer" />
             </div>
-            <div className="relative h-4 w-32 rounded bg-slate-100 overflow-hidden">
-              <div className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/60 to-transparent animate-shimmer" />
+            <div className={`relative h-4 w-32 rounded overflow-hidden ${isDark ? 'bg-neutral-700' : 'bg-slate-100'}`}>
+              <div className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/20 to-transparent animate-shimmer" />
             </div>
           </div>
         ) : (
           <>
-            <p className="text-2xl font-bold text-slate-900 tabular-nums">{value}</p>
-            <p className="text-sm text-slate-500 mt-0.5">{label}</p>
+            <p className={`text-2xl font-bold tabular-nums ${isDark ? 'text-white' : 'text-slate-900'}`}>{value}</p>
+            <p className={`text-sm mt-0.5 ${isDark ? 'text-neutral-400' : 'text-slate-500'}`}>{label}</p>
           </>
         )}
       </div>

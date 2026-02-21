@@ -43,6 +43,7 @@ import {
 } from "react";
 import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
+import { useTheme } from "../../context/ThemeContext";
 
 // ── Context ────────────────────────────────────────────────────
 
@@ -181,6 +182,7 @@ export function DropdownMenuContent({
     setPos({ top, left });
   }, [open, align, sideOffset, triggerRef]);
 
+  const { isDark: isDarkDm } = useTheme();
   const transformOrigin = align === "start" ? "top left" : align === "end" ? "top right" : "top center";
   const translateX = align === "end" ? "-100%" : align === "center" ? "-50%" : "0%";
 
@@ -202,8 +204,9 @@ export function DropdownMenuContent({
             zIndex: 9950,
           }}
           className={`
-            min-w-[220px] bg-white rounded-xl border border-slate-200
-            shadow-xl shadow-black/8 p-1.5
+            min-w-[220px] rounded-xl border
+            shadow-xl p-1.5
+            ${isDarkDm ? 'bg-neutral-800 border-neutral-700 shadow-black/30' : 'bg-white border-slate-200 shadow-black/8'}
             ${className}
           `}
         >
@@ -240,6 +243,7 @@ export function DropdownMenuItem({
   ...props
 }: DropdownMenuItemProps) {
   const { setOpen } = useDropdownMenu();
+  const { isDark: isDarkItem } = useTheme();
 
   return (
     <button
@@ -255,10 +259,10 @@ export function DropdownMenuItem({
         px-2 py-1.5 rounded-md text-sm
         cursor-pointer select-none outline-none
         transition-colors duration-100
-        focus-visible:bg-slate-100
+        ${isDarkItem ? 'focus-visible:bg-neutral-700' : 'focus-visible:bg-slate-100'}
         ${destructive
-          ? "text-red-600 hover:bg-red-50 focus-visible:bg-red-50"
-          : "text-slate-700 hover:bg-slate-100"
+          ? isDarkItem ? "text-red-400 hover:bg-red-900/30" : "text-red-600 hover:bg-red-50 focus-visible:bg-red-50"
+          : isDarkItem ? "text-neutral-300 hover:bg-neutral-700" : "text-slate-700 hover:bg-slate-100"
         }
         ${inset ? "pl-8" : ""}
         ${className}
@@ -273,10 +277,11 @@ export function DropdownMenuItem({
 // ── Separator ─────────────────────────────────────────────────
 
 export function DropdownMenuSeparator({ className = "", ...props }: HTMLAttributes<HTMLDivElement>) {
+  const { isDark: isDarkSep } = useTheme();
   return (
     <div
       role="separator"
-      className={`my-1 h-px bg-slate-100 ${className}`}
+      className={`my-1 h-px ${isDarkSep ? 'bg-neutral-700' : 'bg-slate-100'} ${className}`}
       {...props}
     />
   );
@@ -290,10 +295,12 @@ export function DropdownMenuLabel({
   inset = false,
   ...props
 }: HTMLAttributes<HTMLDivElement> & { inset?: boolean }) {
+  const { isDark: isDarkLabel } = useTheme();
   return (
     <div
       className={`
-        px-2 py-1.5 text-xs font-semibold text-slate-500 uppercase tracking-wide select-none
+        px-2 py-1.5 text-xs font-semibold uppercase tracking-wide select-none
+        ${isDarkLabel ? 'text-neutral-500' : 'text-slate-500'}
         ${inset ? "pl-8" : ""}
         ${className}
       `}

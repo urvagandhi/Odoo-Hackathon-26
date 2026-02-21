@@ -2,6 +2,7 @@
  * Sidebar — Drivergo-inspired clean white sidebar with section labels
  * and a purple/violet active state indicator.
  * Matches reference: white bg, grouped nav with MAIN MENU / GENERAL / OTHERS.
+ * Supports dark mode.
  */
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
@@ -27,6 +28,7 @@ import {
 } from "lucide-react";
 import { useAuth } from "../../hooks/useAuth";
 import type { UserRole } from "../../context/AuthContext";
+import { useTheme } from "../../context/ThemeContext";
 
 /* ── Types ──────────────────────────────────────────────── */
 interface NavItem {
@@ -42,33 +44,37 @@ interface NavSection {
 }
 
 /* ── Nav sections per role ──────────────────────────────── */
+/** Admin-level navigation (shared by SUPER_ADMIN and MANAGER) */
+const ADMIN_SECTIONS: NavSection[] = [
+  {
+    title: "MAIN MENU",
+    items: [
+      { label: "Overview", icon: LayoutDashboard, path: "/dashboard" },
+      { label: "Shipment", icon: Truck, path: "/fleet/vehicles" },
+      { label: "Orders", icon: Route, path: "/dispatch/trips" },
+      { label: "Message", icon: MessageSquare, path: "/messages", badge: 6 },
+      { label: "Activity", icon: Activity, path: "/activity" },
+    ],
+  },
+  {
+    title: "GENERAL",
+    items: [
+      { label: "Report", icon: FileText, path: "/finance/reports" },
+      { label: "Support", icon: HelpCircle, path: "/support" },
+      { label: "Account", icon: User, path: "/settings" },
+    ],
+  },
+  {
+    title: "OTHERS",
+    items: [
+      { label: "Settings", icon: Settings, path: "/settings/general" },
+    ],
+  },
+];
+
 const NAV_SECTIONS: Record<UserRole, NavSection[]> = {
-  ADMIN: [
-    {
-      title: "MAIN MENU",
-      items: [
-        { label: "Overview", icon: LayoutDashboard, path: "/dashboard" },
-        { label: "Shipment", icon: Truck, path: "/fleet/vehicles" },
-        { label: "Orders", icon: Route, path: "/dispatch/trips" },
-        { label: "Message", icon: MessageSquare, path: "/messages", badge: 6 },
-        { label: "Activity", icon: Activity, path: "/activity" },
-      ],
-    },
-    {
-      title: "GENERAL",
-      items: [
-        { label: "Report", icon: FileText, path: "/finance/reports" },
-        { label: "Support", icon: HelpCircle, path: "/support" },
-        { label: "Account", icon: User, path: "/settings" },
-      ],
-    },
-    {
-      title: "OTHERS",
-      items: [
-        { label: "Settings", icon: Settings, path: "/settings/general" },
-      ],
-    },
-  ],
+  SUPER_ADMIN: ADMIN_SECTIONS,
+  MANAGER: ADMIN_SECTIONS,
   DISPATCHER: [
     {
       title: "MAIN MENU",
@@ -123,7 +129,7 @@ const NAV_SECTIONS: Record<UserRole, NavSection[]> = {
       ],
     },
   ],
-  FINANCE: [
+  FINANCE_ANALYST: [
     {
       title: "MAIN MENU",
       items: [
@@ -159,20 +165,21 @@ export default function Sidebar() {
   const { user, logout } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
+  const { isDark } = useTheme();
 
-  const role = user?.role ?? "ADMIN";
+  const role = user?.role ?? "SUPER_ADMIN";
   const sections = NAV_SECTIONS[role];
 
   const isActive = (path: string) => location.pathname === path;
 
   return (
-    <aside className="w-[230px] flex flex-col h-screen shrink-0 bg-white border-r border-slate-100">
+    <aside className={`w-[230px] flex flex-col h-screen shrink-0 border-r ${isDark ? 'bg-neutral-900 border-neutral-800' : 'bg-white border-slate-100'}`}>
       {/* ── Logo ─────────────────────────────────────── */}
-      <div className="flex items-center gap-3 px-5 h-16 shrink-0 border-b border-slate-100">
+      <div className={`flex items-center gap-3 px-5 h-16 shrink-0 border-b ${isDark ? 'border-neutral-800' : 'border-slate-100'}`}>
         <div className="w-8 h-8 rounded-lg bg-violet-600 flex items-center justify-center shrink-0">
           <Truck className="w-4.5 h-4.5 text-white" />
         </div>
-        <span className="text-[15px] font-bold tracking-tight text-slate-900 whitespace-nowrap">
+        <span className={`text-[15px] font-bold tracking-tight whitespace-nowrap ${isDark ? 'text-white' : 'text-slate-900'}`}>
           FleetFlow
         </span>
       </div>
@@ -182,7 +189,7 @@ export default function Sidebar() {
         {sections.map((section, sIdx) => (
           <div key={sIdx}>
             {section.title && (
-              <p className="px-3 mb-2 text-[10px] font-semibold uppercase tracking-[0.12em] text-slate-400">
+              <p className={`px-3 mb-2 text-[10px] font-semibold uppercase tracking-[0.12em] ${isDark ? 'text-neutral-600' : 'text-slate-400'}`}>
                 {section.title}
               </p>
             )}
@@ -198,7 +205,9 @@ export default function Sidebar() {
                       relative flex items-center gap-3 px-3 py-2.5 rounded-lg text-[13px] font-medium transition-all duration-150
                       ${active
                         ? "bg-violet-600 text-white"
-                        : "text-slate-500 hover:text-slate-700 hover:bg-slate-50"
+                        : isDark
+                          ? "text-neutral-400 hover:text-white hover:bg-neutral-800"
+                          : "text-slate-500 hover:text-slate-700 hover:bg-slate-50"
                       }
                     `}
                   >
@@ -228,11 +237,11 @@ export default function Sidebar() {
       </nav>
 
       {/* ── Bottom section ────────────────────────────── */}
-      <div className="p-3 space-y-1 shrink-0 border-t border-slate-100">
+      <div className={`p-3 space-y-1 shrink-0 border-t ${isDark ? 'border-neutral-800' : 'border-slate-100'}`}>
         {/* Logout */}
         <button
           onClick={() => { logout(); navigate("/login"); }}
-          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 transition-colors text-sm"
+          className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors text-sm ${isDark ? 'text-neutral-500 hover:text-red-400 hover:bg-red-900/20' : 'text-slate-400 hover:text-red-500 hover:bg-red-50'}`}
         >
           <LogOut className="w-4 h-4 shrink-0" />
           <span>Log out</span>

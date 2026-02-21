@@ -4,6 +4,7 @@
  */
 import type { ReactNode } from "react";
 import { motion } from "framer-motion";
+import { useTheme } from "../../context/ThemeContext";
 
 interface SectionCardProps {
   title: string;
@@ -15,19 +16,21 @@ interface SectionCardProps {
 }
 
 export function SectionCard({ title, description, children, action, className = "" }: SectionCardProps) {
+  const { isDark } = useTheme();
+
   return (
     <motion.section
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] as const }}
-      className={`bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden ${className}`}
+      className={`rounded-xl border shadow-sm overflow-hidden ${isDark ? 'bg-neutral-800 border-neutral-700' : 'bg-white border-slate-200'} ${className}`}
     >
       {/* Card header */}
-      <div className="px-6 py-4 border-b border-slate-100 flex items-start justify-between gap-4">
+      <div className={`px-6 py-4 border-b flex items-start justify-between gap-4 ${isDark ? 'border-neutral-700' : 'border-slate-100'}`}>
         <div>
-          <h2 className="text-base font-semibold text-slate-900">{title}</h2>
+          <h2 className={`text-base font-semibold ${isDark ? 'text-white' : 'text-slate-900'}`}>{title}</h2>
           {description && (
-            <p className="text-sm text-slate-500 mt-0.5">{description}</p>
+            <p className={`text-sm mt-0.5 ${isDark ? 'text-neutral-400' : 'text-slate-500'}`}>{description}</p>
           )}
         </div>
         {action && <div className="shrink-0">{action}</div>}

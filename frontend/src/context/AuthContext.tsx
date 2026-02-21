@@ -17,6 +17,8 @@ interface AuthContextValue {
   logout: () => void;
   /** Quick helper — e.g. hasRole("SUPER_ADMIN") or hasRole(["SUPER_ADMIN","DISPATCHER"]) */
   hasRole: (role: UserRole | UserRole[]) => boolean;
+  /** Demo helper — switch displayed role without re-authenticating */
+  switchRole: (role: UserRole) => void;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -63,6 +65,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     [user]
   );
 
+  // ── Demo role switcher ────────────────────────────────────────────────
+  const switchRole = useCallback(
+    (role: UserRole) => {
+      if (!user) return;
+      const updated = { ...user, role };
+      setUser(updated);
+      localStorage.setItem("auth_user", JSON.stringify(updated));
+    },
+    [user]
+  );
+
   return (
     <AuthContext.Provider
       value={{
@@ -72,6 +85,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         login,
         logout,
         hasRole,
+        switchRole,
       }}
     >
       {children}

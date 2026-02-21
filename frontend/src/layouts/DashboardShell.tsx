@@ -1,14 +1,18 @@
 /**
  * DashboardShell — Drivergo-inspired app shell.
  * White sidebar + white top bar, light gray content area.
+ * Supports dark mode.
  */
 import { Outlet } from "react-router-dom";
 import Sidebar from "../components/navigation/Sidebar";
 import TopBar from "../components/navigation/TopBar";
+import { useTheme } from "../context/ThemeContext";
 
 export default function DashboardShell() {
+  const { isDark } = useTheme();
+
   return (
-    <div className="flex h-screen overflow-hidden bg-[#F8F9FD]">
+    <div className={`flex h-screen overflow-hidden ${isDark ? 'bg-neutral-900' : 'bg-[#F8F9FD]'}`}>
       {/* Sidebar */}
       <Sidebar />
 
