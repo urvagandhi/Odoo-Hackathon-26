@@ -51,6 +51,7 @@ import {
   type ComponentProps,
 } from "react";
 import { ChevronRight, MoreHorizontal } from "lucide-react";
+import { useTheme } from "../../context/ThemeContext";
 
 // ── Breadcrumb (nav wrapper) ───────────────────────────────────
 
@@ -73,9 +74,10 @@ export function BreadcrumbList({
   className = "",
   ...props
 }: HTMLAttributes<HTMLOListElement>) {
+  const { isDark } = useTheme();
   return (
     <ol
-      className={`flex flex-wrap items-center gap-1.5 text-sm text-slate-500 sm:gap-2.5 ${className}`}
+      className={`flex flex-wrap items-center gap-1.5 text-sm sm:gap-2.5 ${isDark ? 'text-neutral-400' : 'text-slate-500'} ${className}`}
       {...props}
     >
       {children}
@@ -110,8 +112,9 @@ export function BreadcrumbLink({
   className = "",
   ...props
 }: BreadcrumbLinkProps) {
+  const { isDark: isDarkLink } = useTheme();
   const cls = `
-    transition-colors duration-150 hover:text-slate-900
+    transition-colors duration-150 ${isDarkLink ? 'hover:text-white' : 'hover:text-slate-900'}
     focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 rounded
     ${className}
   `;
@@ -136,12 +139,13 @@ export function BreadcrumbPage({
   className = "",
   ...props
 }: HTMLAttributes<HTMLSpanElement>) {
+  const { isDark: isDarkPage } = useTheme();
   return (
     <span
       role="link"
       aria-current="page"
       aria-disabled="true"
-      className={`font-semibold text-slate-900 ${className}`}
+      className={`font-semibold ${isDarkPage ? 'text-white' : 'text-slate-900'} ${className}`}
       {...props}
     >
       {children}
@@ -156,11 +160,12 @@ export function BreadcrumbSeparator({
   className = "",
   ...props
 }: HTMLAttributes<HTMLLIElement>) {
+  const { isDark: isDarkSepBc } = useTheme();
   return (
     <li
       role="presentation"
       aria-hidden="true"
-      className={`flex items-center text-slate-400 ${className}`}
+      className={`flex items-center ${isDarkSepBc ? 'text-neutral-600' : 'text-slate-400'} ${className}`}
       {...props}
     >
       {children ?? <ChevronRight className="w-3.5 h-3.5" strokeWidth={2} />}

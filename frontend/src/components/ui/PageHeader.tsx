@@ -4,6 +4,7 @@
  */
 import type { ReactNode } from "react";
 import { motion } from "framer-motion";
+import { useTheme } from "../../context/ThemeContext";
 
 interface PageHeaderProps {
   /** Lucide icon component */
@@ -23,6 +24,8 @@ export function PageHeader({
   actions,
   iconColor = "bg-indigo-600",
 }: PageHeaderProps) {
+  const { isDark } = useTheme();
+
   return (
     <motion.div
       initial={{ opacity: 0, y: -10 }}
@@ -38,9 +41,9 @@ export function PageHeader({
           <Icon className="w-5 h-5 text-white" />
         </div>
         <div>
-          <h1 className="text-xl font-bold text-slate-900 leading-tight">{title}</h1>
+          <h1 className={`text-xl font-bold leading-tight ${isDark ? 'text-white' : 'text-slate-900'}`}>{title}</h1>
           {subtitle && (
-            <p className="text-sm text-slate-500 mt-0.5">{subtitle}</p>
+            <p className={`text-sm mt-0.5 ${isDark ? 'text-neutral-400' : 'text-slate-500'}`}>{subtitle}</p>
           )}
         </div>
       </div>

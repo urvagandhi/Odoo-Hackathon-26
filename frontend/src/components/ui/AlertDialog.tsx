@@ -56,6 +56,7 @@ import {
 } from "react";
 import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
+import { useTheme } from "../../context/ThemeContext";
 
 // ── Context ────────────────────────────────────────────────────
 
@@ -128,6 +129,7 @@ interface AlertDialogContentProps {
 
 export function AlertDialogContent({ children, className = "" }: AlertDialogContentProps) {
   const { open, setOpen } = useAlertDialog();
+  const { isDark } = useTheme();
   const panelRef = useRef<HTMLDivElement>(null);
 
   // Escape to close
@@ -178,7 +180,7 @@ export function AlertDialogContent({ children, className = "" }: AlertDialogCont
             className={`
               fixed z-[9991] top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2
               w-full max-w-md
-              bg-white rounded-lg shadow-xl
+              ${isDark ? 'bg-neutral-800' : 'bg-white'} rounded-lg shadow-xl
               outline-none p-6
               ${className}
             `}
@@ -205,8 +207,9 @@ export function AlertDialogHeader({ children, className = "", ...props }: HTMLAt
 // ── Title ──────────────────────────────────────────────────────
 
 export function AlertDialogTitle({ children, className = "", ...props }: HTMLAttributes<HTMLHeadingElement>) {
+  const { isDark } = useTheme();
   return (
-    <h2 className={`text-lg font-semibold text-slate-900 leading-tight ${className}`} {...props}>
+    <h2 className={`text-lg font-semibold leading-tight ${isDark ? 'text-white' : 'text-slate-900'} ${className}`} {...props}>
       {children}
     </h2>
   );
@@ -215,8 +218,9 @@ export function AlertDialogTitle({ children, className = "", ...props }: HTMLAtt
 // ── Description — blue/muted, matching shadcn ─────────────────
 
 export function AlertDialogDescription({ children, className = "", ...props }: HTMLAttributes<HTMLParagraphElement>) {
+  const { isDark } = useTheme();
   return (
-    <p className={`text-sm text-slate-500 leading-relaxed ${className}`} {...props}>
+    <p className={`text-sm leading-relaxed ${isDark ? 'text-neutral-400' : 'text-slate-500'} ${className}`} {...props}>
       {children}
     </p>
   );
@@ -244,6 +248,7 @@ export function AlertDialogCancel({
   ...props
 }: ButtonHTMLAttributes<HTMLButtonElement>) {
   const { setOpen } = useAlertDialog();
+  const { isDark } = useTheme();
   return (
     <button
       type="button"
@@ -251,8 +256,8 @@ export function AlertDialogCancel({
       className={`
         inline-flex items-center justify-center
         px-4 py-2 rounded-md
-        text-sm font-medium text-slate-700
-        hover:bg-slate-100
+        text-sm font-medium
+        ${isDark ? 'text-neutral-300 hover:bg-neutral-700' : 'text-slate-700 hover:bg-slate-100'}
         transition-colors duration-150
         focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-2
         ${className}
