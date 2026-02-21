@@ -251,28 +251,6 @@ export const financeApi = {
     apiClient.patch(`/api/v1/finance/maintenance/${id}/close`),
 };
 
-// ── Analytics API ───────────────────────────────────────────────────────────
-
-export const analyticsApi = {
-  getDashboardKPIs: () =>
-    apiClient.get('/api/v1/analytics/kpi'),
-
-  getFuelEfficiency: (params?: Record<string, unknown>) =>
-    apiClient.get('/api/v1/analytics/fuel-efficiency', { params }),
-
-  getVehicleROI: (params?: Record<string, unknown>) =>
-    apiClient.get('/api/v1/analytics/roi', { params }),
-
-  getMonthlyReport: (params?: Record<string, unknown>) =>
-    apiClient.get('/api/v1/analytics/monthly', { params }),
-
-  getDriverPerformance: (params?: Record<string, unknown>) =>
-    apiClient.get('/api/v1/analytics/driver-performance', { params }),
-
-  exportCSV: (params: Record<string, unknown>) =>
-    apiClient.get('/api/v1/analytics/export/csv', { params, responseType: 'blob' }),
-};
-
 // ── Analytics API ────────────────────────────────────────────────────────────
 
 export interface KpiData {
@@ -317,6 +295,7 @@ export interface FuelEfficiencyData {
 }
 
 export const analyticsApi = {
+  // Typed (used by role dashboards)
   getKpi: async (): Promise<KpiData> => {
     const { data } = await apiClient.get<{ success: boolean; data: KpiData }>('/api/v1/analytics/kpi');
     return data.data;
@@ -345,4 +324,17 @@ export const analyticsApi = {
     );
     return data.data;
   },
+
+  // Raw (used by CommandCenter / Analytics pages)
+  getDashboardKPIs: () =>
+    apiClient.get('/api/v1/analytics/kpi'),
+
+  getVehicleROI: (params?: Record<string, unknown>) =>
+    apiClient.get('/api/v1/analytics/roi', { params }),
+
+  getMonthlyReport: (params?: Record<string, unknown>) =>
+    apiClient.get('/api/v1/analytics/monthly', { params }),
+
+  exportCSV: (params: Record<string, unknown>) =>
+    apiClient.get('/api/v1/analytics/export/csv', { params, responseType: 'blob' }),
 };
