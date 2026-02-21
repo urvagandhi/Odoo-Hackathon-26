@@ -19,7 +19,7 @@ financeRouter.get('/fuel', authorize(financeRoles), financeController.listFuelLo
 financeRouter.post('/expenses', authorize(financeRoles), financeController.createExpense.bind(financeController));
 financeRouter.get('/expenses', authorize(financeRoles), financeController.listExpenses.bind(financeController));
 
-// Maintenance logs
+// Maintenance logs — read access for Manager + Safety + Finance; create for Safety
 financeRouter.get(
     '/maintenance',
     authorize([UserRole.MANAGER, UserRole.SAFETY_OFFICER, UserRole.FINANCE_ANALYST]),
@@ -27,7 +27,7 @@ financeRouter.get(
 );
 financeRouter.post(
     '/maintenance',
-    authorize([UserRole.MANAGER, UserRole.SAFETY_OFFICER]),
+    authorize([UserRole.SAFETY_OFFICER]),
     financeController.createMaintenanceLog.bind(financeController),
 );
 
@@ -35,6 +35,6 @@ financeRouter.post(
 // Releases vehicle from IN_SHOP → AVAILABLE when maintenance is complete
 financeRouter.patch(
     '/maintenance/:id/close',
-    authorize([UserRole.MANAGER, UserRole.SAFETY_OFFICER]),
+    authorize([UserRole.SAFETY_OFFICER]),
     financeController.closeMaintenanceLog.bind(financeController),
 );

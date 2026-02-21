@@ -14,7 +14,7 @@ import {
   Loader2,
 } from "lucide-react";
 import { tripsApi, analyticsApi } from "../../api/client";
-import type { KpiData } from "../../api/client";
+import type { DashboardKPIs } from "../../api/client";
 
 const stagger = { hidden: { opacity: 0 }, visible: { opacity: 1, transition: { staggerChildren: 0.07 } } };
 const fadeIn = { hidden: { opacity: 0, y: 10 }, visible: { opacity: 1, y: 0, transition: { duration: 0.4, ease: [0.4, 0, 0.2, 1] as const } } };
@@ -48,14 +48,14 @@ const STATUS_DOT: Record<TripStatus, string> = {
 
 export default function DispatcherDashboard() {
   const [trips, setTrips] = useState<Trip[]>([]);
-  const [kpi, setKpi] = useState<KpiData | null>(null);
+  const [kpi, setKpi] = useState<DashboardKPIs | null>(null);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<TripStatus | "ALL">("ALL");
 
   useEffect(() => {
     Promise.all([
       tripsApi.listTrips({ limit: 20, sortBy: "createdAt", sortOrder: "desc" }),
-      analyticsApi.getKpi(),
+      analyticsApi.getDashboardKPIs(),
     ])
       .then(([tripsRes, kpiData]) => {
         const list = (tripsRes.data as { data: { data: Trip[] } }).data?.data ?? [];

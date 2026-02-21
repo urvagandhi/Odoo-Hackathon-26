@@ -16,7 +16,7 @@ import {
   Loader2,
 } from "lucide-react";
 import { analyticsApi, tripsApi } from "../../api/client";
-import type { KpiData, MonthlyData } from "../../api/client";
+import type { DashboardKPIs, MonthlyReport } from "../../api/client";
 
 const fadeIn = {
   hidden: { opacity: 0, y: 10 },
@@ -44,15 +44,15 @@ const STATUS_COLORS: Record<string, string> = {
 };
 
 export default function AdminDashboard() {
-  const [kpi, setKpi] = useState<KpiData | null>(null);
-  const [monthly, setMonthly] = useState<MonthlyData[]>([]);
+  const [kpi, setKpi] = useState<DashboardKPIs | null>(null);
+  const [monthly, setMonthly] = useState<MonthlyReport[]>([]);
   const [recentTrips, setRecentTrips] = useState<RecentTrip[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     Promise.all([
-      analyticsApi.getKpi(),
-      analyticsApi.getMonthly(),
+      analyticsApi.getDashboardKPIs(),
+      analyticsApi.getMonthlyReport(),
       tripsApi.listTrips({ limit: 5, sortBy: "createdAt", sortOrder: "desc" }),
     ])
       .then(([kpiData, monthlyData, tripsRes]) => {

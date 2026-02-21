@@ -23,6 +23,10 @@ export class HrService {
         const [drivers, total] = await prisma.$transaction([
             prisma.driver.findMany({
                 where,
+                include: {
+                    userAccount: { select: { id: true, email: true, fullName: true, role: true } },
+                    trips: { where: { status: 'DISPATCHED' }, select: { id: true, status: true, origin: true, destination: true }, take: 1 },
+                },
                 orderBy: { fullName: 'asc' },
                 skip,
                 take: limit,
@@ -30,11 +34,18 @@ export class HrService {
             prisma.driver.count({ where }),
         ]);
 
-        return { drivers, total, page, limit, totalPages: Math.ceil(total / limit) };
+        return { data: drivers, total, page, limit, totalPages: Math.ceil(total / limit) };
     }
 
     async getDriverById(id: bigint) {
-        const driver = await prisma.driver.findFirst({ where: { id, isDeleted: false } });
+        const driver = await prisma.driver.findFirst({
+            where: { id, isDeleted: false },
+            include: {
+                userAccount: { select: { id: true, email: true, fullName: true, role: true } },
+                trips: { orderBy: { createdAt: 'desc' }, take: 5, select: { id: true, status: true, origin: true, destination: true, revenue: true, createdAt: true } },
+                incidents: { orderBy: { createdAt: 'desc' }, take: 5, select: { id: true, incidentType: true, title: true, status: true, createdAt: true } },
+            },
+        });
         if (!driver) throw new ApiError(404, `Driver #${id} not found.`);
         return driver;
     }

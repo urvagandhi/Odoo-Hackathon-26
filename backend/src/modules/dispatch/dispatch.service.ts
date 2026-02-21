@@ -17,6 +17,7 @@ const INCLUDE_FULL = {
     driver: true,
     expenses: true,
     fuelLogs: true,
+    waypoints: { orderBy: { sequence: 'asc' as const } },
 };
 
 export class DispatchService {
@@ -35,7 +36,7 @@ export class DispatchService {
             prisma.trip.count({ where }),
         ]);
 
-        return { trips, total, page, limit, totalPages: Math.ceil(total / limit) };
+        return { data: trips, total, page, limit, totalPages: Math.ceil(total / limit) };
     }
 
     async getTripById(id: bigint) {
@@ -366,7 +367,12 @@ export class DispatchService {
     async getTripLedger(id: bigint) {
         const trip = await prisma.trip.findUnique({
             where: { id },
-            include: { fuelLogs: true, expenses: true },
+            include: {
+                fuelLogs: true,
+                expenses: true,
+                vehicle: { select: { id: true, licensePlate: true, make: true, model: true } },
+                driver: { select: { id: true, fullName: true, licenseNumber: true } },
+            },
         });
         if (!trip) throw new ApiError(404, `Trip #${id} not found.`);
 

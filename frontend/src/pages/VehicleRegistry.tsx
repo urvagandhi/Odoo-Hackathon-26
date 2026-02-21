@@ -77,7 +77,8 @@ export default function VehicleRegistry() {
   const limit = 10;
 
   // Filters
-  const [search, setSearch] = useState("");
+  const [searchInput, setSearchInput] = useState("");   // raw input value
+  const [search, setSearch] = useState("");             // debounced — sent to API
   const [statusFilter, setStatusFilter] = useState("");
 
   // Status counts
@@ -91,8 +92,17 @@ export default function VehicleRegistry() {
   const [actionVehicleId, setActionVehicleId] = useState<string | null>(null);
   const [actionType, setActionType] = useState<"retire" | "delete" | null>(null);
 
-  const canMutate = user?.role === "SUPER_ADMIN" || user?.role === "MANAGER";
-  const canDelete = user?.role === "SUPER_ADMIN";
+  const canMutate = user?.role === "MANAGER";
+  const canDelete = user?.role === "MANAGER";
+
+  /* ── Debounce search input → server-side ──────────── */
+  useEffect(() => {
+    const t = setTimeout(() => {
+      setSearch(searchInput.trim());
+      setPage(1);
+    }, 300);
+    return () => clearTimeout(t);
+  }, [searchInput]);
 
   /* ── Fetch vehicles ──────────────────────────────── */
   const fetchVehicles = useCallback(async () => {
@@ -100,6 +110,7 @@ export default function VehicleRegistry() {
     try {
       const params: Record<string, unknown> = { page, limit };
       if (statusFilter) params.status = statusFilter;
+      if (search) params.search = search;
 
       const res = await fleetApi.listVehicles(params);
       const body = res.data?.data ?? res.data;
@@ -123,7 +134,7 @@ export default function VehicleRegistry() {
     } finally {
       setLoading(false);
     }
-  }, [page, statusFilter]);
+  }, [page, statusFilter, search]);
 
   useEffect(() => { fetchVehicles(); }, [fetchVehicles]);
 
@@ -146,15 +157,8 @@ export default function VehicleRegistry() {
     })();
   }, [vehicles]);
 
-  /* ── Filtered by search (client-side) ────────────── */
-  const filtered = search
-    ? vehicles.filter(
-        (v) =>
-          v.licensePlate.toLowerCase().includes(search.toLowerCase()) ||
-          v.make.toLowerCase().includes(search.toLowerCase()) ||
-          v.model.toLowerCase().includes(search.toLowerCase())
-      )
-    : vehicles;
+  // Server handles search — vehicles array is already filtered
+  const filtered = vehicles;
 
   /* ── Handlers ────────────────────────────────────── */
   const handleEdit = (v: Vehicle) => {
@@ -260,8 +264,8 @@ export default function VehicleRegistry() {
           <input
             className={`${inputCls} pl-9 w-full`}
             placeholder="Search plate, make, model..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            value={searchInput}
+            onChange={(e) => setSearchInput(e.target.value)}
           />
         </div>
 
@@ -315,7 +319,7 @@ export default function VehicleRegistry() {
                     <Truck className={`w-10 h-10 mx-auto mb-2 ${isDark ? "text-neutral-600" : "text-slate-300"}`} />
                     <p className={`text-sm font-medium ${textPrimary}`}>No vehicles found</p>
                     <p className={`text-xs mt-1 ${textSecondary}`}>
-                      {search || statusFilter ? "Try adjusting your filters" : "Register your first vehicle to get started"}
+                      {searchInput || statusFilter ? "Try adjusting your filters" : "Register your first vehicle to get started"}
                     </p>
                   </td>
                 </tr>

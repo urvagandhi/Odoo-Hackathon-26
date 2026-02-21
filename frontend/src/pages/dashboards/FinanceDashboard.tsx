@@ -18,7 +18,7 @@ import {
   Loader2,
 } from "lucide-react";
 import { analyticsApi } from "../../api/client";
-import type { MonthlyData, FuelEfficiencyData } from "../../api/client";
+import type { MonthlyReport, FuelEfficiency } from "../../api/client";
 
 /* ── Animation ──────────────────────────────────────────── */
 const fadeIn = {
@@ -79,15 +79,15 @@ function buildDonut(
 
 /* ── Component ───────────────────────────────────────────── */
 export default function FinanceDashboard() {
-  const [monthly, setMonthly] = useState<MonthlyData[]>([]);
-  const [fuelData, setFuelData] = useState<FuelEfficiencyData[]>([]);
+  const [monthly, setMonthly] = useState<MonthlyReport[]>([]);
+  const [fuelData, setFuelData] = useState<FuelEfficiency[]>([]);
   const [loading, setLoading] = useState(true);
   const [revenueTab, setRevenueTab] = useState<"DAY" | "MONTH" | "YEAR">("MONTH");
   const [fuelTab, setFuelTab] = useState<"DAY" | "MONTH" | "YEAR">("MONTH");
 
   useEffect(() => {
     Promise.all([
-      analyticsApi.getMonthly(),
+      analyticsApi.getMonthlyReport(),
       analyticsApi.getFuelEfficiency(),
     ])
       .then(([monthlyData, fuelEfficiency]) => {

@@ -19,7 +19,7 @@ import {
   Loader2,
 } from "lucide-react";
 import { analyticsApi, driversApi, fleetApi } from "../../api/client";
-import type { KpiData, DriverPerformanceData } from "../../api/client";
+import type { DashboardKPIs } from "../../api/client";
 
 /* ── Animation ──────────────────────────────────────────── */
 const stagger = { hidden: { opacity: 0 }, visible: { opacity: 1, transition: { staggerChildren: 0.07 } } };
@@ -59,15 +59,15 @@ const STATUS_DOT: Record<string, string> = {
 };
 
 export default function SafetyOfficerDashboard() {
-  const [kpi, setKpi] = useState<KpiData | null>(null);
-  const [driverPerformance, setDriverPerformance] = useState<DriverPerformanceData[]>([]);
+  const [kpi, setKpi] = useState<DashboardKPIs | null>(null);
+  const [driverPerformance, setDriverPerformance] = useState<unknown[]>([]);
   const [expiringLicenses, setExpiringLicenses] = useState<ExpiringDriver[]>([]);
   const [inShopVehicles, setInShopVehicles] = useState<InShopVehicle[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     Promise.all([
-      analyticsApi.getKpi(),
+      analyticsApi.getDashboardKPIs(),
       analyticsApi.getDriverPerformance(),
       driversApi.getExpiringLicenses(),
       fleetApi.listVehicles({ status: "IN_SHOP", limit: 10 }),

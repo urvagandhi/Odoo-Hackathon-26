@@ -26,7 +26,7 @@ import {
 } from "lucide-react";
 import { useTheme } from "../context/ThemeContext";
 import { useAuth } from "../hooks/useAuth";
-import { analyticsApi, fleetApi, type KpiData } from "../api/client";
+import { analyticsApi, fleetApi, type DashboardKPIs } from "../api/client";
 
 /* ── Vehicle Type (from API) ─────────────────────────── */
 interface VehicleType {
@@ -145,7 +145,7 @@ function QuickAction({
 }
 
 /* ── Fleet Distribution Bar ───────────────────────────── */
-function FleetBar({ data, isDark }: { data: KpiData["fleet"]; isDark: boolean }) {
+function FleetBar({ data, isDark }: { data: DashboardKPIs["fleet"]; isDark: boolean }) {
   const total = data.total || 1;
   const segments = [
     { label: "Available", count: data.available, color: "bg-emerald-500" },
@@ -227,7 +227,7 @@ export default function CommandCenter() {
   const { user } = useAuth();
   const navigate = useNavigate();
 
-  const [kpi, setKpi] = useState<KpiData | null>(null);
+  const [kpi, setKpi] = useState<DashboardKPIs | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -242,7 +242,7 @@ export default function CommandCenter() {
     setLoading(true);
     setError("");
     try {
-      const data = await analyticsApi.getKpi();
+      const data = await analyticsApi.getDashboardKPIs();
       setKpi(data);
     } catch {
       setError("Failed to load dashboard data. Is the backend running?");
@@ -346,7 +346,7 @@ export default function CommandCenter() {
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className={`text-2xl font-bold ${isDark ? "text-white" : "text-slate-900"}`}>
-            {greeting}, {user?.name?.split(" ")[0] ?? "there"} 👋
+            {greeting}, {user?.fullName?.split(" ")[0] ?? "there"} 👋
           </h1>
           <p className={`text-sm mt-1 ${isDark ? "text-neutral-400" : "text-slate-500"}`}>
             Here's what's happening with your fleet today.

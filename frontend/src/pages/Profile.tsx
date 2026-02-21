@@ -21,7 +21,7 @@ import {
 import { useAuth } from "../context/AuthContext";
 import { useTheme } from "../context/ThemeContext";
 import { analyticsApi } from "../api/client";
-import type { KpiData } from "../api/client";
+import type { DashboardKPIs } from "../api/client";
 
 /* ── Role formatting ──────────────────────────────── */
 
@@ -58,10 +58,10 @@ export default function Profile() {
   const { user } = useAuth();
   const { isDark } = useTheme();
   const [activeTab, setActiveTab] = useState<"overview" | "activity">("overview");
-  const [kpi, setKpi] = useState<KpiData | null>(null);
+  const [kpi, setKpi] = useState<DashboardKPIs | null>(null);
 
   useEffect(() => {
-    analyticsApi.getKpi().then(setKpi).catch(() => {});
+    analyticsApi.getDashboardKPIs().then(setKpi).catch(() => {});
   }, []);
 
   const roleInfo = ROLE_LABELS[user?.role ?? ""] ?? {

@@ -20,7 +20,6 @@ import {
   BarChart3,
   Shield,
   Zap,
-  KeyRound,
 } from "lucide-react";
 import { loginSchema } from "../validators/auth";
 import { useAuth } from "../context/AuthContext";
@@ -38,7 +37,6 @@ export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [serverError, setServerError] = useState<string | null>(null);
-  const [shake, setShake] = useState(false);
 
   const validateField = (field: "email" | "password", value: string) => {
     const result = loginSchema.shape[field].safeParse(value);
@@ -76,15 +74,21 @@ export default function Login() {
         if (field) fieldErrors[field] = issue.message;
       }
       setErrors(fieldErrors);
-      setShake(true);
-      setTimeout(() => setShake(false), 500);
       return;
     }
 
     setLoading(true);
     try {
-      await login(result.data.email, result.data.password);
-      navigate(from, { replace: true });
+      const loggedInUser = await login(result.data.email, result.data.password);
+      // Role-based redirect — each role opens their primary page
+      const roleRedirect: Record<string, string> = {
+        MANAGER: "/dashboard",
+        DISPATCHER: "/dispatch",
+        SAFETY_OFFICER: "/drivers",
+        FINANCE_ANALYST: "/analytics",
+      };
+      const destination = from !== "/" ? from : (roleRedirect[loggedInUser.role] ?? "/dashboard");
+      navigate(destination, { replace: true });
     } catch (err: unknown) {
       const message =
         (err as { response?: { data?: { message?: string } } })?.response?.data?.message ||
@@ -97,17 +101,15 @@ export default function Login() {
 
   return (
     <div
-      className={`min-h-screen flex transition-colors duration-300 ${
-        isDark ? "bg-neutral-950" : "bg-[#f5f5f0]"
-      }`}
+      className={`min-h-screen flex transition-colors duration-300 ${isDark ? "bg-neutral-950" : "bg-[#f5f5f0]"
+        }`}
     >
       {/* ═══ LEFT — Brand panel ══════════════════════════════════════ */}
       <div
-        className={`hidden lg:flex lg:w-[45%] relative overflow-hidden ${
-          isDark
+        className={`hidden lg:flex lg:w-[45%] relative overflow-hidden ${isDark
             ? "bg-gradient-to-b from-neutral-900 via-neutral-800 to-neutral-900"
             : "bg-gradient-to-b from-[#1a1a1a] via-[#2d2d2d] to-[#1a1a1a]"
-        }`}
+          }`}
       >
         {/* Grid overlay */}
         <div
@@ -181,11 +183,10 @@ export default function Login() {
         {/* Theme toggle — top right */}
         <button
           onClick={toggleTheme}
-          className={`absolute top-6 right-6 w-10 h-10 rounded-xl flex items-center justify-center transition-colors ${
-            isDark
+          className={`absolute top-6 right-6 w-10 h-10 rounded-xl flex items-center justify-center transition-colors ${isDark
               ? "bg-neutral-800 text-neutral-300 hover:bg-neutral-700"
               : "bg-white border border-neutral-200 text-neutral-600 hover:bg-neutral-50"
-          }`}
+            }`}
           title={isDark ? "Switch to light mode" : "Switch to dark mode"}
         >
           {isDark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
@@ -203,9 +204,8 @@ export default function Login() {
               <Truck className="w-5 h-5 text-white" />
             </div>
             <span
-              className={`text-xl font-bold tracking-tight ${
-                isDark ? "text-white" : "text-neutral-900"
-              }`}
+              className={`text-xl font-bold tracking-tight ${isDark ? "text-white" : "text-neutral-900"
+                }`}
             >
               FleetFlow
             </span>
@@ -214,9 +214,8 @@ export default function Login() {
           {/* Heading */}
           <div className="space-y-2 mb-8">
             <h2
-              className={`text-2xl font-bold ${
-                isDark ? "text-white" : "text-neutral-900"
-              }`}
+              className={`text-2xl font-bold ${isDark ? "text-white" : "text-neutral-900"
+                }`}
             >
               Welcome back
             </h2>
@@ -230,16 +229,14 @@ export default function Login() {
             <motion.div
               initial={{ opacity: 0, y: -8 }}
               animate={{ opacity: 1, y: 0 }}
-              className={`mb-6 flex items-start gap-3 p-4 rounded-xl ${
-                isDark
+              className={`mb-6 flex items-start gap-3 p-4 rounded-xl ${isDark
                   ? "bg-red-500/10 border border-red-500/20"
                   : "bg-red-50 border border-red-200"
-              }`}
+                }`}
             >
               <AlertCircle
-                className={`w-5 h-5 shrink-0 mt-0.5 ${
-                  isDark ? "text-red-400" : "text-red-500"
-                }`}
+                className={`w-5 h-5 shrink-0 mt-0.5 ${isDark ? "text-red-400" : "text-red-500"
+                  }`}
               />
               <p
                 className={`text-sm ${isDark ? "text-red-400" : "text-red-600"}`}
@@ -250,26 +247,19 @@ export default function Login() {
           )}
 
           {/* Form */}
-          <motion.form
-            onSubmit={handleSubmit}
-            className="space-y-5"
-            animate={shake ? { x: [0, -8, 8, -6, 6, -4, 4, 0] } : { x: 0 }}
-            transition={{ duration: 0.4 }}
-          >
+          <form onSubmit={handleSubmit} className="space-y-5">
             {/* Email */}
             <div>
               <label
-                className={`block text-sm font-medium mb-2 ${
-                  isDark ? "text-neutral-400" : "text-neutral-700"
-                }`}
+                className={`block text-sm font-medium mb-2 ${isDark ? "text-neutral-400" : "text-neutral-700"
+                  }`}
               >
                 Email
               </label>
               <div className="relative">
                 <Mail
-                  className={`absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 ${
-                    isDark ? "text-neutral-500" : "text-neutral-400"
-                  }`}
+                  className={`absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 ${isDark ? "text-neutral-500" : "text-neutral-400"
+                    }`}
                 />
                 <input
                   type="email"
@@ -277,23 +267,20 @@ export default function Login() {
                   onChange={handleChange("email")}
                   onBlur={handleBlur("email")}
                   placeholder="your@email.com"
-                  className={`w-full pl-11 pr-4 py-3 rounded-xl text-sm focus:outline-none focus:ring-2 transition-all ${
-                    isDark
-                      ? `border text-white placeholder:text-neutral-600 ${
-                          errors.email
-                            ? "bg-red-500/10 border-red-500/50 focus:ring-red-500/40"
-                            : "bg-neutral-900 border-neutral-800 focus:ring-emerald-500/40 focus:border-transparent"
-                        }`
-                      : `border text-neutral-900 placeholder:text-neutral-400 ${
-                          errors.email
-                            ? "bg-red-50 border-red-300 focus:ring-red-500/30"
-                            : "bg-white border-neutral-300 focus:ring-emerald-500/30 focus:border-transparent"
-                        }`
-                  }`}
+                  className={`w-full pl-11 pr-4 py-3 rounded-xl text-sm focus:outline-none focus:ring-2 transition-all ${isDark
+                      ? `bg-neutral-900 border text-white placeholder:text-neutral-600 ${errors.email
+                        ? "border-red-500/50 focus:ring-red-500/40"
+                        : "border-neutral-800 focus:ring-emerald-500/40 focus:border-transparent"
+                      }`
+                      : `bg-white border text-neutral-900 placeholder:text-neutral-400 ${errors.email
+                        ? "border-red-300 focus:ring-red-500/30"
+                        : "border-neutral-300 focus:ring-emerald-500/30 focus:border-transparent"
+                      }`
+                    }`}
                 />
               </div>
               {errors.email && (
-                <p className={`mt-1.5 text-xs ${isDark ? "text-red-400" : "text-red-600"}`}>{errors.email}</p>
+                <p className="mt-1.5 text-xs text-red-400">{errors.email}</p>
               )}
             </div>
 
@@ -301,9 +288,8 @@ export default function Login() {
             <div>
               <div className="flex items-center justify-between mb-2">
                 <label
-                  className={`block text-sm font-medium ${
-                    isDark ? "text-neutral-400" : "text-neutral-700"
-                  }`}
+                  className={`block text-sm font-medium ${isDark ? "text-neutral-400" : "text-neutral-700"
+                    }`}
                 >
                   Password
                 </label>
@@ -316,9 +302,8 @@ export default function Login() {
               </div>
               <div className="relative">
                 <Lock
-                  className={`absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 ${
-                    isDark ? "text-neutral-500" : "text-neutral-400"
-                  }`}
+                  className={`absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 ${isDark ? "text-neutral-500" : "text-neutral-400"
+                    }`}
                 />
                 <input
                   type={showPassword ? "text" : "password"}
@@ -326,28 +311,24 @@ export default function Login() {
                   onChange={handleChange("password")}
                   onBlur={handleBlur("password")}
                   placeholder="Enter password"
-                  className={`w-full pl-11 pr-12 py-3 rounded-xl text-sm focus:outline-none focus:ring-2 transition-all ${
-                    isDark
-                      ? `border text-white placeholder:text-neutral-600 ${
-                          errors.password
-                            ? "bg-red-500/10 border-red-500/50 focus:ring-red-500/40"
-                            : "bg-neutral-900 border-neutral-800 focus:ring-emerald-500/40 focus:border-transparent"
-                        }`
-                      : `border text-neutral-900 placeholder:text-neutral-400 ${
-                          errors.password
-                            ? "bg-red-50 border-red-300 focus:ring-red-500/30"
-                            : "bg-white border-neutral-300 focus:ring-emerald-500/30 focus:border-transparent"
-                        }`
-                  }`}
+                  className={`w-full pl-11 pr-12 py-3 rounded-xl text-sm focus:outline-none focus:ring-2 transition-all ${isDark
+                      ? `bg-neutral-900 border text-white placeholder:text-neutral-600 ${errors.password
+                        ? "border-red-500/50 focus:ring-red-500/40"
+                        : "border-neutral-800 focus:ring-emerald-500/40 focus:border-transparent"
+                      }`
+                      : `bg-white border text-neutral-900 placeholder:text-neutral-400 ${errors.password
+                        ? "border-red-300 focus:ring-red-500/30"
+                        : "border-neutral-300 focus:ring-emerald-500/30 focus:border-transparent"
+                      }`
+                    }`}
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className={`absolute right-4 top-1/2 -translate-y-1/2 transition-colors ${
-                    isDark
+                  className={`absolute right-4 top-1/2 -translate-y-1/2 transition-colors ${isDark
                       ? "text-neutral-500 hover:text-neutral-300"
                       : "text-neutral-400 hover:text-neutral-600"
-                  }`}
+                    }`}
                 >
                   {showPassword ? (
                     <EyeOff className="w-4 h-4" />
@@ -357,7 +338,7 @@ export default function Login() {
                 </button>
               </div>
               {errors.password && (
-                <p className={`mt-1.5 text-xs ${isDark ? "text-red-400" : "text-red-600"}`}>{errors.password}</p>
+                <p className="mt-1.5 text-xs text-red-400">{errors.password}</p>
               )}
             </div>
 
@@ -376,47 +357,14 @@ export default function Login() {
                 </>
               )}
             </button>
-          </motion.form>
+          </form>
 
           <p
-            className={`mt-8 text-center text-xs ${
-              isDark ? "text-neutral-600" : "text-neutral-400"
-            }`}
+            className={`mt-8 text-center text-xs ${isDark ? "text-neutral-600" : "text-neutral-400"
+              }`}
           >
             Don't have an account? Contact your administrator.
           </p>
-
-          {/* Demo credentials hint */}
-          <div className={`mt-6 rounded-xl p-4 border text-xs ${
-            isDark ? "bg-neutral-900 border-neutral-800" : "bg-neutral-50 border-neutral-200"
-          }`}>
-            <p className={`flex items-center gap-1.5 font-semibold mb-2 ${isDark ? "text-neutral-400" : "text-neutral-500"}`}>
-              <KeyRound className="w-3.5 h-3.5" />
-              Demo Credentials
-            </p>
-            <div className="space-y-1">
-              {[
-                { role: "Manager",        email: "manager@fleetflow.io",    pw: "FleetFlow@2025" },
-                { role: "Dispatcher",     email: "dispatcher@fleetflow.io", pw: "FleetFlow@2025" },
-                { role: "Safety Officer", email: "safety@fleetflow.io",     pw: "FleetFlow@2025" },
-                { role: "Finance",        email: "finance@fleetflow.io",    pw: "FleetFlow@2025" },
-              ].map(({ role, email, pw }) => (
-                <button
-                  key={role}
-                  type="button"
-                  onClick={() => setForm({ email, password: pw })}
-                  className={`w-full text-left px-3 py-1.5 rounded-lg transition-colors ${
-                    isDark
-                      ? "hover:bg-neutral-800 text-neutral-400"
-                      : "hover:bg-neutral-100 text-neutral-500"
-                  }`}
-                >
-                  <span className={`font-medium ${isDark ? "text-neutral-300" : "text-neutral-700"}`}>{role}</span>
-                  {" — "}{email}
-                </button>
-              ))}
-            </div>
-          </div>
         </motion.div>
       </div>
     </div>

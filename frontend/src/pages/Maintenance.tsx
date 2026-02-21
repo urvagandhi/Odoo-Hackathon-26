@@ -1,327 +1,219 @@
 /**
- * Maintenance — CRUD page for vehicle service / maintenance logs.
- * Search, status filter, DataTable with pagination, create form, close action.
+ * Maintenance — Service Logs Management
+ * Log service events; auto-triggers IN_SHOP status on vehicle
  */
 import { useState, useEffect, useCallback } from "react";
-import { motion } from "framer-motion";
-import {
-  Wrench,
-  Plus,
-  Search,
-  Filter,
-  ChevronLeft,
-  ChevronRight,
-  CheckCircle2,
-} from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Plus, X, Wrench, AlertTriangle, Calendar } from "lucide-react";
+import { fleetApi, type Vehicle, type MaintenanceLog } from "../api/client";
 import { useTheme } from "../context/ThemeContext";
-import { useAuth } from "../hooks/useAuth";
-import { useToast } from "../hooks/useToast";
-import { financeApi } from "../api/client";
-import { DataTable, type Column } from "../components/ui/DataTable";
-import { StatusPill } from "../components/ui/StatusPill";
-import { MaintenanceForm } from "../components/forms/MaintenanceForm";
-import {
-  AlertDialog,
-  AlertDialogTrigger,
-  AlertDialogContent,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogCancel,
-  AlertDialogAction,
-} from "../components/ui/AlertDialog";
 
-/* ── Types ──────────────────────────────────────────────── */
-interface MaintenanceLog {
-  id: string;
-  vehicleId: string;
-  vehicle?: { id: string; licensePlate: string; make: string; model: string; status: string };
-  serviceType: string;
-  description?: string;
-  cost: number;
-  odometerAtService: number;
-  technicianName?: string;
-  shopName?: string;
-  serviceDate: string;
-  nextServiceDue?: string;
-  createdAt: string;
-}
-
-const STATUS_OPTIONS = [
-  { value: "", label: "All" },
-  { value: "open", label: "Open (In-Shop)" },
-  { value: "closed", label: "Closed" },
-];
+const FIELD = "block w-full rounded-xl border px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-colors";
 
 export default function Maintenance() {
-  const { isDark } = useTheme();
-  const { user } = useAuth();
-  const toast = useToast();
+    const { isDark } = useTheme();
+    const [vehicles, setVehicles] = useState<Vehicle[]>([]);
+    const [logs, setLogs] = useState<MaintenanceLog[]>([]);
+    const [selectedVehicle, setSelectedVehicle] = useState<string>("");
+    const [loading, setLoading] = useState(true);
+    const [showModal, setShowModal] = useState(false);
+    const [saving, setSaving] = useState(false);
+    const [error, setError] = useState("");
+    const [form, setForm] = useState({
+        serviceType: "", description: "", cost: 0, odometerAtService: 0,
+        technicianName: "", shopName: "", serviceDate: new Date().toISOString().slice(0, 10),
+        nextServiceDue: "",
+    });
 
-  const [logs, setLogs] = useState<MaintenanceLog[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [page, setPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
-  const [total, setTotal] = useState(0);
-  const limit = 10;
+    const load = useCallback(async () => {
+        setLoading(true);
+        try {
+            const v = await fleetApi.listVehicles({ limit: 100 });
+            setVehicles(v.data ?? []);
+        } finally { setLoading(false); }
+    }, []);
 
-  const [search, setSearch] = useState("");
-  const [statusFilter, setStatusFilter] = useState("");
-  const [formOpen, setFormOpen] = useState(false);
-  const [closingId, setClosingId] = useState<string | null>(null);
+    useEffect(() => { load(); }, [load]);
 
-  const canMutate = user?.role === "SUPER_ADMIN" || user?.role === "MANAGER" || user?.role === "SAFETY_OFFICER";
+    useEffect(() => {
+        if (!selectedVehicle) { setLogs([]); return; }
+        fleetApi.getMaintenanceLogs(selectedVehicle).then(setLogs).catch(() => setLogs([]));
+    }, [selectedVehicle]);
 
-  /* ── Fetch ──────────────────────────────────────── */
-  const fetchLogs = useCallback(async () => {
-    setLoading(true);
-    try {
-      const res = await financeApi.listMaintenanceLogs();
-      const body = res.data?.data ?? res.data;
-      const list = (body?.maintenanceLogs ?? body ?? []) as MaintenanceLog[];
-      const normalized = list.map((l: Record<string, unknown>) => ({
-        ...l,
-        id: String(l.id),
-        vehicleId: String(l.vehicleId),
-        vehicle: l.vehicle
-          ? { ...(l.vehicle as Record<string, unknown>), id: String((l.vehicle as Record<string, unknown>).id) }
-          : undefined,
-      })) as MaintenanceLog[];
-      setLogs(normalized);
-      setTotal(normalized.length);
-      setTotalPages(Math.ceil(normalized.length / limit));
-    } catch {
-      setLogs([]);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+    const handleSave = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!selectedVehicle) { setError("Select a vehicle first"); return; }
+        setSaving(true); setError("");
+        try {
+            await fleetApi.addMaintenanceLog(selectedVehicle, form);
+            // reload logs + vehicle list (status may change to IN_SHOP)
+            const updated = await fleetApi.getMaintenanceLogs(selectedVehicle);
+            setLogs(updated);
+            setShowModal(false);
+            load();
+        } catch (err: unknown) {
+            setError((err as { response?: { data?: { message?: string } } })?.response?.data?.message ?? "Failed to save");
+        } finally { setSaving(false); }
+    };
 
-  useEffect(() => { fetchLogs(); }, [fetchLogs]);
+    const inputClass = `${FIELD} ${isDark ? "bg-neutral-700 border-neutral-600 text-white placeholder-neutral-400" : "bg-white border-neutral-200 text-neutral-900 placeholder-neutral-400"}`;
 
-  /* ── Close service ──────────────────────────────── */
-  const handleClose = async (id: string) => {
-    try {
-      await financeApi.closeMaintenanceLog(id);
-      toast.success("Service closed — vehicle is now AVAILABLE.");
-      fetchLogs();
-    } catch {
-      toast.error("Failed to close service log.");
-    } finally {
-      setClosingId(null);
-    }
-  };
+    const totalCost = logs.reduce((sum, l) => sum + Number(l.cost), 0);
 
-  /* ── Client-side filters ────────────────────────── */
-  const filtered = logs.filter((l) => {
-    // Search
-    const q = search.toLowerCase();
-    const matchesSearch =
-      !q ||
-      l.vehicle?.licensePlate?.toLowerCase().includes(q) ||
-      l.serviceType.toLowerCase().includes(q) ||
-      l.description?.toLowerCase().includes(q) ||
-      l.technicianName?.toLowerCase().includes(q) ||
-      l.shopName?.toLowerCase().includes(q);
-    if (!matchesSearch) return false;
+    return (
+        <div className="max-w-[1200px] mx-auto space-y-5">
+            <div className="flex items-center justify-between">
+                <div>
+                    <h1 className={`text-2xl font-bold ${isDark ? "text-white" : "text-neutral-900"}`}>Maintenance Logs</h1>
+                    <p className={`text-sm ${isDark ? "text-neutral-400" : "text-neutral-500"}`}>Service history per vehicle</p>
+                </div>
+                <button onClick={() => { setError(""); setShowModal(true); }} className="flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-500 text-white text-sm font-semibold hover:bg-emerald-600 transition-colors">
+                    <Plus className="w-4 h-4" /> Log Service
+                </button>
+            </div>
 
-    // Status filter
-    if (statusFilter === "open") return l.vehicle?.status === "IN_SHOP";
-    if (statusFilter === "closed") return l.vehicle?.status !== "IN_SHOP";
+            {/* Vehicle selector */}
+            <div className={`p-4 rounded-2xl border ${isDark ? "bg-neutral-800 border-neutral-700" : "bg-white border-neutral-200 shadow-sm"}`}>
+                <label className={`block text-xs font-semibold mb-2 ${isDark ? "text-neutral-300" : "text-neutral-700"}`}>Select Vehicle</label>
+                <select value={selectedVehicle} onChange={e => setSelectedVehicle(e.target.value)} className={inputClass} style={{ maxWidth: 360 }}>
+                    <option value="">— All vehicles / choose one —</option>
+                    {vehicles.map(v => (
+                        <option key={v.id} value={v.id}>
+                            {v.licensePlate} — {v.make} {v.model}
+                            {v.status === "IN_SHOP" ? " 🔧" : ""}
+                        </option>
+                    ))}
+                </select>
+                {selectedVehicle && logs.length > 0 && (
+                    <p className={`mt-2 text-xs ${isDark ? "text-neutral-400" : "text-neutral-500"}`}>
+                        {logs.length} service records · Total cost: <span className="font-bold text-amber-500">₹{totalCost.toLocaleString()}</span>
+                    </p>
+                )}
+            </div>
 
-    return true;
-  });
+            {/* Maintenance log table */}
+            <div className={`rounded-2xl border overflow-hidden ${isDark ? "bg-neutral-800 border-neutral-700" : "bg-white border-neutral-200 shadow-sm"}`}>
+                {!selectedVehicle ? (
+                    <div className="flex flex-col items-center justify-center h-40 text-neutral-400">
+                        <Wrench className="w-10 h-10 mb-2 opacity-30" />
+                        <p>Select a vehicle to view its service history</p>
+                    </div>
+                ) : loading ? (
+                    <div className="flex items-center justify-center h-32 text-neutral-400">Loading…</div>
+                ) : logs.length === 0 ? (
+                    <div className="flex flex-col items-center justify-center h-32 text-neutral-400">
+                        <Calendar className="w-8 h-8 mb-2 opacity-30" />
+                        <p>No maintenance records</p>
+                    </div>
+                ) : (
+                    <table className="w-full text-sm">
+                        <thead>
+                            <tr className={`text-xs font-semibold uppercase tracking-wide border-b ${isDark ? "text-neutral-400 border-neutral-700 bg-neutral-900/30" : "text-neutral-500 border-neutral-100 bg-neutral-50"}`}>
+                                {["Date", "Service Type", "Description", "Cost", "Odometer", "Shop / Technician", "Next Due"].map(h =>
+                                    <th key={h} className="text-left px-4 py-3">{h}</th>)}
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {logs.map((log, i) => (
+                                <motion.tr key={log.id} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: i * 0.04 }}
+                                    className={`border-b last:border-0 ${isDark ? "border-neutral-700" : "border-neutral-50"}`}
+                                >
+                                    <td className={`px-4 py-3 ${isDark ? "text-neutral-300" : "text-neutral-700"}`}>
+                                        {new Date(log.serviceDate).toLocaleDateString("en-IN")}
+                                    </td>
+                                    <td className={`px-4 py-3 font-semibold ${isDark ? "text-white" : "text-neutral-900"}`}>{log.serviceType}</td>
+                                    <td className={`px-4 py-3 ${isDark ? "text-neutral-400" : "text-neutral-500"}`}>{log.description || "—"}</td>
+                                    <td className="px-4 py-3 text-amber-500 font-bold">₹{Number(log.cost).toLocaleString()}</td>
+                                    <td className={`px-4 py-3 ${isDark ? "text-neutral-300" : "text-neutral-600"}`}>{Number(log.odometerAtService).toLocaleString()} km</td>
+                                    <td className={`px-4 py-3 ${isDark ? "text-neutral-400" : "text-neutral-500"}`}>
+                                        {[log.shopName, log.technicianName].filter(Boolean).join(" / ") || "—"}
+                                    </td>
+                                    <td className="px-4 py-3">
+                                        {log.nextServiceDue ? (
+                                            <span className={`text-xs px-2 py-0.5 rounded-full ${new Date(log.nextServiceDue) <= new Date() ? "bg-red-100 text-red-600" : "bg-emerald-100 text-emerald-700"}`}>
+                                                {new Date(log.nextServiceDue).toLocaleDateString("en-IN")}
+                                            </span>
+                                        ) : "—"}
+                                    </td>
+                                </motion.tr>
+                            ))}
+                        </tbody>
+                    </table>
+                )}
+            </div>
 
-  const paginated = filtered.slice((page - 1) * limit, page * limit);
-  const openCount = logs.filter((l) => l.vehicle?.status === "IN_SHOP").length;
-  const closedCount = logs.length - openCount;
-
-  /* ── Status cards ────────────────────────────────── */
-  const statCards = [
-    { label: "Total Logs", value: logs.length, color: "bg-violet-600" },
-    { label: "Open (In-Shop)", value: openCount, color: "bg-amber-600" },
-    { label: "Closed", value: closedCount, color: "bg-emerald-600" },
-  ];
-
-  /* ── Columns ─────────────────────────────────────── */
-  const columns: Column<MaintenanceLog>[] = [
-    {
-      key: "vehicle",
-      header: "Vehicle",
-      render: (l) => (
-        <span className="font-medium">{l.vehicle?.licensePlate ?? `#${l.vehicleId}`}</span>
-      ),
-    },
-    {
-      key: "serviceType",
-      header: "Service Type",
-      render: (l) => (
-        <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${isDark ? "bg-violet-500/20 text-violet-300" : "bg-violet-100 text-violet-700"}`}>
-          {l.serviceType.replace(/_/g, " ")}
-        </span>
-      ),
-    },
-    {
-      key: "description",
-      header: "Description",
-      render: (l) => <span className="truncate max-w-[200px] block">{l.description || "—"}</span>,
-    },
-    {
-      key: "serviceDate",
-      header: "Service Date",
-      render: (l) => new Date(l.serviceDate).toLocaleDateString(),
-    },
-    {
-      key: "cost",
-      header: "Cost",
-      render: (l) => <span className="font-mono">₹{Number(l.cost).toLocaleString()}</span>,
-    },
-    {
-      key: "status",
-      header: "Status",
-      render: (l) => {
-        const isOpen = l.vehicle?.status === "IN_SHOP";
-        return <StatusPill status={isOpen ? "IN_SHOP" : "COMPLETED"} />;
-      },
-    },
-    ...(canMutate
-      ? [
-          {
-            key: "actions",
-            header: "Actions",
-            render: (l: MaintenanceLog) => {
-              const isOpen = l.vehicle?.status === "IN_SHOP";
-              if (!isOpen) return <span className={`text-xs ${isDark ? "text-neutral-500" : "text-slate-400"}`}>Done</span>;
-              return (
-                <AlertDialog>
-                  <AlertDialogTrigger asChild>
-                    <button
-                      onClick={() => setClosingId(l.id)}
-                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-medium transition-colors"
+            {/* Modal */}
+            <AnimatePresence>
+                {showModal && (
+                    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                        className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4"
+                        onClick={e => e.target === e.currentTarget && setShowModal(false)}
                     >
-                      <CheckCircle2 className="w-3.5 h-3.5" />
-                      Close Service
-                    </button>
-                  </AlertDialogTrigger>
-                  <AlertDialogContent>
-                    <AlertDialogHeader>
-                      <AlertDialogTitle>Close Service Log?</AlertDialogTitle>
-                      <AlertDialogDescription>
-                        This will mark the service as completed and set the vehicle back to <strong>AVAILABLE</strong>. This action cannot be undone.
-                      </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                      <AlertDialogCancel>Cancel</AlertDialogCancel>
-                      <AlertDialogAction onClick={() => handleClose(l.id)}>
-                        Yes, Close Service
-                      </AlertDialogAction>
-                    </AlertDialogFooter>
-                  </AlertDialogContent>
-                </AlertDialog>
-              );
-            },
-          } as Column<MaintenanceLog>,
-        ]
-      : []),
-  ];
-
-  return (
-    <div className={`min-h-screen p-6 ${isDark ? "bg-neutral-900" : "bg-slate-50"}`}>
-      {/* Title */}
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-amber-600 flex items-center justify-center">
-            <Wrench className="w-5 h-5 text-white" />
-          </div>
-          <div>
-            <h1 className={`text-xl font-bold ${isDark ? "text-white" : "text-slate-900"}`}>Maintenance</h1>
-            <p className={`text-sm ${isDark ? "text-neutral-400" : "text-slate-500"}`}>
-              {total} service log{total !== 1 ? "s" : ""} total
-            </p>
-          </div>
+                        <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }}
+                            className={`w-full max-w-xl rounded-3xl border p-6 shadow-2xl ${isDark ? "bg-neutral-800 border-neutral-700" : "bg-white"}`}
+                        >
+                            <div className="flex items-center justify-between mb-5">
+                                <h2 className={`text-lg font-bold ${isDark ? "text-white" : "text-neutral-900"}`}>Log Maintenance Event</h2>
+                                <button onClick={() => setShowModal(false)} className="p-1.5 rounded-lg text-neutral-400 hover:bg-neutral-100 transition-colors"><X className="w-4 h-4" /></button>
+                            </div>
+                            {error && <div className="mb-4 p-3 rounded-xl bg-red-50 border border-red-100 text-red-600 text-sm flex items-center gap-2"><AlertTriangle className="w-4 h-4" />{error}</div>}
+                            <form onSubmit={handleSave} className="space-y-4">
+                                <div>
+                                    <label className={`block text-xs font-semibold mb-1.5 ${isDark ? "text-neutral-300" : "text-neutral-700"}`}>Vehicle *</label>
+                                    <select required value={selectedVehicle} onChange={e => setSelectedVehicle(e.target.value)} className={inputClass}>
+                                        <option value="">Select vehicle</option>
+                                        {vehicles.map(v => <option key={v.id} value={v.id}>{v.licensePlate} — {v.make} {v.model}</option>)}
+                                    </select>
+                                </div>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label className={`block text-xs font-semibold mb-1.5 ${isDark ? "text-neutral-300" : "text-neutral-700"}`}>Service Type *</label>
+                                        <input required value={form.serviceType} onChange={e => setForm(f => ({ ...f, serviceType: e.target.value }))} className={inputClass} placeholder="Oil Change, Tyre Rotation…" />
+                                    </div>
+                                    <div>
+                                        <label className={`block text-xs font-semibold mb-1.5 ${isDark ? "text-neutral-300" : "text-neutral-700"}`}>Cost (₹) *</label>
+                                        <input required type="number" min="0" value={form.cost || ""} onChange={e => setForm(f => ({ ...f, cost: +e.target.value }))} className={inputClass} placeholder="5000" />
+                                    </div>
+                                </div>
+                                <div>
+                                    <label className={`block text-xs font-semibold mb-1.5 ${isDark ? "text-neutral-300" : "text-neutral-700"}`}>Description</label>
+                                    <input value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} className={inputClass} placeholder="Details of service performed" />
+                                </div>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label className={`block text-xs font-semibold mb-1.5 ${isDark ? "text-neutral-300" : "text-neutral-700"}`}>Odometer (km) *</label>
+                                        <input required type="number" min="0" value={form.odometerAtService || ""} onChange={e => setForm(f => ({ ...f, odometerAtService: +e.target.value }))} className={inputClass} />
+                                    </div>
+                                    <div>
+                                        <label className={`block text-xs font-semibold mb-1.5 ${isDark ? "text-neutral-300" : "text-neutral-700"}`}>Service Date *</label>
+                                        <input required type="date" value={form.serviceDate} onChange={e => setForm(f => ({ ...f, serviceDate: e.target.value }))} className={inputClass} />
+                                    </div>
+                                </div>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label className={`block text-xs font-semibold mb-1.5 ${isDark ? "text-neutral-300" : "text-neutral-700"}`}>Shop Name</label>
+                                        <input value={form.shopName} onChange={e => setForm(f => ({ ...f, shopName: e.target.value }))} className={inputClass} placeholder="AutoCare Service" />
+                                    </div>
+                                    <div>
+                                        <label className={`block text-xs font-semibold mb-1.5 ${isDark ? "text-neutral-300" : "text-neutral-700"}`}>Technician</label>
+                                        <input value={form.technicianName} onChange={e => setForm(f => ({ ...f, technicianName: e.target.value }))} className={inputClass} placeholder="Ravi Kumar" />
+                                    </div>
+                                </div>
+                                <div>
+                                    <label className={`block text-xs font-semibold mb-1.5 ${isDark ? "text-neutral-300" : "text-neutral-700"}`}>Next Service Due</label>
+                                    <input type="date" value={form.nextServiceDue} onChange={e => setForm(f => ({ ...f, nextServiceDue: e.target.value }))} className={inputClass} />
+                                </div>
+                                <div className="flex gap-3 pt-2">
+                                    <button type="button" onClick={() => setShowModal(false)} className={`flex-1 py-2.5 rounded-xl text-sm font-semibold border transition-colors ${isDark ? "border-neutral-600 text-neutral-300 hover:bg-neutral-700" : "border-neutral-200 text-neutral-600 hover:bg-neutral-50"}`}>Cancel</button>
+                                    <button type="submit" disabled={saving} className="flex-1 py-2.5 rounded-xl text-sm font-semibold bg-amber-500 text-white hover:bg-amber-600 disabled:opacity-60 transition-colors">
+                                        {saving ? "Saving…" : "Log Service"}
+                                    </button>
+                                </div>
+                            </form>
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
         </div>
-        {canMutate && (
-          <button
-            onClick={() => setFormOpen(true)}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-amber-600 hover:bg-amber-500 text-white text-sm font-medium transition-colors"
-          >
-            <Plus className="w-4 h-4" />
-            New Service Log
-          </button>
-        )}
-      </div>
-
-      {/* Stat cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
-        {statCards.map((s) => (
-          <motion.div
-            key={s.label}
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            className={`p-4 rounded-xl border ${isDark ? "bg-neutral-800 border-neutral-700" : "bg-white border-slate-200"}`}
-          >
-            <div className={`w-2 h-2 rounded-full ${s.color} mb-2`} />
-            <p className={`text-2xl font-bold ${isDark ? "text-white" : "text-slate-900"}`}>{s.value}</p>
-            <p className={`text-xs ${isDark ? "text-neutral-400" : "text-slate-500"}`}>{s.label}</p>
-          </motion.div>
-        ))}
-      </div>
-
-      {/* Toolbar */}
-      <div className="flex flex-wrap items-center gap-3 mb-4">
-        <div className={`flex items-center gap-2 px-3 py-2 rounded-lg border text-sm flex-1 min-w-[200px] max-w-md ${
-          isDark ? "bg-neutral-800 border-neutral-700 text-white" : "bg-white border-slate-200 text-slate-900"
-        }`}>
-          <Search className={`w-4 h-4 ${isDark ? "text-neutral-400" : "text-slate-400"}`} />
-          <input
-            className="bg-transparent outline-none w-full placeholder-current opacity-60"
-            placeholder="Search by vehicle, type, technician..."
-            value={search}
-            onChange={(e) => { setSearch(e.target.value); setPage(1); }}
-          />
-        </div>
-        <div className={`flex items-center gap-2 px-3 py-2 rounded-lg border text-sm ${
-          isDark ? "bg-neutral-800 border-neutral-700 text-white" : "bg-white border-slate-200"
-        }`}>
-          <Filter className={`w-4 h-4 ${isDark ? "text-neutral-400" : "text-slate-400"}`} />
-          <select className="bg-transparent outline-none text-sm" value={statusFilter} onChange={(e) => { setStatusFilter(e.target.value); setPage(1); }}>
-            {STATUS_OPTIONS.map((o) => (
-              <option key={o.value} value={o.value}>{o.label}</option>
-            ))}
-          </select>
-        </div>
-      </div>
-
-      {/* Table */}
-      <DataTable
-        columns={columns}
-        rows={paginated}
-        rowKey={(l) => l.id}
-        loading={loading}
-        emptyTitle="No maintenance logs"
-        emptyMessage="Create your first service log to start tracking."
-      />
-
-      {/* Pagination */}
-      {totalPages > 1 && (
-        <div className="flex items-center justify-between mt-4">
-          <p className={`text-xs ${isDark ? "text-neutral-500" : "text-slate-400"}`}>
-            Page {page} of {totalPages} · {filtered.length} record{filtered.length !== 1 ? "s" : ""}
-          </p>
-          <div className="flex items-center gap-1">
-            <button disabled={page <= 1} onClick={() => setPage((p) => p - 1)} className={`p-1.5 rounded-lg transition-colors disabled:opacity-30 ${isDark ? "hover:bg-neutral-700 text-neutral-400" : "hover:bg-slate-100 text-slate-500"}`}>
-              <ChevronLeft className="w-4 h-4" />
-            </button>
-            <button disabled={page >= totalPages} onClick={() => setPage((p) => p + 1)} className={`p-1.5 rounded-lg transition-colors disabled:opacity-30 ${isDark ? "hover:bg-neutral-700 text-neutral-400" : "hover:bg-slate-100 text-slate-500"}`}>
-              <ChevronRight className="w-4 h-4" />
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* Create Form */}
-      <MaintenanceForm open={formOpen} onClose={() => setFormOpen(false)} onSuccess={fetchLogs} />
-    </div>
-  );
+    );
 }

@@ -1,0 +1,426 @@
+/**
+ * Dispatch — Trip Dispatcher & Management
+ * Trip creation, lifecycle (DRAFT → DISPATCHED → COMPLETED/CANCELLED)
+ * Embedded Leaflet map with OpenRouteService routing for shortest path
+ */
+import { useState, useEffect, useCallback, useRef } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import {
+    Plus, X, Route, MapPin, Truck, User, Clock, CheckCircle2,
+    XCircle, AlertTriangle, Search, ChevronRight,
+} from "lucide-react";
+import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap } from "react-leaflet";
+import L from "leaflet";
+import "leaflet/dist/leaflet.css";
+import { fleetApi, hrApi, dispatchApi, type Trip, type Vehicle, type Driver } from "../api/client";
+import { useTheme } from "../context/ThemeContext";
+
+// Fix Leaflet default icon paths (Vite asset bundling issue)
+delete (L.Icon.Default.prototype as unknown as Record<string, unknown>)._getIconUrl;
+L.Icon.Default.mergeOptions({
+    iconRetinaUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon-2x.png",
+    iconUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon.png",
+    shadowUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png",
+});
+
+const STATUS_CONFIG: Record<string, { label: string; className: string; icon: React.ElementType }> = {
+    DRAFT: { label: "Draft", className: "bg-neutral-100 text-neutral-600", icon: Clock },
+    DISPATCHED: { label: "Dispatched", className: "bg-blue-100 text-blue-700", icon: Route },
+    COMPLETED: { label: "Completed", className: "bg-emerald-100 text-emerald-700", icon: CheckCircle2 },
+    CANCELLED: { label: "Cancelled", className: "bg-red-100 text-red-600", icon: XCircle },
+};
+
+const FIELD = "block w-full rounded-xl border px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-colors";
+
+// Geocode a location string using Nominatim
+async function geocode(location: string): Promise<[number, number] | null> {
+    try {
+        const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(location)}&limit=1`);
+        const results = await res.json();
+        if (results.length > 0) return [parseFloat(results[0].lat), parseFloat(results[0].lon)];
+    } catch { }
+    return null;
+}
+
+// Fetch route from OpenRouteService (free tier, no key needed for basic)
+async function getRoute(origin: [number, number], dest: [number, number]): Promise<[number, number][]> {
+    // Fallback: use OSRM demo routing
+    try {
+        const url = `https://router.project-osrm.org/route/v1/driving/${origin[1]},${origin[0]};${dest[1]},${dest[0]}?overview=full&geometries=geojson`;
+        const res = await fetch(url);
+        const json = await res.json();
+        if (json.routes && json.routes[0]) {
+            return json.routes[0].geometry.coordinates.map(([lng, lat]: [number, number]) => [lat, lng] as [number, number]);
+        }
+    } catch { }
+    // Fallback: straight line
+    return [origin, dest];
+}
+
+// Auto-fit map to route bounds
+function MapBounds({ bounds }: { bounds: [[number, number], [number, number]] | null }) {
+    const map = useMap();
+    useEffect(() => {
+        if (bounds) map.fitBounds(bounds, { padding: [40, 40] });
+    }, [bounds, map]);
+    return null;
+}
+
+export default function Dispatch() {
+    const { isDark } = useTheme();
+    const [trips, setTrips] = useState<Trip[]>([]);
+    const [vehicles, setVehicles] = useState<Vehicle[]>([]);
+    const [drivers, setDrivers] = useState<Driver[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [statusFilter, setStatusFilter] = useState("");
+    const [search, setSearch] = useState("");
+    const [showModal, setShowModal] = useState(false);
+    const [selectedTrip, setSelectedTrip] = useState<Trip | null>(null);
+    const [form, setForm] = useState<{
+        vehicleId: string; driverId: string; origin: string; destination: string;
+        distanceEstimated: number; cargoWeight: number; cargoDescription: string;
+        clientName: string; revenue: number;
+    }>({ vehicleId: "", driverId: "", origin: "", destination: "", distanceEstimated: 0, cargoWeight: 0, cargoDescription: "", clientName: "", revenue: 0 });
+    const [saving, setSaving] = useState(false);
+    const [formError, setFormError] = useState("");
+
+    // Map state
+    const [routeCoords, setRouteCoords] = useState<[number, number][]>([]);
+    const [originCoord, setOriginCoord] = useState<[number, number] | null>(null);
+    const [destCoord, setDestCoord] = useState<[number, number] | null>(null);
+    const [mapBounds, setMapBounds] = useState<[[number, number], [number, number]] | null>(null);
+    const [mapLoading, setMapLoading] = useState(false);
+    const routeTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+    const load = useCallback(async () => {
+        setLoading(true);
+        try {
+            const [t, v, d] = await Promise.all([
+                dispatchApi.listTrips({ limit: 100 }),
+                fleetApi.listVehicles({ status: "AVAILABLE", limit: 100 }),
+                hrApi.listDrivers({ status: "ON_DUTY", limit: 100 }),
+            ]);
+            setTrips(t.data ?? []);
+            setVehicles(v.data ?? []);
+            setDrivers(d.data ?? []);
+        } finally { setLoading(false); }
+    }, []);
+
+    useEffect(() => { load(); }, [load]);
+
+    // Load route on trip select
+    useEffect(() => {
+        if (!selectedTrip) { setRouteCoords([]); setOriginCoord(null); setDestCoord(null); setMapBounds(null); return; }
+        const loadRoute = async () => {
+            setMapLoading(true);
+            const [oc, dc] = await Promise.all([
+                geocode(selectedTrip.origin),
+                geocode(selectedTrip.destination),
+            ]);
+            if (oc && dc) {
+                setOriginCoord(oc);
+                setDestCoord(dc);
+                setMapBounds([oc, dc]);
+                const coords = await getRoute(oc, dc);
+                setRouteCoords(coords);
+            }
+            setMapLoading(false);
+        };
+        loadRoute();
+    }, [selectedTrip]);
+
+    const filtered = trips.filter(t =>
+        (!statusFilter || t.status === statusFilter) &&
+        (!search || t.origin.toLowerCase().includes(search.toLowerCase()) ||
+            t.destination.toLowerCase().includes(search.toLowerCase()) ||
+            t.driver?.fullName?.toLowerCase().includes(search.toLowerCase()))
+    );
+
+    const handleCreate = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setSaving(true); setFormError("");
+        try {
+            const selectedVehicle = vehicles.find(v => v.id === form.vehicleId);
+            if (selectedVehicle && form.cargoWeight > (selectedVehicle.capacityWeight ?? Infinity)) {
+                setFormError(`Cargo weight (${form.cargoWeight} kg) exceeds vehicle capacity (${selectedVehicle.capacityWeight} kg)`);
+                return;
+            }
+            await dispatchApi.createTrip({ ...form, distanceEstimated: form.distanceEstimated });
+            setShowModal(false);
+            load();
+        } catch (err: unknown) {
+            setFormError((err as { response?: { data?: { message?: string } } })?.response?.data?.message ?? "Failed to create trip");
+        } finally { setSaving(false); }
+    };
+
+    const handleTransition = async (trip: Trip, status: "DISPATCHED" | "COMPLETED" | "CANCELLED") => {
+        if (!confirm(`Mark trip as ${status}?`)) return;
+        await dispatchApi.transitionStatus(trip.id, { status });
+        load();
+        if (selectedTrip?.id === trip.id) {
+            const updated = await dispatchApi.getTrip(trip.id);
+            setSelectedTrip(updated);
+        }
+    };
+
+    const inputClass = `${FIELD} ${isDark ? "bg-neutral-700 border-neutral-600 text-white placeholder-neutral-400" : "bg-white border-neutral-200 text-neutral-900 placeholder-neutral-400"}`;
+
+    return (
+        <div className="max-w-[1600px] mx-auto h-full">
+            <div className="flex items-center justify-between mb-5">
+                <div>
+                    <h1 className={`text-2xl font-bold ${isDark ? "text-white" : "text-neutral-900"}`}>Trip Dispatcher</h1>
+                    <p className={`text-sm ${isDark ? "text-neutral-400" : "text-neutral-500"}`}>{trips.length} trips total</p>
+                </div>
+                <button onClick={() => { setFormError(""); setShowModal(true); }} className="flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-500 text-white text-sm font-semibold hover:bg-emerald-600 transition-colors">
+                    <Plus className="w-4 h-4" /> New Trip
+                </button>
+            </div>
+
+            <div className="flex gap-5 h-[calc(100vh-180px)] min-h-[600px]">
+                {/* LEFT: Trip List */}
+                <div className={`w-[380px] shrink-0 flex flex-col rounded-2xl border overflow-hidden ${isDark ? "bg-neutral-800 border-neutral-700" : "bg-white border-neutral-200 shadow-sm"}`}>
+                    {/* Search & filter */}
+                    <div className={`p-3 space-y-2 border-b ${isDark ? "border-neutral-700" : "border-neutral-100"}`}>
+                        <div className="relative">
+                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400" />
+                            <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search trips…" className={`${inputClass} pl-9`} />
+                        </div>
+                        <div className="flex gap-1 flex-wrap">
+                            {["", "DRAFT", "DISPATCHED", "COMPLETED", "CANCELLED"].map(s => (
+                                <button key={s} onClick={() => setStatusFilter(s)}
+                                    className={`px-2.5 py-1 rounded-lg text-xs font-semibold transition-colors ${statusFilter === s ? "bg-emerald-500 text-white" : isDark ? "text-neutral-400 hover:bg-neutral-700" : "text-neutral-500 hover:bg-neutral-100"}`}
+                                >
+                                    {s || "All"}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+
+                    {/* Trip list */}
+                    <div className="flex-1 overflow-y-auto">
+                        {loading ? (
+                            <div className="flex items-center justify-center h-32 text-neutral-400">Loading…</div>
+                        ) : filtered.length === 0 ? (
+                            <div className="flex flex-col items-center justify-center h-32 text-neutral-400">
+                                <Route className="w-8 h-8 mb-2 opacity-30" />
+                                <p className="text-sm">No trips found</p>
+                            </div>
+                        ) : filtered.map(trip => {
+                            const cfg = STATUS_CONFIG[trip.status];
+                            const isSelected = selectedTrip?.id === trip.id;
+                            return (
+                                <button key={trip.id} onClick={() => setSelectedTrip(t => t?.id === trip.id ? null : trip)}
+                                    className={`w-full text-left p-4 border-b transition-all ${isDark ? "border-neutral-700 hover:bg-neutral-700/40" : "border-neutral-50 hover:bg-neutral-50"
+                                        } ${isSelected ? (isDark ? "bg-emerald-500/10 border-l-2 border-l-emerald-500" : "bg-emerald-50 border-l-2 border-l-emerald-500") : ""}`}
+                                >
+                                    <div className="flex items-start justify-between mb-1.5">
+                                        <div className="flex items-start gap-2">
+                                            <MapPin className="w-4 h-4 text-emerald-500 mt-0.5 shrink-0" />
+                                            <div>
+                                                <p className={`text-sm font-bold leading-tight ${isDark ? "text-white" : "text-neutral-900"}`}>{trip.origin}</p>
+                                                <p className={`text-xs ${isDark ? "text-neutral-400" : "text-neutral-500"}`}>→ {trip.destination}</p>
+                                            </div>
+                                        </div>
+                                        <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${cfg?.className}`}>{cfg?.label}</span>
+                                    </div>
+                                    <div className={`flex items-center gap-3 text-xs ${isDark ? "text-neutral-400" : "text-neutral-500"}`}>
+                                        <span className="flex items-center gap-1"><Truck className="w-3 h-3" />{trip.vehicle?.licensePlate ?? "—"}</span>
+                                        <span className="flex items-center gap-1"><User className="w-3 h-3" />{trip.driver?.fullName?.split(" ")[0] ?? "—"}</span>
+                                        {trip.distanceEstimated > 0 && <span>{trip.distanceEstimated} km</span>}
+                                        <ChevronRight className="ml-auto w-3.5 h-3.5" />
+                                    </div>
+                                </button>
+                            );
+                        })}
+                    </div>
+                </div>
+
+                {/* RIGHT: Detail + Map */}
+                <div className="flex-1 flex flex-col gap-5">
+                    {selectedTrip ? (
+                        <>
+                            {/* Trip detail card */}
+                            <div className={`rounded-2xl border p-5 ${isDark ? "bg-neutral-800 border-neutral-700" : "bg-white border-neutral-200 shadow-sm"}`}>
+                                <div className="flex items-start justify-between mb-3">
+                                    <div>
+                                        <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${STATUS_CONFIG[selectedTrip.status]?.className}`}>
+                                            {STATUS_CONFIG[selectedTrip.status]?.label}
+                                        </span>
+                                        <h2 className={`text-base font-bold mt-1.5 ${isDark ? "text-white" : "text-neutral-900"}`}>
+                                            {selectedTrip.origin} → {selectedTrip.destination}
+                                        </h2>
+                                        {selectedTrip.clientName && (
+                                            <p className={`text-xs mt-0.5 ${isDark ? "text-neutral-400" : "text-neutral-500"}`}>
+                                                Client: {selectedTrip.clientName}
+                                            </p>
+                                        )}
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                        {selectedTrip.status === "DRAFT" && (
+                                            <button onClick={() => handleTransition(selectedTrip, "DISPATCHED")}
+                                                className="px-3 py-1.5 rounded-xl text-xs font-semibold bg-blue-500 text-white hover:bg-blue-600 transition-colors">
+                                                Dispatch
+                                            </button>
+                                        )}
+                                        {selectedTrip.status === "DISPATCHED" && (
+                                            <button onClick={() => handleTransition(selectedTrip, "COMPLETED")}
+                                                className="px-3 py-1.5 rounded-xl text-xs font-semibold bg-emerald-500 text-white hover:bg-emerald-600 transition-colors">
+                                                Complete
+                                            </button>
+                                        )}
+                                        {["DRAFT", "DISPATCHED"].includes(selectedTrip.status) && (
+                                            <button onClick={() => handleTransition(selectedTrip, "CANCELLED")}
+                                                className="px-3 py-1.5 rounded-xl text-xs font-semibold bg-red-50 text-red-600 hover:bg-red-100 border border-red-200 transition-colors">
+                                                Cancel
+                                            </button>
+                                        )}
+                                    </div>
+                                </div>
+                                <div className="grid grid-cols-3 gap-4 text-sm">
+                                    <InfoBox label="Vehicle" value={`${selectedTrip.vehicle?.year ?? ""} ${selectedTrip.vehicle?.make ?? "—"} ${selectedTrip.vehicle?.model ?? ""}`} sub={selectedTrip.vehicle?.licensePlate} isDark={isDark} />
+                                    <InfoBox label="Driver" value={selectedTrip.driver?.fullName ?? "—"} sub={selectedTrip.driver?.licenseNumber} isDark={isDark} />
+                                    <InfoBox label="Cargo" value={selectedTrip.cargoWeight ? `${selectedTrip.cargoWeight} kg` : "—"} sub={selectedTrip.cargoDescription} isDark={isDark} />
+                                    {selectedTrip.distanceEstimated > 0 && <InfoBox label="Distance (est.)" value={`${selectedTrip.distanceEstimated} km`} isDark={isDark} />}
+                                    {selectedTrip.revenue && <InfoBox label="Revenue" value={`₹${Number(selectedTrip.revenue).toLocaleString()}`} isDark={isDark} />}
+                                    {selectedTrip.dispatchTime && <InfoBox label="Dispatched" value={new Date(selectedTrip.dispatchTime).toLocaleString("en-IN")} isDark={isDark} />}
+                                </div>
+                            </div>
+
+                            {/* Leaflet Map */}
+                            <div className={`flex-1 rounded-2xl border overflow-hidden relative min-h-[300px] ${isDark ? "border-neutral-700" : "border-neutral-200 shadow-sm"}`}>
+                                {mapLoading && (
+                                    <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/80 backdrop-blur-sm">
+                                        <div className="text-sm text-neutral-500 flex items-center gap-2">
+                                            <Route className="w-4 h-4 animate-pulse text-emerald-500" /> Calculating shortest route…
+                                        </div>
+                                    </div>
+                                )}
+                                <MapContainer center={[20.5937, 78.9629]} zoom={5} className="w-full h-full" style={{ minHeight: "300px" }}>
+                                    <TileLayer
+                                        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                                        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+                                    />
+                                    {originCoord && (
+                                        <Marker position={originCoord}>
+                                            <Popup><b>Origin:</b> {selectedTrip.origin}</Popup>
+                                        </Marker>
+                                    )}
+                                    {destCoord && (
+                                        <Marker position={destCoord}>
+                                            <Popup><b>Destination:</b> {selectedTrip.destination}</Popup>
+                                        </Marker>
+                                    )}
+                                    {routeCoords.length > 1 && (
+                                        <Polyline positions={routeCoords} color="#10b981" weight={4} opacity={0.8} />
+                                    )}
+                                    <MapBounds bounds={mapBounds} />
+                                </MapContainer>
+                            </div>
+                        </>
+                    ) : (
+                        <div className={`flex-1 rounded-2xl border flex flex-col items-center justify-center gap-3 ${isDark ? "bg-neutral-800 border-neutral-700" : "bg-white border-neutral-200 shadow-sm"}`}>
+                            <div className="w-16 h-16 rounded-2xl bg-emerald-500/10 flex items-center justify-center">
+                                <Route className="w-8 h-8 text-emerald-500" />
+                            </div>
+                            <div className="text-center">
+                                <p className={`font-semibold ${isDark ? "text-white" : "text-neutral-900"}`}>Select a trip</p>
+                                <p className={`text-sm mt-1 ${isDark ? "text-neutral-400" : "text-neutral-500"}`}>Click any trip to view its route on the map</p>
+                            </div>
+                        </div>
+                    )}
+                </div>
+            </div>
+
+            {/* Create Trip Modal */}
+            <AnimatePresence>
+                {showModal && (
+                    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                        className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4"
+                        onClick={e => e.target === e.currentTarget && setShowModal(false)}
+                    >
+                        <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }}
+                            className={`w-full max-w-2xl rounded-3xl border p-6 shadow-2xl max-h-[90vh] overflow-y-auto ${isDark ? "bg-neutral-800 border-neutral-700" : "bg-white"}`}
+                        >
+                            <div className="flex items-center justify-between mb-5">
+                                <h2 className={`text-lg font-bold ${isDark ? "text-white" : "text-neutral-900"}`}>Create New Trip</h2>
+                                <button onClick={() => setShowModal(false)} className="p-1.5 rounded-lg text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-700 transition-colors"><X className="w-4 h-4" /></button>
+                            </div>
+
+                            {formError && <div className="mb-4 text-red-600 text-sm bg-red-50 border border-red-100 rounded-xl p-3 flex items-center gap-2"><AlertTriangle className="w-4 h-4 shrink-0" />{formError}</div>}
+
+                            <form onSubmit={handleCreate} className="space-y-4">
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label className={`block text-xs font-semibold mb-1.5 ${isDark ? "text-neutral-300" : "text-neutral-700"}`}>Vehicle *</label>
+                                        <select required value={form.vehicleId} onChange={e => setForm(f => ({ ...f, vehicleId: e.target.value }))} className={inputClass}>
+                                            <option value="">Select available vehicle</option>
+                                            {vehicles.map(v => <option key={v.id} value={v.id}>{v.licensePlate} — {v.make} {v.model}{v.capacityWeight ? ` (${v.capacityWeight} kg max)` : ""}</option>)}
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label className={`block text-xs font-semibold mb-1.5 ${isDark ? "text-neutral-300" : "text-neutral-700"}`}>Driver *</label>
+                                        <select required value={form.driverId} onChange={e => setForm(f => ({ ...f, driverId: e.target.value }))} className={inputClass}>
+                                            <option value="">Select on-duty driver</option>
+                                            {drivers.map(d => <option key={d.id} value={d.id}>{d.fullName} ({d.licenseNumber})</option>)}
+                                        </select>
+                                    </div>
+                                </div>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label className={`block text-xs font-semibold mb-1.5 ${isDark ? "text-neutral-300" : "text-neutral-700"}`}>Origin *</label>
+                                        <input required value={form.origin} onChange={e => setForm(f => ({ ...f, origin: e.target.value }))} className={inputClass} placeholder="Mumbai, Maharashtra" />
+                                    </div>
+                                    <div>
+                                        <label className={`block text-xs font-semibold mb-1.5 ${isDark ? "text-neutral-300" : "text-neutral-700"}`}>Destination *</label>
+                                        <input required value={form.destination} onChange={e => setForm(f => ({ ...f, destination: e.target.value }))} className={inputClass} placeholder="Pune, Maharashtra" />
+                                    </div>
+                                </div>
+                                <div className="grid grid-cols-3 gap-4">
+                                    <div>
+                                        <label className={`block text-xs font-semibold mb-1.5 ${isDark ? "text-neutral-300" : "text-neutral-700"}`}>Distance (km)</label>
+                                        <input type="number" min="0" step="0.1" value={form.distanceEstimated || ""} onChange={e => setForm(f => ({ ...f, distanceEstimated: +e.target.value }))} className={inputClass} placeholder="150" />
+                                    </div>
+                                    <div>
+                                        <label className={`block text-xs font-semibold mb-1.5 ${isDark ? "text-neutral-300" : "text-neutral-700"}`}>Cargo Weight (kg)</label>
+                                        <input type="number" min="0" value={form.cargoWeight || ""} onChange={e => setForm(f => ({ ...f, cargoWeight: +e.target.value }))} className={inputClass} placeholder="1000" />
+                                    </div>
+                                    <div>
+                                        <label className={`block text-xs font-semibold mb-1.5 ${isDark ? "text-neutral-300" : "text-neutral-700"}`}>Revenue (₹)</label>
+                                        <input type="number" min="0" value={form.revenue || ""} onChange={e => setForm(f => ({ ...f, revenue: +e.target.value }))} className={inputClass} placeholder="50000" />
+                                    </div>
+                                </div>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label className={`block text-xs font-semibold mb-1.5 ${isDark ? "text-neutral-300" : "text-neutral-700"}`}>Cargo Description</label>
+                                        <input value={form.cargoDescription} onChange={e => setForm(f => ({ ...f, cargoDescription: e.target.value }))} className={inputClass} placeholder="Electronics, perishables…" />
+                                    </div>
+                                    <div>
+                                        <label className={`block text-xs font-semibold mb-1.5 ${isDark ? "text-neutral-300" : "text-neutral-700"}`}>Client Name</label>
+                                        <input value={form.clientName} onChange={e => setForm(f => ({ ...f, clientName: e.target.value }))} className={inputClass} placeholder="Acme Corp" />
+                                    </div>
+                                </div>
+                                <div className="flex gap-3 pt-2">
+                                    <button type="button" onClick={() => setShowModal(false)} className={`flex-1 py-2.5 rounded-xl text-sm font-semibold border transition-colors ${isDark ? "border-neutral-600 text-neutral-300 hover:bg-neutral-700" : "border-neutral-200 text-neutral-600 hover:bg-neutral-50"}`}>Cancel</button>
+                                    <button type="submit" disabled={saving} className="flex-1 py-2.5 rounded-xl text-sm font-semibold bg-emerald-500 text-white hover:bg-emerald-600 disabled:opacity-60 transition-colors">
+                                        {saving ? "Creating…" : "Create Trip"}
+                                    </button>
+                                </div>
+                            </form>
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+        </div>
+    );
+}
+
+function InfoBox({ label, value, sub, isDark }: { label: string; value: string; sub?: string; isDark: boolean }) {
+    return (
+        <div>
+            <p className={`text-xs font-semibold mb-0.5 ${isDark ? "text-neutral-400" : "text-neutral-500"}`}>{label}</p>
+            <p className={`text-sm font-bold ${isDark ? "text-white" : "text-neutral-900"}`}>{value}</p>
+            {sub && <p className={`text-xs ${isDark ? "text-neutral-400" : "text-neutral-500"}`}>{sub}</p>}
+        </div>
+    );
+}
