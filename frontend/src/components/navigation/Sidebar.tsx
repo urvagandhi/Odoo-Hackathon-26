@@ -24,6 +24,7 @@ import {
   Activity,
   HelpCircle,
   User,
+  AlertTriangle,
   type LucideIcon,
 } from "lucide-react";
 import { useAuth } from "../../hooks/useAuth";
@@ -130,9 +131,9 @@ const NAV_SECTIONS: Record<string, NavSection[]> = {
     {
       title: "SAFETY",
       items: [
+        { label: "Incidents", icon: AlertTriangle, path: "/safety/incidents" },
         { label: "Drivers", icon: Users, path: "/hr/drivers" },
-        { label: "Licenses", icon: Shield, path: "/safety/licenses" },
-        { label: "Scores", icon: BarChart3, path: "/hr/performance" },
+        { label: "Performance", icon: BarChart3, path: "/hr/performance" },
       ],
     },
     {

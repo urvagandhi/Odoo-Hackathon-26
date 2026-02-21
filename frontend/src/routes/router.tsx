@@ -19,6 +19,9 @@ import Maintenance from "../pages/Maintenance";
 import Expenses from "../pages/Expenses";
 import CommandCenter from "../pages/CommandCenter";
 import Analytics from "../pages/Analytics";
+import Incidents from "../pages/Incidents";
+import DriverPerformance from "../pages/DriverPerformance";
+import FinancialReports from "../pages/FinancialReports";
 import ComingSoon from "../pages/ComingSoon";
 
 export const router = createBrowserRouter([
@@ -56,18 +59,19 @@ export const router = createBrowserRouter([
       { path: "fleet/vehicles", element: <VehicleRegistry /> },
       { path: "fleet/maintenance", element: <Maintenance /> },
       { path: "dispatch/trips", element: <TripDispatcher /> },
-      { path: "dispatch/new", element: <ComingSoon /> },
+      { path: "dispatch/new", element: <TripDispatcher /> },
       { path: "hr/drivers", element: <DriverManagement /> },
-      { path: "hr/performance", element: <ComingSoon /> },
+      { path: "hr/performance", element: <DriverPerformance /> },
       { path: "finance/fuel", element: <Expenses /> },
       { path: "finance/expenses", element: <Expenses /> },
-      { path: "finance/ledger", element: <ComingSoon /> },
-      { path: "finance/reports", element: <ComingSoon /> },
-      { path: "finance/pnl", element: <ComingSoon /> },
-      { path: "finance/cost-analysis", element: <ComingSoon /> },
+      { path: "finance/ledger", element: <Expenses /> },
+      { path: "finance/reports", element: <FinancialReports /> },
+      { path: "finance/pnl", element: <FinancialReports /> },
+      { path: "finance/cost-analysis", element: <FinancialReports /> },
       { path: "analytics", element: <Analytics /> },
+      { path: "safety/incidents", element: <Incidents /> },
       { path: "safety/licenses", element: <ComingSoon /> },
-      { path: "safety/reports", element: <ComingSoon /> },
+      { path: "safety/reports", element: <Incidents /> },
       { path: "notifications", element: <ComingSoon /> },
       { path: "messages", element: <ComingSoon /> },
       { path: "activity", element: <ComingSoon /> },

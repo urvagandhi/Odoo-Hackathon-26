@@ -332,9 +332,60 @@ export const analyticsApi = {
   getVehicleROI: (params?: Record<string, unknown>) =>
     apiClient.get('/api/v1/analytics/roi', { params }),
 
-  getMonthlyReport: (params?: Record<string, unknown>) =>
-    apiClient.get('/api/v1/analytics/monthly', { params }),
+  getMonthlyReport: (year?: number) =>
+    apiClient.get('/api/v1/analytics/monthly', { params: year ? { year } : undefined }),
 
-  exportCSV: (params: Record<string, unknown>) =>
+  exportCSV: (params?: Record<string, unknown>) =>
     apiClient.get('/api/v1/analytics/export/csv', { params, responseType: 'blob' }),
+};
+
+// ── Incidents API ───────────────────────────────────────────────────────────
+
+export const incidentsApi = {
+  listIncidents: (params?: Record<string, unknown>) =>
+    apiClient.get('/api/v1/incidents', { params }),
+
+  getIncident: (id: string) =>
+    apiClient.get(`/api/v1/incidents/${id}`),
+
+  createIncident: (data: Record<string, unknown>) =>
+    apiClient.post('/api/v1/incidents', data),
+
+  updateIncident: (id: string, data: Record<string, unknown>) =>
+    apiClient.patch(`/api/v1/incidents/${id}`, data),
+
+  closeIncident: (id: string, data: Record<string, unknown>) =>
+    apiClient.patch(`/api/v1/incidents/${id}/close`, data),
+};
+
+// ── Locations API ───────────────────────────────────────────────────────────
+
+export const locationsApi = {
+  recordLocation: (data: Record<string, unknown>) =>
+    apiClient.post('/api/v1/locations', data),
+
+  getLatestAll: () =>
+    apiClient.get('/api/v1/locations/latest'),
+
+  getLatest: (vehicleId: string) =>
+    apiClient.get(`/api/v1/locations/${vehicleId}/latest`),
+
+  getHistory: (vehicleId: string, params?: Record<string, unknown>) =>
+    apiClient.get(`/api/v1/locations/${vehicleId}/history`, { params }),
+};
+
+// ── Me (Driver Self-Service) API ────────────────────────────────────────────
+
+export const meApi = {
+  getDriverProfile: () =>
+    apiClient.get('/api/v1/me/driver'),
+
+  getMyTrips: () =>
+    apiClient.get('/api/v1/me/trips'),
+
+  updateDutyStatus: (data: Record<string, unknown>) =>
+    apiClient.patch('/api/v1/me/driver/status', data),
+
+  postLocation: (data: Record<string, unknown>) =>
+    apiClient.post('/api/v1/me/location', data),
 };

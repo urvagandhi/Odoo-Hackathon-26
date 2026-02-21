@@ -95,7 +95,7 @@ export function createApp(): Application {
     // ── API v1 Routes ─────────────────────────────────────────────
     const v1 = '/api/v1';
     app.use(`${v1}/auth`, authRouter);
-    app.use(`${v1}/vehicles`, fleetRouter);
+    app.use(`${v1}/fleet`, fleetRouter);
     app.use(`${v1}/trips`, dispatchRouter);
     app.use(`${v1}/drivers`, hrRouter);
     app.use(`${v1}/finance`, financeRouter);
