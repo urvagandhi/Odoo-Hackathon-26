@@ -6,7 +6,13 @@ description: Backend API Engineering specialist responsible for RESTful API desi
 # API Agent
 
 <!--
-HACKATHON_TOPIC: FleetFlow – Modular Fleet & Logistics Management System
+HACKATHON_TOPIC: FleetFlow – Single-Organization Fleet Management System
+ARCHITECTURE:
+  - Single organization, no multi-tenant logic, no orgId filtering
+  - No SuperAdmin role — MANAGER is highest authority
+  - 4 roles: MANAGER | DISPATCHER | SAFETY_OFFICER | FINANCE_ANALYST
+  - RBAC enforced at route level via authorize() middleware
+  - State machines enforced in service layer (Prisma transactions)
 -->
 
 ## Persona

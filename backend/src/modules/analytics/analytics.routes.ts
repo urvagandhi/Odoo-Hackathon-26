@@ -8,7 +8,8 @@ export const analyticsRouter = Router();
 
 analyticsRouter.use(authenticate);
 
-const analyticsRoles = [UserRole.SUPER_ADMIN, UserRole.MANAGER, UserRole.FINANCE_ANALYST];
+// Analytics visible to Manager and Finance Analyst
+const analyticsRoles = [UserRole.MANAGER, UserRole.FINANCE_ANALYST];
 
 // GET /api/v1/analytics/kpi
 analyticsRouter.get(

@@ -1,6 +1,6 @@
 // ─────────────────────────────────────────────────────────────────
-//  FleetFlow — Production-Ready Prisma Schema
-//  PostgreSQL | Prisma ORM | Modular Fleet & Logistics System
+//  FleetFlow — Single-Organization Fleet Management System
+//  PostgreSQL | Prisma ORM | Internal Operations Only
 //  Design: 3NF normalized, enum-driven state machines, indexed for
 //          dashboard-level analytic queries and dispatch operations.
 //  DB conventions (per db-architecture-agent):
@@ -9,6 +9,8 @@
 //      from PostgreSQL column names — enabling idiomatic TS API while
 //      keeping a clean snake_case schema in the database.
 //    • Timestamptz used throughout for timezone-aware storage
+//  Role hierarchy (highest → lowest authority):
+//    MANAGER → DISPATCHER → SAFETY_OFFICER | FINANCE_ANALYST
 // ─────────────────────────────────────────────────────────────────
 
 generator client {
@@ -25,10 +27,10 @@ datasource db {
 //  Never use raw strings for controlled vocabularies.
 // ─────────────────────────────────────────────────────────────────
 
-/// Roles aligned to operational domains in FleetFlow.
+/// Roles aligned to operational domains in FleetFlow (single-org).
+/// MANAGER is highest authority — no SuperAdmin or multi-tenant logic.
 enum UserRole {
-  SUPER_ADMIN      // Full system access — god mode
-  MANAGER          // Fleet oversight, read analytics, approve actions
+  MANAGER          // Highest authority: user management, fleet oversight, analytics
   DISPATCHER       // Create / manage trips and assignments
   SAFETY_OFFICER   // Driver credentials, vehicle inspections, incident logs
   FINANCE_ANALYST  // Revenue, expenses, fuel logs, reporting
@@ -95,14 +97,19 @@ enum AuditAction {
 // ─────────────────────────────────────────────────────────────────
 
 model User {
-  id           BigInt    @id @default(autoincrement()) @db.BigInt
-  email        String    @unique
-  passwordHash String    @map("password_hash")    // bcrypt hash, min 60 chars
-  fullName     String    @map("full_name")
-  role         UserRole  @default(DISPATCHER)
-  isActive     Boolean   @default(true) @map("is_active")
-  createdAt    DateTime  @default(now()) @db.Timestamptz() @map("created_at")
-  updatedAt    DateTime  @updatedAt @db.Timestamptz() @map("updated_at")
+  id                 BigInt    @id @default(autoincrement()) @db.BigInt
+  email              String    @unique
+  passwordHash       String    @map("password_hash")              // bcryptjs hash, min 60 chars
+  fullName           String    @map("full_name")
+  role               UserRole  @default(DISPATCHER)
+  isActive           Boolean   @default(true) @map("is_active")
+
+  // Password reset — token stored hashed, expires in 15 min
+  resetToken         String?   @map("reset_token")
+  resetTokenExpiry   DateTime? @db.Timestamptz() @map("reset_token_expiry")
+
+  createdAt          DateTime  @default(now()) @db.Timestamptz() @map("created_at")
+  updatedAt          DateTime  @updatedAt @db.Timestamptz() @map("updated_at")
 
   // Relations
   auditLogs    AuditLog[]

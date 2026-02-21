@@ -1,9 +1,9 @@
 /**
- * FleetFlow — Comprehensive Prisma Database Seed
+ * FleetFlow — Comprehensive Prisma Database Seed (Single-Organization)
  * ─────────────────────────────────────────────────────────────────
  * Seeds complete end-to-end data for the FleetFlow system:
  *  1. Vehicle types (TRUCK, VAN, BIKE, PLANE)
- *  2. Users — Indian names, one per role
+ *  2. Users — Indian names, 4 roles (MANAGER is highest authority)
  *  3. Vehicles — Indian fleet brands + registration plates
  *  4. Drivers — Indian names, varied compliance & duty states
  *  5. Trips — COMPLETED, DISPATCHED, DRAFT, CANCELLED (8 total)
@@ -113,18 +113,8 @@ async function main() {
     console.log('  → Seeding users...');
     const passwordHash = await bcrypt.hash('FleetFlow@2025', SALT_ROUNDS);
 
-    const [, , dispatcher, , financeAnalyst] = await Promise.all([
-        // SUPER_ADMIN
-        prisma.user.create({
-            data: {
-                email: 'superadmin@fleetflow.io',
-                passwordHash,
-                fullName: 'Arjun Mehta',
-                role: UserRole.SUPER_ADMIN,
-                isActive: true,
-            },
-        }),
-        // MANAGER
+    const [, dispatcher, , financeAnalyst] = await Promise.all([
+        // MANAGER — highest authority (no SuperAdmin in single-org system)
         prisma.user.create({
             data: {
                 email: 'manager@fleetflow.io',
@@ -165,7 +155,7 @@ async function main() {
             },
         }),
     ]);
-    console.log('  ✅  5 users seeded.\n');
+    console.log('  ✅  4 users seeded.\n');
 
     // ──────────────────────────────────────────────────────────────
     //  Step 3: Vehicles — Indian brands, real registration plate format
@@ -826,12 +816,12 @@ async function main() {
     console.log('    ┌──────────────────────────────────────┬─────────────────────┬──────────────────┐');
     console.log('    │ Email                                │ Name                │ Role             │');
     console.log('    ├──────────────────────────────────────┼─────────────────────┼──────────────────┤');
-    console.log('    │ superadmin@fleetflow.io              │ Arjun Mehta         │ SUPER_ADMIN      │');
-    console.log('    │ manager@fleetflow.io                 │ Priya Sharma        │ MANAGER          │');
+    console.log('    │ manager@fleetflow.io                 │ Priya Sharma        │ MANAGER ★        │');
     console.log('    │ dispatcher@fleetflow.io              │ Rahul Verma         │ DISPATCHER       │');
     console.log('    │ safety@fleetflow.io                  │ Sneha Patel         │ SAFETY_OFFICER   │');
     console.log('    │ finance@fleetflow.io                 │ Vikram Nair         │ FINANCE_ANALYST  │');
-    console.log('    └──────────────────────────────────────┴─────────────────────┴──────────────────┘\n');
+    console.log('    └──────────────────────────────────────┴─────────────────────┴──────────────────┘');
+    console.log('    ★ MANAGER is highest authority in single-org mode\n');
 
     console.log('🚛  Fleet status snapshot:');
     console.log('    Vehicles  →  2 trucks  |  2 vans  |  1 bike  |  1 plane');
