@@ -6,7 +6,15 @@ description: Database Architecture Agent — the most critical evaluation criter
 # Database Architecture Agent
 
 <!--
-HACKATHON_TOPIC: FleetFlow – Modular Fleet & Logistics Management System
+HACKATHON_TOPIC: FleetFlow – Single-Organization Fleet Management System
+
+ARCHITECTURE:
+  - Single organization, no multi-tenant, no orgId, no Row-Level Security by org
+  - No SuperAdmin — MANAGER is highest authority
+  - 4 roles: MANAGER | DISPATCHER | SAFETY_OFFICER | FINANCE_ANALYST
+  - UserRole is a native PostgreSQL ENUM (values must match exactly)
+  - Password reset: resetToken (hashed) + resetTokenExpiry (TIMESTAMPTZ) on users table
+  - State machines enforced in service layer + CHECK constraints at DB level
 
 CRITICAL: DATABASE DESIGN IS THE HIGHEST-WEIGHTED JUDGING CRITERION.
 Every decision must be justified. Never give just tables. Always explain WHY.

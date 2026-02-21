@@ -7,6 +7,8 @@ import {
     UpdateVehicleInput,
     VehicleStatusUpdateInput,
     VehicleQueryInput,
+    CreateVehicleDocumentInput,
+    UpdateVehicleDocumentInput,
 } from './fleet.validator';
 
 export class FleetService {
@@ -159,6 +161,119 @@ export class FleetService {
 
     async listVehicleTypes() {
         return prisma.vehicleTypeRecord.findMany({ orderBy: { name: 'asc' } });
+    }
+
+    // ── Vehicle Documents ─────────────────────────────────────────
+
+    async listVehicleDocuments(vehicleId: bigint) {
+        await this.getVehicleById(vehicleId); // existence check
+        return prisma.vehicleDocument.findMany({
+            where: { vehicleId, isActive: true },
+            orderBy: [{ documentType: 'asc' }, { expiresAt: 'asc' }],
+        });
+    }
+
+    async getVehicleDocument(vehicleId: bigint, docId: bigint) {
+        await this.getVehicleById(vehicleId);
+        const doc = await prisma.vehicleDocument.findFirst({ where: { id: docId, vehicleId } });
+        if (!doc) throw new ApiError(404, `Document #${docId} not found for vehicle #${vehicleId}.`);
+        return doc;
+    }
+
+    async addVehicleDocument(vehicleId: bigint, input: CreateVehicleDocumentInput, actorId: bigint) {
+        await this.getVehicleById(vehicleId);
+
+        // Deactivate previous active document of same type (superseded)
+        await prisma.vehicleDocument.updateMany({
+            where: { vehicleId, documentType: input.documentType, isActive: true },
+            data: { isActive: false },
+        });
+
+        const doc = await prisma.vehicleDocument.create({
+            data: {
+                vehicleId,
+                documentType: input.documentType,
+                documentNumber: input.documentNumber,
+                issuedBy: input.issuedBy,
+                issuedAt: input.issuedAt ? new Date(input.issuedAt) : undefined,
+                expiresAt: new Date(input.expiresAt),
+                notes: input.notes,
+            },
+        });
+
+        await writeAuditLog({
+            userId: actorId,
+            entity: 'VehicleDocument',
+            entityId: doc.id,
+            action: 'CREATE',
+            newValues: serializeForAudit(doc),
+        });
+
+        return doc;
+    }
+
+    async updateVehicleDocument(vehicleId: bigint, docId: bigint, input: UpdateVehicleDocumentInput, actorId: bigint) {
+        const existing = await this.getVehicleDocument(vehicleId, docId);
+
+        const updated = await prisma.vehicleDocument.update({
+            where: { id: docId },
+            data: {
+                ...(input.documentType && { documentType: input.documentType }),
+                ...(input.documentNumber !== undefined && { documentNumber: input.documentNumber }),
+                ...(input.issuedBy !== undefined && { issuedBy: input.issuedBy }),
+                ...(input.issuedAt && { issuedAt: new Date(input.issuedAt) }),
+                ...(input.expiresAt && { expiresAt: new Date(input.expiresAt) }),
+                ...(input.notes !== undefined && { notes: input.notes }),
+            },
+        });
+
+        await writeAuditLog({
+            userId: actorId,
+            entity: 'VehicleDocument',
+            entityId: docId,
+            action: 'UPDATE',
+            oldValues: serializeForAudit(existing),
+            newValues: serializeForAudit(updated),
+        });
+
+        return updated;
+    }
+
+    async deactivateVehicleDocument(vehicleId: bigint, docId: bigint, actorId: bigint) {
+        const existing = await this.getVehicleDocument(vehicleId, docId);
+        if (!existing.isActive) throw new ApiError(409, 'Document is already inactive.');
+
+        const updated = await prisma.vehicleDocument.update({
+            where: { id: docId },
+            data: { isActive: false },
+        });
+
+        await writeAuditLog({
+            userId: actorId,
+            entity: 'VehicleDocument',
+            entityId: docId,
+            action: 'DELETE',
+            oldValues: serializeForAudit(existing),
+        });
+
+        return updated;
+    }
+
+    async listExpiringDocuments(daysAhead = 30) {
+        const cutoff = new Date();
+        cutoff.setDate(cutoff.getDate() + daysAhead);
+
+        return prisma.vehicleDocument.findMany({
+            where: {
+                isActive: true,
+                expiresAt: { lte: cutoff },
+                vehicle: { isDeleted: false },
+            },
+            include: {
+                vehicle: { select: { id: true, licensePlate: true, make: true, model: true } },
+            },
+            orderBy: { expiresAt: 'asc' },
+        });
     }
 }
 

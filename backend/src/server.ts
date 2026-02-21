@@ -1,6 +1,9 @@
+import http from 'http';
 import { createApp } from './app';
 import { env } from './config/env';
 import { prisma } from './prisma';
+import { setupSocketIO } from './sockets/locationSocket';
+import { startCronJobs } from './jobs/cronJobs';
 
 async function bootstrap(): Promise<void> {
     // Verify DB connection before accepting traffic
@@ -14,10 +17,20 @@ async function bootstrap(): Promise<void> {
 
     const app = createApp();
 
-    const server = app.listen(env.PORT, () => {
+    // ── HTTP server (required for Socket.io to co-exist with Express) ──
+    const server = http.createServer(app);
+
+    // ── Socket.io — real-time vehicle location broadcasting ───────
+    setupSocketIO(server);
+
+    // ── Background cron jobs ──────────────────────────────────────
+    startCronJobs();
+
+    server.listen(env.PORT, () => {
         console.log(`🚀  FleetFlow API running on http://localhost:${env.PORT}`);
         console.log(`📦  Environment: ${env.NODE_ENV}`);
         console.log(`📋  Health: http://localhost:${env.PORT}/health`);
+        console.log(`📡  WebSocket: ws://localhost:${env.PORT}`);
     });
 
     // ── Graceful shutdown ─────────────────────────────────────────

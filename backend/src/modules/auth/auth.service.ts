@@ -1,16 +1,24 @@
-import bcrypt from 'bcrypt';
+import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
 import { UserRole } from '@prisma/client';
 import prisma from '../../prisma';
 import { env } from '../../config/env';
 import { ApiError } from '../../middleware/errorHandler';
-import { LoginInput, RegisterInput, ChangePasswordInput, ForgotPasswordInput, ResetPasswordInput } from './auth.validator';
+import {
+    LoginInput,
+    RegisterInput,
+    CreateUserInput,
+    ChangePasswordInput,
+    ForgotPasswordInput,
+    ResetPasswordInput,
+} from './auth.validator';
 import { JwtPayload } from '../../middleware/authenticate';
 
 export class AuthService {
     /**
-     * Create a new user. Called by admin only (controller enforces SUPER_ADMIN).
+     * Create a new user. Called by admin only (controller enforces MANAGER role).
+     * Always creates a DISPATCHER unless role is explicitly specified.
      */
     async register(input: RegisterInput) {
         const existing = await prisma.user.findUnique({ where: { email: input.email } });
@@ -25,7 +33,31 @@ export class AuthService {
                 email: input.email,
                 passwordHash,
                 fullName: input.fullName,
-                role: (input.role as UserRole) ?? UserRole.DISPATCHER,
+                role: UserRole.DISPATCHER,
+            },
+            select: { id: true, email: true, fullName: true, role: true, createdAt: true },
+        });
+
+        return user;
+    }
+
+    /**
+     * Manager-only: create a user with an explicit role assignment.
+     */
+    async createUser(input: CreateUserInput) {
+        const existing = await prisma.user.findUnique({ where: { email: input.email } });
+        if (existing) {
+            throw new ApiError(409, 'A user with this email already exists.');
+        }
+
+        const passwordHash = await bcrypt.hash(input.password, env.BCRYPT_SALT_ROUNDS);
+
+        const user = await prisma.user.create({
+            data: {
+                email: input.email,
+                passwordHash,
+                fullName: input.fullName,
+                role: input.role as UserRole,
             },
             select: { id: true, email: true, fullName: true, role: true, createdAt: true },
         });
@@ -108,7 +140,7 @@ export class AuthService {
     }
 
     /**
-     * List all users (admin only).
+     * Manager-only: list all system users.
      */
     async listUsers() {
         const users = await prisma.user.findMany({
@@ -175,6 +207,47 @@ export class AuthService {
         });
 
         return { message: 'Password has been reset successfully. You can now log in.' };
+    }
+
+    /**
+     * Manager-only: deactivate a user account.
+     * Prevents self-deactivation to avoid accidental lockout.
+     */
+    async deactivateUser(targetId: bigint, actorId: bigint) {
+        if (targetId === actorId) {
+            throw new ApiError(400, 'Cannot deactivate your own account.');
+        }
+
+        const user = await prisma.user.findUnique({ where: { id: targetId } });
+        if (!user) throw new ApiError(404, 'User not found.');
+        if (!user.isActive) throw new ApiError(409, 'User is already deactivated.');
+
+        return prisma.user.update({
+            where: { id: targetId },
+            data: { isActive: false },
+            select: { id: true, email: true, fullName: true, role: true, isActive: true },
+        });
+    }
+
+    /**
+     * Manager-only: directly reset a user's password (no token required).
+     */
+    async resetUserPassword(targetId: bigint, newPassword: string) {
+        const user = await prisma.user.findUnique({ where: { id: targetId } });
+        if (!user) throw new ApiError(404, 'User not found.');
+
+        const passwordHash = await bcrypt.hash(newPassword, env.BCRYPT_SALT_ROUNDS);
+
+        await prisma.user.update({
+            where: { id: targetId },
+            data: {
+                passwordHash,
+                resetToken: null,
+                resetTokenExpiry: null,
+            },
+        });
+
+        return { id: user.id.toString(), email: user.email, fullName: user.fullName };
     }
 }
 

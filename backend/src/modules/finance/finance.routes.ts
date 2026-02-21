@@ -8,7 +8,8 @@ export const financeRouter = Router();
 
 financeRouter.use(authenticate);
 
-const financeRoles = [UserRole.SUPER_ADMIN, UserRole.MANAGER, UserRole.FINANCE_ANALYST, UserRole.DISPATCHER];
+// Finance Analyst logs fuel/expenses; Manager has view + override access
+const financeRoles = [UserRole.MANAGER, UserRole.FINANCE_ANALYST];
 
 // Fuel logs
 financeRouter.post('/fuel', authorize(financeRoles), financeController.createFuelLog.bind(financeController));
@@ -18,9 +19,17 @@ financeRouter.get('/fuel', authorize(financeRoles), financeController.listFuelLo
 financeRouter.post('/expenses', authorize(financeRoles), financeController.createExpense.bind(financeController));
 financeRouter.get('/expenses', authorize(financeRoles), financeController.listExpenses.bind(financeController));
 
-// Maintenance logs — Safety Officer can log maintenance
+// Maintenance logs — Safety Officer owns full maintenance lifecycle
 financeRouter.post(
     '/maintenance',
-    authorize([UserRole.SUPER_ADMIN, UserRole.MANAGER, UserRole.SAFETY_OFFICER]),
+    authorize([UserRole.SAFETY_OFFICER]),
     financeController.createMaintenanceLog.bind(financeController),
+);
+
+// PATCH /api/v1/finance/maintenance/:id/close
+// Releases vehicle from IN_SHOP → AVAILABLE when maintenance is complete
+financeRouter.patch(
+    '/maintenance/:id/close',
+    authorize([UserRole.SAFETY_OFFICER]),
+    financeController.closeMaintenanceLog.bind(financeController),
 );
