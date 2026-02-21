@@ -9,29 +9,30 @@ import {
   Search,
 } from "lucide-react";
 import { useAuth } from "../../hooks/useAuth";
-import type { UserRole } from "../../context/AuthContext";
 
-const ROLE_LABELS: Record<UserRole, string> = {
-  ADMIN: "Admin",
+const ROLE_LABELS: Record<string, string> = {
+  SUPER_ADMIN: "Super Admin",
+  MANAGER: "Manager",
   DISPATCHER: "Dispatcher",
   SAFETY_OFFICER: "Safety Officer",
-  FINANCE: "Finance",
+  FINANCE_ANALYST: "Finance",
 };
 
-const ALL_ROLES: UserRole[] = ["ADMIN", "DISPATCHER", "SAFETY_OFFICER", "FINANCE"];
+const ALL_ROLES = ["SUPER_ADMIN", "MANAGER", "DISPATCHER", "SAFETY_OFFICER", "FINANCE_ANALYST"] as const;
 
-const PAGE_TITLES: Record<UserRole, string> = {
-  ADMIN: "Shipment Track",
+const PAGE_TITLES: Record<string, string> = {
+  SUPER_ADMIN: "Shipment Track",
+  MANAGER: "Shipment Track",
   DISPATCHER: "Trip Dispatch",
   SAFETY_OFFICER: "Safety Center",
-  FINANCE: "Financial Reports",
+  FINANCE_ANALYST: "Financial Reports",
 };
 
 export default function TopBar() {
   const { user, switchRole } = useAuth();
   const [roleMenuOpen, setRoleMenuOpen] = useState(false);
 
-  const role = user?.role ?? "ADMIN";
+  const role = user?.role ?? "SUPER_ADMIN";
 
   return (
     <header className="h-16 bg-white border-b border-slate-100 px-6 flex items-center gap-4 shrink-0">
