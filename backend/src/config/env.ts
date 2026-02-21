@@ -15,6 +15,13 @@ const EnvSchema = z.object({
     BCRYPT_SALT_ROUNDS: z.coerce.number().default(12),
     RATE_LIMIT_WINDOW_MS: z.coerce.number().default(900_000),
     RATE_LIMIT_MAX_REQUESTS: z.coerce.number().default(100),
+    // ── SMTP (optional — falls back to Ethereal test account in dev) ──
+    SMTP_HOST: z.string().optional(),
+    SMTP_PORT: z.coerce.number().default(587),
+    SMTP_USER: z.string().optional(),
+    SMTP_PASS: z.string().optional(),
+    SMTP_FROM: z.string().default('FleetFlow Alerts <alerts@fleetflow.io>'),
+    SMTP_ALERT_TO: z.string().default('manager@fleetflow.io'),
 });
 
 const _parsed = EnvSchema.safeParse(process.env);

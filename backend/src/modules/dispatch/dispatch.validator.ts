@@ -52,3 +52,26 @@ export type CreateTripInput = z.infer<typeof CreateTripSchema>;
 export type UpdateTripInput = z.infer<typeof UpdateTripSchema>;
 export type TripStatusUpdateInput = z.infer<typeof TripStatusUpdateSchema>;
 export type TripQueryInput = z.infer<typeof TripQuerySchema>;
+
+// ── Waypoint Schemas ─────────────────────────────────────────────
+
+export const CreateWaypointSchema = z.object({
+    sequence: z.number().int().positive('Sequence must be a positive integer'),
+    location: z.string().min(2).max(200),
+    latitude: z.number().min(-90).max(90).optional(),
+    longitude: z.number().min(-180).max(180).optional(),
+    notes: z.string().optional(),
+    scheduledAt: z.string().datetime().optional(),
+});
+
+export const WaypointArrivalSchema = z.object({
+    arrivedAt: z.string().datetime().optional(), // defaults to now()
+});
+
+export const WaypointDepartureSchema = z.object({
+    departedAt: z.string().datetime().optional(), // defaults to now()
+});
+
+export type CreateWaypointInput = z.infer<typeof CreateWaypointSchema>;
+export type WaypointArrivalInput = z.infer<typeof WaypointArrivalSchema>;
+export type WaypointDepartureInput = z.infer<typeof WaypointDepartureSchema>;

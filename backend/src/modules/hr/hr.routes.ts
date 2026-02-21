@@ -55,3 +55,11 @@ hrRouter.delete(
     authorize([UserRole.MANAGER]),
     hrController.remove.bind(hrController),
 );
+
+// PATCH /api/v1/drivers/:id/link-user  — Manager only
+// Body: { userId: number } to link a user account, or { userId: null } to unlink
+hrRouter.patch(
+    '/:id/link-user',
+    authorize([UserRole.MANAGER]),
+    hrController.linkUser.bind(hrController),
+);

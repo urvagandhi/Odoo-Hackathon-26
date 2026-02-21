@@ -5,6 +5,9 @@ import {
     UpdateTripSchema,
     TripStatusUpdateSchema,
     TripQuerySchema,
+    CreateWaypointSchema,
+    WaypointArrivalSchema,
+    WaypointDepartureSchema,
 } from './dispatch.validator';
 
 export class DispatchController {
@@ -51,6 +54,39 @@ export class DispatchController {
         try {
             const ledger = await dispatchService.getTripLedger(BigInt(req.params.id));
             res.json({ success: true, data: ledger });
+        } catch (err) { next(err); }
+    }
+
+    // ── Waypoints ─────────────────────────────────────────────────
+
+    async listWaypoints(req: Request, res: Response, next: NextFunction): Promise<void> {
+        try {
+            const waypoints = await dispatchService.listWaypoints(BigInt(req.params.id));
+            res.json({ success: true, data: waypoints });
+        } catch (err) { next(err); }
+    }
+
+    async addWaypoint(req: Request, res: Response, next: NextFunction): Promise<void> {
+        try {
+            const input = CreateWaypointSchema.parse(req.body);
+            const waypoint = await dispatchService.addWaypoint(BigInt(req.params.id), input, BigInt(req.user!.sub));
+            res.status(201).json({ success: true, data: waypoint });
+        } catch (err) { next(err); }
+    }
+
+    async markArrived(req: Request, res: Response, next: NextFunction): Promise<void> {
+        try {
+            const input = WaypointArrivalSchema.parse(req.body);
+            const waypoint = await dispatchService.markWaypointArrived(BigInt(req.params.id), parseInt(req.params.seq, 10), input, BigInt(req.user!.sub));
+            res.json({ success: true, data: waypoint });
+        } catch (err) { next(err); }
+    }
+
+    async markDeparted(req: Request, res: Response, next: NextFunction): Promise<void> {
+        try {
+            const input = WaypointDepartureSchema.parse(req.body);
+            const waypoint = await dispatchService.markWaypointDeparted(BigInt(req.params.id), parseInt(req.params.seq, 10), input, BigInt(req.user!.sub));
+            res.json({ success: true, data: waypoint });
         } catch (err) { next(err); }
     }
 }

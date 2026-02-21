@@ -83,6 +83,36 @@ enum ExpenseCategory {
   MISC
 }
 
+/// Incident type classification for safety reporting.
+enum IncidentType {
+  ACCIDENT
+  BREAKDOWN
+  TRAFFIC_VIOLATION
+  THEFT
+  CARGO_DAMAGE
+  NEAR_MISS
+  OTHER
+}
+
+/// Incident lifecycle state machine.
+/// OPEN → INVESTIGATING → RESOLVED → CLOSED
+enum IncidentStatus {
+  OPEN
+  INVESTIGATING
+  RESOLVED
+  CLOSED
+}
+
+/// Vehicle document type for compliance tracking.
+enum VehicleDocumentType {
+  INSURANCE
+  REGISTRATION
+  INSPECTION
+  PERMIT
+  WARRANTY
+  OTHER
+}
+
 /// Immutable audit trail action types.
 enum AuditAction {
   CREATE
@@ -112,7 +142,8 @@ model User {
   updatedAt          DateTime  @updatedAt @db.Timestamptz() @map("updated_at")
 
   // Relations
-  auditLogs    AuditLog[]
+  auditLogs     AuditLog[]
+  driverProfile Driver?    @relation("DriverUserAccount")
 
   @@index([email])
   @@index([role])
@@ -181,6 +212,8 @@ model Vehicle {
   maintenanceLogs  MaintenanceLog[]  @relation("VehicleMaintenanceLogs")
   expenses         Expense[]         @relation("VehicleExpenses")
   locations        VehicleLocation[] @relation("VehicleLocations")
+  documents        VehicleDocument[] @relation("VehicleDocuments")
+  incidents        IncidentReport[]  @relation("VehicleIncidents")
 
   // Indexes for hot query paths
   @@index([status])                     // Filter AVAILABLE vehicles for dispatch
@@ -214,6 +247,10 @@ model Driver {
   // Safety scoring — starts at 100, decremented by Safety Officer
   safetyScore       Decimal       @default(100) @db.Decimal(5, 2) @map("safety_score")
 
+  // Optional link to a system User account (for driver self-service login)
+  userId            BigInt?       @unique @db.BigInt @map("user_id")
+  userAccount       User?         @relation("DriverUserAccount", fields: [userId], references: [id], onDelete: SetNull)
+
   // Soft delete — preserves historical trip assignments
   isDeleted         Boolean       @default(false) @map("is_deleted")
   deletedAt         DateTime?     @db.Timestamptz() @map("deleted_at")
@@ -223,6 +260,7 @@ model Driver {
 
   // Relations
   trips             Trip[]        @relation("DriverTrips")
+  incidents         IncidentReport[] @relation("DriverIncidents")
 
   // Indexes for dispatch query paths
   @@index([status])                       // Rapid ON_DUTY driver pool query
@@ -282,8 +320,10 @@ model Trip {
   updatedAt         DateTime   @updatedAt @db.Timestamptz() @map("updated_at")
 
   // Child financial records (Cascade — trip owns their logs)
-  fuelLogs          FuelLog[]  @relation("TripFuelLogs")
-  expenses          Expense[]  @relation("TripExpenses")
+  fuelLogs          FuelLog[]       @relation("TripFuelLogs")
+  expenses          Expense[]       @relation("TripExpenses")
+  waypoints         TripWaypoint[]  @relation("TripWaypoints")
+  incidents         IncidentReport[] @relation("TripIncidents")
 
   // Composite indexes for dashboard and dispatch queries
   @@index([vehicleId, status])       // "What is this vehicle doing?"
@@ -469,4 +509,124 @@ model AuditLog {
   @@index([entity])
   @@index([timestamp])          // Time-range audit lookups
   @@map("audit_logs")
+}
+
+// ─────────────────────────────────────────────────────────────────
+//  MODEL: IncidentReport
+//  Safety event log — accidents, breakdowns, violations, theft.
+//  State machine: OPEN → INVESTIGATING → RESOLVED → CLOSED.
+//  Linked to vehicle, driver, and optionally an active trip.
+//  reportedByUserId denormalized for fast query without join.
+// ─────────────────────────────────────────────────────────────────
+
+model IncidentReport {
+  id               BigInt         @id @default(autoincrement()) @db.BigInt
+
+  // Involved assets (SetNull — preserve incident record if asset deleted)
+  vehicleId        BigInt?        @db.BigInt @map("vehicle_id")
+  vehicle          Vehicle?       @relation("VehicleIncidents", fields: [vehicleId], references: [id], onDelete: SetNull)
+
+  driverId         BigInt?        @db.BigInt @map("driver_id")
+  driver           Driver?        @relation("DriverIncidents", fields: [driverId], references: [id], onDelete: SetNull)
+
+  tripId           BigInt?        @db.BigInt @map("trip_id")
+  trip             Trip?          @relation("TripIncidents", fields: [tripId], references: [id], onDelete: SetNull)
+
+  // Incident classification
+  incidentType     IncidentType   @map("incident_type")
+  title            String
+  description      String         @db.Text
+  incidentDate     DateTime       @db.Timestamptz() @map("incident_date")
+  location         String?        // Textual location where incident occurred
+
+  // Impact assessment
+  injuriesReported Boolean        @default(false) @map("injuries_reported")
+  damageEstimate   Decimal?       @db.Decimal(15, 2) @map("damage_estimate")
+
+  // Resolution tracking
+  status           IncidentStatus @default(OPEN)
+  resolution       String?        @db.Text
+  resolvedAt       DateTime?      @db.Timestamptz() @map("resolved_at")
+
+  // Who filed the report
+  reportedByUserId BigInt?        @db.BigInt @map("reported_by_user_id")
+
+  createdAt        DateTime       @default(now()) @db.Timestamptz() @map("created_at")
+  updatedAt        DateTime       @updatedAt @db.Timestamptz() @map("updated_at")
+
+  @@index([vehicleId])
+  @@index([driverId])
+  @@index([tripId])
+  @@index([status])
+  @@index([incidentType])
+  @@index([incidentDate])
+  @@index([reportedByUserId])
+  @@map("incident_reports")
+}
+
+// ─────────────────────────────────────────────────────────────────
+//  MODEL: VehicleDocument
+//  Tracks compliance documents per vehicle: insurance, registration,
+//  inspection certificates, permits. expiresAt drives cron alerts.
+//  Soft-deactivated (isActive=false) when superseded — history preserved.
+// ─────────────────────────────────────────────────────────────────
+
+model VehicleDocument {
+  id             BigInt              @id @default(autoincrement()) @db.BigInt
+
+  vehicleId      BigInt              @db.BigInt @map("vehicle_id")
+  vehicle        Vehicle             @relation("VehicleDocuments", fields: [vehicleId], references: [id], onDelete: Restrict)
+
+  documentType   VehicleDocumentType @map("document_type")
+  documentNumber String?             @map("document_number")
+  issuedBy       String?             @map("issued_by")           // e.g. "RTO Mumbai"
+  issuedAt       DateTime?           @db.Date @map("issued_at")
+  expiresAt      DateTime            @db.Date @map("expires_at") // Required — drives expiry alerts
+
+  notes          String?             @db.Text
+
+  // isActive=false when document is superseded (new version added)
+  isActive       Boolean             @default(true) @map("is_active")
+
+  createdAt      DateTime            @default(now()) @db.Timestamptz() @map("created_at")
+  updatedAt      DateTime            @updatedAt @db.Timestamptz() @map("updated_at")
+
+  @@index([vehicleId])
+  @@index([expiresAt])                    // Cron job scans for upcoming expiry
+  @@index([vehicleId, documentType])      // "What insurance does vehicle X have?"
+  @@index([isActive])
+  @@map("vehicle_documents")
+}
+
+// ─────────────────────────────────────────────────────────────────
+//  MODEL: TripWaypoint
+//  Ordered intermediate stops for multi-leg trips.
+//  sequence is unique per trip — enforced by @@unique([tripId, sequence]).
+//  arrivedAt / departedAt filled by Dispatcher during execution.
+//  Cascade delete — waypoints have no meaning without the trip.
+// ─────────────────────────────────────────────────────────────────
+
+model TripWaypoint {
+  id          BigInt    @id @default(autoincrement()) @db.BigInt
+
+  tripId      BigInt    @db.BigInt @map("trip_id")
+  trip        Trip      @relation("TripWaypoints", fields: [tripId], references: [id], onDelete: Cascade)
+
+  sequence    Int       // Stop order: 1, 2, 3 … (must be unique per trip)
+  location    String    // Name or address of the stop
+  latitude    Decimal?  @db.Decimal(10, 7)
+  longitude   Decimal?  @db.Decimal(11, 7)
+  notes       String?   @db.Text
+
+  // Scheduling and execution timestamps
+  scheduledAt DateTime? @db.Timestamptz() @map("scheduled_at")  // Expected arrival
+  arrivedAt   DateTime? @db.Timestamptz() @map("arrived_at")    // Actual arrival (set in real-time)
+  departedAt  DateTime? @db.Timestamptz() @map("departed_at")   // Actual departure
+
+  createdAt   DateTime  @default(now()) @db.Timestamptz() @map("created_at")
+  updatedAt   DateTime  @updatedAt @db.Timestamptz() @map("updated_at")
+
+  @@unique([tripId, sequence])   // No duplicate stop numbers within a trip
+  @@index([tripId])
+  @@map("trip_waypoints")
 }

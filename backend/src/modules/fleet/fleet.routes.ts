@@ -49,3 +49,39 @@ fleetRouter.delete(
     authorize([UserRole.MANAGER]),
     fleetController.remove.bind(fleetController),
 );
+
+// ── Vehicle Documents ─────────────────────────────────────────────────────────
+
+// GET  /api/v1/fleet/documents/expiring — all docs expiring soon (Manager + Safety Officer)
+fleetRouter.get(
+    '/documents/expiring',
+    authorize([UserRole.MANAGER, UserRole.SAFETY_OFFICER]),
+    fleetController.listExpiringDocuments.bind(fleetController),
+);
+
+// GET    /api/v1/fleet/vehicles/:id/documents  — all roles
+fleetRouter.get('/vehicles/:id/documents', fleetController.listDocuments.bind(fleetController));
+
+// GET    /api/v1/fleet/vehicles/:id/documents/:docId  — all roles
+fleetRouter.get('/vehicles/:id/documents/:docId', fleetController.getDocument.bind(fleetController));
+
+// POST   /api/v1/fleet/vehicles/:id/documents  — Manager + Safety Officer
+fleetRouter.post(
+    '/vehicles/:id/documents',
+    authorize([UserRole.MANAGER, UserRole.SAFETY_OFFICER]),
+    fleetController.addDocument.bind(fleetController),
+);
+
+// PATCH  /api/v1/fleet/vehicles/:id/documents/:docId  — Manager + Safety Officer
+fleetRouter.patch(
+    '/vehicles/:id/documents/:docId',
+    authorize([UserRole.MANAGER, UserRole.SAFETY_OFFICER]),
+    fleetController.updateDocument.bind(fleetController),
+);
+
+// DELETE /api/v1/fleet/vehicles/:id/documents/:docId  — Manager only
+fleetRouter.delete(
+    '/vehicles/:id/documents/:docId',
+    authorize([UserRole.MANAGER]),
+    fleetController.deactivateDocument.bind(fleetController),
+);

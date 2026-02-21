@@ -41,3 +41,29 @@ dispatchRouter.patch(
     authorize([UserRole.MANAGER, UserRole.DISPATCHER]),
     dispatchController.updateStatus.bind(dispatchController),
 );
+
+// ── Waypoints ─────────────────────────────────────────────────────────────────
+
+// GET  /api/v1/trips/:id/waypoints  — all authenticated roles
+dispatchRouter.get('/:id/waypoints', dispatchController.listWaypoints.bind(dispatchController));
+
+// POST /api/v1/trips/:id/waypoints  — Manager + Dispatcher
+dispatchRouter.post(
+    '/:id/waypoints',
+    authorize([UserRole.MANAGER, UserRole.DISPATCHER]),
+    dispatchController.addWaypoint.bind(dispatchController),
+);
+
+// PATCH /api/v1/trips/:id/waypoints/:seq/arrive  — mark arrived at stop
+dispatchRouter.patch(
+    '/:id/waypoints/:seq/arrive',
+    authorize([UserRole.MANAGER, UserRole.DISPATCHER]),
+    dispatchController.markArrived.bind(dispatchController),
+);
+
+// PATCH /api/v1/trips/:id/waypoints/:seq/depart  — mark departed from stop
+dispatchRouter.patch(
+    '/:id/waypoints/:seq/depart',
+    authorize([UserRole.MANAGER, UserRole.DISPATCHER]),
+    dispatchController.markDeparted.bind(dispatchController),
+);

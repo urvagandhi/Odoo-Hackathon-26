@@ -17,6 +17,8 @@ import { hrRouter } from './modules/hr/hr.routes';
 import { financeRouter } from './modules/finance/finance.routes';
 import { locationsRouter } from './modules/locations/locations.routes';
 import { analyticsRouter } from './modules/analytics/analytics.routes';
+import { incidentsRouter } from './modules/incidents/incidents.routes';
+import { meRouter } from './modules/me/me.routes';
 
 export function createApp(): Application {
     const app = express();
@@ -93,6 +95,8 @@ export function createApp(): Application {
     app.use(`${v1}/finance`, financeRouter);
     app.use(`${v1}/locations`, locationsRouter);
     app.use(`${v1}/analytics`, analyticsRouter);
+    app.use(`${v1}/incidents`, incidentsRouter);
+    app.use(`${v1}/me`, meRouter);
 
     // ── 404 catch-all ─────────────────────────────────────────────
     app.use((req: Request, res: Response) => {
