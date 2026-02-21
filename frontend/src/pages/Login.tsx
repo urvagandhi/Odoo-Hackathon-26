@@ -376,6 +376,38 @@ export default function Login() {
           >
             Don't have an account? Contact your administrator.
           </p>
+
+          {/* Demo credentials hint */}
+          <div className={`mt-6 rounded-xl p-4 border text-xs ${
+            isDark ? "bg-neutral-900 border-neutral-800" : "bg-neutral-50 border-neutral-200"
+          }`}>
+            <p className={`font-semibold mb-2 ${isDark ? "text-neutral-400" : "text-neutral-500"}`}>
+              🚀 Demo Credentials
+            </p>
+            <div className="space-y-1">
+              {[
+                { role: "Super Admin",    email: "superadmin@fleetflow.io", pw: "FleetFlow@2025" },
+                { role: "Manager",        email: "manager@fleetflow.io",    pw: "FleetFlow@2025" },
+                { role: "Dispatcher",     email: "dispatcher@fleetflow.io", pw: "FleetFlow@2025" },
+                { role: "Safety Officer", email: "safety@fleetflow.io",     pw: "FleetFlow@2025" },
+                { role: "Finance",        email: "finance@fleetflow.io",    pw: "FleetFlow@2025" },
+              ].map(({ role, email, pw }) => (
+                <button
+                  key={role}
+                  type="button"
+                  onClick={() => setForm({ email, password: pw })}
+                  className={`w-full text-left px-3 py-1.5 rounded-lg transition-colors ${
+                    isDark
+                      ? "hover:bg-neutral-800 text-neutral-400"
+                      : "hover:bg-neutral-100 text-neutral-500"
+                  }`}
+                >
+                  <span className={`font-medium ${isDark ? "text-neutral-300" : "text-neutral-700"}`}>{role}</span>
+                  {" — "}{email}
+                </button>
+              ))}
+            </div>
+          </div>
         </motion.div>
       </div>
     </div>

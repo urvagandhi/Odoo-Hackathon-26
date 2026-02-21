@@ -27,7 +27,6 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { useAuth } from "../../hooks/useAuth";
-import type { UserRole } from "../../context/AuthContext";
 import { useTheme } from "../../context/ThemeContext";
 
 /* ── Types ──────────────────────────────────────────────── */
@@ -44,37 +43,59 @@ interface NavSection {
 }
 
 /* ── Nav sections per role ──────────────────────────────── */
-/** Admin-level navigation (shared by SUPER_ADMIN and MANAGER) */
-const ADMIN_SECTIONS: NavSection[] = [
-  {
-    title: "MAIN MENU",
-    items: [
-      { label: "Overview", icon: LayoutDashboard, path: "/dashboard" },
-      { label: "Shipment", icon: Truck, path: "/fleet/vehicles" },
-      { label: "Orders", icon: Route, path: "/dispatch/trips" },
-      { label: "Message", icon: MessageSquare, path: "/messages", badge: 6 },
-      { label: "Activity", icon: Activity, path: "/activity" },
-    ],
-  },
-  {
-    title: "GENERAL",
-    items: [
-      { label: "Report", icon: FileText, path: "/finance/reports" },
-      { label: "Support", icon: HelpCircle, path: "/support" },
-      { label: "Account", icon: User, path: "/settings" },
-    ],
-  },
-  {
-    title: "OTHERS",
-    items: [
-      { label: "Settings", icon: Settings, path: "/settings/general" },
-    ],
-  },
-];
-
-const NAV_SECTIONS: Record<UserRole, NavSection[]> = {
-  SUPER_ADMIN: ADMIN_SECTIONS,
-  MANAGER: ADMIN_SECTIONS,
+const NAV_SECTIONS: Record<string, NavSection[]> = {
+  SUPER_ADMIN: [
+    {
+      title: "MAIN MENU",
+      items: [
+        { label: "Overview", icon: LayoutDashboard, path: "/dashboard" },
+        { label: "Shipment", icon: Truck, path: "/fleet/vehicles" },
+        { label: "Orders", icon: Route, path: "/dispatch/trips" },
+        { label: "Message", icon: MessageSquare, path: "/messages", badge: 6 },
+        { label: "Activity", icon: Activity, path: "/activity" },
+      ],
+    },
+    {
+      title: "GENERAL",
+      items: [
+        { label: "Report", icon: FileText, path: "/finance/reports" },
+        { label: "Support", icon: HelpCircle, path: "/support" },
+        { label: "Account", icon: User, path: "/settings" },
+      ],
+    },
+    {
+      title: "OTHERS",
+      items: [
+        { label: "Settings", icon: Settings, path: "/settings/general" },
+      ],
+    },
+  ],
+  MANAGER: [
+    {
+      title: "MAIN MENU",
+      items: [
+        { label: "Overview", icon: LayoutDashboard, path: "/dashboard" },
+        { label: "Shipment", icon: Truck, path: "/fleet/vehicles" },
+        { label: "Orders", icon: Route, path: "/dispatch/trips" },
+        { label: "Message", icon: MessageSquare, path: "/messages", badge: 6 },
+        { label: "Activity", icon: Activity, path: "/activity" },
+      ],
+    },
+    {
+      title: "GENERAL",
+      items: [
+        { label: "Report", icon: FileText, path: "/finance/reports" },
+        { label: "Support", icon: HelpCircle, path: "/support" },
+        { label: "Account", icon: User, path: "/settings" },
+      ],
+    },
+    {
+      title: "OTHERS",
+      items: [
+        { label: "Settings", icon: Settings, path: "/settings/general" },
+      ],
+    },
+  ],
   DISPATCHER: [
     {
       title: "MAIN MENU",
@@ -168,7 +189,7 @@ export default function Sidebar() {
   const { isDark } = useTheme();
 
   const role = user?.role ?? "SUPER_ADMIN";
-  const sections = NAV_SECTIONS[role];
+  const sections = NAV_SECTIONS[role] ?? NAV_SECTIONS["SUPER_ADMIN"];
 
   const isActive = (path: string) => location.pathname === path;
 

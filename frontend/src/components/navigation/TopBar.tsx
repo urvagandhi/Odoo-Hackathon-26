@@ -10,10 +10,9 @@ import {
   Search,
 } from "lucide-react";
 import { useAuth } from "../../hooks/useAuth";
-import type { UserRole } from "../../context/AuthContext";
 import { useTheme } from "../../context/ThemeContext";
 
-const ROLE_LABELS: Record<UserRole, string> = {
+const ROLE_LABELS: Record<string, string> = {
   SUPER_ADMIN: "Super Admin",
   MANAGER: "Manager",
   DISPATCHER: "Dispatcher",
@@ -21,9 +20,9 @@ const ROLE_LABELS: Record<UserRole, string> = {
   FINANCE_ANALYST: "Finance",
 };
 
-const ALL_ROLES: UserRole[] = ["SUPER_ADMIN", "MANAGER", "DISPATCHER", "SAFETY_OFFICER", "FINANCE_ANALYST"];
+const ALL_ROLES = ["SUPER_ADMIN", "MANAGER", "DISPATCHER", "SAFETY_OFFICER", "FINANCE_ANALYST"] as const;
 
-const PAGE_TITLES: Record<UserRole, string> = {
+const PAGE_TITLES: Record<string, string> = {
   SUPER_ADMIN: "Shipment Track",
   MANAGER: "Shipment Track",
   DISPATCHER: "Trip Dispatch",
