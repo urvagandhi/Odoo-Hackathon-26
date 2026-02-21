@@ -1,0 +1,75 @@
+import { Request, Response, NextFunction } from 'express';
+import { hrService } from './hr.service';
+import {
+    CreateDriverSchema,
+    UpdateDriverSchema,
+    DriverStatusUpdateSchema,
+    AdjustSafetyScoreSchema,
+    DriverQuerySchema,
+} from './hr.validator';
+
+export class HrController {
+    async list(req: Request, res: Response, next: NextFunction): Promise<void> {
+        try {
+            const query = DriverQuerySchema.parse(req.query);
+            const result = await hrService.listDrivers(query);
+            res.json({ success: true, data: result });
+        } catch (err) { next(err); }
+    }
+
+    async getById(req: Request, res: Response, next: NextFunction): Promise<void> {
+        try {
+            const driver = await hrService.getDriverById(BigInt(req.params.id));
+            res.json({ success: true, data: driver });
+        } catch (err) { next(err); }
+    }
+
+    async create(req: Request, res: Response, next: NextFunction): Promise<void> {
+        try {
+            const input = CreateDriverSchema.parse(req.body);
+            const driver = await hrService.createDriver(input, BigInt(req.user!.sub));
+            res.status(201).json({ success: true, data: driver });
+        } catch (err) { next(err); }
+    }
+
+    async update(req: Request, res: Response, next: NextFunction): Promise<void> {
+        try {
+            const input = UpdateDriverSchema.parse(req.body);
+            const driver = await hrService.updateDriver(BigInt(req.params.id), input, BigInt(req.user!.sub));
+            res.json({ success: true, data: driver });
+        } catch (err) { next(err); }
+    }
+
+    async updateStatus(req: Request, res: Response, next: NextFunction): Promise<void> {
+        try {
+            const input = DriverStatusUpdateSchema.parse(req.body);
+            const driver = await hrService.updateDriverStatus(BigInt(req.params.id), input, BigInt(req.user!.sub));
+            res.json({ success: true, data: driver });
+        } catch (err) { next(err); }
+    }
+
+    async adjustSafetyScore(req: Request, res: Response, next: NextFunction): Promise<void> {
+        try {
+            const input = AdjustSafetyScoreSchema.parse(req.body);
+            const driver = await hrService.adjustSafetyScore(BigInt(req.params.id), input, BigInt(req.user!.sub));
+            res.json({ success: true, data: driver });
+        } catch (err) { next(err); }
+    }
+
+    async remove(req: Request, res: Response, next: NextFunction): Promise<void> {
+        try {
+            await hrService.softDeleteDriver(BigInt(req.params.id), BigInt(req.user!.sub));
+            res.json({ success: true, message: 'Driver soft-deleted.' });
+        } catch (err) { next(err); }
+    }
+
+    async getExpiringLicenses(req: Request, res: Response, next: NextFunction): Promise<void> {
+        try {
+            const daysAhead = parseInt(String(req.query.days ?? '30'), 10);
+            const drivers = await hrService.getExpiringLicenses(daysAhead);
+            res.json({ success: true, data: drivers });
+        } catch (err) { next(err); }
+    }
+}
+
+export const hrController = new HrController();

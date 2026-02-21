@@ -1,0 +1,452 @@
+// ─────────────────────────────────────────────────────────────────
+//  FleetFlow — Production-Ready Prisma Schema
+//  PostgreSQL | Prisma ORM | Modular Fleet & Logistics System
+//  Author: FleetFlow Engineering Team
+//  Design: 3NF normalized, enum-driven state machines, indexed for
+//          dashboard-level analytic queries and dispatch operations
+// ─────────────────────────────────────────────────────────────────
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─────────────────────────────────────────────────────────────────
+//  ENUMS — All lifecycle states and categorical types live here.
+//  Never use raw strings for controlled vocabularies.
+// ─────────────────────────────────────────────────────────────────
+
+/// Roles aligned to operational domains in FleetFlow.
+enum UserRole {
+  SUPER_ADMIN      // Full system access — god mode
+  MANAGER          // Fleet oversight, read analytics, approve actions
+  DISPATCHER       // Create / manage trips and assignments
+  SAFETY_OFFICER   // Driver credentials, vehicle inspections, incident logs
+  FINANCE_ANALYST  // Revenue, expenses, fuel logs, reporting
+}
+
+/// Physical vehicle category — governs capacity rules and compliance.
+enum VehicleType {
+  TRUCK
+  VAN
+  BIKE
+  PLANE
+}
+
+/// Vehicle operational state machine.
+/// AVAILABLE → ON_TRIP → AVAILABLE
+/// AVAILABLE → IN_SHOP → AVAILABLE
+/// * → RETIRED (terminal, irreversible)
+enum VehicleStatus {
+  AVAILABLE
+  ON_TRIP
+  IN_SHOP
+  RETIRED
+}
+
+/// Driver duty and availability state machine.
+/// OFF_DUTY → ON_DUTY → ON_TRIP → ON_DUTY
+/// ON_DUTY | OFF_DUTY → SUSPENDED (blocks all dispatch)
+enum DriverStatus {
+  ON_DUTY
+  OFF_DUTY
+  ON_TRIP
+  SUSPENDED
+}
+
+/// Trip lifecycle — strict directional transitions enforced in service layer.
+/// DRAFT → DISPATCHED → COMPLETED
+/// DRAFT | DISPATCHED → CANCELLED (terminal)
+enum TripStatus {
+  DRAFT
+  DISPATCHED
+  COMPLETED
+  CANCELLED
+}
+
+/// Expense classification for financial reporting and ledger grouping.
+enum ExpenseCategory {
+  TOLL
+  LODGING
+  MAINTENANCE_EN_ROUTE
+  MISC
+}
+
+/// Immutable audit trail action types.
+enum AuditAction {
+  CREATE
+  UPDATE
+  DELETE
+}
+
+// ─────────────────────────────────────────────────────────────────
+//  MODEL: User
+//  System user — authenticated principal for all API interactions.
+//  Role stored inline (denormalized) for fast single-row auth checks.
+// ─────────────────────────────────────────────────────────────────
+
+model User {
+  id           BigInt    @id @default(autoincrement())
+  email        String    @unique
+  passwordHash String    // bcrypt, minimum 60 chars
+  fullName     String
+  role         UserRole  @default(DISPATCHER)
+  isActive     Boolean   @default(true)
+  createdAt    DateTime  @default(now()) @db.Timestamptz
+  updatedAt    DateTime  @updatedAt @db.Timestamptz
+
+  // Relations
+  auditLogs    AuditLog[]
+
+  @@index([email])
+  @@index([role])
+  @@index([isActive])
+  @@map("users")
+}
+
+// ─────────────────────────────────────────────────────────────────
+//  MODEL: VehicleTypeRecord
+//  Lookup / metadata table for each vehicle type.
+//  Allows adding type-specific notes, compliance requirements etc.
+// ─────────────────────────────────────────────────────────────────
+
+model VehicleTypeRecord {
+  id          BigInt      @id @default(autoincrement())
+  name        VehicleType @unique
+  description String?
+  createdAt   DateTime    @default(now()) @db.Timestamptz
+
+  // Relations
+  vehicles    Vehicle[]
+
+  @@map("vehicle_types")
+}
+
+// ─────────────────────────────────────────────────────────────────
+//  MODEL: Vehicle
+//  Core fleet asset. Never hard-deleted — uses isDeleted soft flag.
+//  Odometer only ever increases (enforced in service layer + trigger).
+// ─────────────────────────────────────────────────────────────────
+
+model Vehicle {
+  id               BigInt        @id @default(autoincrement())
+  licensePlate     String        @unique
+  make             String        // e.g. "Peterbilt"
+  model            String        // e.g. "579"
+  year             Int
+  color            String?
+  vin              String?       @unique // Vehicle Identification Number
+
+  // Type (FK to VehicleTypeRecord lookup)
+  vehicleTypeId    BigInt
+  vehicleType      VehicleTypeRecord @relation(fields: [vehicleTypeId], references: [id], onDelete: Restrict)
+
+  // Operational state
+  status           VehicleStatus @default(AVAILABLE)
+  currentOdometer  Decimal       @default(0) @db.Decimal(15, 2)
+
+  // Capacity specs
+  capacityWeight   Decimal?      @db.Decimal(10, 2) // kg or tons — set per deployment
+  capacityVolume   Decimal?      @db.Decimal(10, 2) // m³ or cubic ft
+
+  // Soft delete — preserves referential integrity for historical trips
+  isDeleted        Boolean       @default(false)
+  deletedAt        DateTime?     @db.Timestamptz
+
+  createdAt        DateTime      @default(now()) @db.Timestamptz
+  updatedAt        DateTime      @updatedAt @db.Timestamptz
+
+  // Relations (Restrict prevents orphaning historical data)
+  trips            Trip[]            @relation("VehicleTrips")
+  fuelLogs         FuelLog[]         @relation("VehicleFuelLogs")
+  maintenanceLogs  MaintenanceLog[]  @relation("VehicleMaintenanceLogs")
+  expenses         Expense[]         @relation("VehicleExpenses")
+  locations        VehicleLocation[] @relation("VehicleLocations")
+
+  // Indexes for hot query paths
+  @@index([status])                     // Filter AVAILABLE vehicles for dispatch
+  @@index([isDeleted])                  // Exclude soft-deleted from list queries
+  @@index([vehicleTypeId])
+  @@index([status, isDeleted])          // Composite: Active + available dispatch pool
+  @@map("vehicles")
+}
+
+// ─────────────────────────────────────────────────────────────────
+//  MODEL: Driver
+//  Operational personnel. License expiry critical for compliance.
+//  Safety score starts at 100 and decrements per infraction model.
+// ─────────────────────────────────────────────────────────────────
+
+model Driver {
+  id                BigInt        @id @default(autoincrement())
+  licenseNumber     String        @unique
+  fullName          String
+  phone             String?
+  email             String?       @unique
+  dateOfBirth       DateTime?     @db.Date
+
+  // License & compliance
+  licenseExpiryDate DateTime      @db.Date
+  licenseClass      String?       // e.g. "CDL-A", "B2"
+
+  // Operational state
+  status            DriverStatus  @default(OFF_DUTY)
+
+  // Safety scoring — starts at 100, decremented by Safety Officer
+  safetyScore       Decimal       @default(100) @db.Decimal(5, 2)
+
+  // Soft delete — preserves historical trip assignments
+  isDeleted         Boolean       @default(false)
+  deletedAt         DateTime?     @db.Timestamptz
+
+  createdAt         DateTime      @default(now()) @db.Timestamptz
+  updatedAt         DateTime      @updatedAt @db.Timestamptz
+
+  // Relations
+  trips             Trip[]        @relation("DriverTrips")
+
+  // Indexes for dispatch query paths
+  @@index([status])                       // Rapid ON_DUTY driver pool query
+  @@index([isDeleted])
+  @@index([licenseExpiryDate])            // Cron job scans for expiring licenses
+  @@index([status, isDeleted])            // Active driver dispatch pool
+  @@map("drivers")
+}
+
+// ─────────────────────────────────────────────────────────────────
+//  MODEL: Trip
+//  Core dispatch entity. State machine strictly enforced in service.
+//  Financial summary (revenue) stored inline for fast ledger queries.
+//  Odometer range (start/end) enables per-trip distance calculations.
+// ─────────────────────────────────────────────────────────────────
+
+model Trip {
+  id                BigInt     @id @default(autoincrement())
+
+  // Asset assignments (Restrict — can't delete vehicle/driver with trips)
+  vehicleId         BigInt
+  vehicle           Vehicle    @relation("VehicleTrips", fields: [vehicleId], references: [id], onDelete: Restrict)
+
+  driverId          BigInt
+  driver            Driver     @relation("DriverTrips", fields: [driverId], references: [id], onDelete: Restrict)
+
+  // Route information
+  origin            String
+  destination       String
+  distanceEstimated Decimal    @db.Decimal(10, 2)    // km
+  distanceActual    Decimal?   @db.Decimal(10, 2)    // km — filled on COMPLETED
+
+  // Cargo
+  cargoWeight       Decimal?   @db.Decimal(10, 2)    // kg — validated against vehicle capacity
+  cargoDescription  String?
+
+  // Odometer snapshot at dispatch and completion
+  odometerStart     Decimal?   @db.Decimal(15, 2)
+  odometerEnd       Decimal?   @db.Decimal(15, 2)
+
+  // Financial
+  revenue           Decimal?   @db.Decimal(15, 2)    // Gross revenue for this trip
+  clientName        String?
+  invoiceReference  String?    @unique               // Unique per invoice
+
+  // State machine
+  status            TripStatus @default(DRAFT)
+
+  // Timestamps for state transitions
+  dispatchTime      DateTime?  @db.Timestamptz      // Set when → DISPATCHED
+  completionTime    DateTime?  @db.Timestamptz      // Set when → COMPLETED
+
+  // Optional cancellation tracking
+  cancelledReason   String?
+
+  createdAt         DateTime   @default(now()) @db.Timestamptz
+  updatedAt         DateTime   @updatedAt @db.Timestamptz
+
+  // Child financial records (Cascade — trip owns their logs)
+  fuelLogs          FuelLog[]  @relation("TripFuelLogs")
+  expenses          Expense[]  @relation("TripExpenses")
+
+  // Composite indexes for dashboard and dispatch queries
+  @@index([vehicleId, status])       // "What is this vehicle doing?"
+  @@index([driverId, status])        // "What is this driver doing?"
+  @@index([status])                  // Active trips board
+  @@index([createdAt])               // Time-range reports
+  @@index([dispatchTime])            // Utilization window aggregations
+  @@map("trips")
+}
+
+// ─────────────────────────────────────────────────────────────────
+//  MODEL: FuelLog
+//  Tracks every fuel fill event per vehicle, optionally per trip.
+//  totalCost = liters * costPerLiter (enforced in service layer).
+//  odometerAtFill must be >= vehicle.currentOdometer (anti-fraud).
+// ─────────────────────────────────────────────────────────────────
+
+model FuelLog {
+  id             BigInt   @id @default(autoincrement())
+
+  // Always linked to a vehicle
+  vehicleId      BigInt
+  vehicle        Vehicle  @relation("VehicleFuelLogs", fields: [vehicleId], references: [id], onDelete: Restrict)
+
+  // Optionally linked to the active trip at time of fill
+  tripId         BigInt?
+  trip           Trip?    @relation("TripFuelLogs", fields: [tripId], references: [id], onDelete: SetNull)
+
+  // Fill details
+  liters         Decimal  @db.Decimal(10, 2)     // > 0
+  costPerLiter   Decimal  @db.Decimal(10, 4)     // > 0, 4 decimal places for precision
+  totalCost      Decimal  @db.Decimal(15, 2)     // = liters * costPerLiter
+
+  // Odometer at time of fill — monotonically increasing, fraud detection
+  odometerAtFill Decimal  @db.Decimal(15, 2)
+
+  fuelStation    String?  // Station name / location for expense tracking
+  loggedAt       DateTime @default(now()) @db.Timestamptz
+  createdAt      DateTime @default(now()) @db.Timestamptz
+
+  @@index([vehicleId])
+  @@index([tripId])
+  @@index([loggedAt])   // Time-range fuel cost aggregation
+  @@map("fuel_logs")
+}
+
+// ─────────────────────────────────────────────────────────────────
+//  MODEL: MaintenanceLog
+//  All service events for a vehicle. Closing a maintenance log
+//  triggers IN_SHOP → AVAILABLE transition in service layer.
+// ─────────────────────────────────────────────────────────────────
+
+model MaintenanceLog {
+  id                BigInt   @id @default(autoincrement())
+
+  vehicleId         BigInt
+  vehicle           Vehicle  @relation("VehicleMaintenanceLogs", fields: [vehicleId], references: [id], onDelete: Restrict)
+
+  serviceType       String   // e.g. "OIL_CHANGE", "BRAKE_INSPECTION", "TIRE_ROTATION"
+  description       String?  @db.Text
+  cost              Decimal  @db.Decimal(15, 2)   // >= 0
+  odometerAtService Decimal  @db.Decimal(15, 2)   // >= vehicle.currentOdometer
+
+  // Technician / shop details
+  technicianName    String?
+  shopName          String?
+
+  // Temporal
+  serviceDate       DateTime @db.Timestamptz
+  nextServiceDue    DateTime? @db.Timestamptz    // Optional — schedule next service
+  createdAt         DateTime @default(now()) @db.Timestamptz
+
+  @@index([vehicleId])
+  @@index([serviceDate])
+  @@map("maintenance_logs")
+}
+
+// ─────────────────────────────────────────────────────────────────
+//  MODEL: Expense
+//  Operational expenses — linked to vehicle and optionally a trip.
+//  Amount >= 0 enforced in service layer.
+// ─────────────────────────────────────────────────────────────────
+
+model Expense {
+  id          BigInt          @id @default(autoincrement())
+
+  // Always linked to a vehicle
+  vehicleId   BigInt
+  vehicle     Vehicle         @relation("VehicleExpenses", fields: [vehicleId], references: [id], onDelete: Restrict)
+
+  // Optionally linked to a specific trip
+  tripId      BigInt?
+  trip        Trip?           @relation("TripExpenses", fields: [tripId], references: [id], onDelete: SetNull)
+
+  amount      Decimal         @db.Decimal(15, 2)
+  category    ExpenseCategory
+  description String?
+
+  // Who logged this (denormalized for audit speed — no join needed)
+  loggedByUserId BigInt?
+
+  dateLogged  DateTime        @default(now()) @db.Timestamptz
+  createdAt   DateTime        @default(now()) @db.Timestamptz
+
+  @@index([vehicleId])
+  @@index([tripId])
+  @@index([category])
+  @@index([dateLogged])
+  @@map("expenses")
+}
+
+// ─────────────────────────────────────────────────────────────────
+//  MODEL: VehicleLocation
+//  Real-time GPS telemetry. Written every N seconds via IoT/mobile.
+//  recordedAt indexed DESC — "latest location" query is O(log n).
+//  Partition by vehicleId in production for massive datasets.
+// ─────────────────────────────────────────────────────────────────
+
+model VehicleLocation {
+  id          BigInt   @id @default(autoincrement())
+
+  vehicleId   BigInt
+  vehicle     Vehicle  @relation("VehicleLocations", fields: [vehicleId], references: [id], onDelete: Cascade)
+
+  latitude    Decimal  @db.Decimal(10, 7)   // -90 to +90, 7dp ≈ 1cm precision
+  longitude   Decimal  @db.Decimal(11, 7)   // -180 to +180
+  speed       Decimal? @db.Decimal(6, 2)    // km/h — optional
+
+  // Optional heading and accuracy from GPS sensor
+  heading     Decimal? @db.Decimal(5, 2)    // 0-360 degrees
+  accuracy    Decimal? @db.Decimal(6, 2)    // meters
+
+  recordedAt  DateTime @default(now()) @db.Timestamptz
+
+  // Primary access pattern: latest ping per vehicle
+  @@index([vehicleId, recordedAt(sort: Desc)])
+  @@index([recordedAt])
+  @@map("vehicle_locations")
+}
+
+// ─────────────────────────────────────────────────────────────────
+//  MODEL: AuditLog
+//  Immutable append-only audit trail. Never updated or deleted.
+//  oldValues / newValues store full JSON diffs for forensic replay.
+//  Every state-mutating service operation inserts a row here.
+// ─────────────────────────────────────────────────────────────────
+
+model AuditLog {
+  id         BigInt      @id @default(autoincrement())
+
+  // Actor — SetNull if user is deactivated (preserves log integrity)
+  userId     BigInt?
+  user       User?       @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  // Target entity information
+  entity     String      // e.g. "Trip", "Vehicle", "Driver"
+  entityId   BigInt      // PK of the affected row
+
+  // Action type
+  action     AuditAction
+
+  // Full JSON diffs — null on CREATE (no old) / DELETE (no new)
+  oldValues  Json?
+  newValues  Json?
+
+  // Optional reason provided by the actor (required for CANCELLED trips etc.)
+  reason     String?     @db.Text
+
+  // IP and user agent for security forensics
+  ipAddress  String?
+  userAgent  String?
+
+  // Immutable timestamp — never has updatedAt
+  timestamp  DateTime    @default(now()) @db.Timestamptz
+
+  @@index([userId])
+  @@index([entity, entityId])   // "Show all changes to Vehicle #42"
+  @@index([entity])
+  @@index([timestamp])          // Time-range audit lookups
+  @@map("audit_logs")
+}
