@@ -2,7 +2,7 @@
  * Layout — FleetFlow sidebar + top nav.
  * Sidebar filters nav items by role. Live sidebar KPIs from analytics API.
  */
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Outlet, useLocation, useNavigate, Link } from "react-router-dom";
 import {
   Truck, LayoutDashboard, Settings, Bell, ChevronDown, LogOut, User,
@@ -41,9 +41,23 @@ export default function Layout() {
   const { user, logout } = useAuth();
   const { isDark, toggleTheme } = useTheme();
   const [kpis, setKpis] = useState<DashboardKPIs | null>(null);
+  const [showNotifs, setShowNotifs] = useState(false);
+  const notifsRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    analyticsApi.getDashboardKPIs().then(setKpis).catch(() => { });
+    const handler = (e: MouseEvent) => {
+      if (notifsRef.current && !notifsRef.current.contains(e.target as Node)) setShowNotifs(false);
+    };
+    if (showNotifs) document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, [showNotifs]);
+
+  useEffect(() => {
+    const fetchKpis = () => analyticsApi.getDashboardKPIs().then(setKpis).catch(() => { });
+    fetchKpis();
+    // Poll every 30s for real-time notification updates
+    const interval = setInterval(fetchKpis, 30_000);
+    return () => clearInterval(interval);
   }, []);
 
   const visibleNav = NAV_ITEMS.filter(item =>
@@ -168,13 +182,84 @@ export default function Layout() {
             </button>
 
             {/* Notifications */}
-            <button className={`relative w-9 h-9 rounded-full flex items-center justify-center transition-colors ${isDark ? "text-neutral-400 hover:bg-neutral-800 hover:text-white" : "text-neutral-500 hover:bg-neutral-100 hover:text-neutral-700"
-              }`}>
-              <Bell className="w-[18px] h-[18px]" />
-              {kpis && (kpis.alerts.maintenanceAlerts + kpis.alerts.expiringLicenses) > 0 && (
-                <span className={`absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full border-2 ${isDark ? "border-neutral-900" : "border-white"}`} />
+            <div className="relative" ref={notifsRef}>
+              <button
+                onClick={() => setShowNotifs(v => !v)}
+                className={`relative w-9 h-9 rounded-full flex items-center justify-center transition-colors ${isDark ? "text-neutral-400 hover:bg-neutral-800 hover:text-white" : "text-neutral-500 hover:bg-neutral-100 hover:text-neutral-700"
+                }`}>
+                <Bell className="w-[18px] h-[18px]" />
+                {kpis && (kpis.alerts.maintenanceAlerts + kpis.alerts.expiringLicenses + kpis.alerts.suspendedDrivers + kpis.fleet.retired) > 0 && (
+                  <span className={`absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full border-2 ${isDark ? "border-neutral-900" : "border-white"}`} />
+                )}
+              </button>
+              {showNotifs && (
+                <div className={`absolute right-0 top-11 z-50 w-80 rounded-2xl border shadow-xl overflow-hidden ${isDark ? "bg-neutral-800 border-neutral-700" : "bg-white border-neutral-200"}`}>
+                  <div className={`px-4 py-3 border-b font-semibold text-sm flex items-center justify-between ${isDark ? "border-neutral-700 text-white" : "border-neutral-100 text-neutral-900"}`}>
+                    <span>Notifications</span>
+                    {kpis && <span className="text-xs px-2 py-0.5 rounded-full bg-red-500/10 text-red-500 font-bold">{kpis.alerts.maintenanceAlerts + kpis.alerts.expiringLicenses + kpis.alerts.suspendedDrivers + kpis.fleet.retired}</span>}
+                  </div>
+                  <div className="max-h-64 overflow-y-auto">
+                    {kpis && kpis.alerts.maintenanceAlerts > 0 && (
+                      <div className={`px-4 py-3 flex items-start gap-3 border-b ${isDark ? "border-neutral-700" : "border-neutral-50"}`}>
+                        <div className="w-8 h-8 rounded-lg bg-amber-500/10 flex items-center justify-center shrink-0">
+                          <Wrench className="w-4 h-4 text-amber-500" />
+                        </div>
+                        <div>
+                          <p className={`text-sm font-medium ${isDark ? "text-white" : "text-neutral-900"}`}>Maintenance Alert</p>
+                          <p className={`text-xs mt-0.5 ${isDark ? "text-neutral-400" : "text-neutral-500"}`}>{kpis.alerts.maintenanceAlerts} vehicle{kpis.alerts.maintenanceAlerts > 1 ? "s" : ""} currently in the shop and require attention</p>
+                          <p className="text-[10px] text-amber-500 font-medium mt-1">High Priority</p>
+                        </div>
+                      </div>
+                    )}
+                    {kpis && kpis.alerts.expiringLicenses > 0 && (
+                      <div className={`px-4 py-3 flex items-start gap-3 border-b ${isDark ? "border-neutral-700" : "border-neutral-50"}`}>
+                        <div className="w-8 h-8 rounded-lg bg-red-500/10 flex items-center justify-center shrink-0">
+                          <Shield className="w-4 h-4 text-red-500" />
+                        </div>
+                        <div>
+                          <p className={`text-sm font-medium ${isDark ? "text-white" : "text-neutral-900"}`}>License Expiry Warning</p>
+                          <p className={`text-xs mt-0.5 ${isDark ? "text-neutral-400" : "text-neutral-500"}`}>{kpis.alerts.expiringLicenses} driver license{kpis.alerts.expiringLicenses > 1 ? "s" : ""} expiring within 30 days</p>
+                          <p className="text-[10px] text-red-500 font-medium mt-1">Urgent</p>
+                        </div>
+                      </div>
+                    )}
+                    {kpis && kpis.alerts.suspendedDrivers > 0 && (
+                      <div className={`px-4 py-3 flex items-start gap-3 border-b ${isDark ? "border-neutral-700" : "border-neutral-50"}`}>
+                        <div className="w-8 h-8 rounded-lg bg-violet-500/10 flex items-center justify-center shrink-0">
+                          <AlertTriangle className="w-4 h-4 text-violet-500" />
+                        </div>
+                        <div>
+                          <p className={`text-sm font-medium ${isDark ? "text-white" : "text-neutral-900"}`}>Suspended Drivers</p>
+                          <p className={`text-xs mt-0.5 ${isDark ? "text-neutral-400" : "text-neutral-500"}`}>{kpis.alerts.suspendedDrivers} driver{kpis.alerts.suspendedDrivers > 1 ? "s" : ""} currently suspended from duty</p>
+                          <p className="text-[10px] text-violet-500 font-medium mt-1">Action Required</p>
+                        </div>
+                      </div>
+                    )}
+                    {kpis && kpis.fleet.retired > 0 && (
+                      <div className={`px-4 py-3 flex items-start gap-3 border-b ${isDark ? "border-neutral-700" : "border-neutral-50"}`}>
+                        <div className="w-8 h-8 rounded-lg bg-neutral-500/10 flex items-center justify-center shrink-0">
+                          <Car className="w-4 h-4 text-neutral-500" />
+                        </div>
+                        <div>
+                          <p className={`text-sm font-medium ${isDark ? "text-white" : "text-neutral-900"}`}>Retired Vehicles</p>
+                          <p className={`text-xs mt-0.5 ${isDark ? "text-neutral-400" : "text-neutral-500"}`}>{kpis.fleet.retired} vehicle{kpis.fleet.retired > 1 ? "s" : ""} have been retired from the fleet</p>
+                          <p className="text-[10px] text-neutral-500 font-medium mt-1">Informational</p>
+                        </div>
+                      </div>
+                    )}
+                    {kpis && kpis.fleet.inShop === 0 && kpis.alerts.expiringLicenses === 0 && kpis.alerts.suspendedDrivers === 0 && kpis.fleet.retired === 0 && (
+                      <div className="px-4 py-8 text-center">
+                        <Bell className={`w-8 h-8 mx-auto mb-2 ${isDark ? "text-neutral-600" : "text-neutral-300"}`} />
+                        <p className={`text-sm ${isDark ? "text-neutral-400" : "text-neutral-500"}`}>All clear — no alerts</p>
+                      </div>
+                    )}
+                  </div>
+                  <div className={`px-4 py-2.5 border-t text-center ${isDark ? "border-neutral-700" : "border-neutral-100"}`}>
+                    <button onClick={() => { setShowNotifs(false); navigate("/dashboard"); }} className="text-xs text-emerald-500 font-semibold hover:text-emerald-600">View Dashboard →</button>
+                  </div>
+                </div>
               )}
-            </button>
+            </div>
 
             {/* User dropdown */}
             <DropdownMenu>

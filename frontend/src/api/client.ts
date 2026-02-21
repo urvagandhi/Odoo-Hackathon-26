@@ -280,10 +280,19 @@ export const fleetApi = {
     return data.data;
   },
   createVehicle: async (payload: {
-    licensePlate: string; make: string; model: string; year: number; color?: string;
-    vin?: string; vehicleTypeId: string; capacityWeight?: number; capacityVolume?: number; currentOdometer?: number;
+    licensePlate: string; make: string; model: string; year: number | string; color?: string;
+    vin?: string; vehicleTypeId: number | string; capacityWeight?: number | string; capacityVolume?: number | string; currentOdometer?: number | string;
   }) => {
-    const { data } = await apiClient.post<{ success: boolean; data: Vehicle }>("/api/v1/vehicles", payload);
+    // Coerce numeric fields — HTML form values are always strings
+    const body = {
+      ...payload,
+      year: Number(payload.year),
+      vehicleTypeId: Number(payload.vehicleTypeId),
+      ...(payload.capacityWeight != null && payload.capacityWeight !== '' ? { capacityWeight: Number(payload.capacityWeight) } : {}),
+      ...(payload.capacityVolume != null && payload.capacityVolume !== '' ? { capacityVolume: Number(payload.capacityVolume) } : {}),
+      ...(payload.currentOdometer != null && payload.currentOdometer !== '' ? { currentOdometer: Number(payload.currentOdometer) } : {}),
+    };
+    const { data } = await apiClient.post<{ success: boolean; data: Vehicle }>("/api/v1/vehicles", body);
     return data.data;
   },
   updateVehicle: async (id: string, payload: Partial<Vehicle>) => {
@@ -332,7 +341,15 @@ export const dispatchApi = {
     distanceEstimated: number; cargoWeight?: number; cargoDescription?: string;
     clientName?: string; invoiceReference?: string; revenue?: number;
   }) => {
-    const { data } = await apiClient.post<{ success: boolean; data: Trip }>("/api/v1/trips", payload);
+    const body = {
+      ...payload,
+      vehicleId: Number(payload.vehicleId),
+      driverId: Number(payload.driverId),
+      distanceEstimated: Number(payload.distanceEstimated),
+      ...(payload.cargoWeight ? { cargoWeight: Number(payload.cargoWeight) } : {}),
+      ...(payload.revenue ? { revenue: Number(payload.revenue) } : {}),
+    };
+    const { data } = await apiClient.post<{ success: boolean; data: Trip }>("/api/v1/trips", body);
     return data.data;
   },
   updateTrip: async (id: string, payload: Partial<Trip>) => {
@@ -415,7 +432,15 @@ export const financeApi = {
     vehicleId: string; tripId?: string; liters: number; costPerLiter: number;
     odometerAtFill: number; fuelStation?: string; loggedAt?: string;
   }) => {
-    const { data } = await apiClient.post<{ success: boolean; data: FuelLog }>("/api/v1/finance/fuel", payload);
+    const body = {
+      ...payload,
+      vehicleId: Number(payload.vehicleId),
+      ...(payload.tripId ? { tripId: Number(payload.tripId) } : {}),
+      liters: Number(payload.liters),
+      costPerLiter: Number(payload.costPerLiter),
+      odometerAtFill: Number(payload.odometerAtFill),
+    };
+    const { data } = await apiClient.post<{ success: boolean; data: FuelLog }>("/api/v1/finance/fuel", body);
     return data.data;
   },
   listExpenses: async (params?: { vehicleId?: string; category?: string; startDate?: string; endDate?: string; page?: number; limit?: number }) => {
@@ -426,7 +451,13 @@ export const financeApi = {
     vehicleId: string; tripId?: string; amount: number;
     category: "TOLL" | "LODGING" | "MAINTENANCE_EN_ROUTE" | "MISC"; description?: string;
   }) => {
-    const { data } = await apiClient.post<{ success: boolean; data: Expense }>("/api/v1/finance/expenses", payload);
+    const body = {
+      ...payload,
+      vehicleId: Number(payload.vehicleId),
+      ...(payload.tripId ? { tripId: Number(payload.tripId) } : {}),
+      amount: Number(payload.amount),
+    };
+    const { data } = await apiClient.post<{ success: boolean; data: Expense }>("/api/v1/finance/expenses", body);
     return data.data;
   },
   listMaintenanceLogs: async (params?: { vehicleId?: string; page?: number; limit?: number }) => {

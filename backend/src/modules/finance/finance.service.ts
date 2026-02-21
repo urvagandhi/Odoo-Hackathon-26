@@ -129,6 +129,8 @@ export class FinanceService {
         });
     }
 
+    // ── Maintenance Logs ───────────────────────────────────────────
+
     async listMaintenanceLogs(vehicleId?: bigint) {
         return prisma.maintenanceLog.findMany({
             where: {
@@ -137,18 +139,6 @@ export class FinanceService {
             include: {
                 vehicle: { select: { id: true, licensePlate: true, make: true, model: true, status: true } },
             },
-            orderBy: { serviceDate: 'desc' },
-        });
-    }
-
-    // ── Maintenance Logs ───────────────────────────────────────────
-
-    async listMaintenanceLogs(vehicleId?: bigint) {
-        return prisma.maintenanceLog.findMany({
-            where: {
-                ...(vehicleId ? { vehicleId } : {}),
-            },
-            include: { vehicle: { select: { id: true, licensePlate: true, make: true, model: true } } },
             orderBy: { serviceDate: 'desc' },
         });
     }

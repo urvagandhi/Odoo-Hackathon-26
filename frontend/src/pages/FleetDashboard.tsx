@@ -3,7 +3,7 @@
  * KPIs: Active Fleet, Maintenance Alerts, Utilization Rate, Pending Cargo
  * Charts: Revenue trend (line), Expense breakdown (donut)
  */
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
 import {
     Truck, Wrench, TrendingUp, Package, Users, AlertTriangle,
@@ -13,7 +13,7 @@ import {
     LineChart, Line, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip,
     ResponsiveContainer, PieChart, Pie, Cell, Legend,
 } from "recharts";
-import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
+import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { analyticsApi, locationsApi, type DashboardKPIs, type MonthlyReport } from "../api/client";
@@ -36,6 +36,49 @@ const truckIcon = new L.Icon({
 
 const COLORS = ["#10b981", "#f59e0b", "#6366f1", "#ef4444"];
 
+// Simulated route: Mumbai → Pune (National Highway 48)
+const MOVING_ROUTE: [number, number][] = [
+    [19.076, 72.8777],  // Mumbai
+    [19.033, 72.8553],
+    [18.973, 72.8194],
+    [18.928, 73.0624],
+    [18.851, 73.2329],
+    [18.753, 73.3808],
+    [18.664, 73.4412],
+    [18.588, 73.5521],
+    [18.559, 73.7798],
+    [18.5204, 73.8567], // Pune
+];
+
+const movingTruckIcon = new L.Icon({
+    iconUrl: "https://cdn-icons-png.flaticon.com/512/2554/2554936.png",
+    iconSize: [36, 36],
+    iconAnchor: [18, 36],
+    popupAnchor: [0, -36],
+});
+
+function useMovingVehicle() {
+    const [posIndex, setPosIndex] = useState(0);
+    const forward = useRef(true);
+
+    useEffect(() => {
+        const timer = setInterval(() => {
+            setPosIndex(prev => {
+                if (forward.current) {
+                    if (prev >= MOVING_ROUTE.length - 1) { forward.current = false; return prev - 1; }
+                    return prev + 1;
+                } else {
+                    if (prev <= 0) { forward.current = true; return prev + 1; }
+                    return prev - 1;
+                }
+            });
+        }, 2000);
+        return () => clearInterval(timer);
+    }, []);
+
+    return MOVING_ROUTE[posIndex] || MOVING_ROUTE[0];
+}
+
 const card = "rounded-2xl border p-5 transition-all duration-200";
 const lightCard = "bg-white border-neutral-200 shadow-sm hover:shadow-md";
 const darkCard = "bg-neutral-800 border-neutral-700 shadow-sm hover:shadow-md";
@@ -47,6 +90,7 @@ export default function FleetDashboard() {
     const [monthly, setMonthly] = useState<MonthlyReport[]>([]);
     const [locations, setLocations] = useState<Array<{ vehicleId: number; latitude: number; longitude: number; speed?: number; plateNumber?: string }>>([]);
     const [loading, setLoading] = useState(true);
+    const movingPos = useMovingVehicle();
 
     const fetch = async () => {
         setLoading(true);
@@ -215,6 +259,17 @@ export default function FleetDashboard() {
                                 </Popup>
                             </Marker>
                         ))}
+                        {/* Simulated moving vehicle: Mumbai → Pune */}
+                        <Polyline positions={MOVING_ROUTE} color="#3b82f6" weight={3} opacity={0.5} dashArray="8 6" />
+                        <Marker position={movingPos} icon={movingTruckIcon}>
+                            <Popup>
+                                <div className="text-sm">
+                                    <p className="font-bold">MH-01-AB-1234</p>
+                                    <p className="text-xs text-blue-600 font-medium">In Transit — Mumbai → Pune</p>
+                                    <p className="text-xs text-neutral-500">~65 km/h</p>
+                                </div>
+                            </Popup>
+                        </Marker>
                     </MapContainer>
                 </div>
             </motion.div>

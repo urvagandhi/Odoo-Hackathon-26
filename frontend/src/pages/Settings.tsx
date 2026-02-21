@@ -19,6 +19,7 @@ import {
 import { SettingsLayout, type SettingsTab } from "../layouts/SettingsLayout";
 import { SectionCard } from "../components/ui/SectionCard";
 import { useAuth } from "../context/AuthContext";
+import { useTheme } from "../context/ThemeContext";
 import { authApi } from "../api/client";
 
 /* ────────────────────────────────────────────────────────
@@ -421,9 +422,25 @@ function NotificationsTab() {
    ──────────────────────────────────────────────────────── */
 
 function AppearanceTab() {
-  const [theme, setTheme] = useState<"light" | "dark" | "system">("system");
+  const { theme: currentTheme, setTheme: applyTheme } = useTheme();
+  // Map context theme ("light"|"dark") back to UI selection including "system"
+  const [selection, setSelection] = useState<"light" | "dark" | "system">(() => {
+    // If OS preference matches current theme, treat as "system"
+    const osPref = window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+    return currentTheme === osPref ? "system" : currentTheme;
+  });
   const [language, setLanguage] = useState("en");
   const [compactMode, setCompactMode] = useState(false);
+
+  const handleThemeChange = (id: "light" | "dark" | "system") => {
+    setSelection(id);
+    if (id === "system") {
+      const osPref = window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+      applyTheme(osPref);
+    } else {
+      applyTheme(id);
+    }
+  };
 
   const themes: {
     id: "light" | "dark" | "system";
@@ -441,11 +458,11 @@ function AppearanceTab() {
       <SectionCard title="Theme" description="Select your preferred theme">
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           {themes.map((t) => {
-            const active = theme === t.id;
+            const active = selection === t.id;
             return (
               <button
                 key={t.id}
-                onClick={() => setTheme(t.id)}
+                onClick={() => handleThemeChange(t.id)}
                 className={`
                   flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all duration-200
                   ${

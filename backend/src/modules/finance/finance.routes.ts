@@ -27,7 +27,7 @@ financeRouter.get(
 );
 financeRouter.post(
     '/maintenance',
-    authorize([UserRole.SAFETY_OFFICER]),
+    authorize([UserRole.MANAGER, UserRole.SAFETY_OFFICER]),
     financeController.createMaintenanceLog.bind(financeController),
 );
 
@@ -35,6 +35,6 @@ financeRouter.post(
 // Releases vehicle from IN_SHOP → AVAILABLE when maintenance is complete
 financeRouter.patch(
     '/maintenance/:id/close',
-    authorize([UserRole.SAFETY_OFFICER]),
+    authorize([UserRole.MANAGER, UserRole.SAFETY_OFFICER]),
     financeController.closeMaintenanceLog.bind(financeController),
 );

@@ -312,7 +312,7 @@ export default function Dispatch() {
                                         </Marker>
                                     )}
                                     {routeCoords.length > 1 && (
-                                        <Polyline positions={routeCoords} color="#10b981" weight={4} opacity={0.8} />
+                                        <Polyline positions={routeCoords} color="#3b82f6" weight={5} opacity={0.85} />
                                     )}
                                     <MapBounds bounds={mapBounds} />
                                 </MapContainer>

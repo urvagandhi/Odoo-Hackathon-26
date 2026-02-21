@@ -4,13 +4,13 @@ export const CreateVehicleSchema = z.object({
     licensePlate: z.string().min(2).max(20),
     make: z.string().min(1).max(50),
     model: z.string().min(1).max(50),
-    year: z.number().int().min(1900).max(new Date().getFullYear() + 1),
+    year: z.coerce.number().int().min(1900).max(new Date().getFullYear() + 1),
     color: z.string().max(30).optional(),
     vin: z.string().max(17).optional(),
-    vehicleTypeId: z.number().int().positive(),
-    currentOdometer: z.number().nonnegative().default(0),
-    capacityWeight: z.number().positive('Capacity must be greater than 0'),
-    capacityVolume: z.number().positive().optional(),
+    vehicleTypeId: z.coerce.number().int().positive(),
+    currentOdometer: z.coerce.number().nonnegative().default(0),
+    capacityWeight: z.coerce.number().positive('Capacity must be greater than 0').optional(),
+    capacityVolume: z.coerce.number().positive().optional(),
 });
 
 // licensePlate is the immutable unique key; currentOdometer is monotonically
