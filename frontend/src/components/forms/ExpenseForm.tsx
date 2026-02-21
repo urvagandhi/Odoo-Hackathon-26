@@ -1,0 +1,339 @@
+/**
+ * ExpenseForm — slide-over with two tabs: Fuel Log and Misc Expense.
+ */
+import { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { X, Fuel, Receipt, Save, Loader2 } from "lucide-react";
+import { useTheme } from "../../context/ThemeContext";
+import { fleetApi, financeApi } from "../../api/client";
+import {
+  createFuelLogSchema,
+  createExpenseSchema,
+  type CreateFuelLogFormData,
+  type CreateExpenseFormData,
+} from "../../validators/finance";
+import type { ZodError } from "zod";
+
+interface Vehicle {
+  id: string;
+  licensePlate: string;
+  make: string;
+  model: string;
+}
+
+interface ExpenseFormProps {
+  open: boolean;
+  onClose: () => void;
+  onSuccess: () => void;
+  defaultTab?: "fuel" | "expense";
+}
+
+const FUEL_INITIAL: CreateFuelLogFormData = {
+  vehicleId: "",
+  tripId: "",
+  liters: 0,
+  costPerLiter: 0,
+  odometerAtFill: 0,
+  fuelStation: "",
+};
+
+const EXPENSE_INITIAL: CreateExpenseFormData = {
+  vehicleId: "",
+  tripId: "",
+  amount: 0,
+  category: "TOLL",
+  description: "",
+};
+
+const CATEGORIES = [
+  { value: "TOLL", label: "Toll" },
+  { value: "LODGING", label: "Lodging" },
+  { value: "MAINTENANCE_EN_ROUTE", label: "Maintenance (En Route)" },
+  { value: "MISC", label: "Miscellaneous" },
+];
+
+export function ExpenseForm({ open, onClose, onSuccess, defaultTab = "fuel" }: ExpenseFormProps) {
+  const { isDark } = useTheme();
+  const [tab, setTab] = useState<"fuel" | "expense">(defaultTab);
+  const [fuelForm, setFuelForm] = useState<CreateFuelLogFormData>(FUEL_INITIAL);
+  const [expForm, setExpForm] = useState<CreateExpenseFormData>(EXPENSE_INITIAL);
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [serverError, setServerError] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [vehicles, setVehicles] = useState<Vehicle[]>([]);
+  const [loadingVehicles, setLoadingVehicles] = useState(true);
+
+  useEffect(() => {
+    if (!open) return;
+    setFuelForm(FUEL_INITIAL);
+    setExpForm(EXPENSE_INITIAL);
+    setErrors({});
+    setServerError("");
+    setTab(defaultTab);
+    setLoadingVehicles(true);
+    fleetApi
+      .listVehicles({ limit: 500 })
+      .then((res) => {
+        const body = res.data?.data ?? res.data;
+        const list = (body?.vehicles ?? body ?? []) as Vehicle[];
+        setVehicles(
+          list
+            .filter((v: Record<string, unknown>) => v.status !== "RETIRED")
+            .map((v: Record<string, unknown>) => ({ ...v, id: String(v.id) })) as Vehicle[]
+        );
+      })
+      .catch(() => {})
+      .finally(() => setLoadingVehicles(false));
+  }, [open, defaultTab]);
+
+  const handleFuelChange = (field: keyof CreateFuelLogFormData, value: string | number) => {
+    setFuelForm((prev) => ({ ...prev, [field]: value }));
+    if (errors[field]) setErrors((prev) => ({ ...prev, [field]: "" }));
+  };
+
+  const handleExpChange = (field: keyof CreateExpenseFormData, value: string | number) => {
+    setExpForm((prev) => ({ ...prev, [field]: value }));
+    if (errors[field]) setErrors((prev) => ({ ...prev, [field]: "" }));
+  };
+
+  const totalCost = (fuelForm.liters || 0) * (fuelForm.costPerLiter || 0);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setErrors({});
+    setServerError("");
+
+    if (tab === "fuel") {
+      const result = createFuelLogSchema.safeParse(fuelForm);
+      if (!result.success) {
+        const fieldErrors: Record<string, string> = {};
+        (result.error as ZodError).errors.forEach((err) => {
+          const key = err.path[0] as string;
+          if (!fieldErrors[key]) fieldErrors[key] = err.message;
+        });
+        setErrors(fieldErrors);
+        return;
+      }
+      setSubmitting(true);
+      try {
+        await financeApi.createFuelLog({
+          vehicleId: Number(result.data.vehicleId),
+          tripId: result.data.tripId ? Number(result.data.tripId) : undefined,
+          liters: result.data.liters,
+          costPerLiter: result.data.costPerLiter,
+          odometerAtFill: result.data.odometerAtFill,
+          fuelStation: result.data.fuelStation || undefined,
+        });
+        onSuccess();
+        onClose();
+      } catch (err: unknown) {
+        const axiosErr = err as { response?: { data?: { message?: string } } };
+        setServerError(axiosErr.response?.data?.message ?? "Something went wrong");
+      } finally {
+        setSubmitting(false);
+      }
+    } else {
+      const result = createExpenseSchema.safeParse(expForm);
+      if (!result.success) {
+        const fieldErrors: Record<string, string> = {};
+        (result.error as ZodError).errors.forEach((err) => {
+          const key = err.path[0] as string;
+          if (!fieldErrors[key]) fieldErrors[key] = err.message;
+        });
+        setErrors(fieldErrors);
+        return;
+      }
+      setSubmitting(true);
+      try {
+        await financeApi.createExpense({
+          vehicleId: Number(result.data.vehicleId),
+          tripId: result.data.tripId ? Number(result.data.tripId) : undefined,
+          amount: result.data.amount,
+          category: result.data.category,
+          description: result.data.description || undefined,
+        });
+        onSuccess();
+        onClose();
+      } catch (err: unknown) {
+        const axiosErr = err as { response?: { data?: { message?: string } } };
+        setServerError(axiosErr.response?.data?.message ?? "Something went wrong");
+      } finally {
+        setSubmitting(false);
+      }
+    }
+  };
+
+  const inputCls = `w-full px-3 py-2 rounded-lg border text-sm transition-colors focus:outline-none focus:ring-2 focus:ring-violet-500/30 ${
+    isDark
+      ? "bg-neutral-700 border-neutral-600 text-white placeholder-neutral-400"
+      : "bg-white border-slate-200 text-slate-900 placeholder-slate-400"
+  }`;
+  const labelCls = `block text-xs font-semibold mb-1 ${isDark ? "text-neutral-300" : "text-slate-600"}`;
+  const errCls = "text-xs text-red-500 mt-0.5";
+  const tabCls = (active: boolean) =>
+    `px-4 py-2 text-sm font-medium rounded-t-lg transition-colors ${
+      active
+        ? isDark
+          ? "bg-neutral-700 text-white border-b-2 border-violet-500"
+          : "bg-white text-slate-900 border-b-2 border-violet-600"
+        : isDark
+        ? "text-neutral-400 hover:text-neutral-200"
+        : "text-slate-500 hover:text-slate-700"
+    }`;
+
+  return (
+    <AnimatePresence>
+      {open && (
+        <>
+          <motion.div
+            key="ef-backdrop"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[9990] bg-black/40"
+            onClick={onClose}
+          />
+          <motion.div
+            key="ef-panel"
+            initial={{ x: "100%" }}
+            animate={{ x: 0 }}
+            exit={{ x: "100%" }}
+            transition={{ type: "spring", damping: 30, stiffness: 300 }}
+            className={`fixed right-0 top-0 bottom-0 z-[9991] w-full max-w-lg shadow-2xl flex flex-col ${
+              isDark ? "bg-neutral-800" : "bg-white"
+            }`}
+          >
+            {/* Header */}
+            <div className={`flex items-center justify-between px-6 py-4 border-b shrink-0 ${isDark ? "border-neutral-700" : "border-slate-100"}`}>
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-lg bg-emerald-600 flex items-center justify-center">
+                  {tab === "fuel" ? <Fuel className="w-4.5 h-4.5 text-white" /> : <Receipt className="w-4.5 h-4.5 text-white" />}
+                </div>
+                <div>
+                  <h2 className={`text-base font-bold ${isDark ? "text-white" : "text-slate-900"}`}>
+                    {tab === "fuel" ? "New Fuel Log" : "New Expense"}
+                  </h2>
+                  <p className={`text-xs ${isDark ? "text-neutral-400" : "text-slate-500"}`}>
+                    {tab === "fuel" ? "Record a fueling event" : "Log a trip expense"}
+                  </p>
+                </div>
+              </div>
+              <button onClick={onClose} className={`p-2 rounded-lg transition-colors ${isDark ? "hover:bg-neutral-700 text-neutral-400" : "hover:bg-slate-100 text-slate-400"}`}>
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Tabs */}
+            <div className={`flex px-6 pt-3 border-b ${isDark ? "border-neutral-700" : "border-slate-100"}`}>
+              <button className={tabCls(tab === "fuel")} onClick={() => { setTab("fuel"); setErrors({}); setServerError(""); }}>
+                <Fuel className="w-3.5 h-3.5 inline mr-1.5" /> Fuel Log
+              </button>
+              <button className={tabCls(tab === "expense")} onClick={() => { setTab("expense"); setErrors({}); setServerError(""); }}>
+                <Receipt className="w-3.5 h-3.5 inline mr-1.5" /> Expense
+              </button>
+            </div>
+
+            {/* Form */}
+            <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto px-6 py-5 space-y-4">
+              {serverError && (
+                <div className={`p-3 rounded-lg text-sm ${isDark ? "bg-red-900/30 border border-red-800 text-red-300" : "bg-red-50 border border-red-200 text-red-700"}`}>
+                  {serverError}
+                </div>
+              )}
+
+              {loadingVehicles ? (
+                <div className={`py-8 text-center text-sm ${isDark ? "text-neutral-400" : "text-slate-500"}`}>
+                  <Loader2 className="w-5 h-5 mx-auto mb-2 animate-spin" />Loading vehicles...
+                </div>
+              ) : tab === "fuel" ? (
+                /* ── FUEL LOG ── */
+                <>
+                  <div>
+                    <label className={labelCls}>Vehicle *</label>
+                    <select className={`${inputCls} ${errors.vehicleId ? "border-red-400" : ""}`} value={fuelForm.vehicleId} onChange={(e) => handleFuelChange("vehicleId", e.target.value)}>
+                      <option value="">Select a vehicle...</option>
+                      {vehicles.map((v) => <option key={v.id} value={v.id}>{v.licensePlate} — {v.make} {v.model}</option>)}
+                    </select>
+                    {errors.vehicleId && <p className={errCls}>{errors.vehicleId}</p>}
+                  </div>
+                  <div>
+                    <label className={labelCls}>Trip ID (optional)</label>
+                    <input className={inputCls} placeholder="e.g. 42" value={fuelForm.tripId ?? ""} onChange={(e) => handleFuelChange("tripId", e.target.value)} />
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className={labelCls}>Liters *</label>
+                      <input type="number" step="0.01" className={`${inputCls} ${errors.liters ? "border-red-400" : ""}`} value={fuelForm.liters || ""} onChange={(e) => handleFuelChange("liters", e.target.value)} />
+                      {errors.liters && <p className={errCls}>{errors.liters}</p>}
+                    </div>
+                    <div>
+                      <label className={labelCls}>₹/Liter *</label>
+                      <input type="number" step="0.01" className={`${inputCls} ${errors.costPerLiter ? "border-red-400" : ""}`} value={fuelForm.costPerLiter || ""} onChange={(e) => handleFuelChange("costPerLiter", e.target.value)} />
+                      {errors.costPerLiter && <p className={errCls}>{errors.costPerLiter}</p>}
+                    </div>
+                  </div>
+                  {/* Live total */}
+                  <div className={`p-3 rounded-lg text-center text-lg font-bold ${isDark ? "bg-neutral-700 text-emerald-400" : "bg-emerald-50 text-emerald-700"}`}>
+                    Total: ₹{totalCost.toFixed(2)}
+                  </div>
+                  <div>
+                    <label className={labelCls}>Odometer at Fill *</label>
+                    <input type="number" className={`${inputCls} ${errors.odometerAtFill ? "border-red-400" : ""}`} value={fuelForm.odometerAtFill || ""} onChange={(e) => handleFuelChange("odometerAtFill", e.target.value)} />
+                    {errors.odometerAtFill && <p className={errCls}>{errors.odometerAtFill}</p>}
+                  </div>
+                  <div>
+                    <label className={labelCls}>Fuel Station</label>
+                    <input className={inputCls} placeholder="Shell, HP, Indian Oil..." value={fuelForm.fuelStation ?? ""} onChange={(e) => handleFuelChange("fuelStation", e.target.value)} />
+                  </div>
+                </>
+              ) : (
+                /* ── EXPENSE ── */
+                <>
+                  <div>
+                    <label className={labelCls}>Vehicle *</label>
+                    <select className={`${inputCls} ${errors.vehicleId ? "border-red-400" : ""}`} value={expForm.vehicleId} onChange={(e) => handleExpChange("vehicleId", e.target.value)}>
+                      <option value="">Select a vehicle...</option>
+                      {vehicles.map((v) => <option key={v.id} value={v.id}>{v.licensePlate} — {v.make} {v.model}</option>)}
+                    </select>
+                    {errors.vehicleId && <p className={errCls}>{errors.vehicleId}</p>}
+                  </div>
+                  <div>
+                    <label className={labelCls}>Trip ID (optional)</label>
+                    <input className={inputCls} placeholder="e.g. 42" value={expForm.tripId ?? ""} onChange={(e) => handleExpChange("tripId", e.target.value)} />
+                  </div>
+                  <div>
+                    <label className={labelCls}>Category *</label>
+                    <select className={`${inputCls} ${errors.category ? "border-red-400" : ""}`} value={expForm.category} onChange={(e) => handleExpChange("category", e.target.value)}>
+                      {CATEGORIES.map((c) => <option key={c.value} value={c.value}>{c.label}</option>)}
+                    </select>
+                    {errors.category && <p className={errCls}>{errors.category}</p>}
+                  </div>
+                  <div>
+                    <label className={labelCls}>Amount (₹) *</label>
+                    <input type="number" step="0.01" className={`${inputCls} ${errors.amount ? "border-red-400" : ""}`} value={expForm.amount || ""} onChange={(e) => handleExpChange("amount", e.target.value)} />
+                    {errors.amount && <p className={errCls}>{errors.amount}</p>}
+                  </div>
+                  <div>
+                    <label className={labelCls}>Description</label>
+                    <textarea className={inputCls} rows={2} placeholder="Toll at Mumbai expressway..." value={expForm.description ?? ""} onChange={(e) => handleExpChange("description", e.target.value)} />
+                  </div>
+                </>
+              )}
+            </form>
+
+            {/* Footer */}
+            <div className={`px-6 py-4 border-t shrink-0 flex items-center justify-end gap-3 ${isDark ? "border-neutral-700" : "border-slate-100"}`}>
+              <button type="button" onClick={onClose} className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${isDark ? "text-neutral-300 hover:bg-neutral-700" : "text-slate-600 hover:bg-slate-100"}`}>
+                Cancel
+              </button>
+              <button onClick={handleSubmit} disabled={submitting || loadingVehicles} className="inline-flex items-center gap-2 px-5 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-medium transition-colors disabled:opacity-50">
+                {submitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                {tab === "fuel" ? "Create Fuel Log" : "Create Expense"}
+              </button>
+            </div>
+          </motion.div>
+        </>
+      )}
+    </AnimatePresence>
+  );
+}

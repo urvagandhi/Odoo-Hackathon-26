@@ -41,6 +41,14 @@ export class FinanceController {
         } catch (err) { next(err); }
     }
 
+    async listMaintenanceLogs(req: Request, res: Response, next: NextFunction): Promise<void> {
+        try {
+            const vehicleId = req.query.vehicleId ? BigInt(String(req.query.vehicleId)) : undefined;
+            const logs = await financeService.listMaintenanceLogs(vehicleId);
+            res.json({ success: true, data: logs });
+        } catch (err) { next(err); }
+    }
+
     async createMaintenanceLog(req: Request, res: Response, next: NextFunction): Promise<void> {
         try {
             const input = CreateMaintenanceLogSchema.parse(req.body);

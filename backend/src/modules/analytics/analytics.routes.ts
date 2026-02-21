@@ -11,10 +11,9 @@ analyticsRouter.use(authenticate);
 // Analytics visible to Manager and Finance Analyst
 const analyticsRoles = [UserRole.MANAGER, UserRole.FINANCE_ANALYST];
 
-// GET /api/v1/analytics/kpi
+// GET /api/v1/analytics/kpi — accessible to all authenticated users (dashboard)
 analyticsRouter.get(
     '/kpi',
-    authorize(analyticsRoles),
     analyticsController.getDashboardKPIs.bind(analyticsController),
 );
 
