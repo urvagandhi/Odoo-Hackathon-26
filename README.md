@@ -1,6 +1,21 @@
-# ⚡ HackStack — Full-Stack Hackathon Boilerplate
+# 🚛 FleetFlow — Fleet Management System
 
-**React 19 + TypeScript + Vite** · **Express.js + Prisma + PostgreSQL** · **Docker Ready**
+**Odoo Hackathon 2026** · **React 19 + TypeScript + Vite** · **Express.js + Prisma + PostgreSQL**
+
+> A comprehensive fleet management platform for vehicle tracking, driver management, trip dispatching, maintenance scheduling, and financial analytics.
+
+---
+
+## ✨ Features
+
+- **Vehicle Registry** — Full CRUD for fleet vehicles with status tracking (Active, Maintenance, Retired)
+- **Driver Management** — Driver profiles, license tracking, status management
+- **Trip Dispatcher** — Create, assign, and track trips with real-time status updates
+- **Maintenance & Finance** — Fuel logs, maintenance records, expense tracking
+- **Dashboard & Analytics** — KPIs, monthly trends, driver performance, fuel efficiency charts
+- **Role-Based Access Control** — Manager, Dispatcher, Safety Officer, Finance Analyst
+- **Dark Mode** — Full dark theme support across all pages
+- **Responsive Design** — Mobile-friendly layout with Tailwind CSS
 
 ---
 
@@ -8,151 +23,121 @@
 
 ```
 project-root/
-│
 ├── backend/
 │   ├── src/
-│   │   ├── index.ts           # Express entry point
-│   │   ├── config.ts          # Environment config + Prisma client
-│   │   ├── routes/            # Express route handlers
-│   │   ├── services/          # Business logic layer
-│   │   ├── middleware/        # Auth, error handling, validation
-│   │   ├── validators/        # Zod request/response schemas
-│   │   └── utils/             # Password hashing, JWT, custom errors
+│   │   ├── app.ts                # Express app setup
+│   │   ├── server.ts             # Server entry point
+│   │   ├── prisma.ts             # Prisma client singleton
+│   │   ├── config/env.ts         # Environment config
+│   │   ├── middleware/           # Auth, RBAC, audit logging, error handler
+│   │   └── modules/
+│   │       ├── auth/             # JWT authentication & password management
+│   │       ├── fleet/            # Vehicle CRUD
+│   │       ├── hr/               # Driver management
+│   │       ├── dispatch/         # Trip management
+│   │       ├── finance/          # Fuel, maintenance, expenses
+│   │       └── locations/        # Vehicle locations & analytics
 │   ├── prisma/
-│   │   ├── schema.prisma      # Database schema (source of truth)
-│   │   └── migrations/        # Prisma migration history
-│   ├── tests/                 # Jest + Supertest test suite
-│   ├── package.json
-│   ├── tsconfig.json
-│   └── Dockerfile
+│   │   ├── schema.prisma         # Database schema
+│   │   ├── seed.ts               # Comprehensive seed data
+│   │   └── migrations/           # Migration history
+│   └── package.json
 │
 ├── frontend/
 │   ├── src/
-│   │   ├── pages/             # Route-level page components
-│   │   ├── components/        # Reusable UI components
-│   │   ├── api/               # Axios client & API functions
-│   │   ├── hooks/             # Custom React hooks
-│   │   ├── routes/            # React Router configuration
-│   │   ├── validators/        # Zod validation schemas
-│   │   └── main.tsx           # App entry point
-│   ├── package.json
-│   └── Dockerfile
+│   │   ├── pages/                # Dashboard, Fleet, Drivers, Trips, Finance, etc.
+│   │   ├── components/           # Reusable UI (DataTable, PageHeader, Charts, etc.)
+│   │   ├── layouts/              # Dashboard, CRUD, Settings, Profile layouts
+│   │   ├── api/client.ts         # Typed Axios API clients
+│   │   ├── context/              # Auth, Theme, Toast providers
+│   │   ├── hooks/                # Custom React hooks
+│   │   └── routes/router.tsx     # React Router configuration
+│   └── package.json
 │
 ├── docker-compose.yml
-├── .env.example
-├── .gitignore
-└── .github/agents/            # AI agent configurations
+└── docs/                          # Architecture & planning docs
 ```
 
 ---
 
 ## 🚀 Quick Start
 
-### Option 1: Docker (recommended)
+### Prerequisites
+
+- **Node.js** 18+
+- **PostgreSQL** 16+ (or Docker)
+
+### 1. Database
 
 ```bash
-cp .env.example .env
-docker compose up --build
+# Via Docker
+docker compose up -d db
+
+# Or use an existing PostgreSQL instance
 ```
 
-| Service    | URL                          |
-|------------|------------------------------|
-| Frontend   | http://localhost:3000         |
-| Backend    | http://localhost:5000         |
-| Health     | http://localhost:5000/api/v1/health |
-| PostgreSQL | localhost:5432               |
+### 2. Backend
 
-### Option 2: Local Development
-
-**Backend:**
 ```bash
 cd backend
 npm install
-cp ../.env.example .env    # or create backend/.env
 npx prisma migrate dev
-npm run dev
+npx prisma db seed          # Load demo data
+npm run dev                 # Starts on http://localhost:3001
 ```
 
-**Frontend:**
+### 3. Frontend
+
 ```bash
 cd frontend
 npm install
-npm run dev
+npm run dev                 # Starts on http://localhost:5175
 ```
 
-**Database:**
-```bash
-# Start PostgreSQL (e.g., via Docker)
-docker run -d --name hackathon-db \
-  -e POSTGRES_DB=hackathon_db \
-  -e POSTGRES_PASSWORD=postgres \
-  -p 5432:5432 postgres:16-alpine
-```
+### Demo Credentials
 
----
-
-## 🧪 Testing
-
-```bash
-# Backend
-cd backend && npm test
-
-# Frontend
-cd frontend && npm test
-```
+| Role             | Email                        | Password         |
+|------------------|------------------------------|-------------------|
+| Fleet Manager    | manager@fleetflow.io         | FleetFlow@2025   |
+| Dispatcher       | dispatcher@fleetflow.io      | FleetFlow@2025   |
+| Safety Officer   | safety@fleetflow.io          | FleetFlow@2025   |
+| Finance Analyst  | finance@fleetflow.io         | FleetFlow@2025   |
 
 ---
 
 ## 📋 API Endpoints
 
-| Method | Endpoint             | Description        |
-|--------|----------------------|--------------------|
-| GET    | /api/v1/health       | Health check       |
-| POST   | /api/v1/items        | Create item        |
-| GET    | /api/v1/items        | List all items     |
-| GET    | /api/v1/items/:id    | Get single item    |
-| PUT    | /api/v1/items/:id    | Update item        |
-| DELETE | /api/v1/items/:id    | Delete item        |
+| Method | Endpoint                        | Description              |
+|--------|---------------------------------|--------------------------|
+| POST   | /api/v1/auth/login              | Login                    |
+| POST   | /api/v1/auth/register           | Register                 |
+| PUT    | /api/v1/auth/change-password    | Change password          |
+| GET    | /api/v1/fleet                   | List vehicles            |
+| POST   | /api/v1/fleet                   | Create vehicle           |
+| GET    | /api/v1/hr/drivers              | List drivers             |
+| POST   | /api/v1/hr/drivers              | Create driver            |
+| GET    | /api/v1/dispatch/trips          | List trips               |
+| POST   | /api/v1/dispatch/trips          | Create trip              |
+| GET    | /api/v1/finance/fuel-logs       | List fuel logs           |
+| GET    | /api/v1/finance/expenses        | List expenses            |
+| GET    | /api/v1/locations/analytics/kpi | Dashboard KPIs           |
 
 ---
 
-## 🏗️ Scalability Guide
+## 🛠️ Tech Stack
 
-**Adding a new entity** (e.g., `User`):
-
-1. **Prisma Model** → `backend/prisma/schema.prisma`
-2. **Migration** → `npx prisma migrate dev --name add_users`
-3. **Validator** → `backend/src/validators/user.ts` (Zod schemas)
-4. **Service** → `backend/src/services/user.service.ts`
-5. **Route** → `backend/src/routes/users.ts`
-6. **Register** → Add router in `src/index.ts`
-7. **Frontend API** → `frontend/src/api/client.ts`
-8. **Validator** → `frontend/src/validators/user.ts`
-9. **Hook** → `frontend/src/hooks/useUsers.ts`
-10. **Pages** → `frontend/src/pages/UsersList.tsx`, etc.
+| Layer      | Technology                                    |
+|------------|-----------------------------------------------|
+| Frontend   | React 19, TypeScript, Vite, Tailwind CSS 4    |
+| Backend    | Express.js, TypeScript, Prisma ORM            |
+| Database   | PostgreSQL 18                                 |
+| Auth       | JWT + bcrypt, Role-Based Access Control       |
+| Validation | Zod (shared schemas)                          |
+| Charts     | Recharts                                      |
+| Animations | Framer Motion                                 |
 
 ---
 
-## 🛠️ Useful Commands
+## 👥 Team
 
-```bash
-# Prisma
-npx prisma migrate dev       # Create + apply migration
-npx prisma migrate deploy    # Apply in production
-npx prisma studio            # Visual DB browser
-npx prisma generate          # Regenerate Prisma Client
-
-# Backend
-npm run dev                  # Start dev server (hot reload)
-npm run build                # Compile TypeScript
-npm test                     # Run tests
-npx tsc --noEmit             # Type check
-```
-
----
-
-## 📖 More
-
-- [Git Workflow](./GIT_WORKFLOW.md)
-- [Health Check](http://localhost:5000/api/v1/health) (when running)
-# Odoo-Hackathon-26
+Built for **Odoo Hackathon 2026** 🏆

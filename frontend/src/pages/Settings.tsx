@@ -1,6 +1,9 @@
 /**
- * Settings page — multi-tab settings using SettingsLayout.
- * UI-only with local state, no API calls.
+ * Settings page — multi-tab settings with real API integration.
+ * - Account: Pre-filled from auth context
+ * - Security: Wired to authApi.changePassword()
+ * - Appearance: Connected to ThemeContext
+ * - Notifications: Decorative with dark mode
  */
 import { useState } from "react";
 import {
@@ -15,12 +18,17 @@ import {
   Monitor,
   Moon,
   Sun,
+  CheckCircle,
+  AlertCircle,
 } from "lucide-react";
 import { SettingsLayout, type SettingsTab } from "../layouts/SettingsLayout";
 import { SectionCard } from "../components/ui/SectionCard";
+import { useAuth } from "../context/AuthContext";
+import { useTheme } from "../context/ThemeContext";
+import { authApi } from "../api/client";
 
 /* ────────────────────────────────────────────────────────
-   Toggle switch
+   Toggle switch (dark mode aware)
    ──────────────────────────────────────────────────────── */
 
 function Toggle({
@@ -32,6 +40,7 @@ function Toggle({
   onChange: (v: boolean) => void;
   id: string;
 }) {
+  const { isDark } = useTheme();
   return (
     <button
       id={id}
@@ -43,7 +52,7 @@ function Toggle({
         relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full
         border-2 border-transparent transition-colors duration-200 ease-in-out
         focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2
-        ${checked ? "bg-indigo-600" : "bg-slate-200"}
+        ${checked ? "bg-indigo-600" : isDark ? "bg-neutral-600" : "bg-slate-200"}
       `}
     >
       <span
@@ -58,41 +67,58 @@ function Toggle({
 }
 
 /* ────────────────────────────────────────────────────────
-   Common input styling
+   Common input styling (dark mode aware)
    ──────────────────────────────────────────────────────── */
 
-const inputCls =
-  "w-full px-3.5 py-2.5 rounded-lg border border-slate-200 bg-white text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-shadow duration-150";
-
-const btnPrimaryCls =
-  "inline-flex items-center gap-2 px-4 py-2.5 rounded-lg bg-indigo-600 text-white text-sm font-medium hover:bg-indigo-700 transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed";
-
-const labelCls = "block text-sm font-medium text-slate-700 mb-1.5";
+function useInputStyles() {
+  const { isDark } = useTheme();
+  return {
+    inputCls: `w-full px-3.5 py-2.5 rounded-lg border text-sm placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-shadow duration-150 ${
+      isDark
+        ? "border-neutral-600 bg-neutral-700 text-neutral-200 placeholder:text-neutral-500"
+        : "border-slate-200 bg-white text-slate-800"
+    }`,
+    labelCls: `block text-sm font-medium mb-1.5 ${isDark ? "text-neutral-300" : "text-slate-700"}`,
+    btnPrimaryCls:
+      "inline-flex items-center gap-2 px-4 py-2.5 rounded-lg bg-indigo-600 text-white text-sm font-medium hover:bg-indigo-700 transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed",
+  };
+}
 
 /* ────────────────────────────────────────────────────────
    Account Tab
    ──────────────────────────────────────────────────────── */
 
 function AccountTab() {
+  const { user } = useAuth();
+  const { isDark } = useTheme();
+  const { inputCls, labelCls, btnPrimaryCls } = useInputStyles();
+
+  const nameParts = (user?.fullName ?? "").split(" ");
   const [form, setForm] = useState({
-    firstName: "Urva",
-    lastName: "Gandhi",
-    email: "urva.gandhi@example.com",
-    bio: "Full-stack developer who loves building beautiful UIs and scalable backends.",
-    phone: "+91 98765 43210",
-    location: "Ahmedabad, India",
+    firstName: nameParts[0] || "",
+    lastName: nameParts.slice(1).join(" ") || "",
+    email: user?.email ?? "",
+    role: user?.role ?? "",
   });
 
   const set = (k: keyof typeof form) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
     setForm((p) => ({ ...p, [k]: e.target.value }));
 
+  const roleLabel: Record<string, string> = {
+    MANAGER: "Fleet Manager",
+    DISPATCHER: "Dispatcher",
+    SAFETY_OFFICER: "Safety Officer",
+    FINANCE_ANALYST: "Finance Analyst",
+    SUPER_ADMIN: "Super Administrator",
+  };
+
   return (
     <div className="space-y-5">
       <SectionCard
         title="Profile Information"
-        description="Update your personal information"
+        description="Your account details"
         action={
-          <button className={btnPrimaryCls}>
+          <button className={btnPrimaryCls} disabled>
             <Save className="w-4 h-4" />
             Save
           </button>
@@ -108,6 +134,7 @@ function AccountTab() {
               className={inputCls}
               value={form.firstName}
               onChange={set("firstName")}
+              readOnly
             />
           </div>
           <div>
@@ -119,9 +146,10 @@ function AccountTab() {
               className={inputCls}
               value={form.lastName}
               onChange={set("lastName")}
+              readOnly
             />
           </div>
-          <div className="sm:col-span-2">
+          <div>
             <label htmlFor="email" className={labelCls}>
               Email Address
             </label>
@@ -130,41 +158,18 @@ function AccountTab() {
               type="email"
               className={inputCls}
               value={form.email}
-              onChange={set("email")}
+              readOnly
             />
           </div>
           <div>
-            <label htmlFor="phone" className={labelCls}>
-              Phone
+            <label htmlFor="role" className={labelCls}>
+              Role
             </label>
             <input
-              id="phone"
+              id="role"
               className={inputCls}
-              value={form.phone}
-              onChange={set("phone")}
-            />
-          </div>
-          <div>
-            <label htmlFor="location" className={labelCls}>
-              Location
-            </label>
-            <input
-              id="location"
-              className={inputCls}
-              value={form.location}
-              onChange={set("location")}
-            />
-          </div>
-          <div className="sm:col-span-2">
-            <label htmlFor="bio" className={labelCls}>
-              Bio
-            </label>
-            <textarea
-              id="bio"
-              rows={3}
-              className={`${inputCls} resize-none`}
-              value={form.bio}
-              onChange={set("bio")}
+              value={roleLabel[form.role] ?? form.role}
+              readOnly
             />
           </div>
         </div>
@@ -172,14 +177,28 @@ function AccountTab() {
 
       {/* Danger zone */}
       <SectionCard title="Danger Zone" description="Irreversible actions">
-        <div className="flex items-center justify-between p-4 rounded-lg border border-red-200 bg-red-50/50">
+        <div
+          className={`flex items-center justify-between p-4 rounded-lg border ${
+            isDark
+              ? "border-red-800 bg-red-900/20"
+              : "border-red-200 bg-red-50/50"
+          }`}
+        >
           <div>
-            <p className="text-sm font-medium text-red-700">Delete Account</p>
-            <p className="text-xs text-red-500 mt-0.5">
+            <p className={`text-sm font-medium ${isDark ? "text-red-400" : "text-red-700"}`}>
+              Delete Account
+            </p>
+            <p className={`text-xs mt-0.5 ${isDark ? "text-red-500" : "text-red-500"}`}>
               Permanently delete your account and all associated data.
             </p>
           </div>
-          <button className="px-4 py-2 rounded-lg border border-red-300 bg-white text-sm font-medium text-red-600 hover:bg-red-50 transition-colors">
+          <button
+            className={`px-4 py-2 rounded-lg border text-sm font-medium transition-colors ${
+              isDark
+                ? "border-red-700 bg-neutral-800 text-red-400 hover:bg-red-900/30"
+                : "border-red-300 bg-white text-red-600 hover:bg-red-50"
+            }`}
+          >
             Delete
           </button>
         </div>
@@ -189,15 +208,56 @@ function AccountTab() {
 }
 
 /* ────────────────────────────────────────────────────────
-   Security Tab
+   Security Tab — wired to authApi.changePassword()
    ──────────────────────────────────────────────────────── */
 
 function SecurityTab() {
+  const { isDark } = useTheme();
+  const { inputCls, labelCls, btnPrimaryCls } = useInputStyles();
   const [show, setShow] = useState({ current: false, new: false, confirm: false });
+  const [passwords, setPasswords] = useState({ current: "", new: "", confirm: "" });
   const [twoFA, setTwoFA] = useState(false);
   const [sessions, setSessions] = useState(true);
+  const [status, setStatus] = useState<{ type: "success" | "error"; msg: string } | null>(null);
+  const [loading, setLoading] = useState(false);
 
-  const toggle = (k: keyof typeof show) => () => setShow((p) => ({ ...p, [k]: !p[k] }));
+  const toggleShow = (k: keyof typeof show) => () => setShow((p) => ({ ...p, [k]: !p[k] }));
+  const setPwd = (k: keyof typeof passwords) => (e: React.ChangeEvent<HTMLInputElement>) =>
+    setPasswords((p) => ({ ...p, [k]: e.target.value }));
+
+  const handleChangePassword = async () => {
+    setStatus(null);
+
+    if (!passwords.current || !passwords.new || !passwords.confirm) {
+      setStatus({ type: "error", msg: "All password fields are required." });
+      return;
+    }
+    if (passwords.new.length < 6) {
+      setStatus({ type: "error", msg: "New password must be at least 6 characters." });
+      return;
+    }
+    if (passwords.new !== passwords.confirm) {
+      setStatus({ type: "error", msg: "New passwords do not match." });
+      return;
+    }
+
+    setLoading(true);
+    try {
+      await authApi.changePassword({
+        currentPassword: passwords.current,
+        newPassword: passwords.new,
+      });
+      setStatus({ type: "success", msg: "Password changed successfully!" });
+      setPasswords({ current: "", new: "", confirm: "" });
+    } catch (err: unknown) {
+      const msg =
+        (err as { response?: { data?: { message?: string } } })?.response?.data?.message ??
+        "Failed to change password. Check your current password.";
+      setStatus({ type: "error", msg });
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="space-y-5">
@@ -205,12 +265,32 @@ function SecurityTab() {
         title="Change Password"
         description="Update your password regularly for better security"
         action={
-          <button className={btnPrimaryCls}>
+          <button className={btnPrimaryCls} onClick={handleChangePassword} disabled={loading}>
             <Save className="w-4 h-4" />
-            Update
+            {loading ? "Updating..." : "Update"}
           </button>
         }
       >
+        {status && (
+          <div
+            className={`flex items-center gap-2 p-3 rounded-lg mb-4 text-sm font-medium ${
+              status.type === "success"
+                ? isDark
+                  ? "bg-emerald-900/30 text-emerald-400"
+                  : "bg-emerald-50 text-emerald-700"
+                : isDark
+                ? "bg-red-900/30 text-red-400"
+                : "bg-red-50 text-red-700"
+            }`}
+          >
+            {status.type === "success" ? (
+              <CheckCircle className="w-4 h-4 shrink-0" />
+            ) : (
+              <AlertCircle className="w-4 h-4 shrink-0" />
+            )}
+            {status.msg}
+          </div>
+        )}
         <div className="space-y-4 max-w-md">
           {(
             [
@@ -229,11 +309,15 @@ function SecurityTab() {
                   type={show[key] ? "text" : "password"}
                   placeholder="••••••••"
                   className={`${inputCls} pr-10`}
+                  value={passwords[key]}
+                  onChange={setPwd(key)}
                 />
                 <button
                   type="button"
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
-                  onClick={toggle(key)}
+                  className={`absolute right-3 top-1/2 -translate-y-1/2 transition-colors ${
+                    isDark ? "text-neutral-400 hover:text-neutral-200" : "text-slate-400 hover:text-slate-600"
+                  }`}
+                  onClick={toggleShow(key)}
                   aria-label={show[key] ? "Hide password" : "Show password"}
                 >
                   {show[key] ? (
@@ -253,16 +337,24 @@ function SecurityTab() {
         description="Add an extra layer of security"
       >
         <div className="space-y-4">
-          <div className="flex items-center justify-between p-4 rounded-lg bg-slate-50">
+          <div
+            className={`flex items-center justify-between p-4 rounded-lg ${
+              isDark ? "bg-neutral-700/50" : "bg-slate-50"
+            }`}
+          >
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg bg-indigo-100 flex items-center justify-center">
-                <Smartphone className="w-5 h-5 text-indigo-600" />
+              <div
+                className={`w-10 h-10 rounded-lg flex items-center justify-center ${
+                  isDark ? "bg-indigo-900/40" : "bg-indigo-100"
+                }`}
+              >
+                <Smartphone className={`w-5 h-5 ${isDark ? "text-indigo-400" : "text-indigo-600"}`} />
               </div>
               <div>
-                <p className="text-sm font-medium text-slate-800">
+                <p className={`text-sm font-medium ${isDark ? "text-neutral-200" : "text-slate-800"}`}>
                   Authenticator App
                 </p>
-                <p className="text-xs text-slate-500 mt-0.5">
+                <p className={`text-xs mt-0.5 ${isDark ? "text-neutral-400" : "text-slate-500"}`}>
                   Use an authenticator app to generate codes
                 </p>
               </div>
@@ -270,16 +362,24 @@ function SecurityTab() {
             <Toggle id="toggle-2fa" checked={twoFA} onChange={setTwoFA} />
           </div>
 
-          <div className="flex items-center justify-between p-4 rounded-lg bg-slate-50">
+          <div
+            className={`flex items-center justify-between p-4 rounded-lg ${
+              isDark ? "bg-neutral-700/50" : "bg-slate-50"
+            }`}
+          >
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg bg-emerald-100 flex items-center justify-center">
-                <Monitor className="w-5 h-5 text-emerald-600" />
+              <div
+                className={`w-10 h-10 rounded-lg flex items-center justify-center ${
+                  isDark ? "bg-emerald-900/40" : "bg-emerald-100"
+                }`}
+              >
+                <Monitor className={`w-5 h-5 ${isDark ? "text-emerald-400" : "text-emerald-600"}`} />
               </div>
               <div>
-                <p className="text-sm font-medium text-slate-800">
+                <p className={`text-sm font-medium ${isDark ? "text-neutral-200" : "text-slate-800"}`}>
                   Active Sessions
                 </p>
-                <p className="text-xs text-slate-500 mt-0.5">
+                <p className={`text-xs mt-0.5 ${isDark ? "text-neutral-400" : "text-slate-500"}`}>
                   Get alerts for new sign-ins
                 </p>
               </div>
@@ -293,10 +393,12 @@ function SecurityTab() {
 }
 
 /* ────────────────────────────────────────────────────────
-   Notifications Tab
+   Notifications Tab (dark mode)
    ──────────────────────────────────────────────────────── */
 
 function NotificationsTab() {
+  const { isDark } = useTheme();
+  const { btnPrimaryCls } = useInputStyles();
   const [prefs, setPrefs] = useState({
     emailNotifications: true,
     pushNotifications: true,
@@ -313,7 +415,7 @@ function NotificationsTab() {
     {
       key: "emailNotifications",
       title: "Email Notifications",
-      desc: "Receive email updates about your activity",
+      desc: "Receive email updates about fleet activity",
     },
     {
       key: "pushNotifications",
@@ -323,7 +425,7 @@ function NotificationsTab() {
     {
       key: "weeklyDigest",
       title: "Weekly Digest",
-      desc: "Get a summary of activity every week",
+      desc: "Get a summary of fleet activity every week",
     },
     {
       key: "marketingEmails",
@@ -338,7 +440,7 @@ function NotificationsTab() {
     {
       key: "teamUpdates",
       title: "Team Updates",
-      desc: "Updates from your team members and projects",
+      desc: "Updates from your team members and operations",
     },
   ];
 
@@ -353,15 +455,19 @@ function NotificationsTab() {
         </button>
       }
     >
-      <div className="divide-y divide-slate-100">
+      <div className={`divide-y ${isDark ? "divide-neutral-700" : "divide-slate-100"}`}>
         {ITEMS.map((item) => (
           <div
             key={item.key}
             className="flex items-center justify-between py-4 first:pt-0 last:pb-0"
           >
             <div>
-              <p className="text-sm font-medium text-slate-800">{item.title}</p>
-              <p className="text-xs text-slate-500 mt-0.5">{item.desc}</p>
+              <p className={`text-sm font-medium ${isDark ? "text-neutral-200" : "text-slate-800"}`}>
+                {item.title}
+              </p>
+              <p className={`text-xs mt-0.5 ${isDark ? "text-neutral-400" : "text-slate-500"}`}>
+                {item.desc}
+              </p>
             </div>
             <Toggle
               id={`toggle-${item.key}`}
@@ -376,31 +482,34 @@ function NotificationsTab() {
 }
 
 /* ────────────────────────────────────────────────────────
-   Appearance Tab
+   Appearance Tab — connected to ThemeContext
    ──────────────────────────────────────────────────────── */
 
 function AppearanceTab() {
-  const [theme, setTheme] = useState<"light" | "dark" | "system">("system");
+  const { theme, setTheme, isDark } = useTheme();
+  const { inputCls, labelCls, btnPrimaryCls } = useInputStyles();
   const [language, setLanguage] = useState("en");
   const [compactMode, setCompactMode] = useState(false);
 
+  // Map theme context's "light" | "dark" to our display
+  const currentTheme = theme;
+
   const themes: {
-    id: "light" | "dark" | "system";
+    id: "light" | "dark";
     label: string;
     icon: React.FC<{ className?: string }>;
     desc: string;
   }[] = [
     { id: "light", label: "Light", icon: Sun, desc: "Default light theme" },
     { id: "dark", label: "Dark", icon: Moon, desc: "Easy on the eyes" },
-    { id: "system", label: "System", icon: Monitor, desc: "Follow OS preference" },
   ];
 
   return (
     <div className="space-y-5">
       <SectionCard title="Theme" description="Select your preferred theme">
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           {themes.map((t) => {
-            const active = theme === t.id;
+            const active = currentTheme === t.id;
             return (
               <button
                 key={t.id}
@@ -409,34 +518,56 @@ function AppearanceTab() {
                   flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all duration-200
                   ${
                     active
-                      ? "border-indigo-500 bg-indigo-50 shadow-sm"
+                      ? "border-indigo-500 shadow-sm " + (isDark ? "bg-indigo-900/20" : "bg-indigo-50")
+                      : isDark
+                      ? "border-neutral-600 bg-neutral-700 hover:border-neutral-500"
                       : "border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50"
                   }
                 `}
               >
                 <div
                   className={`w-10 h-10 rounded-lg flex items-center justify-center ${
-                    active ? "bg-indigo-100" : "bg-slate-100"
+                    active
+                      ? isDark
+                        ? "bg-indigo-800/50"
+                        : "bg-indigo-100"
+                      : isDark
+                      ? "bg-neutral-600"
+                      : "bg-slate-100"
                   }`}
                 >
                   <t.icon
                     className={`w-5 h-5 ${
-                      active ? "text-indigo-600" : "text-slate-400"
+                      active
+                        ? isDark
+                          ? "text-indigo-400"
+                          : "text-indigo-600"
+                        : isDark
+                        ? "text-neutral-400"
+                        : "text-slate-400"
                     }`}
                   />
                 </div>
                 <div className="text-center">
                   <p
                     className={`text-sm font-semibold ${
-                      active ? "text-indigo-700" : "text-slate-800"
+                      active
+                        ? isDark
+                          ? "text-indigo-300"
+                          : "text-indigo-700"
+                        : isDark
+                        ? "text-neutral-200"
+                        : "text-slate-800"
                     }`}
                   >
                     {t.label}
                   </p>
-                  <p className="text-xs text-slate-500 mt-0.5">{t.desc}</p>
+                  <p className={`text-xs mt-0.5 ${isDark ? "text-neutral-400" : "text-slate-500"}`}>
+                    {t.desc}
+                  </p>
                 </div>
                 {active && (
-                  <span className="text-xs font-medium text-indigo-600">
+                  <span className={`text-xs font-medium ${isDark ? "text-indigo-400" : "text-indigo-600"}`}>
                     Active
                   </span>
                 )}
@@ -477,10 +608,16 @@ function AppearanceTab() {
             </select>
           </div>
 
-          <div className="flex items-center justify-between p-4 rounded-lg bg-slate-50">
+          <div
+            className={`flex items-center justify-between p-4 rounded-lg ${
+              isDark ? "bg-neutral-700/50" : "bg-slate-50"
+            }`}
+          >
             <div>
-              <p className="text-sm font-medium text-slate-800">Compact Mode</p>
-              <p className="text-xs text-slate-500 mt-0.5">
+              <p className={`text-sm font-medium ${isDark ? "text-neutral-200" : "text-slate-800"}`}>
+                Compact Mode
+              </p>
+              <p className={`text-xs mt-0.5 ${isDark ? "text-neutral-400" : "text-slate-500"}`}>
                 Reduce spacing and padding for denser layouts
               </p>
             </div>
@@ -521,7 +658,6 @@ export default function Settings() {
       label: "Notifications",
       icon: Bell,
       content: <NotificationsTab />,
-      badge: "3",
     },
     {
       id: "appearance",
