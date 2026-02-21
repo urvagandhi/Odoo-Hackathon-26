@@ -143,16 +143,6 @@ export class FinanceService {
 
     // ── Maintenance Logs ───────────────────────────────────────────
 
-    async listMaintenanceLogs(vehicleId?: bigint) {
-        return prisma.maintenanceLog.findMany({
-            where: {
-                ...(vehicleId ? { vehicleId } : {}),
-            },
-            include: { vehicle: { select: { id: true, licensePlate: true, make: true, model: true } } },
-            orderBy: { serviceDate: 'desc' },
-        });
-    }
-
     async createMaintenanceLog(input: CreateMaintenanceLogInput, actorId: bigint) {
         const vehicle = await prisma.vehicle.findFirst({
             where: { id: BigInt(input.vehicleId), isDeleted: false },

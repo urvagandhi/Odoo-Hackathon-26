@@ -14,7 +14,7 @@ export interface Column<T> {
 
 interface DataTableProps<T> {
   columns: Column<T>[];
-  rows: T[];
+  rows?: T[];
   rowKey: (row: T) => string | number;
   loading?: boolean;
   emptyTitle?: string;
@@ -38,7 +38,7 @@ function SkeletonRow({ cols, isDark }: { cols: number; isDark: boolean }) {
 
 export function DataTable<T>({
   columns,
-  rows,
+  rows = [],
   rowKey,
   loading = false,
   emptyTitle = "No data yet",
