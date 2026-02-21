@@ -1,8 +1,10 @@
 /**
- * CommandCenter — real-data dashboard powered by analyticsApi.getDashboardKPIs().
- * Replaces hardcoded AdminDashboard with live fleet metrics.
+ * CommandCenter — real-data fleet overview dashboard.
+ * KPIs per spec: Active Fleet (on trip), Maintenance Alerts (in shop),
+ *                Utilization Rate, Pending Cargo (DRAFT trips).
+ * Filters: Vehicle Type, Status — both backed by real API data.
  */
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import {
@@ -15,42 +17,33 @@ import {
   Shield,
   ArrowRight,
   RefreshCw,
-  Loader2,
   Gauge,
   Calendar,
   MapPin,
+  Package,
+  ChevronDown,
+  X,
 } from "lucide-react";
 import { useTheme } from "../context/ThemeContext";
 import { useAuth } from "../hooks/useAuth";
-import { analyticsApi } from "../api/client";
+import { analyticsApi, fleetApi, type KpiData } from "../api/client";
 
-/* ── Types matching backend response ──────────────────── */
-interface KPIData {
-  fleet: {
-    total: number;
-    active: number;
-    available: number;
-    onTrip: number;
-    inShop: number;
-    retired: number;
-    utilizationRate: string;
-  };
-  drivers: {
-    total: number;
-    onDuty: number;
-    suspended: number;
-    expiringLicenses: number;
-  };
-  trips: {
-    pending: number;
-    active: number;
-    completedToday: number;
-  };
-  alerts: {
-    maintenanceAlerts: number;
-    expiringLicenses: number;
-    suspendedDrivers: number;
-  };
+/* ── Vehicle Type (from API) ─────────────────────────── */
+interface VehicleType {
+  id: string;
+  name: string;
+}
+
+/* ── Skeleton Card ────────────────────────────────────── */
+function StatCardSkeleton({ isDark }: { isDark: boolean }) {
+  return (
+    <div className={`p-5 rounded-2xl border ${isDark ? "bg-neutral-800 border-neutral-700" : "bg-white border-slate-200"}`}>
+      <div className={`w-10 h-10 rounded-xl mb-3 animate-pulse ${isDark ? "bg-neutral-700" : "bg-slate-200"}`} />
+      <div className={`h-9 w-16 rounded-lg mb-2 animate-pulse ${isDark ? "bg-neutral-700" : "bg-slate-200"}`} />
+      <div className={`h-3.5 w-28 rounded animate-pulse ${isDark ? "bg-neutral-700" : "bg-slate-200"}`} />
+      <div className={`h-3 w-20 rounded mt-1.5 animate-pulse ${isDark ? "bg-neutral-700" : "bg-slate-200"}`} />
+    </div>
+  );
 }
 
 /* ── Stat Card ────────────────────────────────────────── */
@@ -143,7 +136,7 @@ function QuickAction({
       }`}
     >
       <div className={`w-9 h-9 rounded-lg ${color} flex items-center justify-center`}>
-        <Icon className="w-4.5 h-4.5 text-white" />
+        <Icon className="w-4 h-4 text-white" />
       </div>
       <span className={`text-sm font-medium flex-1 ${isDark ? "text-white" : "text-slate-900"}`}>{label}</span>
       <ArrowRight className={`w-4 h-4 transition-transform group-hover:translate-x-1 ${isDark ? "text-neutral-500" : "text-slate-400"}`} />
@@ -152,7 +145,7 @@ function QuickAction({
 }
 
 /* ── Fleet Distribution Bar ───────────────────────────── */
-function FleetBar({ data, isDark }: { data: KPIData["fleet"]; isDark: boolean }) {
+function FleetBar({ data, isDark }: { data: KpiData["fleet"]; isDark: boolean }) {
   const total = data.total || 1;
   const segments = [
     { label: "Available", count: data.available, color: "bg-emerald-500" },
@@ -189,33 +182,114 @@ function FleetBar({ data, isDark }: { data: KPIData["fleet"]; isDark: boolean })
   );
 }
 
+/* ── Filter Select ────────────────────────────────────── */
+function FilterSelect({
+  label,
+  value,
+  onChange,
+  options,
+  isDark,
+}: {
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
+  options: { value: string; label: string }[];
+  isDark: boolean;
+}) {
+  return (
+    <div className="relative">
+      <select
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className={`appearance-none pl-3 pr-8 py-2 rounded-xl border text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-violet-500/40 ${
+          value
+            ? isDark
+              ? "bg-violet-600/20 border-violet-500/50 text-violet-300"
+              : "bg-violet-50 border-violet-300 text-violet-700"
+            : isDark
+            ? "bg-neutral-800 border-neutral-700 text-neutral-300"
+            : "bg-white border-slate-200 text-slate-600"
+        }`}
+      >
+        <option value="">{label}</option>
+        {options.map((o) => (
+          <option key={o.value} value={o.value}>{o.label}</option>
+        ))}
+      </select>
+      <ChevronDown className={`absolute right-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 pointer-events-none ${isDark ? "text-neutral-500" : "text-slate-400"}`} />
+    </div>
+  );
+}
+
 /* ── Main Component ───────────────────────────────────── */
 export default function CommandCenter() {
   const { isDark } = useTheme();
   const { user } = useAuth();
   const navigate = useNavigate();
 
-  const [kpi, setKpi] = useState<KPIData | null>(null);
+  const [kpi, setKpi] = useState<KpiData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  const fetchKPIs = async () => {
+  // Filters state
+  const [vehicleTypes, setVehicleTypes] = useState<VehicleType[]>([]);
+  const [filterType, setFilterType] = useState("");
+  const [filterStatus, setFilterStatus] = useState("");
+  const [filteredCount, setFilteredCount] = useState<number | null>(null);
+  const [filterLoading, setFilterLoading] = useState(false);
+
+  const fetchKPIs = useCallback(async () => {
     setLoading(true);
     setError("");
     try {
-      const res = await analyticsApi.getDashboardKPIs();
-      const body = res.data?.data ?? res.data;
-      setKpi(body as KPIData);
+      const data = await analyticsApi.getKpi();
+      setKpi(data);
     } catch {
       setError("Failed to load dashboard data. Is the backend running?");
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
+  // Fetch KPIs + vehicle types on mount
   useEffect(() => {
     fetchKPIs();
-  }, []);
+    fleetApi.listVehicleTypes()
+      .then((res) => {
+        const body = res.data?.data ?? res.data;
+        if (Array.isArray(body)) {
+          setVehicleTypes(body.map((t: { id: string | number; name: string }) => ({ id: String(t.id), name: t.name })));
+        }
+      })
+      .catch(() => {});
+  }, [fetchKPIs]);
+
+  // Fetch filtered vehicle count when filter changes
+  useEffect(() => {
+    if (!filterType && !filterStatus) {
+      setFilteredCount(null);
+      return;
+    }
+    setFilterLoading(true);
+    const params: Record<string, unknown> = { limit: 1, page: 1 };
+    if (filterType) params.vehicleTypeId = filterType;
+    if (filterStatus) params.status = filterStatus;
+
+    fleetApi.listVehicles(params)
+      .then((res) => {
+        const body = res.data?.data ?? res.data;
+        setFilteredCount(typeof body?.total === "number" ? body.total : null);
+      })
+      .catch(() => setFilteredCount(null))
+      .finally(() => setFilterLoading(false));
+  }, [filterType, filterStatus]);
+
+  const clearFilters = () => {
+    setFilterType("");
+    setFilterStatus("");
+  };
+
+  const hasFilter = Boolean(filterType || filterStatus);
 
   const greeting = (() => {
     const h = new Date().getHours();
@@ -224,12 +298,20 @@ export default function CommandCenter() {
     return "Good evening";
   })();
 
+  // ── Skeleton loading state ────────────────────────────
   if (loading) {
     return (
-      <div className={`min-h-screen flex items-center justify-center ${isDark ? "bg-neutral-900" : "bg-slate-50"}`}>
-        <div className="text-center">
-          <Loader2 className={`w-8 h-8 mx-auto mb-3 animate-spin ${isDark ? "text-violet-400" : "text-violet-600"}`} />
-          <p className={`text-sm ${isDark ? "text-neutral-400" : "text-slate-500"}`}>Loading dashboard...</p>
+      <div className={`min-h-screen p-6 ${isDark ? "bg-neutral-900" : "bg-slate-50"}`}>
+        <div className={`h-8 w-64 rounded-lg mb-2 animate-pulse ${isDark ? "bg-neutral-800" : "bg-slate-200"}`} />
+        <div className={`h-4 w-80 rounded mb-8 animate-pulse ${isDark ? "bg-neutral-800" : "bg-slate-200"}`} />
+        <div className={`h-14 rounded-2xl mb-6 animate-pulse ${isDark ? "bg-neutral-800" : "bg-slate-200"}`} />
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+          {[...Array(4)].map((_, i) => <StatCardSkeleton key={i} isDark={isDark} />)}
+        </div>
+        <div className={`h-52 rounded-2xl animate-pulse mb-6 ${isDark ? "bg-neutral-800" : "bg-slate-200"}`} />
+        <div className="grid grid-cols-2 gap-6">
+          <div className={`h-44 rounded-2xl animate-pulse ${isDark ? "bg-neutral-800" : "bg-slate-200"}`} />
+          <div className={`h-44 rounded-2xl animate-pulse ${isDark ? "bg-neutral-800" : "bg-slate-200"}`} />
         </div>
       </div>
     );
@@ -251,10 +333,17 @@ export default function CommandCenter() {
 
   const totalAlerts = kpi.alerts.maintenanceAlerts + kpi.alerts.expiringLicenses + kpi.alerts.suspendedDrivers;
 
+  const statusOptions = [
+    { value: "AVAILABLE", label: "Available" },
+    { value: "ON_TRIP", label: "On Trip" },
+    { value: "IN_SHOP", label: "In Shop" },
+    { value: "RETIRED", label: "Retired" },
+  ];
+
   return (
     <div className={`min-h-screen p-6 ${isDark ? "bg-neutral-900" : "bg-slate-50"}`}>
       {/* Header */}
-      <div className="flex items-center justify-between mb-8">
+      <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className={`text-2xl font-bold ${isDark ? "text-white" : "text-slate-900"}`}>
             {greeting}, {user?.name?.split(" ")[0] ?? "there"} 👋
@@ -274,26 +363,69 @@ export default function CommandCenter() {
         </button>
       </div>
 
-      {/* KPI Stat Cards */}
+      {/* Filter Bar */}
+      <div className={`flex flex-wrap items-center gap-3 mb-6 p-4 rounded-2xl border ${isDark ? "bg-neutral-800/50 border-neutral-700" : "bg-white border-slate-200"}`}>
+        <span className={`text-xs font-semibold uppercase tracking-wider ${isDark ? "text-neutral-500" : "text-slate-400"}`}>
+          Filter
+        </span>
+        <FilterSelect
+          label="Vehicle Type"
+          value={filterType}
+          onChange={setFilterType}
+          options={vehicleTypes.map((t) => ({ value: t.id, label: t.name }))}
+          isDark={isDark}
+        />
+        <FilterSelect
+          label="Status"
+          value={filterStatus}
+          onChange={setFilterStatus}
+          options={statusOptions}
+          isDark={isDark}
+        />
+        {hasFilter && (
+          <button
+            onClick={clearFilters}
+            className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium transition-colors ${
+              isDark ? "bg-neutral-700 text-neutral-300 hover:bg-neutral-600" : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+            }`}
+          >
+            <X className="w-3 h-3" /> Clear
+          </button>
+        )}
+        {hasFilter && (
+          <span className={`ml-auto text-sm font-medium ${isDark ? "text-violet-400" : "text-violet-600"}`}>
+            {filterLoading
+              ? "Filtering..."
+              : filteredCount !== null
+              ? `${filteredCount} vehicle${filteredCount !== 1 ? "s" : ""} match`
+              : ""}
+          </span>
+        )}
+      </div>
+
+      {/* KPI Stat Cards — matching spec exactly */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        {/* 1. Active Fleet — vehicles currently on trip */}
         <StatCard
           icon={Truck}
           iconBg="bg-violet-600"
           label="Active Fleet"
-          value={kpi.fleet.active}
-          sub={`${kpi.fleet.total} total vehicles`}
+          value={kpi.fleet.onTrip}
+          sub={`${kpi.fleet.available} available · ${kpi.fleet.total} total`}
           isDark={isDark}
           onClick={() => navigate("/fleet/vehicles")}
         />
+        {/* 2. Maintenance Alerts — vehicles in shop */}
         <StatCard
-          icon={Route}
-          iconBg="bg-blue-600"
-          label="Active Trips"
-          value={kpi.trips.active}
-          sub={`${kpi.trips.pending} pending · ${kpi.trips.completedToday} done today`}
+          icon={Wrench}
+          iconBg={kpi.fleet.inShop > 0 ? "bg-amber-600" : "bg-emerald-600"}
+          label="Maintenance Alerts"
+          value={kpi.fleet.inShop}
+          sub={kpi.fleet.inShop > 0 ? "Vehicles in shop" : "All vehicles operational"}
           isDark={isDark}
-          onClick={() => navigate("/dispatch/trips")}
+          onClick={() => navigate("/fleet/maintenance")}
         />
+        {/* 3. Utilization Rate — % of fleet assigned vs idle */}
         <StatCard
           icon={Gauge}
           iconBg="bg-emerald-600"
@@ -302,13 +434,15 @@ export default function CommandCenter() {
           sub={`${kpi.fleet.onTrip} on trip / ${kpi.fleet.total} total`}
           isDark={isDark}
         />
+        {/* 4. Pending Cargo — shipments waiting for assignment (DRAFT trips) */}
         <StatCard
-          icon={AlertTriangle}
-          iconBg={totalAlerts > 0 ? "bg-red-600" : "bg-emerald-600"}
-          label="Active Alerts"
-          value={totalAlerts}
-          sub={totalAlerts > 0 ? "Action required" : "All clear ✅"}
+          icon={Package}
+          iconBg={kpi.trips.pending > 0 ? "bg-blue-600" : "bg-emerald-600"}
+          label="Pending Cargo"
+          value={kpi.trips.pending}
+          sub={`${kpi.trips.active} active · ${kpi.trips.completedToday} done today`}
           isDark={isDark}
+          onClick={() => navigate("/dispatch/trips")}
         />
       </div>
 
@@ -319,9 +453,16 @@ export default function CommandCenter() {
           animate={{ opacity: 1, y: 0 }}
           className={`lg:col-span-2 p-6 rounded-2xl border ${isDark ? "bg-neutral-800 border-neutral-700" : "bg-white border-slate-200"}`}
         >
-          <h3 className={`text-sm font-semibold mb-4 ${isDark ? "text-neutral-300" : "text-slate-700"}`}>
-            Fleet Distribution
-          </h3>
+          <div className="flex items-center justify-between mb-4">
+            <h3 className={`text-sm font-semibold ${isDark ? "text-neutral-300" : "text-slate-700"}`}>
+              Fleet Distribution
+            </h3>
+            {hasFilter && filteredCount !== null && (
+              <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${isDark ? "bg-violet-600/20 text-violet-400" : "bg-violet-50 text-violet-600"}`}>
+                {filteredCount} filtered
+              </span>
+            )}
+          </div>
           <FleetBar data={kpi.fleet} isDark={isDark} />
 
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-6">
@@ -347,7 +488,7 @@ export default function CommandCenter() {
           className={`p-6 rounded-2xl border ${isDark ? "bg-neutral-800 border-neutral-700" : "bg-white border-slate-200"}`}
         >
           <h3 className={`text-sm font-semibold mb-4 ${isDark ? "text-neutral-300" : "text-slate-700"}`}>
-            ⚠️ Attention Required
+            Attention Required
           </h3>
           <div className="space-y-2">
             <AlertRow icon={Wrench} color="bg-amber-600" label="Vehicles in maintenance" count={kpi.alerts.maintenanceAlerts} isDark={isDark} />
@@ -355,7 +496,7 @@ export default function CommandCenter() {
             <AlertRow icon={Shield} color="bg-orange-600" label="Suspended drivers" count={kpi.alerts.suspendedDrivers} isDark={isDark} />
             {totalAlerts === 0 && (
               <div className={`text-center py-6 ${isDark ? "text-neutral-500" : "text-slate-400"}`}>
-                <p className="text-sm">No active alerts 🎉</p>
+                <p className="text-sm">No active alerts</p>
               </div>
             )}
           </div>
