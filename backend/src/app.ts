@@ -43,6 +43,12 @@ export function createApp(): Application {
     app.use(express.json({ limit: '10mb' }));
     app.use(express.urlencoded({ extended: true }));
 
+    // ── Global BigInt serialization fix ──────────────────────────
+    // Express uses JSON.stringify internally — patch BigInt to serialize as string
+    (BigInt.prototype as unknown as Record<string, unknown>).toJSON = function () {
+        return this.toString();
+    };
+
     // ── Global rate limiter ───────────────────────────────────────
     const limiter = rateLimit({
         windowMs: env.RATE_LIMIT_WINDOW_MS,
@@ -69,7 +75,7 @@ export function createApp(): Application {
     // ── API v1 Routes ─────────────────────────────────────────────
     const v1 = '/api/v1';
     app.use(`${v1}/auth`, authRouter);
-    app.use(`${v1}/fleet`, fleetRouter);
+    app.use(`${v1}/vehicles`, fleetRouter);
     app.use(`${v1}/trips`, dispatchRouter);
     app.use(`${v1}/drivers`, hrRouter);
     app.use(`${v1}/finance`, financeRouter);

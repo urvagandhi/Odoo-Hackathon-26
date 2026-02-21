@@ -225,7 +225,7 @@ export class DispatchService {
 
             // ── DRAFT | DISPATCHED → CANCELLED ─────────────────────────
             if (input.status === 'CANCELLED') {
-                if (![TripStatus.DRAFT, TripStatus.DISPATCHED].includes(trip.status)) {
+                if (trip.status !== TripStatus.DRAFT && trip.status !== TripStatus.DISPATCHED) {
                     throw new ApiError(409, `Cannot CANCEL a trip with status ${trip.status}.`);
                 }
 
