@@ -40,7 +40,7 @@ export class FleetService {
             prisma.vehicle.count({ where }),
         ]);
 
-        return { vehicles, total, page, limit, totalPages: Math.ceil(total / limit) };
+        return { data: vehicles, total, page, limit, totalPages: Math.ceil(total / limit) };
     }
 
     async getVehicleById(id: bigint) {
@@ -120,6 +120,7 @@ export class FleetService {
         const updated = await prisma.vehicle.update({
             where: { id },
             data: { status: input.status },
+            include: { vehicleType: true },
         });
 
         await writeAuditLog({
@@ -145,6 +146,7 @@ export class FleetService {
         const updated = await prisma.vehicle.update({
             where: { id },
             data: { isDeleted: true, deletedAt: new Date() },
+            include: { vehicleType: true },
         });
 
         await writeAuditLog({

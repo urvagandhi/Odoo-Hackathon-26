@@ -1,6 +1,6 @@
 /**
  * Settings page — multi-tab settings using SettingsLayout.
- * UI-only with local state, no API calls.
+ * Account shows real user data. Security wired to change-password API.
  */
 import { useState } from "react";
 import {
@@ -18,6 +18,8 @@ import {
 } from "lucide-react";
 import { SettingsLayout, type SettingsTab } from "../layouts/SettingsLayout";
 import { SectionCard } from "../components/ui/SectionCard";
+import { useAuth } from "../context/AuthContext";
+import { authApi } from "../api/client";
 
 /* ────────────────────────────────────────────────────────
    Toggle switch
@@ -74,13 +76,15 @@ const labelCls = "block text-sm font-medium text-slate-700 mb-1.5";
    ──────────────────────────────────────────────────────── */
 
 function AccountTab() {
+  const { user } = useAuth();
+  const nameParts = (user?.fullName ?? "").split(" ");
   const [form, setForm] = useState({
-    firstName: "Urva",
-    lastName: "Gandhi",
-    email: "urva.gandhi@example.com",
-    bio: "Full-stack developer who loves building beautiful UIs and scalable backends.",
-    phone: "+91 98765 43210",
-    location: "Ahmedabad, India",
+    firstName: nameParts[0] ?? "",
+    lastName: nameParts.slice(1).join(" ") ?? "",
+    email: user?.email ?? "",
+    bio: "",
+    phone: "",
+    location: "",
   });
 
   const set = (k: keyof typeof form) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
@@ -194,10 +198,40 @@ function AccountTab() {
 
 function SecurityTab() {
   const [show, setShow] = useState({ current: false, new: false, confirm: false });
+  const [passwords, setPasswords] = useState({ current: "", new: "", confirm: "" });
+  const [saving, setSaving] = useState(false);
+  const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
   const [twoFA, setTwoFA] = useState(false);
   const [sessions, setSessions] = useState(true);
 
   const toggle = (k: keyof typeof show) => () => setShow((p) => ({ ...p, [k]: !p[k] }));
+
+  const handleChangePassword = async () => {
+    setMessage(null);
+    if (!passwords.current || !passwords.new) {
+      setMessage({ type: "error", text: "Please fill in both password fields." });
+      return;
+    }
+    if (passwords.new !== passwords.confirm) {
+      setMessage({ type: "error", text: "New passwords do not match." });
+      return;
+    }
+    if (passwords.new.length < 8) {
+      setMessage({ type: "error", text: "New password must be at least 8 characters." });
+      return;
+    }
+    setSaving(true);
+    try {
+      await authApi.changePassword({ currentPassword: passwords.current, newPassword: passwords.new });
+      setMessage({ type: "success", text: "Password changed successfully." });
+      setPasswords({ current: "", new: "", confirm: "" });
+    } catch (err: unknown) {
+      const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message ?? "Failed to change password.";
+      setMessage({ type: "error", text: msg });
+    } finally {
+      setSaving(false);
+    }
+  };
 
   return (
     <div className="space-y-5">
@@ -205,12 +239,17 @@ function SecurityTab() {
         title="Change Password"
         description="Update your password regularly for better security"
         action={
-          <button className={btnPrimaryCls}>
+          <button className={btnPrimaryCls} onClick={handleChangePassword} disabled={saving}>
             <Save className="w-4 h-4" />
-            Update
+            {saving ? "Updating..." : "Update"}
           </button>
         }
       >
+        {message && (
+          <div className={`mb-4 p-3 rounded-lg text-sm font-medium ${message.type === "success" ? "bg-emerald-50 text-emerald-700 border border-emerald-200" : "bg-red-50 text-red-700 border border-red-200"}`}>
+            {message.text}
+          </div>
+        )}
         <div className="space-y-4 max-w-md">
           {(
             [
@@ -228,6 +267,8 @@ function SecurityTab() {
                   id={`pwd-${key}`}
                   type={show[key] ? "text" : "password"}
                   placeholder="••••••••"
+                  value={passwords[key]}
+                  onChange={(e) => setPasswords((p) => ({ ...p, [key]: e.target.value }))}
                   className={`${inputCls} pr-10`}
                 />
                 <button

@@ -3,22 +3,22 @@ import { ArrowLeft, Home, Search, AlertCircle } from "lucide-react";
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { NotFoundIllustration } from "../components/feedback/NotFoundIllustration";
-import { useTheme } from "../context/ThemeContext";
 
 export default function NotFound() {
   const navigate = useNavigate();
-  const { isDark } = useTheme();
   const [searchQuery, setSearchQuery] = useState("");
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (searchQuery.trim()) {
+      // Implement search logic or redirect to search page
+      console.log("Searching for:", searchQuery);
       navigate(`/?q=${encodeURIComponent(searchQuery)}`);
     }
   };
 
   return (
-    <div className={`min-h-screen flex items-center justify-center p-6 lg:p-8 overflow-hidden relative ${isDark ? 'bg-neutral-900' : 'bg-slate-50'}`}>
+    <div className="min-h-screen bg-slate-50 flex items-center justify-center p-6 lg:p-8 overflow-hidden relative">
       {/* Background Pattern */}
       <div className="absolute inset-0 z-0 opacity-[0.03] pointer-events-none" 
         style={{
@@ -38,14 +38,14 @@ export default function NotFound() {
         >
           {/* Brand/Logo (Optional context) */}
           <div className="flex items-center justify-center lg:justify-start gap-2 mb-6 opacity-60">
-             <span className={`text-sm font-semibold tracking-wider uppercase ${isDark ? 'text-neutral-400' : 'text-slate-500'}`}>404 Error</span>
+             <span className="text-sm font-semibold tracking-wider uppercase text-slate-500">404 Error</span>
           </div>
 
           <div className="space-y-4">
-            <h1 className={`text-5xl lg:text-7xl font-bold tracking-tight leading-tight ${isDark ? 'text-white' : 'text-slate-900'}`}>
+            <h1 className="text-5xl lg:text-7xl font-bold text-slate-900 tracking-tight leading-tight">
               Page <span className="text-indigo-600 inline-block transform hover:rotate-12 transition-transform duration-300 cursor-default">+</span> not found
             </h1>
-            <p className={`text-lg max-w-md mx-auto lg:mx-0 leading-relaxed ${isDark ? 'text-neutral-400' : 'text-slate-600'}`}>
+            <p className="text-lg text-slate-600 max-w-md mx-auto lg:mx-0 leading-relaxed">
               Oops! The page you're looking for seems to have wandered off. It might have been removed, renamed, or didn't exist in the first place.
             </p>
           </div>
@@ -60,7 +60,7 @@ export default function NotFound() {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search for pages..."
-              className={`block w-full pl-11 pr-4 py-3.5 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all shadow-sm group-hover:shadow-md ${isDark ? 'bg-neutral-800 border-neutral-700 text-white placeholder-neutral-500' : 'bg-white border border-slate-200 text-slate-900 placeholder-slate-400'}`}
+              className="block w-full pl-11 pr-4 py-3.5 bg-white border border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all shadow-sm group-hover:shadow-md"
             />
           </form>
 
@@ -76,7 +76,7 @@ export default function NotFound() {
             
             <button 
               onClick={() => navigate(-1)}
-              className={`w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3.5 font-medium rounded-xl transition-all shadow-sm hover:shadow-md ${isDark ? 'bg-neutral-800 hover:bg-neutral-700 border-neutral-700 text-neutral-300 hover:border-neutral-600' : 'bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 hover:border-slate-300 active:bg-slate-100'}`}
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3.5 bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 font-medium rounded-xl transition-all hover:border-slate-300 shadow-sm hover:shadow-md active:bg-slate-100"
             >
               <ArrowLeft className="w-4 h-4" />
               Go Back
@@ -85,7 +85,7 @@ export default function NotFound() {
             <a 
               href="#" 
               onClick={(e) => { e.preventDefault(); /* Support link logic */ }}
-              className={`w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3.5 font-medium transition-colors ${isDark ? 'text-neutral-400 hover:text-indigo-400' : 'text-slate-600 hover:text-indigo-600'}`}
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3.5 text-slate-600 hover:text-indigo-600 font-medium transition-colors"
             >
               <AlertCircle className="w-4 h-4" />
               Help Center
@@ -93,7 +93,7 @@ export default function NotFound() {
           </div>
           
           {/* Footer / Copyright */}
-          <div className={`pt-12 text-sm ${isDark ? 'text-neutral-600' : 'text-slate-400'}`}>
+          <div className="pt-12 text-sm text-slate-400">
             © 2026 FleetFlow. All rights reserved.
           </div>
         </motion.div>

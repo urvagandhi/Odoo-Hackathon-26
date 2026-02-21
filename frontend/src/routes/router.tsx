@@ -1,8 +1,10 @@
 /**
- * React Router configuration.
- * Single login page for all roles. Role is determined from the database.
+ * FleetFlow React Router configuration.
+ * Role-aware routes: each role gets redirected to their primary page post-login.
+ * Protected routes require authentication.
  */
 import { createBrowserRouter, Navigate } from "react-router-dom";
+import Layout from "../components/Layout";
 import ProtectedRoute from "../components/ProtectedRoute";
 import Login from "../pages/Login";
 import ForgotPassword from "../pages/ForgotPassword";
@@ -10,83 +12,47 @@ import ResetPassword from "../pages/ResetPassword";
 import NotFound from "../pages/NotFound";
 import Profile from "../pages/Profile";
 import Settings from "../pages/Settings";
-import DashboardShell from "../layouts/DashboardShell";
-import { RoleDashboard, AdminDashboard, DispatcherDashboard, SafetyOfficerDashboard, FinanceDashboard } from "../pages/dashboards";
-import VehicleRegistry from "../pages/VehicleRegistry";
-import DriverManagement from "../pages/DriverManagement";
-import TripDispatcher from "../pages/TripDispatcher";
+import FleetDashboard from "../pages/FleetDashboard";
+import Fleet from "../pages/Fleet";
+import Dispatch from "../pages/Dispatch";
 import Maintenance from "../pages/Maintenance";
-import Expenses from "../pages/Expenses";
-import CommandCenter from "../pages/CommandCenter";
+import FuelExpenses from "../pages/FuelExpenses";
+import Drivers from "../pages/Drivers";
 import Analytics from "../pages/Analytics";
-import Incidents from "../pages/Incidents";
-import DriverPerformance from "../pages/DriverPerformance";
-import FinancialReports from "../pages/FinancialReports";
-import ComingSoon from "../pages/ComingSoon";
 
 export const router = createBrowserRouter([
   // ── Public auth routes ──────────────────────────────────
-  {
-    path: "/login",
-    element: <Login />,
-  },
-  {
-    path: "/forgot-password",
-    element: <ForgotPassword />,
-  },
-  {
-    path: "/reset-password",
-    element: <ResetPassword />,
-  },
+  { path: "/login", element: <Login /> },
+  { path: "/forgot-password", element: <ForgotPassword /> },
+  { path: "/reset-password", element: <ResetPassword /> },
 
-  // ── FleetFlow Dashboard routes (sidebar shell) ──────────
+  // ── Protected app routes ────────────────────────────────
   {
     path: "/",
     element: (
       <ProtectedRoute>
-        <DashboardShell />
+        <Layout />
       </ProtectedRoute>
     ),
     children: [
+      // "/" → redirect to /dashboard
       { index: true, element: <Navigate to="/dashboard" replace /> },
-      { path: "dashboard", element: <RoleDashboard /> },
-      { path: "dashboard/admin", element: <ProtectedRoute roles={["MANAGER"]}><AdminDashboard /></ProtectedRoute> },
-      { path: "dashboard/dispatcher", element: <ProtectedRoute roles={["DISPATCHER", "MANAGER"]}><DispatcherDashboard /></ProtectedRoute> },
-      { path: "dashboard/safety", element: <ProtectedRoute roles={["SAFETY_OFFICER", "MANAGER"]}><SafetyOfficerDashboard /></ProtectedRoute> },
-      { path: "dashboard/finance", element: <ProtectedRoute roles={["FINANCE_ANALYST", "MANAGER"]}><FinanceDashboard /></ProtectedRoute> },
 
-      // ── Domain pages ─────────────────────────────────────
-      { path: "fleet/vehicles", element: <VehicleRegistry /> },
-      { path: "fleet/maintenance", element: <Maintenance /> },
-      { path: "dispatch/trips", element: <TripDispatcher /> },
-      { path: "dispatch/new", element: <TripDispatcher /> },
-      { path: "hr/drivers", element: <DriverManagement /> },
-      { path: "hr/performance", element: <DriverPerformance /> },
-      { path: "finance/fuel", element: <Expenses /> },
-      { path: "finance/expenses", element: <Expenses /> },
-      { path: "finance/ledger", element: <Expenses /> },
-      { path: "finance/reports", element: <FinancialReports /> },
-      { path: "finance/pnl", element: <FinancialReports /> },
-      { path: "finance/cost-analysis", element: <FinancialReports /> },
-      { path: "analytics", element: <Analytics /> },
-      { path: "safety/incidents", element: <Incidents /> },
-      { path: "safety/licenses", element: <ComingSoon /> },
-      { path: "safety/reports", element: <Incidents /> },
-      { path: "notifications", element: <ComingSoon /> },
-      { path: "messages", element: <ComingSoon /> },
-      { path: "activity", element: <ComingSoon /> },
-      { path: "support", element: <ComingSoon /> },
+      // Core FleetFlow pages — role-gated
+      { path: "dashboard", element: <ProtectedRoute roles={["MANAGER", "DISPATCHER", "SAFETY_OFFICER", "FINANCE_ANALYST"]}><FleetDashboard /></ProtectedRoute> },
+      { path: "fleet", element: <ProtectedRoute roles={["MANAGER", "DISPATCHER", "SAFETY_OFFICER"]}><Fleet /></ProtectedRoute> },
+      { path: "dispatch", element: <ProtectedRoute roles={["MANAGER", "DISPATCHER"]}><Dispatch /></ProtectedRoute> },
+      { path: "maintenance", element: <ProtectedRoute roles={["MANAGER", "SAFETY_OFFICER"]}><Maintenance /></ProtectedRoute> },
+      { path: "fuel-expenses", element: <ProtectedRoute roles={["MANAGER", "FINANCE_ANALYST"]}><FuelExpenses /></ProtectedRoute> },
+      { path: "drivers", element: <ProtectedRoute roles={["MANAGER", "SAFETY_OFFICER"]}><Drivers /></ProtectedRoute> },
+      { path: "analytics", element: <ProtectedRoute roles={["MANAGER", "FINANCE_ANALYST"]}><Analytics /></ProtectedRoute> },
 
-      // ── Utility pages ────────────────────────────────────
-      { path: "settings", element: <Settings /> },
-      { path: "settings/general", element: <Settings /> },
+      // User account pages
       { path: "profile", element: <Profile /> },
+      { path: "settings", element: <Settings /> },
     ],
   },
 
-  // ── Catch-all ────────────────────────────────────────────
-  {
-    path: "*",
-    element: <NotFound />,
-  },
+  // ── Catch-all ───────────────────────────────────────────
+  { path: "*", element: <NotFound /> },
 ]);
