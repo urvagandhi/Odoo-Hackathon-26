@@ -7,6 +7,9 @@ import {
     UpdateTripInput,
     TripStatusUpdateInput,
     TripQueryInput,
+    CreateWaypointInput,
+    WaypointArrivalInput,
+    WaypointDepartureInput,
 } from './dispatch.validator';
 
 const INCLUDE_FULL = {
@@ -261,6 +264,102 @@ export class DispatchService {
 
             throw new ApiError(400, 'Invalid status transition.');
         });
+    }
+
+    // ── Waypoints ─────────────────────────────────────────────────
+
+    async listWaypoints(tripId: bigint) {
+        await this.getTripById(tripId); // existence check
+        return prisma.tripWaypoint.findMany({
+            where: { tripId },
+            orderBy: { sequence: 'asc' },
+        });
+    }
+
+    async addWaypoint(tripId: bigint, input: CreateWaypointInput, actorId: bigint) {
+        const trip = await this.getTripById(tripId);
+
+        // Only allow adding waypoints to DRAFT or DISPATCHED trips
+        if (trip.status === 'COMPLETED' || trip.status === 'CANCELLED') {
+            throw new ApiError(409, `Cannot add waypoints to a ${trip.status} trip.`);
+        }
+
+        // Sequence must be unique within the trip
+        const existing = await prisma.tripWaypoint.findUnique({
+            where: { tripId_sequence: { tripId, sequence: input.sequence } },
+        });
+        if (existing) {
+            throw new ApiError(409, `A waypoint with sequence ${input.sequence} already exists for this trip.`);
+        }
+
+        const waypoint = await prisma.tripWaypoint.create({
+            data: {
+                tripId,
+                sequence: input.sequence,
+                location: input.location,
+                latitude: input.latitude,
+                longitude: input.longitude,
+                notes: input.notes,
+                scheduledAt: input.scheduledAt ? new Date(input.scheduledAt) : undefined,
+            },
+        });
+
+        await writeAuditLog({
+            userId: actorId,
+            entity: 'TripWaypoint',
+            entityId: waypoint.id,
+            action: 'CREATE',
+            newValues: serializeForAudit(waypoint),
+        });
+
+        return waypoint;
+    }
+
+    async markWaypointArrived(tripId: bigint, sequence: number, input: WaypointArrivalInput, actorId: bigint) {
+        const waypoint = await prisma.tripWaypoint.findUnique({
+            where: { tripId_sequence: { tripId, sequence } },
+        });
+        if (!waypoint) throw new ApiError(404, `Waypoint sequence ${sequence} not found for trip #${tripId}.`);
+        if (waypoint.arrivedAt) throw new ApiError(409, 'Waypoint already marked as arrived.');
+
+        const updated = await prisma.tripWaypoint.update({
+            where: { tripId_sequence: { tripId, sequence } },
+            data: { arrivedAt: input.arrivedAt ? new Date(input.arrivedAt) : new Date() },
+        });
+
+        await writeAuditLog({
+            userId: actorId,
+            entity: 'TripWaypoint',
+            entityId: waypoint.id,
+            action: 'UPDATE',
+            newValues: { arrivedAt: updated.arrivedAt },
+        });
+
+        return updated;
+    }
+
+    async markWaypointDeparted(tripId: bigint, sequence: number, input: WaypointDepartureInput, actorId: bigint) {
+        const waypoint = await prisma.tripWaypoint.findUnique({
+            where: { tripId_sequence: { tripId, sequence } },
+        });
+        if (!waypoint) throw new ApiError(404, `Waypoint sequence ${sequence} not found for trip #${tripId}.`);
+        if (!waypoint.arrivedAt) throw new ApiError(409, 'Cannot depart a waypoint that has not been arrived at.');
+        if (waypoint.departedAt) throw new ApiError(409, 'Waypoint already marked as departed.');
+
+        const updated = await prisma.tripWaypoint.update({
+            where: { tripId_sequence: { tripId, sequence } },
+            data: { departedAt: input.departedAt ? new Date(input.departedAt) : new Date() },
+        });
+
+        await writeAuditLog({
+            userId: actorId,
+            entity: 'TripWaypoint',
+            entityId: waypoint.id,
+            action: 'UPDATE',
+            newValues: { departedAt: updated.departedAt },
+        });
+
+        return updated;
     }
 
     // Aggregated financial ledger for a trip

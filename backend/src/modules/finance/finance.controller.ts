@@ -48,6 +48,16 @@ export class FinanceController {
             res.status(201).json({ success: true, data: log });
         } catch (err) { next(err); }
     }
+
+    async closeMaintenanceLog(req: Request, res: Response, next: NextFunction): Promise<void> {
+        try {
+            const result = await financeService.closeMaintenanceLog(
+                BigInt(req.params.id),
+                BigInt(req.user!.sub),
+            );
+            res.json({ success: true, data: result });
+        } catch (err) { next(err); }
+    }
 }
 
 export const financeController = new FinanceController();
