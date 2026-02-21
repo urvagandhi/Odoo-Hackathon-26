@@ -5,7 +5,7 @@
 //          dashboard-level analytic queries and dispatch operations.
 //  DB conventions (per db-architecture-agent):
 //    • All PK/FK BigInts use @db.BigInt
-//    • Every field has @map("snake_case") to decouple Prisma names
+//    • Every field has to decouple Prisma names
 //      from PostgreSQL column names — enabling idiomatic TS API while
 //      keeping a clean snake_case schema in the database.
 //    • Timestamptz used throughout for timezone-aware storage
@@ -129,17 +129,17 @@ enum AuditAction {
 model User {
   id                 BigInt    @id @default(autoincrement()) @db.BigInt
   email              String    @unique
-  passwordHash       String    @map("password_hash")              // bcryptjs hash, min 60 chars
-  fullName           String    @map("full_name")
+  passwordHash       String                 // bcryptjs hash, min 60 chars
+  fullName           String   
   role               UserRole  @default(DISPATCHER)
-  isActive           Boolean   @default(true) @map("is_active")
+  isActive           Boolean   @default(true)
 
   // Password reset — token stored hashed, expires in 15 min
-  resetToken         String?   @map("reset_token")
-  resetTokenExpiry   DateTime? @db.Timestamptz() @map("reset_token_expiry")
+  resetToken         String?  
+  resetTokenExpiry   DateTime? @db.Timestamptz()
 
-  createdAt          DateTime  @default(now()) @db.Timestamptz() @map("created_at")
-  updatedAt          DateTime  @updatedAt @db.Timestamptz() @map("updated_at")
+  createdAt          DateTime  @default(now()) @db.Timestamptz()
+  updatedAt          DateTime  @updatedAt @db.Timestamptz()
 
   // Relations
   auditLogs     AuditLog[]
@@ -161,8 +161,8 @@ model VehicleTypeRecord {
   id          BigInt      @id @default(autoincrement()) @db.BigInt
   name        VehicleType @unique
   description String?
-  createdAt   DateTime    @default(now()) @db.Timestamptz() @map("created_at")
-  updatedAt   DateTime    @updatedAt @db.Timestamptz() @map("updated_at")
+  createdAt   DateTime    @default(now()) @db.Timestamptz()
+  updatedAt   DateTime    @updatedAt @db.Timestamptz()
 
   // Relations
   vehicles    Vehicle[]
@@ -178,33 +178,33 @@ model VehicleTypeRecord {
 
 model Vehicle {
   id               BigInt        @id @default(autoincrement()) @db.BigInt
-  licensePlate     String        @unique @map("license_plate")
+  licensePlate     String        @unique
   make             String        // e.g. "Peterbilt"
   model            String        // e.g. "579"
   year             Int
   color            String?
-  vin              String?       @unique @map("vin") // Vehicle Identification Number
+  vin              String?       @unique // Vehicle Identification Number
 
   // Type (FK to VehicleTypeRecord lookup)
-  vehicleTypeId    BigInt        @db.BigInt @map("vehicle_type_id")
+  vehicleTypeId    BigInt        @db.BigInt
   vehicleType      VehicleTypeRecord @relation(fields: [vehicleTypeId], references: [id], onDelete: Restrict)
 
   // Operational state
   status           VehicleStatus @default(AVAILABLE)
 
   // Odometer (km) — monotonically increasing, fraud-guarded in service layer
-  currentOdometer  Decimal       @default(0) @db.Decimal(15, 2) @map("current_odometer")
+  currentOdometer  Decimal       @default(0) @db.Decimal(15, 2)
 
   // Capacity specs (set per deployment)
-  capacityWeight   Decimal?      @db.Decimal(10, 2) @map("capacity_weight") // kg or tons
-  capacityVolume   Decimal?      @db.Decimal(10, 2) @map("capacity_volume") // m³ or cubic ft
+  capacityWeight   Decimal?      @db.Decimal(10, 2) // kg or tons
+  capacityVolume   Decimal?      @db.Decimal(10, 2) // m³ or cubic ft
 
   // Soft delete — preserves referential integrity for historical trips
-  isDeleted        Boolean       @default(false) @map("is_deleted")
-  deletedAt        DateTime?     @db.Timestamptz() @map("deleted_at")
+  isDeleted        Boolean       @default(false)
+  deletedAt        DateTime?     @db.Timestamptz()
 
-  createdAt        DateTime      @default(now()) @db.Timestamptz() @map("created_at")
-  updatedAt        DateTime      @updatedAt @db.Timestamptz() @map("updated_at")
+  createdAt        DateTime      @default(now()) @db.Timestamptz()
+  updatedAt        DateTime      @updatedAt @db.Timestamptz()
 
   // Relations (Restrict prevents orphaning historical data)
   trips            Trip[]            @relation("VehicleTrips")
@@ -231,32 +231,32 @@ model Vehicle {
 
 model Driver {
   id                BigInt        @id @default(autoincrement()) @db.BigInt
-  licenseNumber     String        @unique @map("license_number")
-  fullName          String        @map("full_name")
+  licenseNumber     String        @unique
+  fullName          String       
   phone             String?
   email             String?       @unique
-  dateOfBirth       DateTime?     @db.Date @map("date_of_birth")
+  dateOfBirth       DateTime?     @db.Date
 
   // License & compliance
-  licenseExpiryDate DateTime      @db.Date @map("license_expiry_date")
-  licenseClass      String?       @map("license_class") // e.g. "CDL-A", "B2"
+  licenseExpiryDate DateTime      @db.Date
+  licenseClass      String?       // e.g. "CDL-A", "B2"
 
   // Operational state
   status            DriverStatus  @default(OFF_DUTY)
 
   // Safety scoring — starts at 100, decremented by Safety Officer
-  safetyScore       Decimal       @default(100) @db.Decimal(5, 2) @map("safety_score")
+  safetyScore       Decimal       @default(100) @db.Decimal(5, 2)
 
   // Optional link to a system User account (for driver self-service login)
-  userId            BigInt?       @unique @db.BigInt @map("user_id")
+  userId            BigInt?       @unique @db.BigInt
   userAccount       User?         @relation("DriverUserAccount", fields: [userId], references: [id], onDelete: SetNull)
 
   // Soft delete — preserves historical trip assignments
-  isDeleted         Boolean       @default(false) @map("is_deleted")
-  deletedAt         DateTime?     @db.Timestamptz() @map("deleted_at")
+  isDeleted         Boolean       @default(false)
+  deletedAt         DateTime?     @db.Timestamptz()
 
-  createdAt         DateTime      @default(now()) @db.Timestamptz() @map("created_at")
-  updatedAt         DateTime      @updatedAt @db.Timestamptz() @map("updated_at")
+  createdAt         DateTime      @default(now()) @db.Timestamptz()
+  updatedAt         DateTime      @updatedAt @db.Timestamptz()
 
   // Relations
   trips             Trip[]        @relation("DriverTrips")
@@ -281,43 +281,43 @@ model Trip {
   id                BigInt     @id @default(autoincrement()) @db.BigInt
 
   // Asset assignments (Restrict — can't delete vehicle/driver with trips)
-  vehicleId         BigInt     @db.BigInt @map("vehicle_id")
+  vehicleId         BigInt     @db.BigInt
   vehicle           Vehicle    @relation("VehicleTrips", fields: [vehicleId], references: [id], onDelete: Restrict)
 
-  driverId          BigInt     @db.BigInt @map("driver_id")
+  driverId          BigInt     @db.BigInt
   driver            Driver     @relation("DriverTrips", fields: [driverId], references: [id], onDelete: Restrict)
 
   // Route information
   origin            String
   destination       String
-  distanceEstimated Decimal    @db.Decimal(10, 2) @map("distance_estimated")   // km
-  distanceActual    Decimal?   @db.Decimal(10, 2) @map("distance_actual")      // km — filled on COMPLETED
+  distanceEstimated Decimal    @db.Decimal(10, 2)   // km
+  distanceActual    Decimal?   @db.Decimal(10, 2)      // km — filled on COMPLETED
 
   // Cargo
-  cargoWeight       Decimal?   @db.Decimal(10, 2) @map("cargo_weight")         // kg — validated against vehicle capacity
-  cargoDescription  String?    @map("cargo_description")
+  cargoWeight       Decimal?   @db.Decimal(10, 2)         // kg — validated against vehicle capacity
+  cargoDescription  String?   
 
   // Odometer snapshot at dispatch and completion
-  odometerStart     Decimal?   @db.Decimal(15, 2) @map("odometer_start")
-  odometerEnd       Decimal?   @db.Decimal(15, 2) @map("odometer_end")
+  odometerStart     Decimal?   @db.Decimal(15, 2)
+  odometerEnd       Decimal?   @db.Decimal(15, 2)
 
   // Financial
   revenue           Decimal?   @db.Decimal(15, 2)                              // Gross revenue for this trip
-  clientName        String?    @map("client_name")
-  invoiceReference  String?    @unique @map("invoice_reference")               // Unique per invoice
+  clientName        String?   
+  invoiceReference  String?    @unique               // Unique per invoice
 
   // State machine
   status            TripStatus @default(DRAFT)
 
   // Timestamps for state transitions
-  dispatchTime      DateTime?  @db.Timestamptz() @map("dispatch_time")           // Set when → DISPATCHED
-  completionTime    DateTime?  @db.Timestamptz() @map("completion_time")         // Set when → COMPLETED
+  dispatchTime      DateTime?  @db.Timestamptz()           // Set when → DISPATCHED
+  completionTime    DateTime?  @db.Timestamptz()         // Set when → COMPLETED
 
   // Optional cancellation tracking
-  cancelledReason   String?    @map("cancelled_reason")
+  cancelledReason   String?   
 
-  createdAt         DateTime   @default(now()) @db.Timestamptz() @map("created_at")
-  updatedAt         DateTime   @updatedAt @db.Timestamptz() @map("updated_at")
+  createdAt         DateTime   @default(now()) @db.Timestamptz()
+  updatedAt         DateTime   @updatedAt @db.Timestamptz()
 
   // Child financial records (Cascade — trip owns their logs)
   fuelLogs          FuelLog[]       @relation("TripFuelLogs")
@@ -345,25 +345,25 @@ model FuelLog {
   id             BigInt   @id @default(autoincrement()) @db.BigInt
 
   // Always linked to a vehicle
-  vehicleId      BigInt   @db.BigInt @map("vehicle_id")
+  vehicleId      BigInt   @db.BigInt
   vehicle        Vehicle  @relation("VehicleFuelLogs", fields: [vehicleId], references: [id], onDelete: Restrict)
 
   // Optionally linked to the active trip at time of fill
-  tripId         BigInt?  @db.BigInt @map("trip_id")
+  tripId         BigInt?  @db.BigInt
   trip           Trip?    @relation("TripFuelLogs", fields: [tripId], references: [id], onDelete: SetNull)
 
   // Fill details
   liters         Decimal  @db.Decimal(10, 2)             // > 0
-  costPerLiter   Decimal  @db.Decimal(10, 4) @map("cost_per_liter") // > 0, 4dp for precision
-  totalCost      Decimal  @db.Decimal(15, 2) @map("total_cost")     // = liters * cost_per_liter
+  costPerLiter   Decimal  @db.Decimal(10, 4) // > 0, 4dp for precision
+  totalCost      Decimal  @db.Decimal(15, 2)     // = liters * cost_per_liter
 
   // Odometer at time of fill — monotonically increasing, fraud detection
-  odometerAtFill Decimal  @db.Decimal(15, 2) @map("odometer_at_fill")
+  odometerAtFill Decimal  @db.Decimal(15, 2)
 
-  fuelStation    String?  @map("fuel_station")  // Station name / location
-  loggedAt       DateTime @default(now()) @db.Timestamptz() @map("logged_at")
-  createdAt      DateTime @default(now()) @db.Timestamptz() @map("created_at")
-  updatedAt      DateTime @updatedAt @db.Timestamptz() @map("updated_at")
+  fuelStation    String?   // Station name / location
+  loggedAt       DateTime @default(now()) @db.Timestamptz()
+  createdAt      DateTime @default(now()) @db.Timestamptz()
+  updatedAt      DateTime @updatedAt @db.Timestamptz()
 
   @@index([vehicleId])
   @@index([tripId])
@@ -380,23 +380,23 @@ model FuelLog {
 model MaintenanceLog {
   id                BigInt   @id @default(autoincrement()) @db.BigInt
 
-  vehicleId         BigInt   @db.BigInt @map("vehicle_id")
+  vehicleId         BigInt   @db.BigInt
   vehicle           Vehicle  @relation("VehicleMaintenanceLogs", fields: [vehicleId], references: [id], onDelete: Restrict)
 
-  serviceType       String   @map("service_type") // e.g. "OIL_CHANGE", "BRAKE_INSPECTION"
+  serviceType       String   // e.g. "OIL_CHANGE", "BRAKE_INSPECTION"
   description       String?  @db.Text
   cost              Decimal  @db.Decimal(15, 2)   // >= 0
-  odometerAtService Decimal  @db.Decimal(15, 2) @map("odometer_at_service") // >= vehicle.current_odometer
+  odometerAtService Decimal  @db.Decimal(15, 2) // >= vehicle.current_odometer
 
   // Technician / shop details
-  technicianName    String?  @map("technician_name")
-  shopName          String?  @map("shop_name")
+  technicianName    String? 
+  shopName          String? 
 
   // Temporal
-  serviceDate       DateTime  @db.Timestamptz() @map("service_date")
-  nextServiceDue    DateTime? @db.Timestamptz() @map("next_service_due") // Optional — schedule next service
-  createdAt         DateTime  @default(now()) @db.Timestamptz() @map("created_at")
-  updatedAt         DateTime  @updatedAt @db.Timestamptz() @map("updated_at")
+  serviceDate       DateTime  @db.Timestamptz()
+  nextServiceDue    DateTime? @db.Timestamptz() // Optional — schedule next service
+  createdAt         DateTime  @default(now()) @db.Timestamptz()
+  updatedAt         DateTime  @updatedAt @db.Timestamptz()
 
   @@index([vehicleId])
   @@index([serviceDate])
@@ -414,11 +414,11 @@ model Expense {
   id             BigInt          @id @default(autoincrement()) @db.BigInt
 
   // Always linked to a vehicle
-  vehicleId      BigInt          @db.BigInt @map("vehicle_id")
+  vehicleId      BigInt          @db.BigInt
   vehicle        Vehicle         @relation("VehicleExpenses", fields: [vehicleId], references: [id], onDelete: Restrict)
 
   // Optionally linked to a specific trip
-  tripId         BigInt?         @db.BigInt @map("trip_id")
+  tripId         BigInt?         @db.BigInt
   trip           Trip?           @relation("TripExpenses", fields: [tripId], references: [id], onDelete: SetNull)
 
   amount         Decimal         @db.Decimal(15, 2)
@@ -426,11 +426,11 @@ model Expense {
   description    String?
 
   // Who logged this (denormalized for audit speed — no join needed)
-  loggedByUserId BigInt?         @db.BigInt @map("logged_by_user_id")
+  loggedByUserId BigInt?         @db.BigInt
 
-  dateLogged     DateTime        @default(now()) @db.Timestamptz() @map("date_logged")
-  createdAt      DateTime        @default(now()) @db.Timestamptz() @map("created_at")
-  updatedAt      DateTime        @updatedAt @db.Timestamptz() @map("updated_at")
+  dateLogged     DateTime        @default(now()) @db.Timestamptz()
+  createdAt      DateTime        @default(now()) @db.Timestamptz()
+  updatedAt      DateTime        @updatedAt @db.Timestamptz()
 
   @@index([vehicleId])
   @@index([tripId])
@@ -450,7 +450,7 @@ model Expense {
 model VehicleLocation {
   id          BigInt   @id @default(autoincrement()) @db.BigInt
 
-  vehicleId   BigInt   @db.BigInt @map("vehicle_id")
+  vehicleId   BigInt   @db.BigInt
   vehicle     Vehicle  @relation("VehicleLocations", fields: [vehicleId], references: [id], onDelete: Cascade)
 
   latitude    Decimal  @db.Decimal(10, 7)   // -90 to +90, 7dp ≈ 1cm precision
@@ -461,7 +461,7 @@ model VehicleLocation {
   heading     Decimal? @db.Decimal(5, 2)    // 0-360 degrees
   accuracy    Decimal? @db.Decimal(6, 2)    // meters
 
-  recordedAt  DateTime @default(now()) @db.Timestamptz() @map("recorded_at")
+  recordedAt  DateTime @default(now()) @db.Timestamptz()
 
   // Primary access pattern: latest ping per vehicle
   @@index([vehicleId, recordedAt(sort: Desc)])
@@ -480,26 +480,26 @@ model AuditLog {
   id         BigInt      @id @default(autoincrement()) @db.BigInt
 
   // Actor — SetNull if user is deactivated (preserves log integrity)
-  userId     BigInt?     @db.BigInt @map("user_id")
+  userId     BigInt?     @db.BigInt
   user       User?       @relation(fields: [userId], references: [id], onDelete: SetNull)
 
   // Target entity information
   entity     String      // e.g. "Trip", "Vehicle", "Driver"
-  entityId   BigInt      @db.BigInt @map("entity_id") // PK of the affected row
+  entityId   BigInt      @db.BigInt // PK of the affected row
 
   // Action type
   action     AuditAction
 
   // Full JSON diffs — null on CREATE (no old) / DELETE (no new)
-  oldValues  Json?       @map("old_values")
-  newValues  Json?       @map("new_values")
+  oldValues  Json?      
+  newValues  Json?      
 
   // Optional reason provided by the actor (required for CANCELLED trips etc.)
   reason     String?     @db.Text
 
   // IP and user agent for security forensics
-  ipAddress  String?     @map("ip_address")
-  userAgent  String?     @map("user_agent")
+  ipAddress  String?    
+  userAgent  String?    
 
   // Immutable timestamp — never has updatedAt
   timestamp  DateTime    @default(now()) @db.Timestamptz()
@@ -523,36 +523,36 @@ model IncidentReport {
   id               BigInt         @id @default(autoincrement()) @db.BigInt
 
   // Involved assets (SetNull — preserve incident record if asset deleted)
-  vehicleId        BigInt?        @db.BigInt @map("vehicle_id")
+  vehicleId        BigInt?        @db.BigInt
   vehicle          Vehicle?       @relation("VehicleIncidents", fields: [vehicleId], references: [id], onDelete: SetNull)
 
-  driverId         BigInt?        @db.BigInt @map("driver_id")
+  driverId         BigInt?        @db.BigInt
   driver           Driver?        @relation("DriverIncidents", fields: [driverId], references: [id], onDelete: SetNull)
 
-  tripId           BigInt?        @db.BigInt @map("trip_id")
+  tripId           BigInt?        @db.BigInt
   trip             Trip?          @relation("TripIncidents", fields: [tripId], references: [id], onDelete: SetNull)
 
   // Incident classification
-  incidentType     IncidentType   @map("incident_type")
+  incidentType     IncidentType  
   title            String
   description      String         @db.Text
-  incidentDate     DateTime       @db.Timestamptz() @map("incident_date")
+  incidentDate     DateTime       @db.Timestamptz()
   location         String?        // Textual location where incident occurred
 
   // Impact assessment
-  injuriesReported Boolean        @default(false) @map("injuries_reported")
-  damageEstimate   Decimal?       @db.Decimal(15, 2) @map("damage_estimate")
+  injuriesReported Boolean        @default(false)
+  damageEstimate   Decimal?       @db.Decimal(15, 2)
 
   // Resolution tracking
   status           IncidentStatus @default(OPEN)
   resolution       String?        @db.Text
-  resolvedAt       DateTime?      @db.Timestamptz() @map("resolved_at")
+  resolvedAt       DateTime?      @db.Timestamptz()
 
   // Who filed the report
-  reportedByUserId BigInt?        @db.BigInt @map("reported_by_user_id")
+  reportedByUserId BigInt?        @db.BigInt
 
-  createdAt        DateTime       @default(now()) @db.Timestamptz() @map("created_at")
-  updatedAt        DateTime       @updatedAt @db.Timestamptz() @map("updated_at")
+  createdAt        DateTime       @default(now()) @db.Timestamptz()
+  updatedAt        DateTime       @updatedAt @db.Timestamptz()
 
   @@index([vehicleId])
   @@index([driverId])
@@ -574,22 +574,22 @@ model IncidentReport {
 model VehicleDocument {
   id             BigInt              @id @default(autoincrement()) @db.BigInt
 
-  vehicleId      BigInt              @db.BigInt @map("vehicle_id")
+  vehicleId      BigInt              @db.BigInt
   vehicle        Vehicle             @relation("VehicleDocuments", fields: [vehicleId], references: [id], onDelete: Restrict)
 
-  documentType   VehicleDocumentType @map("document_type")
-  documentNumber String?             @map("document_number")
-  issuedBy       String?             @map("issued_by")           // e.g. "RTO Mumbai"
-  issuedAt       DateTime?           @db.Date @map("issued_at")
-  expiresAt      DateTime            @db.Date @map("expires_at") // Required — drives expiry alerts
+  documentType   VehicleDocumentType
+  documentNumber String?            
+  issuedBy       String?                       // e.g. "RTO Mumbai"
+  issuedAt       DateTime?           @db.Date
+  expiresAt      DateTime            @db.Date // Required — drives expiry alerts
 
   notes          String?             @db.Text
 
   // isActive=false when document is superseded (new version added)
-  isActive       Boolean             @default(true) @map("is_active")
+  isActive       Boolean             @default(true)
 
-  createdAt      DateTime            @default(now()) @db.Timestamptz() @map("created_at")
-  updatedAt      DateTime            @updatedAt @db.Timestamptz() @map("updated_at")
+  createdAt      DateTime            @default(now()) @db.Timestamptz()
+  updatedAt      DateTime            @updatedAt @db.Timestamptz()
 
   @@index([vehicleId])
   @@index([expiresAt])                    // Cron job scans for upcoming expiry
@@ -609,7 +609,7 @@ model VehicleDocument {
 model TripWaypoint {
   id          BigInt    @id @default(autoincrement()) @db.BigInt
 
-  tripId      BigInt    @db.BigInt @map("trip_id")
+  tripId      BigInt    @db.BigInt
   trip        Trip      @relation("TripWaypoints", fields: [tripId], references: [id], onDelete: Cascade)
 
   sequence    Int       // Stop order: 1, 2, 3 … (must be unique per trip)
@@ -619,12 +619,12 @@ model TripWaypoint {
   notes       String?   @db.Text
 
   // Scheduling and execution timestamps
-  scheduledAt DateTime? @db.Timestamptz() @map("scheduled_at")  // Expected arrival
-  arrivedAt   DateTime? @db.Timestamptz() @map("arrived_at")    // Actual arrival (set in real-time)
-  departedAt  DateTime? @db.Timestamptz() @map("departed_at")   // Actual departure
+  scheduledAt DateTime? @db.Timestamptz()  // Expected arrival
+  arrivedAt   DateTime? @db.Timestamptz()    // Actual arrival (set in real-time)
+  departedAt  DateTime? @db.Timestamptz()   // Actual departure
 
-  createdAt   DateTime  @default(now()) @db.Timestamptz() @map("created_at")
-  updatedAt   DateTime  @updatedAt @db.Timestamptz() @map("updated_at")
+  createdAt   DateTime  @default(now()) @db.Timestamptz()
+  updatedAt   DateTime  @updatedAt @db.Timestamptz()
 
   @@unique([tripId, sequence])   // No duplicate stop numbers within a trip
   @@index([tripId])
