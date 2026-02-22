@@ -18,7 +18,6 @@ import {
 import { analyticsApi, dispatchApi } from "../../api/client";
 import type { DashboardKPIs, MonthlyReport } from "../../api/client";
 import { useTheme } from "../../context/ThemeContext";
-import { LogoIcon } from "../../components/Branding/Logo";
 
 const card = "rounded-3xl border transition-all duration-300 relative overflow-hidden backdrop-blur-xl shrink-0";
 const lightCard = "bg-gradient-to-br from-white via-white to-slate-50/80 border-slate-200/60 shadow-[0_8px_30px_rgb(0,0,0,0.06)] hover:shadow-[0_8px_30px_rgb(0,0,0,0.12)]";
