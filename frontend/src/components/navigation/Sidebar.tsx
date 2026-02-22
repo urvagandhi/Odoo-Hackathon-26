@@ -28,7 +28,7 @@ import {
 } from "lucide-react";
 import { useAuth } from "../../hooks/useAuth";
 import { useTheme } from "../../context/ThemeContext";
-import Logo, { LogoIcon } from "../Branding/Logo";
+import Logo from "../Branding/Logo";
 
 /* ── Types ──────────────────────────────────────────────── */
 interface NavItem {
