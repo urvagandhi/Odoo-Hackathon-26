@@ -5,7 +5,7 @@ dotenv.config();
 
 const EnvSchema = z.object({
     NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
-    PORT: z.coerce.number().default(3001),
+    PORT: z.coerce.number().default(3000),
     DATABASE_URL: z.string().min(1, 'DATABASE_URL is required'),
     JWT_SECRET: z.string().min(32, 'JWT_SECRET must be at least 32 characters'),
     JWT_EXPIRES_IN: z.string().default('7d'),
@@ -14,7 +14,7 @@ const EnvSchema = z.object({
     CORS_ORIGINS: z.string().default('http://localhost:5173'),
     BCRYPT_SALT_ROUNDS: z.coerce.number().default(12),
     RATE_LIMIT_WINDOW_MS: z.coerce.number().default(900_000),
-    RATE_LIMIT_MAX_REQUESTS: z.coerce.number().default(100),
+    RATE_LIMIT_MAX_REQUESTS: z.coerce.number().default(100000),
     // ── SMTP (optional — falls back to Ethereal test account in dev) ──
     SMTP_HOST: z.string().optional(),
     SMTP_PORT: z.coerce.number().default(587),

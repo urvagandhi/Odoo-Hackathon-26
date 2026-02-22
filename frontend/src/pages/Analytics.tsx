@@ -222,7 +222,7 @@ export default function Analytics() {
             <div className="flex items-center justify-between">
                 <div>
                     <h1 className={`text-2xl font-bold ${isDark ? "text-white" : "text-neutral-900"}`}>
-                        Analytics & Reports
+                        Operations Intel
                     </h1>
                     <p className={`text-sm mt-0.5 ${isDark ? "text-neutral-400" : "text-neutral-500"}`}>
                         Financial performance & operational insights — {new Date().getFullYear()}

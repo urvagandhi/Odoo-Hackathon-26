@@ -3,11 +3,10 @@
  * Clean design with light/dark theme support.
  * Role is determined from the database, not from the login portal.
  */
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, useLocation, Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
-  Truck,
   Mail,
   Lock,
   Eye,
@@ -37,6 +36,10 @@ export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [serverError, setServerError] = useState<string | null>(null);
+
+  useEffect(() => {
+    document.title = "FleetFlow | Sign In";
+  }, []);
 
   const validateField = (field: "email" | "password", value: string) => {
     const result = loginSchema.shape[field].safeParse(value);
@@ -126,8 +129,8 @@ export default function Login() {
         <div className="relative z-10 flex flex-col justify-between w-full p-12">
           {/* Logo */}
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-emerald-500 flex items-center justify-center">
-              <Truck className="w-5 h-5 text-white" />
+            <div className="w-10 h-10 rounded-xl bg-white overflow-hidden flex items-center justify-center shadow-lg">
+              <img src="/logo-premium.png" alt="FleetFlow Logo" className="w-full h-full object-cover" />
             </div>
             <span className="text-xl font-bold text-white tracking-tight">FleetFlow</span>
           </div>
@@ -200,8 +203,8 @@ export default function Login() {
         >
           {/* Mobile logo */}
           <div className="lg:hidden flex items-center gap-3 mb-10">
-            <div className="w-10 h-10 rounded-xl bg-emerald-500 flex items-center justify-center">
-              <Truck className="w-5 h-5 text-white" />
+            <div className="w-10 h-10 rounded-xl bg-white overflow-hidden flex items-center justify-center shadow-lg">
+              <img src="/logo-premium.png" alt="FleetFlow Logo" className="w-full h-full object-cover" />
             </div>
             <span
               className={`text-xl font-bold tracking-tight ${isDark ? "text-white" : "text-neutral-900"
@@ -359,8 +362,61 @@ export default function Login() {
             </button>
           </form>
 
+          {/* Quick Access for Testing */}
+          <div className="mt-8 pt-8 border-t border-neutral-200 dark:border-neutral-800">
+            <p className={`text-center text-xs font-bold mb-4 uppercase tracking-widest ${isDark ? "text-neutral-500" : "text-neutral-400"}`}>
+              Quick Access (Testing)
+            </p>
+            <div className="grid grid-cols-2 gap-3">
+              {[
+                { role: "Manager", email: "manager@fleetflow.io" },
+                { role: "Dispatcher", email: "dispatcher@fleetflow.io" },
+                { role: "Safety", email: "safety@fleetflow.io" },
+                { role: "Finance", email: "finance@fleetflow.io" },
+              ].map((item) => (
+                <button
+                  key={item.role}
+                  onClick={async () => {
+                    const credentials = { email: item.email, password: "FleetFlow@2025" };
+                    setForm(credentials);
+                    setLoading(true);
+                    try {
+                      await login(credentials.email, credentials.password);
+                      const roleRedirect: Record<string, string> = {
+                        MANAGER: "/dashboard",
+                        DISPATCHER: "/dispatch",
+                        SAFETY_OFFICER: "/drivers",
+                        FINANCE_ANALYST: "/analytics",
+                      };
+                      // Mocking basic role to path mapping for common name
+                      const mappedRole = item.role === "Safety" ? "SAFETY_OFFICER" : 
+                                       item.role === "Finance" ? "FINANCE_ANALYST" : 
+                                       item.role.toUpperCase();
+                      navigate(roleRedirect[mappedRole] || "/dashboard", { replace: true });
+                    } catch (err: unknown) {
+                      setServerError("Quick login failed.");
+                      setLoading(false);
+                    }
+                  }}
+                  className={`flex flex-col items-center p-2.5 rounded-xl border transition-all ${
+                    isDark
+                      ? "bg-neutral-900 border-neutral-800 hover:border-emerald-500/50 hover:bg-neutral-800/50"
+                      : "bg-white border-neutral-200 hover:border-emerald-500 hover:bg-emerald-50/30 shadow-sm"
+                  }`}
+                >
+                  <span className={`text-[10px] font-bold uppercase tracking-wider ${isDark ? "text-neutral-500" : "text-neutral-400"}`}>
+                    {item.role}
+                  </span>
+                  <span className={`text-xs font-medium mt-0.5 ${isDark ? "text-neutral-300" : "text-neutral-600"}`}>
+                    {item.email.split('@')[0]}
+                  </span>
+                </button>
+              ))}
+            </div>
+          </div>
+
           <p
-            className={`mt-8 text-center text-xs ${isDark ? "text-neutral-600" : "text-neutral-400"
+            className={`mt-6 text-center text-xs ${isDark ? "text-neutral-600" : "text-neutral-400"
               }`}
           >
             Don't have an account? Contact your administrator.

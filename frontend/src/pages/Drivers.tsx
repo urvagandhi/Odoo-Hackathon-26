@@ -206,7 +206,7 @@ export default function Drivers() {
             {/* Header */}
             <div className="flex items-center justify-between">
                 <div>
-                    <h1 className={`text-2xl font-bold ${isDark ? "text-white" : "text-neutral-900"}`}>Driver Profiles</h1>
+                    <h1 className={`text-2xl font-bold ${isDark ? "text-white" : "text-neutral-900"}`}>Crew Records</h1>
                     <p className={`text-sm ${isDark ? "text-neutral-400" : "text-neutral-500"}`}>
                         {totalDrivers} drivers · {onDuty} on duty · {onTrip} on trip
                     </p>

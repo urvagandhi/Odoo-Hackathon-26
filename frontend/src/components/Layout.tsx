@@ -5,7 +5,7 @@
 import { useState, useEffect, useRef } from "react";
 import { Outlet, useLocation, useNavigate, Link } from "react-router-dom";
 import {
-  Truck, LayoutDashboard, Settings, Bell, ChevronDown, LogOut, User,
+  LayoutDashboard, Settings, Bell, ChevronDown, LogOut, User,
   Car, Route, Users, AlertTriangle, Wrench, Sun, Moon,
   BarChart3, Fuel, Shield,
 } from "lucide-react";
@@ -26,14 +26,26 @@ const ROLE_LABELS: Record<string, string> = {
 
 // Nav items with role restrictions (empty = all roles can see)
 const NAV_ITEMS = [
-  { label: "Dashboard", path: "/dashboard", icon: LayoutDashboard, roles: [] },
-  { label: "Fleet", path: "/fleet", icon: Car, roles: ["MANAGER", "DISPATCHER", "SAFETY_OFFICER"] },
-  { label: "Dispatch", path: "/dispatch", icon: Route, roles: ["MANAGER", "DISPATCHER"] },
-  { label: "Maintenance", path: "/maintenance", icon: Wrench, roles: ["MANAGER", "SAFETY_OFFICER"] },
-  { label: "Fuel & Expenses", path: "/fuel-expenses", icon: Fuel, roles: ["MANAGER", "FINANCE_ANALYST"] },
-  { label: "Drivers", path: "/drivers", icon: Users, roles: ["MANAGER", "SAFETY_OFFICER"] },
-  { label: "Analytics", path: "/analytics", icon: BarChart3, roles: ["MANAGER", "FINANCE_ANALYST"] },
+  { label: "Fleet Hub", path: "/dashboard", icon: LayoutDashboard, roles: [] },
+  { label: "Vehicle Registry", path: "/fleet", icon: Car, roles: ["MANAGER", "DISPATCHER", "SAFETY_OFFICER"] },
+  { label: "Dispatch Control", path: "/dispatch", icon: Route, roles: ["MANAGER", "DISPATCHER"] },
+  { label: "Service Station", path: "/maintenance", icon: Wrench, roles: ["MANAGER", "SAFETY_OFFICER"] },
+  { label: "Expense Ledger", path: "/fuel-expenses", icon: Fuel, roles: ["MANAGER", "FINANCE_ANALYST"] },
+  { label: "Crew Gateway", path: "/drivers", icon: Users, roles: ["MANAGER", "SAFETY_OFFICER"] },
+  { label: "Operations Intel", path: "/analytics", icon: BarChart3, roles: ["MANAGER", "FINANCE_ANALYST"] },
 ];
+
+const PAGE_TITLES: Record<string, string> = {
+  "/dashboard": "Fleet Hub",
+  "/fleet": "Vehicle Registry",
+  "/dispatch": "Dispatch Control",
+  "/maintenance": "Service Station",
+  "/fuel-expenses": "Expense Ledger",
+  "/drivers": "Crew Gateway",
+  "/analytics": "Operations Intel",
+  "/profile": "My Profile",
+  "/settings": "System Config",
+};
 
 export default function Layout() {
   const location = useLocation();
@@ -55,9 +67,16 @@ export default function Layout() {
   useEffect(() => {
     const fetchKpis = () => analyticsApi.getDashboardKPIs().then(setKpis).catch(() => { });
     fetchKpis();
-    // Poll every 5s for near real-time KPI updates, or anytime the route changes
-    const interval = setInterval(fetchKpis, 1_000);
+    // Poll every 5s for near real-time KPI updates
+    const interval = setInterval(fetchKpis, 5_000);
     return () => clearInterval(interval);
+  }, []);
+
+  useEffect(() => {
+    const section = PAGE_TITLES[location.pathname] || 
+                   NAV_ITEMS.find(item => location.pathname.startsWith(item.path))?.label ||
+                   "Intelligence in Motion";
+    document.title = `FleetFlow | ${section}`;
   }, [location.pathname]);
 
   const visibleNav = NAV_ITEMS.filter(item =>
@@ -79,10 +98,10 @@ export default function Layout() {
         {/* Logo */}
         <div className="px-5 pt-6 pb-6">
           <Link to="/dashboard" className="flex items-center gap-2.5 group">
-            <div className={`w-9 h-9 rounded-xl flex items-center justify-center shadow-lg transition-transform group-hover:scale-105 ${
-              isDark ? "bg-blue-600 shadow-blue-900/50" : "bg-blue-600 shadow-blue-200"
+            <div className={`w-9 h-9 rounded-xl flex items-center justify-center shadow-lg transition-transform group-hover:scale-105 overflow-hidden ${
+              isDark ? "bg-slate-900 shadow-blue-900/50" : "bg-white shadow-blue-200"
             }`}>
-              <Truck className="w-5 h-5 text-white" />
+              <img src="/logo-premium.png" alt="FleetFlow" className="w-full h-full object-cover" />
             </div>
             <span className={`text-xl font-bold tracking-tight bg-clip-text text-transparent ${
               isDark ? "bg-gradient-to-r from-blue-400 to-teal-400" : "bg-gradient-to-r from-blue-700 to-teal-600"

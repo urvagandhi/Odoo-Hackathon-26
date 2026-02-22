@@ -2,7 +2,6 @@
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import {
-  Truck,
   ShieldAlert,
   Wrench,
   BarChart3,
@@ -81,8 +80,8 @@ export default function Landing() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-20">
             <div className="flex items-center space-x-2">
-              <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/20">
-                <Truck className="w-6 h-6 text-white" />
+              <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/20 overflow-hidden">
+                <img src="/logo-premium.png" alt="FleetFlow" className="w-full h-full object-cover" />
               </div>
               <span className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-teal-400 sm:block hidden">
                 FleetFlow
@@ -437,8 +436,8 @@ export default function Landing() {
           transition={{ duration: 0.6 }}
           className="max-w-4xl mx-auto px-4 text-center relative z-10"
         >
-          <div className="w-20 h-20 mx-auto bg-blue-500 rounded-2xl mb-8 flex items-center justify-center shadow-[0_0_30px_rgba(59,130,246,0.5)] transform -rotate-6">
-            <Truck className="w-10 h-10 text-white transform rotate-6" />
+          <div className="w-20 h-20 mx-auto bg-white rounded-2xl mb-8 flex items-center justify-center shadow-[0_0_30px_rgba(59,130,246,0.5)] transform -rotate-6 overflow-hidden">
+            <img src="/logo-premium.png" alt="FleetFlow" className="w-full h-full object-cover transform rotate-6" />
           </div>
           <h2 className="text-4xl md:text-5xl font-extrabold text-white mb-6">
             Ready to transform your fleet?
@@ -466,8 +465,8 @@ export default function Landing() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className={`flex flex-col md:flex-row justify-between items-center mb-8 pb-8 border-b ${isDark ? "border-slate-900" : "border-slate-300"}`}>
             <div className="flex items-center space-x-2 mb-4 md:mb-0">
-              <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center shadow-sm">
-                <Truck className="w-4 h-4 text-white" />
+              <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center shadow-sm overflow-hidden border border-slate-200">
+                <img src="/logo-premium.png" alt="FleetFlow" className="w-full h-full object-cover" />
               </div>
               <span className={`text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r ${isDark ? "from-slate-100 to-slate-400" : "from-slate-900 to-slate-600"}`}>
                 FleetFlow

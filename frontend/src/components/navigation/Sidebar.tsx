@@ -28,6 +28,7 @@ import {
 } from "lucide-react";
 import { useAuth } from "../../hooks/useAuth";
 import { useTheme } from "../../context/ThemeContext";
+import Logo, { LogoIcon } from "../Branding/Logo";
 
 /* ── Types ──────────────────────────────────────────────── */
 interface NavItem {
@@ -48,19 +49,19 @@ const NAV_SECTIONS: Record<string, NavSection[]> = {
     {
       title: "MAIN MENU",
       items: [
-        { label: "Overview", icon: LayoutDashboard, path: "/dashboard" },
-        { label: "Shipment", icon: Truck, path: "/fleet/vehicles" },
-        { label: "Orders", icon: Route, path: "/dispatch/trips" },
-        { label: "Message", icon: MessageSquare, path: "/messages", badge: 6 },
-        { label: "Activity", icon: Activity, path: "/activity" },
+        { label: "Fleet Hub", icon: LayoutDashboard, path: "/dashboard" },
+        { label: "Vehicle Registry", icon: Truck, path: "/fleet/vehicles" },
+        { label: "Dispatch Control", icon: Route, path: "/dispatch/trips" },
+        { label: "Communications", icon: MessageSquare, path: "/messages", badge: 6 },
+        { label: "Operational Feed", icon: Activity, path: "/activity" },
       ],
     },
     {
       title: "GENERAL",
       items: [
-        { label: "Report", icon: FileText, path: "/finance/reports" },
-        { label: "Support", icon: HelpCircle, path: "/support" },
-        { label: "Account", icon: User, path: "/settings" },
+        { label: "Financial Reports", icon: FileText, path: "/finance/reports" },
+        { label: "Help Center", icon: HelpCircle, path: "/support" },
+        { label: "My Identity", icon: User, path: "/settings" },
       ],
     },
     {
@@ -74,22 +75,22 @@ const NAV_SECTIONS: Record<string, NavSection[]> = {
     {
       title: "MAIN MENU",
       items: [
-        { label: "Dashboard", icon: LayoutDashboard, path: "/dashboard" },
-        { label: "All Trips", icon: Route, path: "/dispatch/trips" },
-        { label: "Create Trip", icon: Route, path: "/dispatch/new" },
+        { label: "Fleet Hub", icon: LayoutDashboard, path: "/dashboard" },
+        { label: "Trip Ledger", icon: Route, path: "/dispatch/trips" },
+        { label: "Initiate Trip", icon: Route, path: "/dispatch/new" },
       ],
     },
     {
       title: "FLEET",
       items: [
-        { label: "Vehicles", icon: Truck, path: "/fleet/vehicles" },
-        { label: "Drivers", icon: Users, path: "/hr/drivers" },
+        { label: "Fleet Catalog", icon: Truck, path: "/fleet/vehicles" },
+        { label: "Crew Records", icon: Users, path: "/hr/drivers" },
       ],
     },
     {
       title: "OTHERS",
       items: [
-        { label: "Notifications", icon: Bell, path: "/notifications" },
+        { label: "Alert Center", icon: Bell, path: "/notifications" },
         { label: "Settings", icon: Settings, path: "/settings" },
       ],
     },
@@ -98,28 +99,28 @@ const NAV_SECTIONS: Record<string, NavSection[]> = {
     {
       title: "MAIN MENU",
       items: [
-        { label: "Dashboard", icon: LayoutDashboard, path: "/dashboard" },
+        { label: "Fleet Hub", icon: LayoutDashboard, path: "/dashboard" },
       ],
     },
     {
       title: "SAFETY",
       items: [
-        { label: "Incidents", icon: AlertTriangle, path: "/safety/incidents" },
-        { label: "Drivers", icon: Users, path: "/hr/drivers" },
-        { label: "Performance", icon: BarChart3, path: "/hr/performance" },
+        { label: "Safety Log", icon: AlertTriangle, path: "/safety/incidents" },
+        { label: "Crew Records", icon: Users, path: "/hr/drivers" },
+        { label: "Crew Scores", icon: BarChart3, path: "/hr/performance" },
       ],
     },
     {
       title: "MAINTENANCE",
       items: [
         { label: "Service Logs", icon: Wrench, path: "/fleet/maintenance" },
-        { label: "Vehicles", icon: Truck, path: "/fleet/vehicles" },
+        { label: "Fleet Catalog", icon: Truck, path: "/fleet/vehicles" },
       ],
     },
     {
       title: "OTHERS",
       items: [
-        { label: "Reports", icon: FileText, path: "/safety/reports" },
+        { label: "Incident Intel", icon: FileText, path: "/safety/reports" },
         { label: "Settings", icon: Settings, path: "/settings" },
       ],
     },
@@ -128,28 +129,28 @@ const NAV_SECTIONS: Record<string, NavSection[]> = {
     {
       title: "MAIN MENU",
       items: [
-        { label: "Dashboard", icon: LayoutDashboard, path: "/dashboard" },
+        { label: "Fleet Hub", icon: LayoutDashboard, path: "/dashboard" },
       ],
     },
     {
       title: "FINANCE",
       items: [
-        { label: "Revenue", icon: DollarSign, path: "/finance/ledger" },
-        { label: "Fuel", icon: Fuel, path: "/finance/fuel" },
-        { label: "P&L", icon: DollarSign, path: "/finance/pnl" },
+        { label: "Revenue Stream", icon: DollarSign, path: "/finance/ledger" },
+        { label: "Fuel Intel", icon: Fuel, path: "/finance/fuel" },
+        { label: "Profit & Loss", icon: DollarSign, path: "/finance/pnl" },
       ],
     },
     {
       title: "REPORTS",
       items: [
-        { label: "Reports", icon: FileText, path: "/finance/reports" },
-        { label: "Cost Analysis", icon: BarChart3, path: "/finance/cost-analysis" },
+        { label: "Financial Reports", icon: FileText, path: "/finance/reports" },
+        { label: "Cost Intel", icon: BarChart3, path: "/finance/cost-analysis" },
       ],
     },
     {
       title: "OTHERS",
       items: [
-        { label: "Analytics", icon: BarChart3, path: "/analytics" },
+        { label: "Operations Intel", icon: BarChart3, path: "/analytics" },
         { label: "Settings", icon: Settings, path: "/settings" },
       ],
     },
@@ -158,14 +159,14 @@ const NAV_SECTIONS: Record<string, NavSection[]> = {
     {
       title: "MAIN MENU",
       items: [
-        { label: "Driver Portal", icon: LayoutDashboard, path: "/driver" },
+        { label: "Crew Gateway", icon: LayoutDashboard, path: "/driver" },
       ],
     },
     {
       title: "GENERAL",
       items: [
-        { label: "Support", icon: HelpCircle, path: "/support" },
-        { label: "Account", icon: User, path: "/settings" },
+        { label: "Help Center", icon: HelpCircle, path: "/support" },
+        { label: "My Identity", icon: User, path: "/settings" },
       ],
     },
   ],
@@ -186,9 +187,7 @@ export default function Sidebar() {
     <aside className={`w-[230px] flex flex-col h-screen shrink-0 border-r ${isDark ? 'bg-neutral-900 border-neutral-800' : 'bg-white border-slate-100'}`}>
       {/* ── Logo ─────────────────────────────────────── */}
       <div className={`flex items-center gap-3 px-5 h-16 shrink-0 border-b ${isDark ? 'border-neutral-800' : 'border-slate-100'}`}>
-        <div className="w-8 h-8 rounded-lg bg-violet-600 flex items-center justify-center shrink-0">
-          <Truck className="w-4.5 h-4.5 text-white" />
-        </div>
+        <Logo size="sm" className="bg-white" />
         <span className={`text-[15px] font-bold tracking-tight whitespace-nowrap ${isDark ? 'text-white' : 'text-slate-900'}`}>
           FleetFlow
         </span>

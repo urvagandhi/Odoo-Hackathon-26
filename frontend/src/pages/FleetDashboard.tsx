@@ -34,6 +34,13 @@ const truckIcon = new L.Icon({
     popupAnchor: [0, -28],
 });
 
+const movingTruckIcon = new L.Icon({
+    iconUrl: "https://cdn-icons-png.flaticon.com/512/2554/2554936.png",
+    iconSize: [36, 36],
+    iconAnchor: [18, 36],
+    popupAnchor: [0, -36],
+});
+
 const COLORS = ["#10b981", "#f59e0b", "#6366f1", "#ef4444"];
 
 // Simulated route: Mumbai → Pune (National Highway 48)
@@ -50,12 +57,6 @@ const MOVING_ROUTE: [number, number][] = [
     [18.5204, 73.8567], // Pune
 ];
 
-const movingTruckIcon = new L.Icon({
-    iconUrl: "https://cdn-icons-png.flaticon.com/512/2554/2554936.png",
-    iconSize: [36, 36],
-    iconAnchor: [18, 36],
-    popupAnchor: [0, -36],
-});
 
 function useMovingVehicle() {
     const [posIndex, setPosIndex] = useState(0);
@@ -95,12 +96,24 @@ export default function FleetDashboard() {
     const fetch = async () => {
         setLoading(true);
         try {
-            const [k, m] = await Promise.all([
-                analyticsApi.getDashboardKPIs(),
-                analyticsApi.getMonthlyReport(new Date().getFullYear()),
-            ]);
-            setKpis(k);
-            setMonthly(m);
+            // First, fetch KPIs which are accessible to all
+            try {
+                const k = await analyticsApi.getDashboardKPIs();
+                setKpis(k);
+            } catch (err) {
+                console.error("Failed to fetch KPIs:", err);
+            }
+
+            // Then, fetch monthly reports (Manager/Finance Analyst only)
+            try {
+                const m = await analyticsApi.getMonthlyReport(new Date().getFullYear());
+                setMonthly(m);
+            } catch (err) {
+                // If this fails (e.g. 403), we just don't show the chart
+                console.warn("Failed to fetch monthly report (likely unauthorized):", err);
+                setMonthly([]);
+            }
+
             // Fetch fleet locations (don't block on it)
             try {
                 const locs = await locationsApi.getLatestLocations() as Array<{ vehicleId: number; latitude: number; longitude: number; speed?: number; vehicle?: { plateNumber?: string } }>;

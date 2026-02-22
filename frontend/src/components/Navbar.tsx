@@ -15,8 +15,8 @@ import {
   LogOut,
   ChevronDown,
   X,
-  Truck,
 } from "lucide-react";
+import Logo from "./Branding/Logo";
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -57,9 +57,7 @@ export default function Navbar({ }: NavbarProps) {
             {/* ── Left: Logo ─────────────── */}
             <div className="flex items-center gap-3 shrink-0">
               <Link to="/" className="flex items-center gap-2.5 group">
-                <div className="w-8 h-8 rounded-lg bg-emerald-600 flex items-center justify-center shadow-sm shadow-emerald-600/20 group-hover:bg-emerald-700 transition-colors duration-200">
-                  <Truck className="w-4 h-4 text-white" />
-                </div>
+                <Logo size="sm" className="bg-white" />
                 <span className={`text-lg font-bold hidden sm:block transition-colors duration-150 ${isDark ? "text-white group-hover:text-emerald-400" : "text-slate-900 group-hover:text-emerald-600"}`}>
                   FleetFlow
                 </span>

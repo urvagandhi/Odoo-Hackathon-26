@@ -55,17 +55,17 @@ export function createApp(): Application {
     };
 
     // ── Global rate limiter ───────────────────────────────────────
-    // const limiter = rateLimit({
-    //     windowMs: env.RATE_LIMIT_WINDOW_MS,
-    //     max: env.RATE_LIMIT_MAX_REQUESTS,
-    //     standardHeaders: true,
-    //     legacyHeaders: false,
-    //     message: {
-    //         success: false,
-    //         message: 'Too many requests — please try again later.',
-    //     },
-    // });
-    // app.use('/api/', limiter);
+    const limiter = rateLimit({
+        windowMs: env.RATE_LIMIT_WINDOW_MS,
+        max: env.RATE_LIMIT_MAX_REQUESTS,
+        standardHeaders: true,
+        legacyHeaders: false,
+        message: {
+            success: false,
+            message: 'Too many requests — please try again later.',
+        },
+    });
+    app.use('/api/', limiter);
 
     // ── Health check (no auth) ────────────────────────────────────
     app.get('/health', (_req: Request, res: Response) => {
