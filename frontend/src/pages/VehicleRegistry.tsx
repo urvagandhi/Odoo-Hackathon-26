@@ -14,15 +14,16 @@ import {
   Edit2,
   Trash2,
   XCircle,
+  Download,
 } from "lucide-react";
 import { useTheme } from "../context/ThemeContext";
 import { useAuth } from "../hooks/useAuth";
-import { fleetApi } from "../api/client";
+import { fleetApi, analyticsApi } from "../api/client";
+import { useToast } from "../hooks/useToast";
 import { StatusPill } from "../components/ui/StatusPill";
 import { VehicleForm } from "../components/forms/VehicleForm";
 import {
   AlertDialog,
-  AlertDialogTrigger,
   AlertDialogContent,
   AlertDialogHeader,
   AlertDialogTitle,
@@ -67,6 +68,7 @@ const STATUS_FILTERS = [
 export default function VehicleRegistry() {
   const { isDark } = useTheme();
   const { user } = useAuth();
+  const toast = useToast();
 
   // Data state
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
@@ -92,6 +94,22 @@ export default function VehicleRegistry() {
   const [actionVehicleId, setActionVehicleId] = useState<string | null>(null);
   const [actionType, setActionType] = useState<"retire" | "delete" | null>(null);
 
+  const handleExport = async () => {
+    try {
+      const csv = await analyticsApi.exportVehiclesCSV();
+      const blob = new Blob([csv], { type: "text/csv" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `fleetflow-vehicles-${new Date().toISOString().split('T')[0]}.csv`;
+      a.click();
+      URL.revokeObjectURL(url);
+      toast.success("Vehicle registry has been exported to CSV.", { title: "Export Successful" });
+    } catch {
+      toast.error("Could not generate vehicle export.", { title: "Export Failed" });
+    }
+  };
+
   const canMutate = user?.role === "MANAGER";
   const canDelete = user?.role === "MANAGER";
 
@@ -113,11 +131,10 @@ export default function VehicleRegistry() {
       if (search) params.search = search;
 
       const res = await fleetApi.listVehicles(params);
-      const body = res.data?.data ?? res.data;
 
-      const vehicleList = (body?.vehicles ?? body ?? []) as Vehicle[];
+      const vehicleList = (res.data ?? []) as unknown as Record<string, unknown>[];
       // Stringify bigint IDs
-      const normalized = vehicleList.map((v: Record<string, unknown>) => ({
+      const normalized = vehicleList.map((v) => ({
         ...v,
         id: String(v.id),
         vehicleTypeId: String(v.vehicleTypeId),
@@ -127,8 +144,8 @@ export default function VehicleRegistry() {
       })) as Vehicle[];
 
       setVehicles(normalized);
-      setTotal(body?.total ?? normalized.length);
-      setTotalPages(body?.totalPages ?? Math.ceil((body?.total ?? normalized.length) / limit));
+      setTotal(res.total ?? normalized.length);
+      setTotalPages(res.totalPages ?? Math.ceil((res.total ?? normalized.length) / limit));
     } catch {
       setVehicles([]);
     } finally {
@@ -149,8 +166,7 @@ export default function VehicleRegistry() {
         const c = { AVAILABLE: 0, ON_TRIP: 0, IN_SHOP: 0, RETIRED: 0 };
         const keys = ["AVAILABLE", "ON_TRIP", "IN_SHOP", "RETIRED"] as const;
         results.forEach((r, i) => {
-          const body = r.data?.data ?? r.data;
-          c[keys[i]] = body?.total ?? 0;
+          c[keys[i]] = r.total ?? 0;
         });
         setCounts(c);
       } catch { /* ignore */ }
@@ -169,7 +185,7 @@ export default function VehicleRegistry() {
   const handleRetire = async () => {
     if (!actionVehicleId) return;
     try {
-      await fleetApi.updateVehicleStatus(actionVehicleId, { status: "RETIRED" });
+      await fleetApi.updateVehicleStatus(actionVehicleId, "RETIRED");
       fetchVehicles();
     } catch { /* handled by interceptor */ }
     setActionVehicleId(null);
@@ -212,15 +228,28 @@ export default function VehicleRegistry() {
           </div>
         </div>
 
-        {canMutate && (
+        <div className="flex items-center gap-2">
           <button
-            onClick={() => { setEditVehicle(null); setFormOpen(true); }}
-            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-violet-600 hover:bg-violet-500 text-white text-sm font-medium transition-colors shadow-lg shadow-violet-500/20"
+            onClick={handleExport}
+            className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border text-sm font-medium transition-colors shadow-sm ${
+              isDark 
+                ? "border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/10" 
+                : "border-emerald-200 text-emerald-600 hover:bg-emerald-50"
+            }`}
           >
-            <Plus className="w-4 h-4" />
-            New Vehicle
+            <Download className="w-4 h-4" />
+            Export CSV
           </button>
-        )}
+          {canMutate && (
+            <button
+              onClick={() => { setEditVehicle(null); setFormOpen(true); }}
+              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-violet-600 hover:bg-violet-500 text-white text-sm font-medium transition-colors shadow-lg shadow-violet-500/20"
+            >
+              <Plus className="w-4 h-4" />
+              New Vehicle
+            </button>
+          )}
+        </div>
       </motion.div>
 
       {/* Status Summary Cards */}
@@ -369,7 +398,6 @@ export default function VehicleRegistry() {
                               if (!open) { setActionType(null); setActionVehicleId(null); }
                             }}
                           >
-                            <AlertDialogTrigger asChild>
                               <button
                                 onClick={() => { setActionVehicleId(v.id); setActionType("retire"); }}
                                 className={`p-1.5 rounded-lg transition-colors ${
@@ -379,7 +407,6 @@ export default function VehicleRegistry() {
                               >
                                 <XCircle className="w-3.5 h-3.5" />
                               </button>
-                            </AlertDialogTrigger>
                             <AlertDialogContent>
                               <AlertDialogHeader>
                                 <AlertDialogTitle>Retire Vehicle?</AlertDialogTitle>
@@ -403,7 +430,6 @@ export default function VehicleRegistry() {
                               if (!open) { setActionType(null); setActionVehicleId(null); }
                             }}
                           >
-                            <AlertDialogTrigger asChild>
                               <button
                                 onClick={() => { setActionVehicleId(v.id); setActionType("delete"); }}
                                 className={`p-1.5 rounded-lg transition-colors ${
@@ -413,7 +439,6 @@ export default function VehicleRegistry() {
                               >
                                 <Trash2 className="w-3.5 h-3.5" />
                               </button>
-                            </AlertDialogTrigger>
                             <AlertDialogContent>
                               <AlertDialogHeader>
                                 <AlertDialogTitle>Delete Vehicle?</AlertDialogTitle>

@@ -6,7 +6,7 @@ import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, BarChart3, Loader2, TrendingUp, TrendingDown, Fuel, Receipt, IndianRupee } from "lucide-react";
 import { useTheme } from "../../context/ThemeContext";
-import { tripsApi } from "../../api/client";
+import { dispatchApi } from "../../api/client";
 
 interface TripLedgerDrawerProps {
   open: boolean;
@@ -55,9 +55,13 @@ export function TripLedgerDrawer({ open, tripId, onClose }: TripLedgerDrawerProp
     setLoading(true);
     setError("");
 
-    tripsApi.getTripLedger(tripId)
-      .then((res) => {
-        const body = res.data?.data ?? res.data;
+    dispatchApi.getTripLedger(tripId)
+      .then((rawRes) => {
+        const body = rawRes as {
+          tripId: string; status: string; revenue: number; fuelCost: number;
+          expenseCost: number; totalCost: number; profit: number; roi: string;
+          fuelLogs: Array<Record<string, unknown>>; expenses: Array<Record<string, unknown>>;
+        };
         setLedger({
           ...body,
           revenue: Number(body.revenue),
@@ -65,17 +69,20 @@ export function TripLedgerDrawer({ open, tripId, onClose }: TripLedgerDrawerProp
           expenseCost: Number(body.expenseCost),
           totalCost: Number(body.totalCost),
           profit: Number(body.profit),
-          fuelLogs: (body.fuelLogs ?? []).map((l: Record<string, unknown>) => ({
-            ...l,
+          fuelLogs: (body.fuelLogs ?? []).map((l) => ({
             id: String(l.id),
             liters: Number(l.liters),
             costPerLiter: Number(l.costPerLiter),
             totalCost: Number(l.totalCost),
+            fuelStation: l.fuelStation as string | undefined,
+            loggedAt: l.loggedAt as string,
           })),
-          expenses: (body.expenses ?? []).map((e: Record<string, unknown>) => ({
-            ...e,
+          expenses: (body.expenses ?? []).map((e) => ({
             id: String(e.id),
             amount: Number(e.amount),
+            category: e.category as string,
+            description: e.description as string | undefined,
+            dateLogged: e.dateLogged as string,
           })),
         });
       })

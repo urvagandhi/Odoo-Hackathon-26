@@ -17,7 +17,6 @@ export default function FuelExpenses() {
     const [vehicles, setVehicles] = useState<Vehicle[]>([]);
     const [fuelLogs, setFuelLogs] = useState<FuelLog[]>([]);
     const [expenses, setExpenses] = useState<Expense[]>([]);
-    const [loading, setLoading] = useState(true);
     const [showModal, setShowModal] = useState(false);
     const [saving, setSaving] = useState(false);
     const [error, setError] = useState("");
@@ -31,7 +30,6 @@ export default function FuelExpenses() {
     });
 
     const load = useCallback(async () => {
-        setLoading(true);
         try {
             const [v, f, e] = await Promise.all([
                 fleetApi.listVehicles({ limit: 100 }),
@@ -39,9 +37,9 @@ export default function FuelExpenses() {
                 financeApi.listExpenses({ vehicleId: vehicleFilter || undefined }),
             ]);
             setVehicles(v.data ?? []);
-            setFuelLogs(f ?? []);
-            setExpenses(e ?? []);
-        } finally { setLoading(false); }
+            setFuelLogs(Array.isArray(f) ? f : []);
+            setExpenses(Array.isArray(e) ? e : []);
+        } catch { /* ignore */ }
     }, [vehicleFilter]);
 
     useEffect(() => { load(); }, [load]);

@@ -6,9 +6,8 @@ import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Wrench, Save, Loader2, AlertTriangle } from "lucide-react";
 import { useTheme } from "../../context/ThemeContext";
-import { fleetApi, financeApi } from "../../api/client";
+import { fleetApi } from "../../api/client";
 import { createMaintenanceSchema, type CreateMaintenanceFormData } from "../../validators/finance";
-import type { ZodError } from "zod";
 
 interface Vehicle {
   id: string;
@@ -66,16 +65,14 @@ export function MaintenanceForm({ open, onClose, onSuccess }: MaintenanceFormPro
     // Load non-retired vehicles
     fleetApi.listVehicles({ limit: 500 })
       .then((res) => {
-        const body = res.data?.data ?? res.data;
-        const list = (body?.vehicles ?? body ?? []) as Vehicle[];
         setVehicles(
-          list
-            .filter((v: Record<string, unknown>) => v.status !== "RETIRED")
-            .map((v: Record<string, unknown>) => ({
+          res.data
+            .filter((v) => v.status !== "RETIRED")
+            .map((v) => ({
               ...v,
               id: String(v.id),
               currentOdometer: Number(v.currentOdometer),
-            })) as Vehicle[]
+            }))
         );
       })
       .catch(() => {})
@@ -95,7 +92,7 @@ export function MaintenanceForm({ open, onClose, onSuccess }: MaintenanceFormPro
     const result = createMaintenanceSchema.safeParse(form);
     if (!result.success) {
       const fieldErrors: Record<string, string> = {};
-      (result.error as ZodError).errors.forEach((err) => {
+      result.error.issues.forEach((err) => {
         const key = err.path[0] as string;
         if (!fieldErrors[key]) fieldErrors[key] = err.message;
       });
@@ -105,8 +102,7 @@ export function MaintenanceForm({ open, onClose, onSuccess }: MaintenanceFormPro
 
     setSubmitting(true);
     try {
-      await financeApi.createMaintenanceLog({
-        vehicleId: Number(result.data.vehicleId),
+      await fleetApi.addMaintenanceLog(result.data.vehicleId, {
         serviceType: result.data.serviceType,
         description: result.data.description || undefined,
         cost: result.data.cost,

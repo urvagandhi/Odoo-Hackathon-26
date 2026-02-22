@@ -76,8 +76,7 @@ export default function Incidents() {
   const canCreate = user?.role === "SAFETY_OFFICER";
   const canClose =
     user?.role === "MANAGER" ||
-    user?.role === "SAFETY_OFFICER" ||
-    user?.role === "SUPER_ADMIN";
+    user?.role === "SAFETY_OFFICER";
 
   /* ── Fetch ────────────────────────────────────────── */
   const fetchIncidents = useCallback(async () => {
@@ -86,10 +85,11 @@ export default function Incidents() {
       const params: Record<string, unknown> = { page, limit };
       if (statusFilter) params.status = statusFilter;
       const res = await incidentsApi.listIncidents(params);
-      const body = res.data?.data ?? res.data;
-      const list = (body?.incidents ?? []) as Incident[];
+      const body = res as Record<string, unknown>;
+      const rawList = Array.isArray(body?.incidents) ? body.incidents : Array.isArray(res) ? res : [];
+      const list = rawList as Record<string, unknown>[];
       setIncidents(
-        list.map((i: Record<string, unknown>) => ({
+        list.map((i) => ({
           ...i,
           id: String(i.id),
           vehicleId: i.vehicleId ? String(i.vehicleId) : undefined,
@@ -113,7 +113,7 @@ export default function Incidents() {
   const handleClose = async () => {
     if (!closeModal || resolution.length < 10) return;
     try {
-      await incidentsApi.closeIncident(closeModal.id, { resolution });
+      await incidentsApi.closeIncident(closeModal.id, resolution);
       setCloseModal(null);
       setResolution("");
       fetchIncidents();

@@ -12,7 +12,6 @@ import {
   type CreateFuelLogFormData,
   type CreateExpenseFormData,
 } from "../../validators/finance";
-import type { ZodError } from "zod";
 
 interface Vehicle {
   id: string;
@@ -74,13 +73,7 @@ export function ExpenseForm({ open, onClose, onSuccess, defaultTab = "fuel" }: E
     fleetApi
       .listVehicles({ limit: 500 })
       .then((res) => {
-        const body = res.data?.data ?? res.data;
-        const list = (body?.vehicles ?? body ?? []) as Vehicle[];
-        setVehicles(
-          list
-            .filter((v: Record<string, unknown>) => v.status !== "RETIRED")
-            .map((v: Record<string, unknown>) => ({ ...v, id: String(v.id) })) as Vehicle[]
-        );
+        setVehicles(res.data.filter((v) => v.status !== "RETIRED").map((v) => ({ ...v, id: String(v.id) })));
       })
       .catch(() => {})
       .finally(() => setLoadingVehicles(false));
@@ -107,7 +100,7 @@ export function ExpenseForm({ open, onClose, onSuccess, defaultTab = "fuel" }: E
       const result = createFuelLogSchema.safeParse(fuelForm);
       if (!result.success) {
         const fieldErrors: Record<string, string> = {};
-        (result.error as ZodError).errors.forEach((err) => {
+        result.error.issues.forEach((err) => {
           const key = err.path[0] as string;
           if (!fieldErrors[key]) fieldErrors[key] = err.message;
         });
@@ -117,8 +110,8 @@ export function ExpenseForm({ open, onClose, onSuccess, defaultTab = "fuel" }: E
       setSubmitting(true);
       try {
         await financeApi.createFuelLog({
-          vehicleId: Number(result.data.vehicleId),
-          tripId: result.data.tripId ? Number(result.data.tripId) : undefined,
+          vehicleId: result.data.vehicleId,
+          tripId: result.data.tripId || undefined,
           liters: result.data.liters,
           costPerLiter: result.data.costPerLiter,
           odometerAtFill: result.data.odometerAtFill,
@@ -136,7 +129,7 @@ export function ExpenseForm({ open, onClose, onSuccess, defaultTab = "fuel" }: E
       const result = createExpenseSchema.safeParse(expForm);
       if (!result.success) {
         const fieldErrors: Record<string, string> = {};
-        (result.error as ZodError).errors.forEach((err) => {
+        result.error.issues.forEach((err) => {
           const key = err.path[0] as string;
           if (!fieldErrors[key]) fieldErrors[key] = err.message;
         });
@@ -146,8 +139,8 @@ export function ExpenseForm({ open, onClose, onSuccess, defaultTab = "fuel" }: E
       setSubmitting(true);
       try {
         await financeApi.createExpense({
-          vehicleId: Number(result.data.vehicleId),
-          tripId: result.data.tripId ? Number(result.data.tripId) : undefined,
+          vehicleId: result.data.vehicleId,
+          tripId: result.data.tripId || undefined,
           amount: result.data.amount,
           category: result.data.category,
           description: result.data.description || undefined,

@@ -6,9 +6,8 @@ import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Users, Save, Loader2 } from "lucide-react";
 import { useTheme } from "../../context/ThemeContext";
-import { driversApi } from "../../api/client";
+import { hrApi } from "../../api/client";
 import { createDriverSchema, type CreateDriverFormData } from "../../validators/driver";
-import type { ZodError } from "zod";
 
 interface DriverFormProps {
   open: boolean;
@@ -77,7 +76,7 @@ export function DriverForm({ open, onClose, onSuccess, editData }: DriverFormPro
     const result = createDriverSchema.safeParse(form);
     if (!result.success) {
       const fieldErrors: Record<string, string> = {};
-      (result.error as ZodError).errors.forEach((err) => {
+      result.error.issues.forEach((err) => {
         const key = err.path[0] as string;
         if (!fieldErrors[key]) fieldErrors[key] = err.message;
       });
@@ -87,21 +86,20 @@ export function DriverForm({ open, onClose, onSuccess, editData }: DriverFormPro
 
     setSubmitting(true);
     try {
-      const payload: Record<string, unknown> = {
-        fullName: result.data.fullName,
-        licenseNumber: result.data.licenseNumber,
-        licenseExpiryDate: result.data.licenseExpiryDate,
+      const typedPayload = {
+        fullName: result.data.fullName as string,
+        licenseNumber: result.data.licenseNumber as string,
+        licenseExpiryDate: result.data.licenseExpiryDate as string,
+        ...(result.data.licenseClass ? { licenseClass: result.data.licenseClass as string } : {}),
+        ...(result.data.phone ? { phone: result.data.phone as string } : {}),
+        ...(result.data.email ? { email: result.data.email as string } : {}),
+        ...(result.data.dateOfBirth ? { dateOfBirth: result.data.dateOfBirth as string } : {}),
       };
 
-      if (result.data.licenseClass) payload.licenseClass = result.data.licenseClass;
-      if (result.data.phone) payload.phone = result.data.phone;
-      if (result.data.email) payload.email = result.data.email;
-      if (result.data.dateOfBirth) payload.dateOfBirth = result.data.dateOfBirth;
-
       if (isEditing && editData) {
-        await driversApi.updateDriver(editData.id, payload);
+        await hrApi.updateDriver(editData.id, typedPayload);
       } else {
-        await driversApi.createDriver(payload);
+        await hrApi.createDriver(typedPayload);
       }
 
       onSuccess();

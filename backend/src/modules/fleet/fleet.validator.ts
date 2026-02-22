@@ -11,6 +11,8 @@ export const CreateVehicleSchema = z.object({
     currentOdometer: z.coerce.number().nonnegative().default(0),
     capacityWeight: z.coerce.number().positive('Capacity must be greater than 0').optional(),
     capacityVolume: z.coerce.number().positive().optional(),
+    region: z.string().max(100).optional(),
+    acquisitionCost: z.coerce.number().nonnegative().optional(),
 });
 
 // licensePlate is the immutable unique key; currentOdometer is monotonically
@@ -27,6 +29,7 @@ export const VehicleStatusUpdateSchema = z.object({
 export const VehicleQuerySchema = z.object({
     status: z.enum(['AVAILABLE', 'ON_TRIP', 'IN_SHOP', 'RETIRED']).optional(),
     vehicleTypeId: z.coerce.number().optional(),
+    region: z.string().trim().optional(),
     search: z.string().trim().optional(),
     page: z.coerce.number().int().positive().default(1),
     limit: z.coerce.number().int().positive().max(100).default(20),

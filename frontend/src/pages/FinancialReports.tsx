@@ -12,7 +12,6 @@ import {
   TrendingDown,
   DollarSign,
   Fuel,
-  BarChart3,
 } from "lucide-react";
 import { useTheme } from "../context/ThemeContext";
 import { analyticsApi } from "../api/client";
@@ -63,21 +62,16 @@ export default function FinancialReports() {
         analyticsApi.getFuelEfficiency(),
         analyticsApi.getVehicleROI(),
       ]);
-      const mBody = mRes.data?.data ?? mRes.data;
-      setMonthly(Array.isArray(mBody) ? mBody : mBody?.months ?? []);
+      setMonthly((Array.isArray(mRes) ? mRes : []) as unknown as MonthRow[]);
 
-      const fBody = fRes.data?.data ?? fRes.data;
+      const fuelList = (Array.isArray(fRes) ? fRes : []) as unknown as Record<string, unknown>[];
       setFuel(
-        (Array.isArray(fBody) ? fBody : fBody?.vehicles ?? []).map(
-          (v: Record<string, unknown>) => ({ ...v, vehicleId: String(v.vehicleId ?? v.id) })
-        ) as FuelEfficiency[]
+        fuelList.map((v) => ({ ...v, vehicleId: String(v.vehicleId ?? v.id) })) as FuelEfficiency[]
       );
 
-      const rBody = rRes.data?.data ?? rRes.data;
+      const roiList = (Array.isArray(rRes) ? rRes : []) as unknown as Record<string, unknown>[];
       setROI(
-        (Array.isArray(rBody) ? rBody : rBody?.vehicles ?? []).map(
-          (v: Record<string, unknown>) => ({ ...v, vehicleId: String(v.vehicleId ?? v.id) })
-        ) as VehicleROI[]
+        roiList.map((v) => ({ ...v, vehicleId: String(v.vehicleId ?? v.id) })) as VehicleROI[]
       );
     } catch {
       /* silently handle */
@@ -93,8 +87,10 @@ export default function FinancialReports() {
   /* ── Export CSV ───────────────────────────────────── */
   const handleExport = async () => {
     try {
-      const res = await analyticsApi.exportCSV({ year });
-      const blob = new Blob([res.data], { type: "text/csv" });
+      const startDate = `${year}-01-01`;
+      const endDate = `${year}-12-31`;
+      const csv = await analyticsApi.exportTripsCSV(startDate, endDate);
+      const blob = new Blob([csv], { type: "text/csv" });
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;

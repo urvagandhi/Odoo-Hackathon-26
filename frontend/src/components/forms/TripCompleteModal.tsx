@@ -5,9 +5,8 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Loader2, CheckCircle2 } from "lucide-react";
 import { useTheme } from "../../context/ThemeContext";
-import { tripsApi } from "../../api/client";
+import { dispatchApi } from "../../api/client";
 import { completeTripSchema } from "../../validators/trip";
-import type { ZodError } from "zod";
 
 interface TripCompleteModalProps {
   open: boolean;
@@ -34,7 +33,7 @@ export function TripCompleteModal({ open, tripId, onClose, onSuccess }: TripComp
     const result = completeTripSchema.safeParse({ distanceActual, odometerEnd: odometerEnd || undefined });
     if (!result.success) {
       const fieldErrors: Record<string, string> = {};
-      (result.error as ZodError).errors.forEach((err) => {
+      result.error.issues.forEach((err) => {
         const key = err.path[0] as string;
         if (!fieldErrors[key]) fieldErrors[key] = err.message;
       });
@@ -45,15 +44,15 @@ export function TripCompleteModal({ open, tripId, onClose, onSuccess }: TripComp
     if (!tripId) return;
     setSubmitting(true);
     try {
-      const payload: Record<string, unknown> = {
+      const payload: { status: "COMPLETED"; distanceActual: number; odometerEnd?: number } = {
         status: "COMPLETED",
         distanceActual: result.data.distanceActual,
       };
-      if (result.data.odometerEnd && result.data.odometerEnd !== "") {
+      if (result.data.odometerEnd != null && result.data.odometerEnd !== 0) {
         payload.odometerEnd = Number(result.data.odometerEnd);
       }
 
-      await tripsApi.transitionTrip(tripId, payload);
+      await dispatchApi.transitionStatus(tripId, payload);
       onSuccess();
       onClose();
       setDistanceActual("");

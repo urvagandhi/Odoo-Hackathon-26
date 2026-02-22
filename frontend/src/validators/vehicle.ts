@@ -17,7 +17,9 @@ export const createVehicleSchema = z.object({
   vehicleTypeId: z.string().min(1, "Vehicle type is required"),
   capacityWeight: z.coerce.number().positive("Capacity must be > 0"),
   capacityVolume: z.coerce.number().nonnegative().optional().or(z.literal("")),
-  currentOdometer: z.coerce.number().nonnegative("Odometer must be ≥ 0").optional(),
+  currentOdometer: z.coerce.number().nonnegative("Odometer must be ≥ 0").optional().or(z.literal("")),
+  region: z.string().max(100, "Region too long").optional().or(z.literal("")),
+  acquisitionCost: z.coerce.number().nonnegative("Cost must be ≥ 0").optional().or(z.literal("")),
 });
 
 export const updateVehicleSchema = createVehicleSchema.partial().omit({ currentOdometer: true });

@@ -39,7 +39,7 @@ export default apiClient;
 //  TYPES
 // ════════════════════════════════════════════════════════════════
 
-export type UserRole = "MANAGER" | "DISPATCHER" | "SAFETY_OFFICER" | "FINANCE_ANALYST";
+export type UserRole = "MANAGER" | "DISPATCHER" | "SAFETY_OFFICER" | "FINANCE_ANALYST" | "DRIVER";
 
 export interface AuthUser {
   id: string;
@@ -70,6 +70,8 @@ export interface Vehicle {
   currentOdometer: number;
   capacityWeight?: number;
   capacityVolume?: number;
+  region?: string;
+  acquisitionCost?: number;
   createdAt: string;
   updatedAt: string;
 }
@@ -211,7 +213,7 @@ export interface VehicleROI {
   expenseCost: number;
   totalCost: number;
   profit: number;
-  profitMargin: string;
+  roi: string;
 }
 
 export interface FuelEfficiency {
@@ -267,11 +269,32 @@ export const authApi = {
 };
 
 // ════════════════════════════════════════════════════════════════
+//  ME API (Driver portal)
+// ════════════════════════════════════════════════════════════════
+export const meApi = {
+  getDriverProfile: async (): Promise<Driver> => {
+    const { data } = await apiClient.get<{ success: boolean; data: Driver }>("/api/v1/me/driver");
+    return data.data;
+  },
+  getMyTrips: async (): Promise<Trip[]> => {
+    const { data } = await apiClient.get<{ success: boolean; data: Trip[] }>("/api/v1/me/trips");
+    return data.data;
+  },
+  updateStatus: async (status: "ON_DUTY" | "OFF_DUTY"): Promise<Driver> => {
+    const { data } = await apiClient.patch<{ success: boolean; data: Driver }>("/api/v1/me/driver/status", { status });
+    return data.data;
+  },
+  postLocation: async (payload: { latitude: number; longitude: number; speed?: number; heading?: number }): Promise<void> => {
+    await apiClient.post("/api/v1/me/location", payload);
+  }
+};
+
+// ════════════════════════════════════════════════════════════════
 //  FLEET API (vehicles)
 // ════════════════════════════════════════════════════════════════
 
 export const fleetApi = {
-  listVehicles: async (params?: { status?: string; vehicleTypeId?: string; page?: number; limit?: number }) => {
+  listVehicles: async (params?: { status?: string; vehicleTypeId?: string; region?: string; page?: number; limit?: number }) => {
     const { data } = await apiClient.get<{ success: boolean; data: PaginatedResponse<Vehicle> }>("/api/v1/vehicles", { params });
     return data.data;
   },
@@ -282,6 +305,7 @@ export const fleetApi = {
   createVehicle: async (payload: {
     licensePlate: string; make: string; model: string; year: number | string; color?: string;
     vin?: string; vehicleTypeId: number | string; capacityWeight?: number | string; capacityVolume?: number | string; currentOdometer?: number | string;
+    region?: string; acquisitionCost?: number | string;
   }) => {
     // Coerce numeric fields — HTML form values are always strings
     const body = {
@@ -291,6 +315,8 @@ export const fleetApi = {
       ...(payload.capacityWeight != null && payload.capacityWeight !== '' ? { capacityWeight: Number(payload.capacityWeight) } : {}),
       ...(payload.capacityVolume != null && payload.capacityVolume !== '' ? { capacityVolume: Number(payload.capacityVolume) } : {}),
       ...(payload.currentOdometer != null && payload.currentOdometer !== '' ? { currentOdometer: Number(payload.currentOdometer) } : {}),
+      ...(payload.acquisitionCost != null && payload.acquisitionCost !== '' ? { acquisitionCost: Number(payload.acquisitionCost) } : {}),
+      ...(payload.region ? { region: payload.region } : {}),
     };
     const { data } = await apiClient.post<{ success: boolean; data: Vehicle }>("/api/v1/vehicles", body);
     return data.data;
@@ -471,8 +497,8 @@ export const financeApi = {
 // ════════════════════════════════════════════════════════════════
 
 export const analyticsApi = {
-  getDashboardKPIs: async (): Promise<DashboardKPIs> => {
-    const { data } = await apiClient.get<{ success: boolean; data: DashboardKPIs }>("/api/v1/analytics/kpi");
+  getDashboardKPIs: async (region?: string): Promise<DashboardKPIs> => {
+    const { data } = await apiClient.get<{ success: boolean; data: DashboardKPIs }>("/api/v1/analytics/kpi", { params: { region } });
     return data.data;
   },
   getFuelEfficiency: async (startDate?: string, endDate?: string): Promise<FuelEfficiency[]> => {
@@ -498,6 +524,45 @@ export const analyticsApi = {
     });
     return data;
   },
+  exportVehiclesCSV: async (): Promise<string> => {
+    const { data } = await apiClient.get<string>("/api/v1/analytics/export/vehicles", {
+      responseType: "text",
+    });
+    return data;
+  },
+  exportDriversCSV: async (): Promise<string> => {
+    const { data } = await apiClient.get<string>("/api/v1/analytics/export/drivers", {
+      responseType: "text",
+    });
+    return data;
+  },
+};
+
+// ════════════════════════════════════════════════════════════════
+//  INCIDENTS API
+// ════════════════════════════════════════════════════════════════
+
+export const incidentsApi = {
+  listIncidents: async (params?: { status?: string; page?: number; limit?: number }) => {
+    const { data } = await apiClient.get<{ success: boolean; data: unknown }>("/api/v1/incidents", { params });
+    return data.data;
+  },
+  getIncidentById: async (id: string) => {
+    const { data } = await apiClient.get<{ success: boolean; data: unknown }>(`/api/v1/incidents/${id}`);
+    return data.data;
+  },
+  createIncident: async (payload: Record<string, unknown>) => {
+    const { data } = await apiClient.post<{ success: boolean; data: unknown }>("/api/v1/incidents", payload);
+    return data.data;
+  },
+  updateIncident: async (id: string, payload: Record<string, unknown>) => {
+    const { data } = await apiClient.patch<{ success: boolean; data: unknown }>(`/api/v1/incidents/${id}`, payload);
+    return data.data;
+  },
+  closeIncident: async (id: string, resolution: string) => {
+    const { data } = await apiClient.patch<{ success: boolean; data: unknown }>(`/api/v1/incidents/${id}/close`, { resolution });
+    return data.data;
+  },
 };
 
 // ════════════════════════════════════════════════════════════════
@@ -511,6 +576,10 @@ export const locationsApi = {
   },
   getVehicleLocation: async (vehicleId: string) => {
     const { data } = await apiClient.get<{ success: boolean; data: unknown }>(`/api/v1/locations/${vehicleId}/latest`);
+    return data.data;
+  },
+  getHistory: async (vehicleId: string, params?: { startTime?: string; endTime?: string }) => {
+    const { data } = await apiClient.get<{ success: boolean; data: unknown[] }>(`/api/v1/locations/${vehicleId}/history`, { params });
     return data.data;
   },
   postLocation: async (vehicleId: string, payload: { latitude: number; longitude: number; speed?: number; heading?: number }) => {

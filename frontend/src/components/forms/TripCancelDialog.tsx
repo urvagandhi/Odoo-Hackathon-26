@@ -5,7 +5,7 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Loader2, XCircle } from "lucide-react";
 import { useTheme } from "../../context/ThemeContext";
-import { tripsApi } from "../../api/client";
+import { dispatchApi } from "../../api/client";
 
 interface TripCancelDialogProps {
   open: boolean;
@@ -29,7 +29,7 @@ export function TripCancelDialog({ open, tripId, onClose, onSuccess }: TripCance
     setServerError("");
     setSubmitting(true);
     try {
-      await tripsApi.transitionTrip(tripId, { status: "CANCELLED", cancelledReason: reason });
+      await dispatchApi.transitionStatus(tripId, { status: "CANCELLED", cancelledReason: reason });
       onSuccess();
       onClose();
       setReason("");

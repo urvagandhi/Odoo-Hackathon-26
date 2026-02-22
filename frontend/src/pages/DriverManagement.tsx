@@ -22,14 +22,13 @@ import {
 } from "lucide-react";
 import { useTheme } from "../context/ThemeContext";
 import { useAuth } from "../hooks/useAuth";
-import { driversApi } from "../api/client";
+import { hrApi } from "../api/client";
 import { StatusPill } from "../components/ui/StatusPill";
 import { LicenseExpiryBadge } from "../components/ui/LicenseExpiryBadge";
 import { SafetyScoreBar } from "../components/ui/SafetyScoreBar";
 import { DriverForm } from "../components/forms/DriverForm";
 import {
   AlertDialog,
-  AlertDialogTrigger,
   AlertDialogContent,
   AlertDialogHeader,
   AlertDialogTitle,
@@ -108,10 +107,10 @@ export default function DriverManagement() {
   // Expiring licenses alert
   const [expiringDrivers, setExpiringDrivers] = useState<Driver[]>([]);
 
-  const canMutate = user?.role === "SUPER_ADMIN" || user?.role === "MANAGER";
-  const canSuspend = user?.role === "SUPER_ADMIN" || user?.role === "MANAGER" || user?.role === "SAFETY_OFFICER";
-  const canAdjustScore = user?.role === "SUPER_ADMIN" || user?.role === "SAFETY_OFFICER";
-  const canDelete = user?.role === "SUPER_ADMIN" || user?.role === "MANAGER";
+  const canMutate = user?.role === "MANAGER";
+  const canSuspend = user?.role === "MANAGER" || user?.role === "SAFETY_OFFICER";
+  const canAdjustScore = user?.role === "SAFETY_OFFICER";
+  const canDelete = user?.role === "MANAGER";
 
   /* ── Fetch drivers ──────────────────────────────── */
   const fetchDrivers = useCallback(async () => {
@@ -120,19 +119,18 @@ export default function DriverManagement() {
       const params: Record<string, unknown> = { page, limit };
       if (statusFilter) params.status = statusFilter;
 
-      const res = await driversApi.listDrivers(params);
-      const body = res.data?.data ?? res.data;
+      const res = await hrApi.listDrivers(params);
 
-      const driverList = (body?.drivers ?? body ?? []) as Driver[];
-      const normalized = driverList.map((d: Record<string, unknown>) => ({
+      const driverList = res.data as unknown as Record<string, unknown>[];
+      const normalized = driverList.map((d) => ({
         ...d,
         id: String(d.id),
         safetyScore: Number(d.safetyScore),
       })) as Driver[];
 
       setDrivers(normalized);
-      setTotal(body?.total ?? normalized.length);
-      setTotalPages(body?.totalPages ?? Math.ceil((body?.total ?? normalized.length) / limit));
+      setTotal(res.total ?? normalized.length);
+      setTotalPages(res.totalPages ?? Math.ceil((res.total ?? normalized.length) / limit));
     } catch {
       setDrivers([]);
     } finally {
@@ -147,14 +145,13 @@ export default function DriverManagement() {
     (async () => {
       try {
         const reqs = ["ON_DUTY", "ON_TRIP", "OFF_DUTY", "SUSPENDED"].map((s) =>
-          driversApi.listDrivers({ status: s, page: 1, limit: 1 })
+          hrApi.listDrivers({ status: s, page: 1, limit: 1 })
         );
         const results = await Promise.all(reqs);
         const c = { ON_DUTY: 0, ON_TRIP: 0, OFF_DUTY: 0, SUSPENDED: 0 };
         const keys = ["ON_DUTY", "ON_TRIP", "OFF_DUTY", "SUSPENDED"] as const;
         results.forEach((r, i) => {
-          const body = r.data?.data ?? r.data;
-          c[keys[i]] = body?.total ?? 0;
+          c[keys[i]] = r.total ?? 0;
         });
         setCounts(c);
       } catch { /* ignore */ }
@@ -165,10 +162,9 @@ export default function DriverManagement() {
   useEffect(() => {
     (async () => {
       try {
-        const res = await driversApi.getExpiringLicenses();
-        const body = res.data?.data ?? res.data;
-        const list = (Array.isArray(body) ? body : []) as Driver[];
-        setExpiringDrivers(list.map((d: Record<string, unknown>) => ({
+        const res = await hrApi.getExpiringLicenses();
+        const list = (Array.isArray(res) ? res : []) as unknown as Record<string, unknown>[];
+        setExpiringDrivers(list.map((d) => ({
           ...d,
           id: String(d.id),
           safetyScore: Number(d.safetyScore),
@@ -207,7 +203,7 @@ export default function DriverManagement() {
 
   const handleToggleDuty = async (d: Driver, targetStatus: "ON_DUTY" | "OFF_DUTY") => {
     try {
-      await driversApi.updateDriverStatus(d.id, { status: targetStatus });
+      await hrApi.updateDriverStatus(d.id, targetStatus);
       fetchDrivers();
     } catch { /* handled by interceptor */ }
   };
@@ -215,7 +211,7 @@ export default function DriverManagement() {
   const handleSuspend = async () => {
     if (!suspendDriverId || !suspendReason.trim()) return;
     try {
-      await driversApi.updateDriverStatus(suspendDriverId, { status: "SUSPENDED", reason: suspendReason });
+      await hrApi.updateDriverStatus(suspendDriverId, "SUSPENDED", suspendReason);
       fetchDrivers();
     } catch { /* handled by interceptor */ }
     setSuspendDriverId(null);
@@ -225,7 +221,7 @@ export default function DriverManagement() {
   const handleDelete = async () => {
     if (!deleteDriverId) return;
     try {
-      await driversApi.deleteDriver(deleteDriverId);
+      await hrApi.deleteDriver(deleteDriverId);
       fetchDrivers();
     } catch { /* handled by interceptor */ }
     setDeleteDriverId(null);
@@ -235,7 +231,7 @@ export default function DriverManagement() {
     if (!scoreDriverId || !scoreReason.trim() || scoreReason.length < 5) return;
     setScoreSubmitting(true);
     try {
-      await driversApi.adjustSafetyScore(scoreDriverId, { adjustment: scoreAdjustment, reason: scoreReason });
+      await hrApi.adjustSafetyScore(scoreDriverId, scoreAdjustment, scoreReason);
       fetchDrivers();
       setScoreModalOpen(false);
       setScoreDriverId(null);
@@ -505,7 +501,6 @@ export default function DriverManagement() {
                             open={suspendDriverId === d.id}
                             onOpenChange={(open) => { if (!open) { setSuspendDriverId(null); setSuspendReason(""); } }}
                           >
-                            <AlertDialogTrigger asChild>
                               <button
                                 onClick={() => setSuspendDriverId(d.id)}
                                 className={`p-1.5 rounded-lg transition-colors ${
@@ -515,7 +510,6 @@ export default function DriverManagement() {
                               >
                                 <ShieldAlert className="w-3.5 h-3.5" />
                               </button>
-                            </AlertDialogTrigger>
                             <AlertDialogContent>
                               <AlertDialogHeader>
                                 <AlertDialogTitle>Suspend Driver?</AlertDialogTitle>
@@ -568,7 +562,6 @@ export default function DriverManagement() {
                             open={deleteDriverId === d.id}
                             onOpenChange={(open) => { if (!open) setDeleteDriverId(null); }}
                           >
-                            <AlertDialogTrigger asChild>
                               <button
                                 onClick={() => setDeleteDriverId(d.id)}
                                 className={`p-1.5 rounded-lg transition-colors ${
@@ -578,7 +571,6 @@ export default function DriverManagement() {
                               >
                                 <Trash2 className="w-3.5 h-3.5" />
                               </button>
-                            </AlertDialogTrigger>
                             <AlertDialogContent>
                               <AlertDialogHeader>
                                 <AlertDialogTitle>Delete Driver?</AlertDialogTitle>

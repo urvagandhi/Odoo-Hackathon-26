@@ -33,9 +33,7 @@ export const createExpenseSchema = z.object({
   vehicleId: z.string().min(1, "Vehicle is required"),
   tripId: z.string().optional(),
   amount: z.coerce.number().nonnegative("Amount must be ≥ 0"),
-  category: z.enum(["TOLL", "LODGING", "MAINTENANCE_EN_ROUTE", "MISC"], {
-    required_error: "Category is required",
-  }),
+  category: z.enum(["TOLL", "LODGING", "MAINTENANCE_EN_ROUTE", "MISC"]),
   description: z.string().max(500).optional(),
 });
 export type CreateExpenseFormData = z.infer<typeof createExpenseSchema>;

@@ -48,7 +48,10 @@ export class DispatchService {
     async createTrip(input: CreateTripInput, actorId: bigint) {
         // Validate vehicle / driver exist and are not deleted
         const [vehicle, driver] = await Promise.all([
-            prisma.vehicle.findFirst({ where: { id: BigInt(input.vehicleId), isDeleted: false } }),
+            prisma.vehicle.findFirst({
+                where: { id: BigInt(input.vehicleId), isDeleted: false },
+                include: { vehicleType: true }
+            }),
             prisma.driver.findFirst({ where: { id: BigInt(input.driverId), isDeleted: false } }),
         ]);
 
@@ -63,6 +66,25 @@ export class DispatchService {
                     `Cargo weight ${input.cargoWeight} kg exceeds vehicle capacity ${vehicle.capacityWeight} kg.`,
                 );
             }
+        }
+
+        // License validity check
+        const vType = vehicle.vehicleType.name.toUpperCase();
+        const dClass = (driver.licenseClass || '').toUpperCase();
+        
+        let isValidClass = false;
+        if (vType === 'VAN' || vType === 'LIGHT_TRUCK') {
+            isValidClass = ['B', 'C', 'CDL-A', 'CDL-B', 'LMV', 'HMV'].includes(dClass);
+        } else if (vType === 'HEAVY_TRUCK' || vType === 'TRUCK') {
+            isValidClass = ['CDL-A', 'HMV'].includes(dClass);
+        } else if (vType === 'MOTORCYCLE' || vType === 'BIKE') {
+            isValidClass = ['MCWG', 'M', 'B', 'C', 'CDL-A', 'CDL-B', 'LMV', 'HMV'].includes(dClass);
+        } else {
+            isValidClass = true; 
+        }
+
+        if (!isValidClass) {
+            throw new ApiError(422, `Driver's license class '${driver.licenseClass || 'None'}' is not valid for '${vType}' category vehicles.`);
         }
 
         const trip = await prisma.trip.create({
@@ -132,7 +154,7 @@ export class DispatchService {
 
                 // Lock vehicle and driver rows for this transaction
                 const [vehicle, driver] = await Promise.all([
-                    tx.vehicle.findUniqueOrThrow({ where: { id: trip.vehicleId } }),
+                    tx.vehicle.findUniqueOrThrow({ where: { id: trip.vehicleId }, include: { vehicleType: true } }),
                     tx.driver.findUniqueOrThrow({ where: { id: trip.driverId } }),
                 ]);
 
@@ -144,6 +166,25 @@ export class DispatchService {
                 // Driver must be ON_DUTY
                 if (driver.status !== DriverStatus.ON_DUTY) {
                     throw new ApiError(409, `Driver is not ON_DUTY (current: ${driver.status}).`);
+                }
+
+                // License validity check for vehicle category
+                const vType = vehicle.vehicleType.name.toUpperCase();
+                const dClass = (driver.licenseClass || '').toUpperCase();
+                
+                let isValidClass = false;
+                if (vType === 'VAN' || vType === 'LIGHT_TRUCK') {
+                    isValidClass = ['B', 'C', 'CDL-A', 'CDL-B', 'LMV', 'HMV'].includes(dClass);
+                } else if (vType === 'HEAVY_TRUCK' || vType === 'TRUCK') {
+                    isValidClass = ['CDL-A', 'HMV'].includes(dClass);
+                } else if (vType === 'MOTORCYCLE' || vType === 'BIKE') {
+                    isValidClass = ['MCWG', 'M', 'B', 'C', 'CDL-A', 'CDL-B', 'LMV', 'HMV'].includes(dClass);
+                } else {
+                    isValidClass = true; // Default fallback for PLANE etc
+                }
+
+                if (!isValidClass) {
+                    throw new ApiError(422, `Driver's license class '${driver.licenseClass || 'None'}' is not valid for '${vType}' category vehicles.`);
                 }
 
                 // License expiry check — block if expiring within 72 hours

@@ -10,10 +10,10 @@ import {
     CheckCircle2, Clock, BarChart3, RefreshCw, MapPin,
 } from "lucide-react";
 import {
-    LineChart, Line, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip,
+    AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip,
     ResponsiveContainer, PieChart, Pie, Cell, Legend,
 } from "recharts";
-import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap } from "react-leaflet";
+import { MapContainer, TileLayer, Marker, Popup, Polyline } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { analyticsApi, locationsApi, type DashboardKPIs, type MonthlyReport } from "../api/client";
@@ -79,9 +79,9 @@ function useMovingVehicle() {
     return MOVING_ROUTE[posIndex] || MOVING_ROUTE[0];
 }
 
-const card = "rounded-2xl border p-5 transition-all duration-200";
-const lightCard = "bg-white border-neutral-200 shadow-sm hover:shadow-md";
-const darkCard = "bg-neutral-800 border-neutral-700 shadow-sm hover:shadow-md";
+const card = "rounded-3xl border p-6 transition-all duration-300 relative overflow-hidden backdrop-blur-xl shrink-0";
+const lightCard = "bg-gradient-to-br from-white via-white to-slate-50/80 border-slate-200/60 shadow-[0_8px_30px_rgb(0,0,0,0.06)] hover:shadow-[0_8px_30px_rgb(0,0,0,0.12)]";
+const darkCard = "bg-slate-900/60 border-slate-700/50 shadow-[0_8px_30px_rgb(0,0,0,0.2)] hover:shadow-[0_8px_30px_rgb(0,0,0,0.4)]";
 
 export default function FleetDashboard() {
     const { isDark } = useTheme();
@@ -111,7 +111,11 @@ export default function FleetDashboard() {
         }
     };
 
-    useEffect(() => { fetch(); }, []);
+    useEffect(() => {
+        fetch();
+        const interval = setInterval(fetch, 1000);
+        return () => clearInterval(interval);
+    }, []);
 
     const expenseData = kpis ? [
         { name: "Active Fleet", value: kpis.fleet.onTrip },
@@ -121,20 +125,20 @@ export default function FleetDashboard() {
     ].filter(d => d.value > 0) : [];
 
     return (
-        <div className="space-y-6 max-w-[1600px] mx-auto">
+        <div className="space-y-8 max-w-[1600px] mx-auto">
             {/* Header */}
             <div className="flex items-center justify-between">
                 <div>
-                    <h1 className={`text-2xl font-bold ${isDark ? "text-white" : "text-neutral-900"}`}>
+                    <h1 className={`text-3xl font-extrabold tracking-tight ${isDark ? "text-slate-100" : "text-slate-900"}`}>
                         Command Center
                     </h1>
-                    <p className={`text-sm mt-0.5 ${isDark ? "text-neutral-400" : "text-neutral-500"}`}>
+                    <p className={`text-sm mt-1.5 font-medium ${isDark ? "text-slate-400" : "text-slate-500"}`}>
                         Live fleet overview — {new Date().toLocaleDateString("en-IN", { weekday: "long", day: "numeric", month: "long", year: "numeric" })}
                     </p>
                 </div>
                 <button
                     onClick={fetch}
-                    className="flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-500 text-white text-sm font-semibold hover:bg-emerald-600 transition-colors"
+                    className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-blue-600 text-white text-sm font-bold shadow-[0_0_15px_rgba(37,99,235,0.3)] hover:bg-blue-500 transition-all transform hover:scale-105 active:scale-95"
                 >
                     <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
                     Refresh
@@ -224,18 +228,22 @@ export default function FleetDashboard() {
                 initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.15 }}
                 className={cardClass}
             >
-                <div className="flex items-center justify-between mb-4">
-                    <div className="flex items-center gap-2">
-                        <MapPin className="w-5 h-5 text-emerald-500" />
-                        <h2 className={`text-base font-bold ${isDark ? "text-white" : "text-neutral-900"}`}>
+                {isDark && <div className="absolute top-0 right-0 w-64 h-64 bg-blue-500/5 rounded-full blur-3xl pointer-events-none" />}
+                {!isDark && <div className="absolute top-0 right-0 w-64 h-64 bg-blue-400/10 rounded-full blur-3xl pointer-events-none" />}
+                <div className="flex items-center justify-between mb-6 relative z-10">
+                    <div className="flex items-center gap-2.5">
+                        <div className={`p-2 rounded-lg ${isDark ? "bg-blue-500/10 text-blue-400" : "bg-blue-100 text-blue-600"}`}>
+                           <MapPin className="w-5 h-5" />
+                        </div>
+                        <h2 className={`text-lg font-bold ${isDark ? "text-slate-100" : "text-slate-900"}`}>
                             Live Fleet Map
                         </h2>
                     </div>
-                    <span className={`text-xs px-2 py-1 rounded-full font-medium ${locations.length > 0 ? "bg-emerald-500/10 text-emerald-500" : isDark ? "bg-neutral-700 text-neutral-400" : "bg-neutral-100 text-neutral-500"}`}>
+                    <span className={`text-xs px-3 py-1.5 rounded-full font-bold uppercase tracking-wider ${locations.length > 0 ? (isDark ? "bg-blue-500/20 text-blue-400 border border-blue-500/30" : "bg-blue-100 text-blue-700") : (isDark ? "bg-slate-800 text-slate-400" : "bg-slate-200 text-slate-500")}`}>
                         {locations.length > 0 ? `${locations.length} vehicle${locations.length > 1 ? "s" : ""} tracked` : "No live data"}
                     </span>
                 </div>
-                <div className="rounded-xl overflow-hidden border border-neutral-200 dark:border-neutral-700" style={{ height: 340 }}>
+                <div className={`rounded-2xl overflow-hidden border relative z-10 ${isDark ? "border-slate-800" : "border-slate-200 shadow-inner"}`} style={{ height: 380 }}>
                     <MapContainer
                         center={[20.5937, 78.9629]}
                         zoom={5}
@@ -281,14 +289,16 @@ export default function FleetDashboard() {
             >
                 {/* Revenue vs Cost trend */}
                 <div className={`${cardClass} lg:col-span-2`}>
-                    <div className="flex items-center justify-between mb-4">
-                        <h2 className={`text-base font-bold ${isDark ? "text-white" : "text-neutral-900"}`}>
+                    {isDark && <div className="absolute -top-32 -left-32 w-64 h-64 bg-teal-500/5 rounded-full blur-3xl pointer-events-none" />}
+                    {!isDark && <div className="absolute -top-32 -left-32 w-64 h-64 bg-teal-400/10 rounded-full blur-3xl pointer-events-none" />}
+                    <div className="flex items-center justify-between mb-6 relative z-10">
+                        <h2 className={`text-lg font-bold ${isDark ? "text-slate-100" : "text-slate-900"}`}>
                             Revenue vs Cost — {new Date().getFullYear()}
                         </h2>
-                        <span className="text-xs text-emerald-500 font-semibold">Monthly</span>
+                        <span className={`text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full ${isDark ? "bg-emerald-500/10 text-emerald-400" : "bg-emerald-100 text-emerald-700"}`}>Monthly</span>
                     </div>
                     {monthly.length > 0 ? (
-                        <ResponsiveContainer width="100%" height={220}>
+                        <ResponsiveContainer width="100%" height={260}>
                             <AreaChart data={monthly} margin={{ top: 4, right: 4, left: 0, bottom: 0 }}>
                                 <defs>
                                     <linearGradient id="revGrad" x1="0" y1="0" x2="0" y2="1">
@@ -300,37 +310,38 @@ export default function FleetDashboard() {
                                         <stop offset="95%" stopColor="#f59e0b" stopOpacity={0} />
                                     </linearGradient>
                                 </defs>
-                                <CartesianGrid strokeDasharray="3 3" stroke={isDark ? "#374151" : "#f0f0f0"} />
-                                <XAxis dataKey="label" tick={{ fontSize: 10, fill: isDark ? "#9CA3AF" : "#6B7280" }} tickFormatter={v => v.split(" ")[0]} />
-                                <YAxis tick={{ fontSize: 10, fill: isDark ? "#9CA3AF" : "#6B7280" }} tickFormatter={v => `₹${(v / 1000).toFixed(0)}k`} />
+                                <CartesianGrid strokeDasharray="3 3" stroke={isDark ? "#1e293b" : "#f1f5f9"} vertical={false} />
+                                <XAxis dataKey="label" tick={{ fontSize: 11, fill: isDark ? "#64748b" : "#64748b", fontWeight: 500 }} tickLine={false} axisLine={false} tickFormatter={v => v.split(" ")[0]} />
+                                <YAxis tick={{ fontSize: 11, fill: isDark ? "#64748b" : "#64748b", fontWeight: 500 }} tickLine={false} axisLine={false} tickFormatter={v => `₹${(v / 1000).toFixed(0)}k`} />
                                 <Tooltip
-                                    contentStyle={{ background: isDark ? "#1f2937" : "#fff", border: "1px solid #e5e7eb", borderRadius: "12px", fontSize: 12 }}
-                                    formatter={(v: number, name: string) => [`₹${v.toLocaleString()}`, name]}
+                                    contentStyle={{ background: isDark ? "rgba(15, 23, 42, 0.9)" : "rgba(255, 255, 255, 0.9)", border: isDark ? "1px solid #334155" : "1px solid #e2e8f0", borderRadius: "16px", fontSize: 13, boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)" }}
+                                    itemStyle={{ fontWeight: 600 }}
+                                    formatter={(v: unknown) => [`₹${Number(v).toLocaleString()}`]}
                                 />
-                                <Area type="monotone" dataKey="revenue" stroke="#10b981" strokeWidth={2} fill="url(#revGrad)" name="Revenue" />
+                                <Area type="monotone" dataKey="revenue" stroke="#10b981" strokeWidth={3} fill="url(#revGrad)" name="Revenue" />
                                 <Area type="monotone" dataKey="totalCost" stroke="#f59e0b" strokeWidth={2} fill="url(#costGrad)" name="Total Cost" />
                             </AreaChart>
                         </ResponsiveContainer>
                     ) : (
-                        <div className="h-[220px] flex items-center justify-center text-neutral-400">
-                            <Clock className="w-6 h-6 mr-2" /> {loading ? "Loading chart..." : "No trip data yet"}
+                        <div className="h-[260px] flex items-center justify-center text-slate-500 font-medium">
+                            <Clock className="w-5 h-5 mr-2" /> {loading ? "Loading chart..." : "No trip data yet"}
                         </div>
                     )}
                 </div>
 
                 {/* Fleet status donut */}
                 <div className={cardClass}>
-                    <h2 className={`text-base font-bold mb-4 ${isDark ? "text-white" : "text-neutral-900"}`}>
+                    <h2 className={`text-lg font-bold mb-6 relative z-10 ${isDark ? "text-slate-100" : "text-slate-900"}`}>
                         Fleet Status
                     </h2>
                     {expenseData.length > 0 ? (
-                        <ResponsiveContainer width="100%" height={220}>
+                        <ResponsiveContainer width="100%" height={260}>
                             <PieChart>
-                                <Pie data={expenseData} cx="50%" cy="50%" innerRadius={55} outerRadius={85} paddingAngle={3} dataKey="value">
+                                <Pie data={expenseData} cx="50%" cy="45%" innerRadius={65} outerRadius={95} paddingAngle={4} stroke="none" dataKey="value">
                                     {expenseData.map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
                                 </Pie>
-                                <Tooltip contentStyle={{ borderRadius: "12px", fontSize: 12 }} />
-                                <Legend iconType="circle" iconSize={8} wrapperStyle={{ fontSize: 11 }} />
+                                <Tooltip contentStyle={{ background: isDark ? "rgba(15, 23, 42, 0.9)" : "rgba(255, 255, 255, 0.9)", border: isDark ? "1px solid #334155" : "1px solid #e2e8f0", borderRadius: "16px", fontSize: 13, fontWeight: 600, boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.1)" }} />
+                                <Legend iconType="circle" iconSize={10} wrapperStyle={{ fontSize: 12, fontWeight: 500, paddingTop: "20px" }} />
                             </PieChart>
                         </ResponsiveContainer>
                     ) : (
@@ -347,28 +358,28 @@ export default function FleetDashboard() {
                     initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.3 }}
                     className={cardClass}
                 >
-                    <h2 className={`text-base font-bold mb-4 ${isDark ? "text-white" : "text-neutral-900"}`}>
+                    <h2 className={`text-lg font-bold mb-6 ${isDark ? "text-slate-100" : "text-slate-900"}`}>
                         Monthly Performance Summary
                     </h2>
                     <div className="overflow-x-auto">
                         <table className="w-full text-sm">
                             <thead>
-                                <tr className={isDark ? "text-neutral-400 border-b border-neutral-700" : "text-neutral-500 border-b border-neutral-100"}>
+                                <tr className={isDark ? "text-slate-400 border-b border-slate-800" : "text-slate-500 border-b border-slate-200"}>
                                     {["Month", "Trips", "Distance (km)", "Revenue", "Fuel Cost", "Maintenance", "Profit"].map(h =>
-                                        <th key={h} className="text-left pb-3 pr-4 font-semibold text-xs">{h}</th>
+                                        <th key={h} className="text-left pb-4 pr-4 font-bold text-xs uppercase tracking-wider">{h}</th>
                                     )}
                                 </tr>
                             </thead>
                             <tbody>
                                 {monthly.filter(m => m.tripsCompleted > 0).map(m => (
-                                    <tr key={m.month} className={isDark ? "border-b border-neutral-700/50" : "border-b border-neutral-50"}>
-                                        <td className={`py-2.5 pr-4 font-medium ${isDark ? "text-white" : "text-neutral-900"}`}>{m.label}</td>
-                                        <td className={`py-2.5 pr-4 ${isDark ? "text-neutral-300" : "text-neutral-700"}`}>{m.tripsCompleted}</td>
-                                        <td className={`py-2.5 pr-4 ${isDark ? "text-neutral-300" : "text-neutral-700"}`}>{m.totalDistanceKm.toLocaleString()}</td>
-                                        <td className="py-2.5 pr-4 text-emerald-500 font-semibold">₹{m.revenue.toLocaleString()}</td>
-                                        <td className={`py-2.5 pr-4 ${isDark ? "text-neutral-300" : "text-neutral-700"}`}>₹{m.fuelCost.toLocaleString()}</td>
-                                        <td className={`py-2.5 pr-4 ${isDark ? "text-neutral-300" : "text-neutral-700"}`}>₹{m.maintenanceCost.toLocaleString()}</td>
-                                        <td className={`py-2.5 font-bold ${m.profit >= 0 ? "text-emerald-500" : "text-red-500"}`}>
+                                    <tr key={m.month} className={`transition-colors border-b last:border-0 ${isDark ? "border-slate-800 hover:bg-slate-800/30" : "border-slate-100 hover:bg-slate-50/80"}`}>
+                                        <td className={`py-4 pr-4 font-bold ${isDark ? "text-slate-100" : "text-slate-900"}`}>{m.label}</td>
+                                        <td className={`py-4 pr-4 font-medium ${isDark ? "text-slate-300" : "text-slate-700"}`}>{m.tripsCompleted}</td>
+                                        <td className={`py-4 pr-4 font-medium ${isDark ? "text-slate-300" : "text-slate-700"}`}>{m.totalDistanceKm.toLocaleString()}</td>
+                                        <td className="py-4 pr-4 text-emerald-500 font-bold">₹{m.revenue.toLocaleString()}</td>
+                                        <td className={`py-4 pr-4 font-medium ${isDark ? "text-slate-300" : "text-slate-700"}`}>₹{m.fuelCost.toLocaleString()}</td>
+                                        <td className={`py-4 pr-4 font-medium ${isDark ? "text-slate-300" : "text-slate-700"}`}>₹{m.maintenanceCost.toLocaleString()}</td>
+                                        <td className={`py-4 font-extrabold ${m.profit >= 0 ? "text-emerald-500" : "text-red-500"}`}>
                                             {m.profit >= 0 ? "+" : ""}₹{m.profit.toLocaleString()}
                                         </td>
                                     </tr>
@@ -386,26 +397,28 @@ function KpiCard({ label, value, sub, icon: Icon, color, isDark }: {
     label: string; value: string; sub: string;
     icon: React.ElementType; color: string; isDark: boolean;
 }) {
-    const colorMap: Record<string, { bg: string; text: string; darkBg: string }> = {
-        emerald: { bg: "bg-emerald-50", text: "text-emerald-600", darkBg: "bg-emerald-500/10" },
-        amber: { bg: "bg-amber-50", text: "text-amber-600", darkBg: "bg-amber-500/10" },
-        violet: { bg: "bg-violet-50", text: "text-violet-600", darkBg: "bg-violet-500/10" },
-        blue: { bg: "bg-blue-50", text: "text-blue-600", darkBg: "bg-blue-500/10" },
-        teal: { bg: "bg-teal-50", text: "text-teal-600", darkBg: "bg-teal-500/10" },
-        green: { bg: "bg-green-50", text: "text-green-600", darkBg: "bg-green-500/10" },
-        red: { bg: "bg-red-50", text: "text-red-600", darkBg: "bg-red-500/10" },
+    const colorMap: Record<string, { bg: string; text: string; darkBg: string; glow: string }> = {
+        emerald: { bg: "bg-gradient-to-br from-emerald-50 to-emerald-100/50", text: "text-emerald-600", darkBg: "bg-emerald-500/10", glow: "group-hover:shadow-[0_0_20px_rgba(16,185,129,0.3)]" },
+        amber: { bg: "bg-gradient-to-br from-amber-50 to-amber-100/50", text: "text-amber-600", darkBg: "bg-amber-500/10", glow: "group-hover:shadow-[0_0_20px_rgba(245,158,11,0.3)]" },
+        violet: { bg: "bg-gradient-to-br from-violet-50 to-violet-100/50", text: "text-violet-600", darkBg: "bg-violet-500/10", glow: "group-hover:shadow-[0_0_20px_rgba(139,92,246,0.3)]" },
+        blue: { bg: "bg-gradient-to-br from-blue-50 to-blue-100/50", text: "text-blue-600", darkBg: "bg-blue-500/10", glow: "group-hover:shadow-[0_0_20px_rgba(59,130,246,0.3)]" },
+        teal: { bg: "bg-gradient-to-br from-teal-50 to-teal-100/50", text: "text-teal-600", darkBg: "bg-teal-500/10", glow: "group-hover:shadow-[0_0_20px_rgba(20,184,166,0.3)]" },
+        green: { bg: "bg-gradient-to-br from-green-50 to-green-100/50", text: "text-green-600", darkBg: "bg-green-500/10", glow: "group-hover:shadow-[0_0_20px_rgba(34,197,94,0.3)]" },
+        red: { bg: "bg-gradient-to-br from-red-50 to-red-100/50", text: "text-red-600", darkBg: "bg-red-500/10", glow: "group-hover:shadow-[0_0_20px_rgba(239,68,68,0.3)]" },
     };
     const c = colorMap[color] ?? colorMap.emerald;
     return (
-        <div className={`${card} ${isDark ? `${darkCard} ` : lightCard}`}>
-            <div className="flex items-start justify-between">
+        <div className={`group ${card} ${isDark ? `${darkCard} ` : lightCard}`}>
+            {isDark && <div className="absolute top-0 right-0 w-32 h-32 bg-white/[0.02] rounded-bl-full pointer-events-none transition-transform group-hover:scale-110" />}
+            {!isDark && <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-slate-100 to-transparent opacity-50 rounded-bl-full pointer-events-none transition-transform group-hover:scale-110" />}
+            <div className="flex items-start justify-between relative z-10">
                 <div>
-                    <p className={`text-xs font-semibold mb-1 ${isDark ? "text-neutral-400" : "text-neutral-500"}`}>{label}</p>
-                    <p className={`text-3xl font-extrabold ${isDark ? "text-white" : "text-neutral-900"}`}>{value}</p>
-                    <p className={`text-xs mt-1 ${isDark ? "text-neutral-500" : "text-neutral-400"}`}>{sub}</p>
+                    <p className={`text-xs font-bold uppercase tracking-wider mb-2 ${isDark ? "text-slate-400" : "text-slate-500"}`}>{label}</p>
+                    <p className={`text-4xl font-extrabold tracking-tight ${isDark ? "text-slate-100" : "text-slate-900"}`}>{value}</p>
+                    <p className={`text-xs mt-2 font-medium ${isDark ? "text-slate-500" : "text-slate-400"}`}>{sub}</p>
                 </div>
-                <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${isDark ? c.darkBg : c.bg}`}>
-                    <Icon className={`w-5 h-5 ${c.text}`} />
+                <div className={`w-14 h-14 rounded-2xl flex items-center justify-center transition-all duration-300 group-hover:scale-110 ${c.glow} ${isDark ? c.darkBg : c.bg}`}>
+                    <Icon className={`w-6 h-6 ${c.text}`} />
                 </div>
             </div>
         </div>

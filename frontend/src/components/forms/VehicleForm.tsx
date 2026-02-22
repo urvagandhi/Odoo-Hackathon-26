@@ -7,7 +7,6 @@ import { X, Truck, Save, Loader2 } from "lucide-react";
 import { useTheme } from "../../context/ThemeContext";
 import { fleetApi } from "../../api/client";
 import { createVehicleSchema, type CreateVehicleFormData } from "../../validators/vehicle";
-import type { ZodError } from "zod";
 
 interface VehicleType {
   id: string;
@@ -32,6 +31,8 @@ interface VehicleFormProps {
     capacityWeight: number;
     capacityVolume?: number;
     currentOdometer?: number;
+    region?: string;
+    acquisitionCost?: number;
   } | null;
 }
 
@@ -45,7 +46,9 @@ const INITIAL_FORM: CreateVehicleFormData = {
   vehicleTypeId: "",
   capacityWeight: 0,
   capacityVolume: "",
-  currentOdometer: 0,
+  currentOdometer: "",
+  region: "",
+  acquisitionCost: "",
 };
 
 export function VehicleForm({ open, onClose, onSuccess, editData }: VehicleFormProps) {
@@ -62,8 +65,7 @@ export function VehicleForm({ open, onClose, onSuccess, editData }: VehicleFormP
   useEffect(() => {
     if (!open) return;
     fleetApi.listVehicleTypes().then((res) => {
-      const types = (res.data?.data ?? res.data ?? []) as VehicleType[];
-      setVehicleTypes(types);
+      setVehicleTypes(res);
     }).catch(() => {});
   }, [open]);
 
@@ -80,7 +82,9 @@ export function VehicleForm({ open, onClose, onSuccess, editData }: VehicleFormP
         vehicleTypeId: editData.vehicleTypeId,
         capacityWeight: editData.capacityWeight,
         capacityVolume: editData.capacityVolume ?? "",
-        currentOdometer: editData.currentOdometer ?? 0,
+        currentOdometer: editData.currentOdometer ?? "",
+        region: editData.region ?? "",
+        acquisitionCost: editData.acquisitionCost ?? "",
       });
     } else {
       setForm(INITIAL_FORM);
@@ -103,7 +107,7 @@ export function VehicleForm({ open, onClose, onSuccess, editData }: VehicleFormP
     const result = createVehicleSchema.safeParse(form);
     if (!result.success) {
       const fieldErrors: Record<string, string> = {};
-      (result.error as ZodError).errors.forEach((err) => {
+      result.error.issues.forEach((err) => {
         const key = err.path[0] as string;
         if (!fieldErrors[key]) fieldErrors[key] = err.message;
       });
@@ -124,15 +128,19 @@ export function VehicleForm({ open, onClose, onSuccess, editData }: VehicleFormP
 
       if (result.data.color) payload.color = result.data.color;
       if (result.data.vin) payload.vin = result.data.vin;
-      if (result.data.capacityVolume && result.data.capacityVolume !== "") {
+      if (result.data.capacityVolume) {
         payload.capacityVolume = Number(result.data.capacityVolume);
+      }
+      if (result.data.region) payload.region = result.data.region;
+      if (result.data.acquisitionCost) {
+        payload.acquisitionCost = Number(result.data.acquisitionCost);
       }
 
       if (isEditing && editData) {
-        await fleetApi.updateVehicle(editData.id, payload);
+        await fleetApi.updateVehicle(editData.id, payload as Parameters<typeof fleetApi.updateVehicle>[1]);
       } else {
         if (result.data.currentOdometer) payload.currentOdometer = result.data.currentOdometer;
-        await fleetApi.createVehicle(payload);
+        await fleetApi.createVehicle(payload as Parameters<typeof fleetApi.createVehicle>[0]);
       }
 
       onSuccess();
@@ -329,15 +337,41 @@ export function VehicleForm({ open, onClose, onSuccess, editData }: VehicleFormP
                 </div>
               </div>
 
+              {/* Region + Acquisition Cost */}
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className={labelCls}>Region</label>
+                  <input
+                    className={`${inputCls} ${errors.region ? "border-red-400" : ""}`}
+                    placeholder="e.g. North America"
+                    value={form.region ?? ""}
+                    onChange={(e) => handleChange("region", e.target.value)}
+                  />
+                  {errors.region && <p className={errCls}>{errors.region}</p>}
+                </div>
+                <div>
+                  <label className={labelCls}>Acquisition Cost ($)</label>
+                  <input
+                    type="number"
+                    className={`${inputCls} ${errors.acquisitionCost ? "border-red-400" : ""}`}
+                    placeholder="Optional"
+                    value={form.acquisitionCost ?? ""}
+                    onChange={(e) => handleChange("acquisitionCost", e.target.value)}
+                  />
+                  {errors.acquisitionCost && <p className={errCls}>{errors.acquisitionCost}</p>}
+                </div>
+              </div>
+
               {/* Odometer (create only) */}
               {!isEditing && (
                 <div>
                   <label className={labelCls}>Initial Odometer (km)</label>
                   <input
                     type="number"
+                    min="0"
                     className={inputCls}
                     placeholder="0"
-                    value={form.currentOdometer ?? 0}
+                    value={form.currentOdometer}
                     onChange={(e) => handleChange("currentOdometer", e.target.value)}
                   />
                 </div>

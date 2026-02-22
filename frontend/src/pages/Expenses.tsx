@@ -63,7 +63,6 @@ export default function Expenses() {
   const limit = 10;
 
   const canMutate =
-    user?.role === "SUPER_ADMIN" ||
     user?.role === "MANAGER" ||
     user?.role === "FINANCE_ANALYST";
 
@@ -72,10 +71,9 @@ export default function Expenses() {
     setLoadingFuel(true);
     try {
       const res = await financeApi.listFuelLogs();
-      const body = res.data?.data ?? res.data;
-      const list = (body?.fuelLogs ?? body ?? []) as FuelLog[];
+      const list = (Array.isArray(res) ? res : []) as unknown as Record<string, unknown>[];
       setFuelLogs(
-        list.map((l: Record<string, unknown>) => ({
+        list.map((l) => ({
           ...l,
           id: String(l.id),
           vehicleId: String(l.vehicleId),
@@ -94,10 +92,9 @@ export default function Expenses() {
     setLoadingExp(true);
     try {
       const res = await financeApi.listExpenses();
-      const body = res.data?.data ?? res.data;
-      const list = (body?.expenses ?? body ?? []) as Expense[];
+      const list = (Array.isArray(res) ? res : []) as unknown as Record<string, unknown>[];
       setExpenses(
-        list.map((l: Record<string, unknown>) => ({
+        list.map((l) => ({
           ...l,
           id: String(l.id),
           vehicleId: String(l.vehicleId),

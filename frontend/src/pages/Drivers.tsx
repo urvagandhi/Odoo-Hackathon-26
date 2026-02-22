@@ -8,15 +8,27 @@
 import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-    Plus, Search, X, Users, Shield, AlertTriangle, CheckCircle2,
-    Clock, UserX, Edit3, Trash2, ChevronDown, MapPin, Phone, Mail,
-    Calendar, Award, TrendingDown, Filter,
+    Calendar, Award, TrendingDown, Filter, Download,
+    CheckCircle2, Clock, MapPin, UserX, Plus, Users,
+    Shield, AlertTriangle, Search, Phone, Mail,
+    ChevronDown, Edit3, Trash2, X
 } from "lucide-react";
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
-import { hrApi, locationsApi, type Driver } from "../api/client";
+import { hrApi, analyticsApi, locationsApi, type Driver } from "../api/client";
 import { useTheme } from "../context/ThemeContext";
+import { useToast } from "../hooks/useToast";
+import {
+    AlertDialog,
+    AlertDialogContent,
+    AlertDialogHeader,
+    AlertDialogTitle,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogCancel,
+    AlertDialogAction,
+} from "../components/ui/AlertDialog";
 
 // Fix Leaflet default icon
 delete (L.Icon.Default.prototype as unknown as Record<string, unknown>)._getIconUrl;
@@ -60,6 +72,7 @@ interface LocationPoint {
 
 export default function Drivers() {
     const { isDark } = useTheme();
+    const toast = useToast();
     const [drivers, setDrivers] = useState<Driver[]>([]);
     const [loading, setLoading] = useState(true);
     const [search, setSearch] = useState("");
@@ -71,6 +84,7 @@ export default function Drivers() {
     const [selectedDriver, setSelectedDriver] = useState<Driver | null>(null);
     const [expiringDrivers, setExpiringDrivers] = useState<Driver[]>([]);
     const [locations, setLocations] = useState<LocationPoint[]>([]);
+    const [actionDriverId, setActionDriverId] = useState<string | null>(null);
     const [form, setForm] = useState({
         fullName: "", licenseNumber: "", phone: "", email: "",
         dateOfBirth: "", licenseExpiryDate: "", licenseClass: "", safetyScore: 100,
@@ -136,16 +150,38 @@ export default function Drivers() {
     const handleStatusChange = async (d: Driver, status: string) => {
         try {
             await hrApi.updateDriverStatus(d.id, status);
+            toast.success(`${d.fullName}'s status is now ${status.replace('_', ' ')}.`, { title: "Status Updated" });
             load();
         } catch (err: unknown) {
-            alert((err as { response?: { data?: { message?: string } } })?.response?.data?.message ?? "Failed to update status");
+            toast.error((err as { response?: { data?: { message?: string } } })?.response?.data?.message ?? "Failed to update status", { title: "Update Failed" });
         }
     };
 
     const handleDelete = async (id: string) => {
-        if (!confirm("Remove this driver?")) return;
-        await hrApi.deleteDriver(id);
-        load();
+        try {
+            await hrApi.deleteDriver(id);
+            toast.success("The driver profile has been deleted.", { title: "Driver Removed" });
+            load();
+        } catch {
+            toast.error("Could not remove driver.", { title: "Deletion Failed" });
+        }
+        setActionDriverId(null);
+    };
+
+    const handleExport = async () => {
+        try {
+            const csv = await analyticsApi.exportDriversCSV();
+            const blob = new Blob([csv], { type: "text/csv" });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = `fleetflow-drivers-${new Date().toISOString().split('T')[0]}.csv`;
+            a.click();
+            URL.revokeObjectURL(url);
+            toast.success("Driver registry has been exported to CSV.", { title: "Export Successful" });
+        } catch {
+            toast.error("Could not generate driver export.", { title: "Export Failed" });
+        }
     };
 
     const adjustScore = async (d: Driver, adj: number) => {
@@ -175,9 +211,14 @@ export default function Drivers() {
                         {totalDrivers} drivers · {onDuty} on duty · {onTrip} on trip
                     </p>
                 </div>
-                <button onClick={openCreate} className="flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-500 text-white text-sm font-semibold hover:bg-emerald-600 transition-colors">
-                    <Plus className="w-4 h-4" /> Add Driver
-                </button>
+                <div className="flex items-center gap-2">
+                    <button onClick={handleExport} className="flex items-center gap-2 px-4 py-2 rounded-xl border border-emerald-200 text-emerald-600 text-sm font-semibold hover:bg-emerald-50 dark:border-emerald-500/30 dark:text-emerald-400 dark:hover:bg-emerald-500/10 transition-colors">
+                        <Download className="w-4 h-4" /> Export CSV
+                    </button>
+                    <button onClick={openCreate} className="flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-500 text-white text-sm font-semibold hover:bg-emerald-600 transition-colors">
+                        <Plus className="w-4 h-4" /> Add Driver
+                    </button>
+                </div>
             </div>
 
             {/* KPI stats */}
@@ -322,10 +363,29 @@ export default function Drivers() {
                                                             className={`p-1.5 rounded-lg transition-colors ${isDark ? "text-neutral-400 hover:text-white hover:bg-neutral-700" : "text-neutral-400 hover:text-neutral-700 hover:bg-neutral-100"}`}>
                                                             <Edit3 className="w-4 h-4" />
                                                         </button>
-                                                        <button onClick={(e) => { e.stopPropagation(); handleDelete(d.id); }}
-                                                            className="p-1.5 rounded-lg text-neutral-400 hover:text-red-500 hover:bg-red-50 transition-colors">
-                                                            <Trash2 className="w-4 h-4" />
-                                                        </button>
+                                                        <AlertDialog
+                                                            open={actionDriverId === d.id}
+                                                            onOpenChange={(open) => !open && setActionDriverId(null)}
+                                                        >
+                                                                <button onClick={(e) => { e.stopPropagation(); setActionDriverId(d.id); }}
+                                                                    className="p-1.5 rounded-lg text-neutral-400 hover:text-red-500 hover:bg-red-50 transition-colors">
+                                                                    <Trash2 className="w-4 h-4" />
+                                                                </button>
+                                                            <AlertDialogContent>
+                                                                <AlertDialogHeader>
+                                                                  <AlertDialogTitle>Remove Driver?</AlertDialogTitle>
+                                                                  <AlertDialogDescription>
+                                                                    This will permanently remove <strong>{d.fullName}</strong> from the registry.
+                                                                  </AlertDialogDescription>
+                                                                </AlertDialogHeader>
+                                                                <AlertDialogFooter>
+                                                                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                                                  <AlertDialogAction variant="destructive" onClick={() => handleDelete(d.id)}>
+                                                                    Remove
+                                                                  </AlertDialogAction>
+                                                                </AlertDialogFooter>
+                                                            </AlertDialogContent>
+                                                        </AlertDialog>
                                                     </div>
                                                 </td>
                                             </motion.tr>

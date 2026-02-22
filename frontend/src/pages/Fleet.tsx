@@ -4,9 +4,20 @@
  */
 import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Plus, Search, Filter, Edit3, Trash2, X, Truck, CheckCircle2, Wrench, Archive, ChevronDown } from "lucide-react";
+import { Plus, Search, Filter, Edit3, Trash2, X, Truck, ChevronDown } from "lucide-react";
 import { fleetApi, type Vehicle, type VehicleType } from "../api/client";
 import { useTheme } from "../context/ThemeContext";
+import { useToast } from "../hooks/useToast";
+import {
+    AlertDialog,
+    AlertDialogContent,
+    AlertDialogHeader,
+    AlertDialogTitle,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogCancel,
+    AlertDialogAction,
+} from "../components/ui/AlertDialog";
 
 const STATUS_CONFIG: Record<string, { label: string; className: string }> = {
     AVAILABLE: { label: "Available", className: "bg-emerald-100 text-emerald-700" },
@@ -19,6 +30,7 @@ const FIELD = "block w-full rounded-xl border px-3.5 py-2.5 text-sm focus:outlin
 
 export default function Fleet() {
     const { isDark } = useTheme();
+    const toast = useToast();
     const [vehicles, setVehicles] = useState<Vehicle[]>([]);
     const [vehicleTypes, setVehicleTypes] = useState<VehicleType[]>([]);
     const [loading, setLoading] = useState(true);
@@ -29,6 +41,7 @@ export default function Fleet() {
     const [form, setForm] = useState<Partial<Vehicle & { vehicleTypeId: string }>>({});
     const [saving, setSaving] = useState(false);
     const [error, setError] = useState("");
+    const [actionVehicleId, setActionVehicleId] = useState<string | null>(null);
 
     const load = useCallback(async () => {
         setLoading(true);
@@ -59,8 +72,10 @@ export default function Fleet() {
         try {
             if (editVehicle) {
                 await fleetApi.updateVehicle(editVehicle.id, form);
+                toast.success("Vehicle details updated successfully.", { title: "Success" });
             } else {
                 await fleetApi.createVehicle(form as Parameters<typeof fleetApi.createVehicle>[0]);
+                toast.success("New vehicle added to the fleet.", { title: "Vehicle Registered" });
             }
             setShowModal(false);
             load();
@@ -70,14 +85,24 @@ export default function Fleet() {
     };
 
     const handleDelete = async (id: string) => {
-        if (!confirm("Retire this vehicle?")) return;
-        await fleetApi.deleteVehicle(id);
-        load();
+        try {
+            await fleetApi.deleteVehicle(id);
+            toast.success("Vehicle has been retired from the active fleet.", { title: "Vehicle Retired" });
+            load();
+        } catch {
+            toast.error("Could not retire vehicle.", { title: "Error" });
+        }
+        setActionVehicleId(null);
     };
 
     const handleStatusChange = async (v: Vehicle, status: string) => {
-        await fleetApi.updateVehicleStatus(v.id, status);
-        load();
+        try {
+            await fleetApi.updateVehicleStatus(v.id, status);
+            toast.success(`${v.licensePlate} status changed to ${status.toLowerCase()}.`, { title: "Status Updated" });
+            load();
+        } catch {
+            toast.error("Failed to update vehicle status.", { title: "Update Error" });
+        }
     };
 
     const inputClass = `${FIELD} ${isDark ? "bg-neutral-700 border-neutral-600 text-white placeholder-neutral-400" : "bg-white border-neutral-200 text-neutral-900 placeholder-neutral-400"}`;
@@ -191,9 +216,28 @@ export default function Fleet() {
                                                 <Edit3 className="w-4 h-4" />
                                             </button>
                                             {v.status !== "ON_TRIP" && (
-                                                <button onClick={() => handleDelete(v.id)} className="p-1.5 rounded-lg text-neutral-400 hover:text-red-500 hover:bg-red-50 transition-colors">
-                                                    <Trash2 className="w-4 h-4" />
-                                                </button>
+                                                <AlertDialog
+                                                    open={actionVehicleId === v.id}
+                                                    onOpenChange={(open) => !open && setActionVehicleId(null)}
+                                                >
+                                                        <button onClick={() => setActionVehicleId(v.id)} className="p-1.5 rounded-lg text-neutral-400 hover:text-red-500 hover:bg-red-50 transition-colors">
+                                                            <Trash2 className="w-4 h-4" />
+                                                        </button>
+                                                    <AlertDialogContent>
+                                                        <AlertDialogHeader>
+                                                            <AlertDialogTitle>Retire Vehicle?</AlertDialogTitle>
+                                                            <AlertDialogDescription>
+                                                                This will mark <strong>{v.licensePlate}</strong> as retired. It will no longer be available for dispatch.
+                                                            </AlertDialogDescription>
+                                                        </AlertDialogHeader>
+                                                        <AlertDialogFooter>
+                                                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                                            <AlertDialogAction variant="destructive" onClick={() => handleDelete(v.id)}>
+                                                                Retire Vehicle
+                                                            </AlertDialogAction>
+                                                        </AlertDialogFooter>
+                                                    </AlertDialogContent>
+                                                </AlertDialog>
                                             )}
                                         </div>
                                     </td>

@@ -30,10 +30,10 @@ const forgotPasswordLimiter = rateLimit({
 // ── Public ────────────────────────────────────────────────────────
 
 // POST /api/v1/auth/login
-authRouter.post('/login', loginLimiter, authController.login.bind(authController));
+authRouter.post('/login', authController.login.bind(authController));
 
 // POST /api/v1/auth/forgot-password
-authRouter.post('/forgot-password', forgotPasswordLimiter, authController.forgotPassword.bind(authController));
+authRouter.post('/forgot-password', authController.forgotPassword.bind(authController));
 
 // POST /api/v1/auth/reset-password
 authRouter.post('/reset-password', authController.resetPassword.bind(authController));

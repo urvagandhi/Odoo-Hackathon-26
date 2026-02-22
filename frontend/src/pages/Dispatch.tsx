@@ -3,7 +3,7 @@
  * Trip creation, lifecycle (DRAFT → DISPATCHED → COMPLETED/CANCELLED)
  * Embedded Leaflet map with OpenRouteService routing for shortest path
  */
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
     Plus, X, Route, MapPin, Truck, User, Clock, CheckCircle2,
@@ -14,6 +14,19 @@ import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { fleetApi, hrApi, dispatchApi, type Trip, type Vehicle, type Driver } from "../api/client";
 import { useTheme } from "../context/ThemeContext";
+import { useToast } from "../hooks/useToast";
+import {
+    AlertDialog,
+    AlertDialogContent,
+    AlertDialogHeader,
+    AlertDialogTitle,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogCancel,
+    AlertDialogAction,
+} from "../components/ui/AlertDialog";
+import { TripCompleteModal } from "../components/forms/TripCompleteModal";
+import { TripCancelDialog } from "../components/forms/TripCancelDialog";
 
 // Fix Leaflet default icon paths (Vite asset bundling issue)
 delete (L.Icon.Default.prototype as unknown as Record<string, unknown>)._getIconUrl;
@@ -32,30 +45,47 @@ const STATUS_CONFIG: Record<string, { label: string; className: string; icon: Re
 
 const FIELD = "block w-full rounded-xl border px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-colors";
 
+const geocodeCache = new Map<string, [number, number] | null>();
+const routeCache = new Map<string, [number, number][]>();
+
 // Geocode a location string using Nominatim
 async function geocode(location: string): Promise<[number, number] | null> {
+    if (geocodeCache.has(location)) return geocodeCache.get(location) || null;
     try {
-        const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(location)}&limit=1`);
+        const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(location)}&limit=1&email=test@fleetflow.com`);
         const results = await res.json();
-        if (results.length > 0) return [parseFloat(results[0].lat), parseFloat(results[0].lon)];
+        if (results.length > 0) {
+            const coord: [number, number] = [parseFloat(results[0].lat), parseFloat(results[0].lon)];
+            geocodeCache.set(location, coord);
+            return coord;
+        }
     } catch { }
+    geocodeCache.set(location, null);
     return null;
 }
 
 // Fetch route from OpenRouteService (free tier, no key needed for basic)
 async function getRoute(origin: [number, number], dest: [number, number]): Promise<[number, number][]> {
+    const key = `${origin[0]},${origin[1]}-${dest[0]},${dest[1]}`;
+    if (routeCache.has(key)) return routeCache.get(key) || [];
+    
     // Fallback: use OSRM demo routing
     try {
-        const url = `https://router.project-osrm.org/route/v1/driving/${origin[1]},${origin[0]};${dest[1]},${dest[0]}?overview=full&geometries=geojson`;
+        const url = `https://router.project-osrm.org/route/v1/driving/${origin[1]},${origin[0]};${dest[1]},${dest[0]}?overview=simplified&geometries=geojson`;
         const res = await fetch(url);
         const json = await res.json();
         if (json.routes && json.routes[0]) {
-            return json.routes[0].geometry.coordinates.map(([lng, lat]: [number, number]) => [lat, lng] as [number, number]);
+            const coords = json.routes[0].geometry.coordinates.map(([lng, lat]: [number, number]) => [lat, lng] as [number, number]);
+            routeCache.set(key, coords);
+            return coords;
         }
     } catch { }
     // Fallback: straight line
-    return [origin, dest];
+    const fallback: [number, number][] = [origin, dest];
+    routeCache.set(key, fallback);
+    return fallback;
 }
+
 
 // Auto-fit map to route bounds
 function MapBounds({ bounds }: { bounds: [[number, number], [number, number]] | null }) {
@@ -68,6 +98,7 @@ function MapBounds({ bounds }: { bounds: [[number, number], [number, number]] | 
 
 export default function Dispatch() {
     const { isDark } = useTheme();
+    const toast = useToast();
     const [trips, setTrips] = useState<Trip[]>([]);
     const [vehicles, setVehicles] = useState<Vehicle[]>([]);
     const [drivers, setDrivers] = useState<Driver[]>([]);
@@ -83,6 +114,9 @@ export default function Dispatch() {
     }>({ vehicleId: "", driverId: "", origin: "", destination: "", distanceEstimated: 0, cargoWeight: 0, cargoDescription: "", clientName: "", revenue: 0 });
     const [saving, setSaving] = useState(false);
     const [formError, setFormError] = useState("");
+    const [transitioning, setTransitioning] = useState<{ id: string, status: string } | null>(null);
+    const [completeTripId, setCompleteTripId] = useState<string | null>(null);
+    const [cancelTripId, setCancelTripId] = useState<string | null>(null);
 
     // Map state
     const [routeCoords, setRouteCoords] = useState<[number, number][]>([]);
@@ -90,7 +124,6 @@ export default function Dispatch() {
     const [destCoord, setDestCoord] = useState<[number, number] | null>(null);
     const [mapBounds, setMapBounds] = useState<[[number, number], [number, number]] | null>(null);
     const [mapLoading, setMapLoading] = useState(false);
-    const routeTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
     const load = useCallback(async () => {
         setLoading(true);
@@ -141,11 +174,12 @@ export default function Dispatch() {
         setSaving(true); setFormError("");
         try {
             const selectedVehicle = vehicles.find(v => v.id === form.vehicleId);
-            if (selectedVehicle && form.cargoWeight > (selectedVehicle.capacityWeight ?? Infinity)) {
+            if (selectedVehicle && form.cargoWeight > (Number(selectedVehicle.capacityWeight) || Infinity)) {
                 setFormError(`Cargo weight (${form.cargoWeight} kg) exceeds vehicle capacity (${selectedVehicle.capacityWeight} kg)`);
                 return;
             }
             await dispatchApi.createTrip({ ...form, distanceEstimated: form.distanceEstimated });
+            toast.success("New trip has been added to draft.", { title: "Trip Created" });
             setShowModal(false);
             load();
         } catch (err: unknown) {
@@ -154,13 +188,18 @@ export default function Dispatch() {
     };
 
     const handleTransition = async (trip: Trip, status: "DISPATCHED" | "COMPLETED" | "CANCELLED") => {
-        if (!confirm(`Mark trip as ${status}?`)) return;
-        await dispatchApi.transitionStatus(trip.id, { status });
-        load();
-        if (selectedTrip?.id === trip.id) {
-            const updated = await dispatchApi.getTrip(trip.id);
-            setSelectedTrip(updated);
+        try {
+            await dispatchApi.transitionStatus(trip.id, { status });
+            toast.success(`Trip successfully moved to ${status.toLowerCase()} status.`, { title: `Trip ${status.charAt(0) + status.slice(1).toLowerCase()}` });
+            load();
+            if (selectedTrip?.id === trip.id) {
+                const updated = await dispatchApi.getTrip(trip.id);
+                setSelectedTrip(updated);
+            }
+        } catch (err: unknown) {
+            toast.error((err as { response?: { data?: { message?: string } } })?.response?.data?.message ?? "Failed to transition trip status.", { title: "Update Failed" });
         }
+        setTransitioning(null);
     };
 
     const inputClass = `${FIELD} ${isDark ? "bg-neutral-700 border-neutral-600 text-white placeholder-neutral-400" : "bg-white border-neutral-200 text-neutral-900 placeholder-neutral-400"}`;
@@ -258,19 +297,38 @@ export default function Dispatch() {
                                     </div>
                                     <div className="flex items-center gap-2">
                                         {selectedTrip.status === "DRAFT" && (
-                                            <button onClick={() => handleTransition(selectedTrip, "DISPATCHED")}
-                                                className="px-3 py-1.5 rounded-xl text-xs font-semibold bg-blue-500 text-white hover:bg-blue-600 transition-colors">
-                                                Dispatch
-                                            </button>
+                                            <AlertDialog
+                                                open={transitioning?.id === selectedTrip.id && transitioning?.status === "DISPATCHED"}
+                                                onOpenChange={(open) => !open && setTransitioning(null)}
+                                            >
+                                                <button onClick={() => setTransitioning({ id: selectedTrip.id, status: "DISPATCHED" })}
+                                                    className="px-3 py-1.5 rounded-xl text-xs font-semibold bg-blue-500 text-white hover:bg-blue-600 transition-colors shadow-sm">
+                                                    Dispatch
+                                                </button>
+                                                <AlertDialogContent>
+                                                    <AlertDialogHeader>
+                                                        <AlertDialogTitle>Dispatch Trip?</AlertDialogTitle>
+                                                        <AlertDialogDescription>
+                                                            This will notify the driver and mark the vehicle as on-trip.
+                                                        </AlertDialogDescription>
+                                                    </AlertDialogHeader>
+                                                    <AlertDialogFooter>
+                                                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                                        <AlertDialogAction onClick={() => handleTransition(selectedTrip, "DISPATCHED")}>
+                                                            Confirm Dispatch
+                                                        </AlertDialogAction>
+                                                    </AlertDialogFooter>
+                                                </AlertDialogContent>
+                                            </AlertDialog>
                                         )}
                                         {selectedTrip.status === "DISPATCHED" && (
-                                            <button onClick={() => handleTransition(selectedTrip, "COMPLETED")}
-                                                className="px-3 py-1.5 rounded-xl text-xs font-semibold bg-emerald-500 text-white hover:bg-emerald-600 transition-colors">
+                                            <button onClick={() => setCompleteTripId(selectedTrip.id)}
+                                                className="px-3 py-1.5 rounded-xl text-xs font-semibold bg-emerald-500 text-white hover:bg-emerald-600 transition-colors shadow-sm">
                                                 Complete
                                             </button>
                                         )}
                                         {["DRAFT", "DISPATCHED"].includes(selectedTrip.status) && (
-                                            <button onClick={() => handleTransition(selectedTrip, "CANCELLED")}
+                                            <button onClick={() => setCancelTripId(selectedTrip.id)}
                                                 className="px-3 py-1.5 rounded-xl text-xs font-semibold bg-red-50 text-red-600 hover:bg-red-100 border border-red-200 transition-colors">
                                                 Cancel
                                             </button>
@@ -411,6 +469,32 @@ export default function Dispatch() {
                     </motion.div>
                 )}
             </AnimatePresence>
+
+            <TripCompleteModal
+                open={!!completeTripId}
+                tripId={completeTripId}
+                onClose={() => setCompleteTripId(null)}
+                onSuccess={() => {
+                    load();
+                    if (selectedTrip?.id === completeTripId) {
+                        dispatchApi.getTrip(completeTripId).then(setSelectedTrip);
+                    }
+                    toast.success("Trip marked as completed.", { title: "Trip Completed" });
+                }}
+            />
+
+            <TripCancelDialog
+                open={!!cancelTripId}
+                tripId={cancelTripId}
+                onClose={() => setCancelTripId(null)}
+                onSuccess={() => {
+                    load();
+                    if (selectedTrip?.id === cancelTripId) {
+                        dispatchApi.getTrip(cancelTripId).then(setSelectedTrip);
+                    }
+                    toast.success("Trip has been cancelled.", { title: "Trip Cancelled" });
+                }}
+            />
         </div>
     );
 }

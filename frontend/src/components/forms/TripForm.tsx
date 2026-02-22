@@ -7,10 +7,10 @@ import { useState, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Navigation, Save, Loader2 } from "lucide-react";
 import { useTheme } from "../../context/ThemeContext";
-import { fleetApi, driversApi, tripsApi } from "../../api/client";
+import { fleetApi, hrApi, dispatchApi } from "../../api/client";
 import { createTripSchema, type CreateTripFormData } from "../../validators/trip";
 import { CapacityBar } from "../ui/CapacityBar";
-import type { ZodError } from "zod";
+import { LocationAutocomplete } from "../ui/LocationAutocomplete";
 
 interface Vehicle {
   id: string;
@@ -70,24 +70,20 @@ export function TripForm({ open, onClose, onSuccess }: TripFormProps) {
 
     Promise.all([
       fleetApi.listVehicles({ status: "AVAILABLE", limit: 100 }),
-      driversApi.listDrivers({ status: "ON_DUTY", limit: 100 }),
+      hrApi.listDrivers({ status: "ON_DUTY", limit: 100 }),
     ])
       .then(([vRes, dRes]) => {
-        const vBody = vRes.data?.data ?? vRes.data;
-        const vList = (vBody?.vehicles ?? vBody ?? []) as Vehicle[];
-        setVehicles(vList.map((v: Record<string, unknown>) => ({
+        setVehicles(vRes.data.map((v) => ({
           ...v,
           id: String(v.id),
           capacityWeight: Number(v.capacityWeight),
-        })) as Vehicle[]);
+        })));
 
-        const dBody = dRes.data?.data ?? dRes.data;
-        const dList = (dBody?.drivers ?? dBody ?? []) as Driver[];
         // Filter out expired licenses client-side
         const now = new Date();
         setDrivers(
-          dList
-            .map((d: Record<string, unknown>) => ({ ...d, id: String(d.id) }) as Driver)
+          dRes.data
+            .map((d) => ({ ...d, id: String(d.id) }))
             .filter((d) => new Date(d.licenseExpiryDate) > now)
         );
       })
@@ -118,7 +114,7 @@ export function TripForm({ open, onClose, onSuccess }: TripFormProps) {
     const result = createTripSchema.safeParse(form);
     if (!result.success) {
       const fieldErrors: Record<string, string> = {};
-      (result.error as ZodError).errors.forEach((err) => {
+      result.error.issues.forEach((err) => {
         const key = err.path[0] as string;
         if (!fieldErrors[key]) fieldErrors[key] = err.message;
       });
@@ -144,9 +140,9 @@ export function TripForm({ open, onClose, onSuccess }: TripFormProps) {
 
       if (result.data.cargoDescription) payload.cargoDescription = result.data.cargoDescription;
       if (result.data.clientName) payload.clientName = result.data.clientName;
-      if (result.data.revenue && result.data.revenue !== "") payload.revenue = Number(result.data.revenue);
+      if (result.data.revenue) payload.revenue = Number(result.data.revenue);
 
-      await tripsApi.createTrip(payload);
+      await dispatchApi.createTrip(payload as Parameters<typeof dispatchApi.createTrip>[0]);
       onSuccess();
       onClose();
     } catch (err: unknown) {
@@ -274,21 +270,21 @@ export function TripForm({ open, onClose, onSuccess }: TripFormProps) {
                   <div className="grid grid-cols-2 gap-3">
                     <div>
                       <label className={labelCls}>Origin *</label>
-                      <input
+                      <LocationAutocomplete
                         className={`${inputCls} ${errors.origin ? "border-red-400" : ""}`}
-                        placeholder="Mumbai"
+                        placeholder="Start typing..."
                         value={form.origin}
-                        onChange={(e) => handleChange("origin", e.target.value)}
+                        onChange={(val) => handleChange("origin", val)}
                       />
                       {errors.origin && <p className={errCls}>{errors.origin}</p>}
                     </div>
                     <div>
                       <label className={labelCls}>Destination *</label>
-                      <input
+                      <LocationAutocomplete
                         className={`${inputCls} ${errors.destination ? "border-red-400" : ""}`}
-                        placeholder="Delhi"
+                        placeholder="Start typing..."
                         value={form.destination}
-                        onChange={(e) => handleChange("destination", e.target.value)}
+                        onChange={(val) => handleChange("destination", val)}
                       />
                       {errors.destination && <p className={errCls}>{errors.destination}</p>}
                     </div>

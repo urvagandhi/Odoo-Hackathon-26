@@ -18,7 +18,12 @@ import {
   Loader2,
 } from "lucide-react";
 import { analyticsApi } from "../../api/client";
-import type { MonthlyData, FuelEfficiencyData } from "../../api/client";
+import type { MonthlyReport, FuelEfficiency } from "../../api/client";
+import { useTheme } from "../../context/ThemeContext";
+
+const card = "rounded-3xl border transition-all duration-300 relative overflow-hidden backdrop-blur-xl shrink-0";
+const lightCard = "bg-gradient-to-br from-white via-white to-slate-50/80 border-slate-200/60 shadow-[0_8px_30px_rgb(0,0,0,0.06)] hover:shadow-[0_8px_30px_rgb(0,0,0,0.12)]";
+const darkCard = "bg-slate-900/60 border-slate-700/50 shadow-[0_8px_30px_rgb(0,0,0,0.2)] hover:shadow-[0_8px_30px_rgb(0,0,0,0.4)]";
 
 /* ── Animation ──────────────────────────────────────────── */
 const fadeIn = {
@@ -79,15 +84,18 @@ function buildDonut(
 
 /* ── Component ───────────────────────────────────────────── */
 export default function FinanceDashboard() {
-  const [monthly, setMonthly] = useState<MonthlyData[]>([]);
-  const [fuelData, setFuelData] = useState<FuelEfficiencyData[]>([]);
+  const { isDark } = useTheme();
+  const cardClass = `${card} ${isDark ? darkCard : lightCard}`;
+
+  const [monthly, setMonthly] = useState<MonthlyReport[]>([]);
+  const [fuelData, setFuelData] = useState<FuelEfficiency[]>([]);
   const [loading, setLoading] = useState(true);
   const [revenueTab, setRevenueTab] = useState<"DAY" | "MONTH" | "YEAR">("MONTH");
   const [fuelTab, setFuelTab] = useState<"DAY" | "MONTH" | "YEAR">("MONTH");
 
   useEffect(() => {
     Promise.all([
-      analyticsApi.getMonthly(),
+      analyticsApi.getMonthlyReport(),
       analyticsApi.getFuelEfficiency(),
     ])
       .then(([monthlyData, fuelEfficiency]) => {
@@ -152,15 +160,15 @@ export default function FinanceDashboard() {
             <motion.div
               key={card.label}
               variants={fadeIn}
-              className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 flex items-center gap-4"
+              className={`group ${cardClass} p-5 flex items-center gap-4`}
             >
-              <div className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 ${card.iconBg}`}>
-                <Icon className={`w-5 h-5 ${card.iconColor}`} />
+              <div className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 transition-transform group-hover:scale-110 ${isDark ? card.iconBg.replace('100', '500/10') : 'bg-gradient-to-br from-white to-' + card.iconBg.replace('bg-', '') + '/50 border border-' + card.iconBg.replace('bg-', '').split('-')[0] + '-100'}`}>
+                <Icon className={`w-5 h-5 ${isDark ? card.iconColor.replace('600', '400') : card.iconColor}`} />
               </div>
               <div className="min-w-0">
-                <p className="text-xs text-slate-400 font-medium truncate">{card.label}</p>
-                <p className="text-xl font-bold text-slate-800 leading-tight">{card.value}</p>
-                <p className={`text-xs font-medium mt-0.5 flex items-center gap-0.5 ${card.up ? "text-emerald-500" : "text-slate-400"}`}>
+                <p className={`text-xs font-medium truncate ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>{card.label}</p>
+                <p className={`text-xl font-bold leading-tight ${isDark ? 'text-slate-100' : 'text-slate-800'}`}>{card.value}</p>
+                <p className={`text-xs font-medium mt-0.5 flex items-center gap-0.5 ${card.up ? "text-emerald-500" : (isDark ? "text-slate-500" : "text-slate-400")}`}>
                   {card.up ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
                   Year to date
                 </p>
@@ -173,16 +181,18 @@ export default function FinanceDashboard() {
       {/* ══ ROW 2 — Revenue chart + Expenses donut ══════════════════ */}
       <motion.div variants={stagger} className="grid grid-cols-3 gap-5">
         {/* Revenue vs Costs area chart */}
-        <motion.div variants={fadeIn} className="col-span-2 bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
+        <motion.div variants={fadeIn} className={`col-span-2 ${cardClass} p-6`}>
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-sm font-semibold text-slate-700">Revenue vs Costs</h3>
-            <div className="flex items-center gap-1 bg-slate-50 rounded-lg p-0.5">
+            <h3 className={`text-sm font-semibold ${isDark ? 'text-slate-100' : 'text-slate-700'}`}>Revenue vs Costs</h3>
+            <div className={`flex items-center gap-1 rounded-lg p-0.5 ${isDark ? 'bg-slate-800/50' : 'bg-slate-50'}`}>
               {(["DAY", "MONTH", "YEAR"] as const).map((t) => (
                 <button
                   key={t}
                   onClick={() => setRevenueTab(t)}
                   className={`px-3 py-1 rounded-md text-xs font-medium transition-colors ${
-                    revenueTab === t ? "bg-violet-600 text-white shadow-sm" : "text-slate-400 hover:text-slate-600"
+                    revenueTab === t 
+                      ? "bg-violet-600 text-white shadow-sm" 
+                      : (isDark ? "text-slate-400 hover:text-slate-300" : "text-slate-400 hover:text-slate-600")
                   }`}
                 >
                   {t}
@@ -193,23 +203,23 @@ export default function FinanceDashboard() {
 
           <div className="flex flex-wrap items-center gap-6 mb-5">
             <div>
-              <p className="text-xs text-slate-400">YTD Revenue</p>
-              <p className="text-lg font-bold text-slate-800">{fmt(ytdRevenue)}</p>
+              <p className={`text-xs ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>YTD Revenue</p>
+              <p className={`text-lg font-bold ${isDark ? 'text-slate-100' : 'text-slate-800'}`}>{fmt(ytdRevenue)}</p>
               <p className="text-xs text-emerald-500 flex items-center gap-0.5">
                 <TrendingUp className="w-3 h-3" />This year
               </p>
             </div>
             <div>
-              <p className="text-xs text-slate-400">YTD Profit</p>
-              <p className="text-lg font-bold text-slate-800">{fmt(ytdProfit)}</p>
+              <p className={`text-xs ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>YTD Profit</p>
+              <p className={`text-lg font-bold ${isDark ? 'text-slate-100' : 'text-slate-800'}`}>{fmt(ytdProfit)}</p>
               <p className={`text-xs flex items-center gap-0.5 ${ytdProfit >= 0 ? "text-emerald-500" : "text-red-400"}`}>
                 {ytdProfit >= 0 ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
                 {ytdProfit >= 0 ? "Positive" : "Loss"}
               </p>
             </div>
             <div>
-              <p className="text-xs text-slate-400">YTD Costs</p>
-              <p className="text-lg font-bold text-slate-800">{fmt(ytdCost)}</p>
+              <p className={`text-xs ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>YTD Costs</p>
+              <p className={`text-lg font-bold ${isDark ? 'text-slate-100' : 'text-slate-800'}`}>{fmt(ytdCost)}</p>
               <p className="text-xs text-red-400 flex items-center gap-0.5">
                 <TrendingDown className="w-3 h-3" />Expenses
               </p>
@@ -226,11 +236,12 @@ export default function FinanceDashboard() {
             </div>
           </div>
 
-          <div className="h-36">
+          <div className="h-36 relative">
+            {!isDark && <div className="absolute inset-0 bg-violet-50/30 rounded-xl pointer-events-none" />}
             {revenuePoints.length > 1 ? (
-              <svg viewBox="0 0 480 112" className="w-full h-full" preserveAspectRatio="none">
+              <svg viewBox="0 0 480 112" className="w-full h-full relative z-10" preserveAspectRatio="none">
                 {[0, 37, 74, 111].map((y) => (
-                  <line key={y} x1="0" y1={y} x2="480" y2={y} stroke="#f1f5f9" strokeWidth="1" />
+                  <line key={y} x1="0" y1={y} x2="480" y2={y} stroke={isDark ? "#334155" : "#f1f5f9"} strokeWidth="1" />
                 ))}
                 <path d={buildAreaPath(costPoints, 480, 112, true)} fill="#10b98112" />
                 <path d={buildAreaPath(costPoints, 480, 112, false)} fill="none" stroke="#10b981" strokeWidth="1.5" strokeDasharray="5 3" />
@@ -244,24 +255,26 @@ export default function FinanceDashboard() {
         </motion.div>
 
         {/* Expenses donut (current month) */}
-        <motion.div variants={fadeIn} className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
+        <motion.div variants={fadeIn} className={`${cardClass} p-6 flex flex-col`}>
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-sm font-semibold text-slate-700">Expenses (this month)</h3>
-            <DollarSign className="w-4 h-4 text-slate-300" />
+            <h3 className={`text-sm font-semibold ${isDark ? 'text-slate-100' : 'text-slate-700'}`}>Expenses (this month)</h3>
+            <div className={`w-8 h-8 rounded-full flex items-center justify-center ${isDark ? 'bg-slate-800' : 'bg-slate-50'}`}>
+              <DollarSign className={`w-4 h-4 ${isDark ? 'text-slate-400' : 'text-slate-400'}`} />
+            </div>
           </div>
 
-          <div className="flex justify-center mb-5">
+          <div className="flex justify-center mb-5 flex-1 items-center">
             <svg width="160" height="160" viewBox="0 0 160 160">
               {expenseTotal > 0 ? (
                 donutSlices.map((slice) => <path key={slice.label} d={slice.d} fill={slice.color} />)
               ) : (
-                <circle cx="80" cy="80" r="65" fill="#f1f5f9" />
+                <circle cx="80" cy="80" r="65" fill={isDark ? "#334155" : "#f1f5f9"} />
               )}
-              <circle cx="80" cy="80" r="42" fill="white" />
-              <text x="80" y="75" textAnchor="middle" fontSize="12" fontWeight="700" fill="#1e293b">
+              <circle cx="80" cy="80" r="42" fill={isDark ? "#0f172a" : "white"} />
+              <text x="80" y="75" textAnchor="middle" fontSize="12" fontWeight="700" fill={isDark ? "#f8fafc" : "#1e293b"}>
                 {fmt(expenseTotal)}
               </text>
-              <text x="80" y="90" textAnchor="middle" fontSize="8" fill="#94a3b8">This Month</text>
+              <text x="80" y="90" textAnchor="middle" fontSize="8" fill={isDark ? "#94a3b8" : "#94a3b8"}>This Month</text>
             </svg>
           </div>
 
@@ -271,12 +284,12 @@ export default function FinanceDashboard() {
               { label: "Fuel", amount: fmt(currentMonth?.fuelCost ?? 0), color: "bg-emerald-500" },
               { label: "Other", amount: fmt(currentMonth?.otherExpenses ?? 0), color: "bg-amber-400" },
             ].map((seg) => (
-              <div key={seg.label} className="flex items-center justify-between">
+              <div key={seg.label} className={`flex items-center justify-between p-2 rounded-lg ${isDark ? 'hover:bg-slate-800/50' : 'hover:bg-slate-50'}`}>
                 <div className="flex items-center gap-2">
                   <span className={`w-2.5 h-2.5 rounded-sm shrink-0 ${seg.color}`} />
-                  <span className="text-xs text-slate-500">{seg.label}</span>
+                  <span className={`text-xs ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>{seg.label}</span>
                 </div>
-                <span className="text-xs font-semibold text-slate-700">{seg.amount}</span>
+                <span className={`text-xs font-semibold ${isDark ? 'text-slate-200' : 'text-slate-700'}`}>{seg.amount}</span>
               </div>
             ))}
           </div>
@@ -286,9 +299,9 @@ export default function FinanceDashboard() {
       {/* ══ ROW 3 — Fleet Fuel Efficiency + Monthly Fuel Cost ══════════ */}
       <motion.div variants={stagger} className="grid grid-cols-3 gap-5">
         {/* Fleet Fuel Efficiency table */}
-        <motion.div variants={fadeIn} className="col-span-2 bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
+        <motion.div variants={fadeIn} className={`col-span-2 ${cardClass} p-6`}>
           <div className="flex items-center justify-between mb-5">
-            <h3 className="text-sm font-semibold text-slate-700">Fleet Fuel Efficiency</h3>
+            <h3 className={`text-sm font-semibold ${isDark ? 'text-slate-100' : 'text-slate-700'}`}>Fleet Fuel Efficiency</h3>
             <div className="flex items-center gap-2">
               <button className="flex items-center gap-1 text-xs text-slate-400 hover:text-violet-600 transition-colors px-2 py-1 rounded-lg hover:bg-violet-50">
                 <Filter className="w-3.5 h-3.5" />
@@ -302,23 +315,23 @@ export default function FinanceDashboard() {
           </div>
 
           <div className="grid grid-cols-[1fr_2fr_auto] gap-4 mb-3 px-1">
-            <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">Vehicle</p>
-            <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">Efficiency Rate</p>
-            <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider text-right">Distance</p>
+            <p className={`text-[10px] font-semibold uppercase tracking-wider ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Vehicle</p>
+            <p className={`text-[10px] font-semibold uppercase tracking-wider ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Efficiency Rate</p>
+            <p className={`text-[10px] font-semibold uppercase tracking-wider text-right ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Distance</p>
           </div>
 
           {fleetRows.length === 0 ? (
-            <div className="py-8 text-center text-slate-400 text-sm">No fuel efficiency data yet.</div>
+            <div className={`py-8 text-center text-sm ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>No fuel efficiency data yet.</div>
           ) : (
             <div className="space-y-3.5">
               {fleetRows.map((row) => (
-                <div key={row.id} className="grid grid-cols-[1fr_2fr_auto] gap-4 items-center px-1">
-                  <p className="text-xs font-mono font-medium text-slate-600">{row.id}</p>
+                <div key={row.id} className={`grid grid-cols-[1fr_2fr_auto] gap-4 items-center px-3 py-2 -mx-2 rounded-xl transition-colors ${isDark ? 'hover:bg-slate-800/50' : 'hover:bg-slate-50'}`}>
+                  <p className={`text-xs font-mono font-medium ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>{row.id}</p>
                   <div className="flex items-center gap-2">
-                    <div className="flex-1 h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                    <div className={`flex-1 h-1.5 rounded-full overflow-hidden ${isDark ? 'bg-slate-800' : 'bg-slate-100'}`}>
                       <div className={`h-full rounded-full ${getBarColor(row.rate)}`} style={{ width: `${row.rate}%` }} />
                     </div>
-                    <span className="text-xs text-slate-400 w-8 text-right">{row.rate}%</span>
+                    <span className={`text-xs w-8 text-right ${isDark ? 'text-slate-400' : 'text-slate-400'}`}>{row.rate}%</span>
                   </div>
                   <div className={`flex items-center gap-1 text-xs font-semibold ${row.up ? "text-emerald-500" : "text-red-400"}`}>
                     {row.up ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
@@ -331,18 +344,20 @@ export default function FinanceDashboard() {
         </motion.div>
 
         {/* Monthly Fuel Cost chart */}
-        <motion.div variants={fadeIn} className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
+        <motion.div variants={fadeIn} className={`${cardClass} p-6`}>
           <div className="flex items-center justify-between mb-2">
-            <h3 className="text-sm font-semibold text-slate-700">Monthly Fuel Cost</h3>
+            <h3 className={`text-sm font-semibold ${isDark ? 'text-slate-100' : 'text-slate-700'}`}>Monthly Fuel Cost</h3>
           </div>
 
-          <div className="flex items-center gap-1 bg-slate-50 rounded-lg p-0.5 w-fit mb-4">
+          <div className={`flex items-center gap-1 rounded-lg p-0.5 w-fit mb-4 ${isDark ? 'bg-slate-800/50' : 'bg-slate-50'}`}>
             {(["DAY", "MONTH", "YEAR"] as const).map((t) => (
               <button
                 key={t}
                 onClick={() => setFuelTab(t)}
                 className={`px-2.5 py-1 rounded-md text-xs font-medium transition-colors ${
-                  fuelTab === t ? "bg-violet-600 text-white shadow-sm" : "text-slate-400 hover:text-slate-600"
+                  fuelTab === t 
+                    ? "bg-violet-600 text-white shadow-sm" 
+                    : (isDark ? "text-slate-400 hover:text-slate-300" : "text-slate-400 hover:text-slate-600")
                 }`}
               >
                 {t}
@@ -351,24 +366,24 @@ export default function FinanceDashboard() {
           </div>
 
           <div className="mb-4">
-            <p className="text-xl font-bold text-slate-800">{fmt(currentMonth?.fuelCost ?? 0)}</p>
-            <p className="text-xs text-slate-400 mt-0.5">This month</p>
+            <p className={`text-xl font-bold ${isDark ? 'text-slate-100' : 'text-slate-800'}`}>{fmt(currentMonth?.fuelCost ?? 0)}</p>
+            <p className={`text-xs mt-0.5 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>This month</p>
           </div>
 
           <div className="space-y-2.5">
             {fuelMonths.length === 0 ? (
-              <p className="text-xs text-slate-300 text-center py-4">No data yet</p>
+              <p className={`text-xs text-center py-4 ${isDark ? 'text-slate-500' : 'text-slate-300'}`}>No data yet</p>
             ) : (
               fuelMonths.map((row) => (
-                <div key={row.label} className="flex items-center gap-2">
-                  <span className="text-[10px] text-slate-400 w-7 shrink-0">{row.label}</span>
-                  <div className="flex-1 h-2 bg-slate-100 rounded-full overflow-hidden">
+                <div key={row.label} className={`flex items-center gap-2 p-1 rounded-lg ${isDark ? 'hover:bg-slate-800/30' : 'hover:bg-slate-50'}`}>
+                  <span className={`text-[10px] w-7 shrink-0 ${isDark ? 'text-slate-400' : 'text-slate-400'}`}>{row.label}</span>
+                  <div className={`flex-1 h-2 rounded-full overflow-hidden ${isDark ? 'bg-slate-800' : 'bg-slate-100'}`}>
                     <div
                       className="h-full rounded-full bg-emerald-500"
                       style={{ width: `${(row.value / fuelMax) * 100}%` }}
                     />
                   </div>
-                  <span className="text-[10px] text-slate-400 w-14 text-right">{fmt(row.value)}</span>
+                  <span className={`text-[10px] w-14 text-right ${isDark ? 'text-slate-400' : 'text-slate-400'}`}>{fmt(row.value)}</span>
                 </div>
               ))
             )}

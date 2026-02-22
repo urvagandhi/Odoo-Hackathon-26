@@ -13,13 +13,14 @@ import {
 
 export class FleetService {
     async listVehicles(query: VehicleQueryInput) {
-        const { status, vehicleTypeId, search, page, limit } = query;
+        const { status, vehicleTypeId, region, search, page, limit } = query;
         const skip = (page - 1) * limit;
 
         const where = {
             isDeleted: false,
             ...(status ? { status } : {}),
             ...(vehicleTypeId ? { vehicleTypeId: BigInt(vehicleTypeId) } : {}),
+            ...(region ? { region } : {}),
             ...(search ? {
                 OR: [
                     { licensePlate: { contains: search, mode: 'insensitive' as const } },
@@ -65,7 +66,9 @@ export class FleetService {
                 currentOdometer: input.currentOdometer ?? 0,
                 capacityWeight: input.capacityWeight,
                 capacityVolume: input.capacityVolume,
-            },
+                region: (input as any).region,
+                acquisitionCost: (input as any).acquisitionCost,
+            } as any,
             include: { vehicleType: true },
         });
 

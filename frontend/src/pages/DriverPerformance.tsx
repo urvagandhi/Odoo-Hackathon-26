@@ -31,10 +31,9 @@ export default function DriverPerformance() {
       setLoading(true);
       try {
         const res = await analyticsApi.getDriverPerformance();
-        const body = res.data?.data ?? res.data;
-        const list = Array.isArray(body) ? body : body?.drivers ?? [];
+        const list = (Array.isArray(res) ? res : []) as Record<string, unknown>[];
         setDrivers(
-          list.map((d: Record<string, unknown>) => ({
+          list.map((d) => ({
             ...d,
             driverId: String(d.driverId ?? d.id),
           })) as DriverPerf[]

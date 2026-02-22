@@ -11,7 +11,6 @@ import {
   Truck,
   Route,
   Users,
-  Shield,
   DollarSign,
   Fuel,
   Wrench,
@@ -45,32 +44,6 @@ interface NavSection {
 
 /* ── Nav sections per role ──────────────────────────────── */
 const NAV_SECTIONS: Record<string, NavSection[]> = {
-  SUPER_ADMIN: [
-    {
-      title: "MAIN MENU",
-      items: [
-        { label: "Overview", icon: LayoutDashboard, path: "/dashboard" },
-        { label: "Shipment", icon: Truck, path: "/fleet/vehicles" },
-        { label: "Orders", icon: Route, path: "/dispatch/trips" },
-        { label: "Message", icon: MessageSquare, path: "/messages", badge: 6 },
-        { label: "Activity", icon: Activity, path: "/activity" },
-      ],
-    },
-    {
-      title: "GENERAL",
-      items: [
-        { label: "Report", icon: FileText, path: "/finance/reports" },
-        { label: "Support", icon: HelpCircle, path: "/support" },
-        { label: "Account", icon: User, path: "/settings" },
-      ],
-    },
-    {
-      title: "OTHERS",
-      items: [
-        { label: "Settings", icon: Settings, path: "/settings/general" },
-      ],
-    },
-  ],
   MANAGER: [
     {
       title: "MAIN MENU",
@@ -181,6 +154,21 @@ const NAV_SECTIONS: Record<string, NavSection[]> = {
       ],
     },
   ],
+  DRIVER: [
+    {
+      title: "MAIN MENU",
+      items: [
+        { label: "Driver Portal", icon: LayoutDashboard, path: "/driver" },
+      ],
+    },
+    {
+      title: "GENERAL",
+      items: [
+        { label: "Support", icon: HelpCircle, path: "/support" },
+        { label: "Account", icon: User, path: "/settings" },
+      ],
+    },
+  ],
 };
 
 export default function Sidebar() {
@@ -189,8 +177,8 @@ export default function Sidebar() {
   const navigate = useNavigate();
   const { isDark } = useTheme();
 
-  const role = user?.role ?? "SUPER_ADMIN";
-  const sections = NAV_SECTIONS[role] ?? NAV_SECTIONS["SUPER_ADMIN"];
+  const role = user?.role ?? "MANAGER";
+  const sections = NAV_SECTIONS[role] ?? NAV_SECTIONS["MANAGER"];
 
   const isActive = (path: string) => location.pathname === path;
 
