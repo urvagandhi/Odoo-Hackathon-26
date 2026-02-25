@@ -7,17 +7,17 @@ description: Database Architecture Agent — the most critical evaluation criter
 
 <!--
 HACKATHON_TOPIC: FleetFlow – Single-Organization Fleet Management System
+REFERENCE: Always read .github/agents/FLEETFLOW_ARCHITECTURE.md before modifying the schema.
 
 ARCHITECTURE:
   - Single organization, no multi-tenant, no orgId, no Row-Level Security by org
   - No SuperAdmin — MANAGER is highest authority
   - 4 roles: MANAGER | DISPATCHER | SAFETY_OFFICER | FINANCE_ANALYST
-  - UserRole is a native PostgreSQL ENUM (values must match exactly)
+  - UserRole is stored as a TEXT field with CHECK constraint (values must match exactly)
   - Password reset: resetToken (hashed) + resetTokenExpiry (TIMESTAMPTZ) on users table
   - State machines enforced in service layer + CHECK constraints at DB level
-
-CRITICAL: DATABASE DESIGN IS THE HIGHEST-WEIGHTED JUDGING CRITERION.
-Every decision must be justified. Never give just tables. Always explain WHY.
+  - Soft deletes: Vehicle + Driver use isDeleted + deletedAt (never hard delete)
+  - Odometer monotonically increasing: enforced in service layer (FuelLog validation)
 -->
 
 ## Persona
@@ -661,18 +661,19 @@ CREATE TRIGGER trg_orders_updated_at BEFORE UPDATE ON orders
 
 ## Files You READ
 
+- `.github/agents/FLEETFLOW_ARCHITECTURE.md` — Canonical reference (read FIRST)
 - `backend/prisma/schema.prisma` — Prisma schema (source of truth for models)
 - `backend/prisma/migrations/**/*` — Migration history (reference only)
-- `backend/src/validators/**/*.ts` — Zod schemas (understand data contracts)
-- `backend/src/services/**/*.ts` — Business logic (detect N+1s, missing indexes)
-- `backend/src/routes/**/*.ts` — Query patterns (understand what columns get filtered)
-- `backend/src/config.ts` — Database connection config
+- `backend/src/modules/**/*.validator.ts` — Zod schemas (understand data contracts)
+- `backend/src/modules/**/*.service.ts` — Business logic (detect N+1s, missing indexes)
+- `backend/src/modules/**/*.routes.ts` — Query patterns (understand what columns get filtered)
+- `backend/src/config/env.ts` — Database connection config
 
 ## Files You WRITE
 
 - `backend/prisma/schema.prisma` — Prisma schema models
 - `backend/prisma/migrations/**/*.sql` — Custom SQL in migration files (for CHECK constraints)
-- `backend/src/validators/**/*.ts` — Zod schemas matching updated models
+- `backend/src/modules/**/*.validator.ts` — Zod schemas matching updated models
 
 ## Files You NEVER MODIFY
 

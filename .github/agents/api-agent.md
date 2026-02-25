@@ -7,12 +7,16 @@ description: Backend API Engineering specialist responsible for RESTful API desi
 
 <!--
 HACKATHON_TOPIC: FleetFlow – Single-Organization Fleet Management System
+REFERENCE: Always read .github/agents/FLEETFLOW_ARCHITECTURE.md before writing any backend code.
+
 ARCHITECTURE:
   - Single organization, no multi-tenant logic, no orgId filtering
   - No SuperAdmin role — MANAGER is highest authority
   - 4 roles: MANAGER | DISPATCHER | SAFETY_OFFICER | FINANCE_ANALYST
-  - RBAC enforced at route level via authorize() middleware
-  - State machines enforced in service layer (Prisma transactions)
+  - RBAC enforced at route level via authorize(['MANAGER', ...]) middleware
+  - State machines enforced in service layer (Prisma $transaction + FOR UPDATE)
+  - All state mutations write an AuditLog record (append-only)
+  - Soft deletes on Vehicle and Driver (isDeleted + deletedAt — never hard delete)
 -->
 
 ## Persona
@@ -69,61 +73,112 @@ You produce **secure, performant, well-documented, and modular** APIs that follo
 
 ### Tech Stack (HARDCODED)
 
-| Layer      | Technology                                  |
-| ---------- | ------------------------------------------- |
-| Backend    | Node.js 22 + Express.js 5                   |
-| ORM        | Prisma ORM (Prisma Client + Prisma Migrate) |
-| Validation | Zod (server-side request validation)        |
-| Migrations | Prisma Migrate (`npx prisma migrate dev`)   |
-| Database   | PostgreSQL 16                               |
-| Language   | TypeScript 5 (strict mode)                  |
-| Server     | tsx (dev) / node (prod)                     |
-| Frontend   | React 19 + TypeScript + Vite + Tailwind CSS |
-| Testing    | Jest + Supertest (API) + Prisma mock (unit) |
-| Infra      | Docker Compose                              |
+| Layer      | Technology                                              |
+| ---------- | ------------------------------------------------------- |
+| Backend    | Node.js 20 LTS + Express.js 4.x                         |
+| ORM        | Prisma ORM 5.x (Prisma Client + Prisma Migrate)         |
+| Validation | Zod 3.x (server-side request validation)                |
+| Migrations | Prisma Migrate (`npx prisma migrate dev`)               |
+| Database   | PostgreSQL 16                                           |
+| Language   | TypeScript 5.x (strict mode)                            |
+| Auth       | JWT (jsonwebtoken) + bcryptjs                           |
+| Real-time  | Socket.IO 4.x                                           |
+| Security   | Helmet + express-rate-limit                             |
+| Logging    | Morgan                                                  |
+| Cron       | node-cron (compliance/license expiry jobs)              |
+| Frontend   | React 19 + TypeScript + Vite 7 + Tailwind CSS 4 + Axios |
+| Testing    | Jest + Supertest (API) + Prisma mock (unit)             |
+| Infra      | Docker Compose                                          |
 
 ### Folder Responsibilities
 
+> ⚠️ CRITICAL: FleetFlow uses a MODULE-BASED architecture, NOT a flat routes/ + services/ structure.
+> Each domain is self-contained in `backend/src/modules/<domain>/`.
+
 ```
 backend/src/
-├── index.ts         → Express app entry point, CORS, middleware, router registration
-├── config.ts        → Environment variable loading (dotenv + validation)
-├── routes/          → API route handlers (thin — delegates to services only)
-├── services/        → Business logic layer (CRUD + validation)
-├── middleware/       → Auth, error handling, rate limiting, validation
-├── validators/       → Zod request/response schemas
-└── utils/           → Password hashing, JWT helpers, custom errors
+├── server.ts              → HTTP server + Socket.IO bootstrap
+├── app.ts                 → Express factory: all middleware + module routers
+├── prisma.ts              → Prisma Client singleton (import from here)
+│
+├── config/
+│   ├── env.ts             → Zod-validated env loading
+│   └── swagger.ts         → OpenAPI spec builder
+│
+├── middleware/
+│   ├── authenticate.ts    → Verifies JWT; attaches req.user = { id, email, role }
+│   ├── authorize.ts       → Role guard factory: authorize(['MANAGER', 'DISPATCHER'])
+│   ├── validate.ts        → Zod validation middleware: validate(zodSchema)
+│   ├── errorHandler.ts    → Global error → HTTP code mapping
+│   └── auditLogger.ts     → Writes AuditLog records
+│
+├── modules/               ← ALL FEATURE CODE LIVES HERE
+│   ├── auth/              → Login, register, forgot/reset password
+│   │   ├── auth.routes.ts     → Mounted at /api/v1/auth
+│   │   ├── auth.controller.ts
+│   │   ├── auth.service.ts
+│   │   └── auth.validator.ts
+│   ├── fleet/             → Vehicle CRUD + status machine
+│   │   └── ...            → Mounted at /api/v1/vehicles
+│   ├── dispatch/          → Trip lifecycle (create/dispatch/complete/cancel)
+│   │   └── ...            → Mounted at /api/v1/trips
+│   ├── hr/                → Driver management + license compliance
+│   │   └── ...            → Mounted at /api/v1/drivers
+│   ├── finance/           → Fuel logs + expenses
+│   │   └── ...            → Mounted at /api/v1/finance
+│   ├── analytics/         → KPI aggregation queries
+│   │   └── ...            → Mounted at /api/v1/analytics
+│   ├── incidents/         → Safety incident reports
+│   │   └── ...            → Mounted at /api/v1/incidents
+│   ├── locations/         → GPS telemetry
+│   │   └── ...            → Mounted at /api/v1/locations
+│   └── me/                → Authenticated user profile
+│       └── ...            → Mounted at /api/v1/me
+│
+├── services/
+│   └── email.service.ts   → Nodemailer wrapper
+│
+├── sockets/
+│   └── socketHandler.ts   → Socket.IO event handlers
+│
+└── jobs/
+    └── complianceJobs.ts  → node-cron jobs (license expiry, document expiry)
+
 backend/prisma/
-├── schema.prisma    → Database schema (models, relations, enums)
-└── migrations/      → Prisma migration history
-backend/tests/       → Jest + Supertest test suite
+├── schema.prisma          → SINGLE SOURCE OF TRUTH for all models
+├── seed.ts                → Comprehensive demo data seeder
+└── migrations/            → Prisma migration history (never modify)
 ```
 
 ---
 
 ## Mandatory Standards
 
-### 1. RESTful Design
+### 1. RESTful Design (FleetFlow Pattern)
 
-- Clear, noun-based resource naming: `/users`, `/items`, `/orders/:id`
+- Clear, noun-based resource naming: `/vehicles`, `/drivers`, `/trips/:id`
 - Proper HTTP verbs and status codes — see the Status Code table below
-- No inconsistent route patterns (e.g., `/getUser` is forbidden — use `GET /users/:id`)
-- API versioning via URL prefix when breaking changes occur: `/api/v1/`, `/api/v2/`
-- Every route MUST have input validation, proper status codes, and documented responses
+- No inconsistent route patterns (e.g., `/getVehicle` is forbidden — use `GET /vehicles/:id`)
+- State transitions use dedicated endpoints: `POST /trips/:id/dispatch`, `POST /trips/:id/complete`
+- Every route MUST have: `authenticate`, `authorize(roles)`, `validate(schema)`, proper status codes
 
 ```typescript
-// ✅ CORRECT — Route with validation and proper response
-router.post(
+// ✅ CORRECT — FleetFlow module route pattern
+// File: backend/src/modules/fleet/fleet.routes.ts
+fleetRouter.post(
   "/",
-  validate(userCreateSchema),
-  async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const user = await userService.create(req.body);
-      res.status(201).json({ success: true, data: user });
-    } catch (error) {
-      next(error);
-    }
-  },
+  authenticate,
+  authorize(["MANAGER"]),
+  validate(CreateVehicleSchema),
+  fleetController.create,
+);
+
+fleetRouter.post(
+  "/:id/status",
+  authenticate,
+  authorize(["MANAGER", "DISPATCHER"]),
+  validate(UpdateVehicleStatusSchema),
+  fleetController.updateStatus,
 );
 ```
 
@@ -460,9 +515,9 @@ curl -X POST http://localhost:5000/api/v1/items \
 
 ## Code Style Examples
 
-### ✅ Good: Adding a New Entity (Full Scalable Pattern)
+### ✅ Good: Adding a New FleetFlow Endpoint (Full Module Pattern)
 
-**1. Prisma Model** (`prisma/schema.prisma`):
+**1. Validator** (`src/modules/<domain>/<domain>.validator.ts`):
 
 ```prisma
 model User {
@@ -537,43 +592,56 @@ export async function createUser(data: UserCreate) {
 }
 ```
 
-**4. Route** (`src/routes/users.ts`):
+**4. Route** (`src/modules/<domain>/<domain>.routes.ts`):
 
 ```typescript
-import { Router, Request, Response, NextFunction } from "express";
-import { validate } from "../middleware/validate";
-import { userCreateSchema } from "../validators/user";
-import * as userService from "../services/user.service";
+import { Router } from "express";
+import { authenticate } from "../../middleware/authenticate";
+import { authorize } from "../../middleware/authorize";
+import { validate } from "../../middleware/validate";
+import { createVehicleSchema } from "./fleet.validator";
+import { fleetController } from "./fleet.controller";
 
-const router = Router();
+const fleetRouter = Router();
 
-router.post(
+fleetRouter.get("/", authenticate, fleetController.list);
+fleetRouter.post(
   "/",
-  validate(userCreateSchema),
-  async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const user = await userService.createUser(req.body);
-      res.status(201).json({ success: true, data: user });
-    } catch (error) {
-      next(error);
-    }
-  },
+  authenticate,
+  authorize(["MANAGER"]),
+  validate(createVehicleSchema),
+  fleetController.create,
+);
+fleetRouter.get("/:id", authenticate, fleetController.getById);
+fleetRouter.put(
+  "/:id",
+  authenticate,
+  authorize(["MANAGER"]),
+  validate(updateVehicleSchema),
+  fleetController.update,
+);
+fleetRouter.post(
+  "/:id/status",
+  authenticate,
+  authorize(["MANAGER", "DISPATCHER"]),
+  validate(updateStatusSchema),
+  fleetController.updateStatus,
 );
 
-export default router;
+export { fleetRouter };
 ```
 
-**5. Register** in `src/index.ts`:
+**5. Register** in `src/app.ts`:
 
 ```typescript
-import userRoutes from "./routes/users";
-app.use("/api/v1/users", userRoutes);
+import { fleetRouter } from "./modules/fleet/fleet.routes";
+app.use(`${v1}/vehicles`, fleetRouter);
 ```
 
 **6. Migration**:
 
 ```bash
-cd backend && npx prisma migrate dev --name add_users_table
+cd backend && npx prisma migrate dev --name add_vehicle_documents
 ```
 
 ### ❌ Bad: Route Handler
