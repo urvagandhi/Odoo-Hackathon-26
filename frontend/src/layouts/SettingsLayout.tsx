@@ -70,7 +70,7 @@ export function SettingsLayout({
           className="
             flex lg:flex-col gap-1
             overflow-x-auto lg:overflow-visible
-            bg-white rounded-xl border border-slate-200 shadow-sm
+            bg-white dark:bg-neutral-800 rounded-xl border border-slate-200 dark:border-neutral-700 shadow-sm
             p-2 lg:p-3
             shrink-0
           "
@@ -88,16 +88,16 @@ export function SettingsLayout({
                   whitespace-nowrap transition-all duration-150 w-full text-left
                   focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-1
                   ${isActive
-                    ? "bg-indigo-50 text-indigo-700"
-                    : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"}
+                    ? "bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300"
+                    : "text-slate-600 dark:text-neutral-400 hover:bg-slate-50 dark:hover:bg-neutral-700 hover:text-slate-900 dark:hover:text-white"}
                 `}
               >
-                <Icon className={`w-4 h-4 shrink-0 ${isActive ? "text-indigo-600" : "text-slate-400"}`} />
+                <Icon className={`w-4 h-4 shrink-0 ${isActive ? "text-indigo-600 dark:text-indigo-400" : "text-slate-400 dark:text-neutral-500"}`} />
                 <span className="flex-1">{tab.label}</span>
                 {tab.badge && (
                   <span className={`
                     text-xs px-1.5 py-0.5 rounded-full font-medium
-                    ${isActive ? "bg-indigo-100 text-indigo-700" : "bg-slate-100 text-slate-500"}
+                    ${isActive ? "bg-indigo-100 dark:bg-indigo-900/50 text-indigo-700 dark:text-indigo-300" : "bg-slate-100 dark:bg-neutral-600 text-slate-500 dark:text-neutral-400"}
                   `}>
                     {tab.badge}
                   </span>
@@ -106,7 +106,7 @@ export function SettingsLayout({
                 {isActive && (
                   <motion.div
                     layoutId="settings-tab-indicator"
-                    className="absolute inset-0 rounded-lg bg-indigo-50 -z-10"
+                    className="absolute inset-0 rounded-lg bg-indigo-50 dark:bg-indigo-900/30 -z-10"
                     transition={{ duration: 0.2, ease: [0.4, 0, 0.2, 1] as const }}
                   />
                 )}

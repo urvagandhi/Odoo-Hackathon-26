@@ -42,6 +42,12 @@ export const AdminResetPasswordSchema = z.object({
     newPassword: passwordSchema,
 });
 
+// Authenticated user updates their own profile (name, email).
+export const UpdateProfileSchema = z.object({
+    fullName: z.string().min(2, 'Full name must be at least 2 characters').max(100).optional(),
+    email: z.string().email('Invalid email address').optional(),
+});
+
 // RegisterSchema alias (used internally by auth.service register())
 export const RegisterSchema = CreateUserSchema;
 
@@ -52,3 +58,4 @@ export type ChangePasswordInput = z.infer<typeof ChangePasswordSchema>;
 export type ForgotPasswordInput = z.infer<typeof ForgotPasswordSchema>;
 export type ResetPasswordInput = z.infer<typeof ResetPasswordSchema>;
 export type AdminResetPasswordInput = z.infer<typeof AdminResetPasswordSchema>;
+export type UpdateProfileInput = z.infer<typeof UpdateProfileSchema>;

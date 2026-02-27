@@ -243,6 +243,18 @@ export const authApi = {
     const { data } = await apiClient.get<{ success: boolean; data: AuthUser }>("/api/v1/auth/me");
     return data.data;
   },
+  updateProfile: async (payload: { fullName?: string; email?: string }): Promise<AuthUser> => {
+    const { data } = await apiClient.patch<{ success: boolean; data: AuthUser }>("/api/v1/auth/me", payload);
+    // Update cached user in localStorage
+    const cached = localStorage.getItem("auth_user");
+    if (cached) {
+      const user = JSON.parse(cached);
+      if (payload.fullName) user.fullName = payload.fullName;
+      if (payload.email) user.email = payload.email;
+      localStorage.setItem("auth_user", JSON.stringify(user));
+    }
+    return data.data;
+  },
   changePassword: async (payload: { currentPassword: string; newPassword: string }): Promise<void> => {
     await apiClient.put("/api/v1/auth/change-password", payload);
   },

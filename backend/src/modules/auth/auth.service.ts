@@ -12,6 +12,7 @@ import {
     ChangePasswordInput,
     ForgotPasswordInput,
     ResetPasswordInput,
+    UpdateProfileInput,
 } from './auth.validator';
 import { JwtPayload } from '../../middleware/authenticate';
 
@@ -118,6 +119,36 @@ export class AuthService {
             ...user,
             id: user.id.toString(),
         };
+    }
+
+    /**
+     * Update the authenticated user's own profile (fullName, email).
+     */
+    async updateProfile(userId: bigint, input: UpdateProfileInput) {
+        const user = await prisma.user.findUnique({ where: { id: userId } });
+        if (!user) throw new ApiError(404, 'User not found.');
+
+        // If email is changing, check for conflicts
+        if (input.email && input.email !== user.email) {
+            const existing = await prisma.user.findUnique({ where: { email: input.email } });
+            if (existing) throw new ApiError(409, 'A user with this email already exists.');
+        }
+
+        const data: Record<string, string> = {};
+        if (input.fullName) data.fullName = input.fullName;
+        if (input.email) data.email = input.email;
+
+        if (Object.keys(data).length === 0) {
+            return { id: user.id.toString(), email: user.email, fullName: user.fullName, role: user.role };
+        }
+
+        const updated = await prisma.user.update({
+            where: { id: userId },
+            data,
+            select: { id: true, email: true, fullName: true, role: true },
+        });
+
+        return { ...updated, id: updated.id.toString() };
     }
 
     /**
