@@ -23,6 +23,7 @@ import {
   HelpCircle,
   User,
   AlertTriangle,
+  X,
   type LucideIcon,
 } from "lucide-react";
 import { useAuth } from "../../hooks/useAuth";
@@ -171,7 +172,13 @@ const NAV_SECTIONS: Record<string, NavSection[]> = {
   ],
 };
 
-export default function Sidebar() {
+/* ── Props ──────────────────────────────────────────────── */
+interface SidebarProps {
+  isOpen?: boolean;
+  onClose?: () => void;
+}
+
+export default function Sidebar({ isOpen = false, onClose }: SidebarProps) {
   const { user, logout } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
@@ -184,13 +191,31 @@ export default function Sidebar() {
   const isActive = (path: string) => location.pathname === path;
 
   return (
-    <aside className={`w-[230px] flex flex-col h-screen shrink-0 border-r ${isDark ? 'bg-neutral-900 border-neutral-800' : 'bg-white border-slate-100'}`}>
+    <aside className={`
+      fixed inset-y-0 left-0 z-50 w-[260px] flex flex-col h-screen border-r
+      transform transition-transform duration-300 ease-in-out
+      ${isOpen ? "translate-x-0" : "-translate-x-full"}
+      md:static md:z-auto md:translate-x-0 md:shrink-0
+      ${isDark ? 'bg-neutral-900 border-neutral-800' : 'bg-white border-slate-100'}
+    `}>
       {/* ── Logo ─────────────────────────────────────── */}
       <div className={`flex items-center gap-3 px-5 h-16 shrink-0 border-b ${isDark ? 'border-neutral-800' : 'border-slate-100'}`}>
         <Logo size="sm" className="bg-white" />
         <span className={`text-[15px] font-bold tracking-tight whitespace-nowrap ${isDark ? 'text-white' : 'text-slate-900'}`}>
           FleetFlow
         </span>
+        <div className="flex-1" />
+        {onClose && (
+          <button
+            onClick={onClose}
+            className={`md:hidden w-8 h-8 rounded-lg flex items-center justify-center transition-colors ${
+              isDark ? "text-neutral-400 hover:bg-neutral-800 hover:text-white" : "text-slate-400 hover:bg-slate-100 hover:text-slate-900"
+            }`}
+            aria-label="Close sidebar"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        )}
       </div>
 
       {/* ── Navigation ───────────────────────────────── */}
