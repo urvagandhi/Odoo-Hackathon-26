@@ -69,7 +69,7 @@ export default function Maintenance() {
                     <h1 className={`text-2xl font-bold ${isDark ? "text-white" : "text-neutral-900"}`}>{t("maintenance.title")}</h1>
                     <p className={`text-sm ${isDark ? "text-neutral-400" : "text-neutral-500"}`}>{t("maintenance.subtitle")}</p>
                 </div>
-                <button onClick={() => { setError(""); setShowModal(true); }} className="flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-500 text-white text-sm font-semibold hover:bg-emerald-600 transition-colors">
+                <button onClick={() => { setError(""); setShowModal(true); }} className="flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-500 text-white text-sm font-semibold hover:bg-emerald-600 transition-all active:scale-[0.97]">
                     <Plus className="w-4 h-4" /> {t("maintenance.logService")}
                 </button>
             </div>

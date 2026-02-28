@@ -9,6 +9,7 @@ import { Plus, Search, Filter, Edit3, Trash2, X, Truck, ChevronDown } from "luci
 import { fleetApi, type Vehicle, type VehicleType } from "../api/client";
 import { useTheme } from "../context/ThemeContext";
 import { useToast } from "../hooks/useToast";
+import { VehicleTypeThumbnail } from "../components/ui/VehicleTypePreview";
 import {
     AlertDialog,
     AlertDialogContent,
@@ -117,7 +118,7 @@ export default function Fleet() {
                     <h1 className={`text-2xl font-bold ${isDark ? "text-white" : "text-neutral-900"}`}>{t("fleet.title")}</h1>
                     <p className={`text-sm ${isDark ? "text-neutral-400" : "text-neutral-500"}`}>{t("fleet.vehiclesInFleet", { count: vehicles.length })}</p>
                 </div>
-                <button onClick={openCreate} className="flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-500 text-white text-sm font-semibold hover:bg-emerald-600 transition-colors">
+                <button onClick={openCreate} className="flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-500 text-white text-sm font-semibold hover:bg-emerald-600 transition-all active:scale-[0.97]">
                     <Plus className="w-4 h-4" /> {t("fleet.addVehicle")}
                 </button>
             </div>
@@ -189,7 +190,10 @@ export default function Fleet() {
                                         {v.color && <p className={`text-xs ${isDark ? "text-neutral-400" : "text-neutral-500"}`}>{v.color}</p>}
                                     </td>
                                     <td className={`px-4 py-3.5 text-xs font-medium ${isDark ? "text-neutral-300" : "text-neutral-600"}`}>
-                                        {v.vehicleType?.name ?? "—"}
+                                        <span className="inline-flex items-center gap-1.5">
+                                            <VehicleTypeThumbnail typeName={v.vehicleType?.name ?? ""} />
+                                            {v.vehicleType?.name ?? "—"}
+                                        </span>
                                     </td>
                                     <td className={`px-4 py-3.5 font-mono text-sm font-bold ${isDark ? "text-emerald-400" : "text-emerald-600"}`}>
                                         {v.licensePlate}

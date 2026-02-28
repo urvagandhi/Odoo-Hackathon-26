@@ -240,7 +240,7 @@ export default function Analytics() {
                         <Download className="w-4 h-4" /> {t("analytics.exportCSV")}
                     </button>
                     <button onClick={load}
-                        className="flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-500 text-white text-sm font-semibold hover:bg-emerald-600 transition-colors">
+                        className="flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-500 text-white text-sm font-semibold hover:bg-emerald-600 transition-all active:scale-[0.97]">
                         <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} /> {t("common.refresh")}
                     </button>
                 </div>

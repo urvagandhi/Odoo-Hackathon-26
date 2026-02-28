@@ -8,6 +8,7 @@ import { X, Truck, Save, Loader2 } from "lucide-react";
 import { useTheme } from "../../context/ThemeContext";
 import { fleetApi } from "../../api/client";
 import { createVehicleSchema, type CreateVehicleFormData } from "../../validators/vehicle";
+import { VehicleTypePreview } from "../ui/VehicleTypePreview";
 
 interface VehicleType {
   id: string;
@@ -313,6 +314,14 @@ export function VehicleForm({ open, onClose, onSuccess, editData }: VehicleFormP
                 </select>
                 {errors.vehicleTypeId && <p className={errCls}>{errors.vehicleTypeId}</p>}
               </div>
+
+              {/* Vehicle Type Photo Preview */}
+              {(() => {
+                const selectedType = vehicleTypes.find((vt) => vt.id === form.vehicleTypeId);
+                return selectedType ? (
+                  <VehicleTypePreview typeName={selectedType.name} size="md" showDescription />
+                ) : null;
+              })()}
 
               {/* Capacity Weight + Volume */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">

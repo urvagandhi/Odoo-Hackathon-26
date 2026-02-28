@@ -214,7 +214,7 @@ export default function Dispatch() {
                     <h1 className={`text-2xl font-bold ${isDark ? "text-white" : "text-neutral-900"}`}>{t("dispatch.title")}</h1>
                     <p className={`text-sm ${isDark ? "text-neutral-400" : "text-neutral-500"}`}>{t("dispatch.tripsTotal", { count: trips.length })}</p>
                 </div>
-                <button onClick={() => { setFormError(""); setShowModal(true); }} className="flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-500 text-white text-sm font-semibold hover:bg-emerald-600 transition-colors">
+                <button onClick={() => { setFormError(""); setShowModal(true); }} className="flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-500 text-white text-sm font-semibold hover:bg-emerald-600 transition-all active:scale-[0.97]">
                     <Plus className="w-4 h-4" /> {t("dispatch.newTrip")}
                 </button>
             </div>

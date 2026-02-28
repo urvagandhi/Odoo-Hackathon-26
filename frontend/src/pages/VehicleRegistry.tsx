@@ -23,6 +23,7 @@ import { fleetApi, analyticsApi } from "../api/client";
 import { useToast } from "../hooks/useToast";
 import { StatusPill } from "../components/ui/StatusPill";
 import { VehicleForm } from "../components/forms/VehicleForm";
+import { VehicleTypeThumbnail } from "../components/ui/VehicleTypePreview";
 import {
   AlertDialog,
   AlertDialogContent,
@@ -233,7 +234,7 @@ export default function VehicleRegistry() {
         <div className="flex items-center gap-2">
           <button
             onClick={handleExport}
-            className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border text-sm font-medium transition-colors shadow-sm ${
+            className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border text-sm font-medium transition-all shadow-sm active:scale-[0.97] ${
               isDark 
                 ? "border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/10" 
                 : "border-emerald-200 text-emerald-600 hover:bg-emerald-50"
@@ -245,7 +246,7 @@ export default function VehicleRegistry() {
           {canMutate && (
             <button
               onClick={() => { setEditVehicle(null); setFormOpen(true); }}
-              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-violet-600 hover:bg-violet-500 text-white text-sm font-medium transition-colors shadow-lg shadow-violet-500/20"
+              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-violet-600 hover:bg-violet-500 text-white text-sm font-medium transition-all shadow-lg shadow-violet-500/20 active:scale-[0.97]"
             >
               <Plus className="w-4 h-4" />
               {t("vehicleRegistry.newVehicle")}
@@ -266,7 +267,7 @@ export default function VehicleRegistry() {
             key={item.key}
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
-            className={`rounded-xl border p-4 ${cardBg} cursor-pointer hover:shadow-md transition-shadow`}
+            className={`rounded-xl border p-4 ${cardBg} cursor-pointer card-lift`}
             onClick={() => { setStatusFilter(statusFilter === item.key ? "" : item.key); setPage(1); }}
           >
             <div className="flex items-center justify-between">
@@ -370,7 +371,12 @@ export default function VehicleRegistry() {
                       {v.make} {v.model}
                       <span className={`block text-xs ${textSecondary}`}>{v.year}</span>
                     </td>
-                    <td className={`px-4 py-3 ${textSecondary}`}>{v.vehicleType?.name ?? "—"}</td>
+                    <td className={`px-4 py-3 ${textSecondary}`}>
+                      <span className="inline-flex items-center gap-1.5">
+                        <VehicleTypeThumbnail typeName={v.vehicleType?.name ?? ""} />
+                        {v.vehicleType?.name ?? "—"}
+                      </span>
+                    </td>
                     <td className={`px-4 py-3 tabular-nums ${textPrimary}`}>
                       {v.capacityWeight.toLocaleString()} kg
                     </td>
