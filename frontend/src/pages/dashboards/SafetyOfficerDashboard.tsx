@@ -14,9 +14,9 @@ import {
   AlertCircle,
   CheckCircle2,
   FileText,
-  Activity,
-  Loader2,
+  Activity
 } from "lucide-react";
+import { DashboardSkeleton } from "../../components/ui/DashboardSkeleton";
 import { analyticsApi, hrApi, fleetApi } from "../../api/client";
 import type { DashboardKPIs } from "../../api/client";
 import { useTheme } from "../../context/ThemeContext";
@@ -102,11 +102,7 @@ export default function SafetyOfficerDashboard() {
   }, []);
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <Loader2 className="w-8 h-8 animate-spin text-violet-600" />
-      </div>
-    );
+    return <DashboardSkeleton />;
   }
 
   // Derived stats
