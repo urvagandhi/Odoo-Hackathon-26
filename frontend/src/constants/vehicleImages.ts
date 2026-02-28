@@ -1,10 +1,13 @@
 /**
  * Vehicle Type → Image mapping
- * Images sourced from Gemini-generated photos in Photos/vehicles/,
- * copied to public/vehicles/ with semantic names.
+ * Images sourced from Photos/vehicles/, copied to public/vehicles/
+ * with semantic names.
  *
- * Each vehicle type has a primary and alternate image,
- * a display label, description, icon emoji, and a Tailwind gradient.
+ * Mapping:
+ *   truck.png  → truck-1.png,  truck1.png    → truck-2.png
+ *   van.png    → van-1.png,    black_van.png → van-2.png
+ *   bike.png   → bike-1.png,   activa.png    → bike-2.png
+ *   car.png    → car-1.png
  */
 
 export interface VehicleImageInfo {
@@ -31,7 +34,7 @@ export const vehicleImageMap: Record<string, VehicleImageInfo> = {
     primary: "/vehicles/van-1.png",
     alt: "/vehicles/van-2.png",
     label: "Cargo Van",
-    description: "Mid-size cargo delivery van",
+    description: "Mid-size cargo & passenger van",
     icon: "🚐",
     gradient: "from-blue-500/20 to-cyan-500/20",
     gradientDark: "from-blue-500/10 to-cyan-500/10",
@@ -39,20 +42,29 @@ export const vehicleImageMap: Record<string, VehicleImageInfo> = {
   BIKE: {
     primary: "/vehicles/bike-1.png",
     alt: "/vehicles/bike-2.png",
-    label: "Motorcycle",
-    description: "Fast last-mile delivery bike",
+    label: "Two-Wheeler",
+    description: "Motorcycle & scooter for last-mile delivery",
     icon: "🏍️",
     gradient: "from-emerald-500/20 to-teal-500/20",
     gradientDark: "from-emerald-500/10 to-teal-500/10",
   },
+  CAR: {
+    primary: "/vehicles/car-1.png",
+    alt: "/vehicles/car-1.png",
+    label: "Car",
+    description: "Sedan / hatchback for passenger transport",
+    icon: "🚗",
+    gradient: "from-violet-500/20 to-purple-500/20",
+    gradientDark: "from-violet-500/10 to-purple-500/10",
+  },
   PLANE: {
-    primary: "/vehicles/plane-1.png",
-    alt: "/vehicles/plane-1.png",
+    primary: "/vehicles/car-1.png",
+    alt: "/vehicles/car-1.png",
     label: "Aircraft",
     description: "Cargo aircraft for air freight",
     icon: "✈️",
-    gradient: "from-violet-500/20 to-purple-500/20",
-    gradientDark: "from-violet-500/10 to-purple-500/10",
+    gradient: "from-rose-500/20 to-pink-500/20",
+    gradientDark: "from-rose-500/10 to-pink-500/10",
   },
 };
 
