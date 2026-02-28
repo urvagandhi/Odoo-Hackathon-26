@@ -13,7 +13,11 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-fleetflow} -d ${POSTGRES_DB:-fleetflow}"]
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U ${POSTGRES_USER:-fleetflow} -d ${POSTGRES_DB:-fleetflow}",
+        ]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -43,10 +47,10 @@ services:
     ports:
       - "5000:5000"
     environment:
-      DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@db:5432/${POSTGRES_DB:-hackathon_db}
+      DATABASE_URL: postgresql://${POSTGRES_USER:-fleetflow}:${POSTGRES_PASSWORD:-fleetflow_dev}@db:5432/${POSTGRES_DB:-fleetflow}
       PORT: 5000
-      NODE_ENV: production
-      JWT_SECRET: ${JWT_SECRET:-change-me-in-production}
+      NODE_ENV: development
+      JWT_SECRET: ${JWT_SECRET:-dev-jwt-secret-change-me}
       CORS_ORIGINS: '["http://localhost:5173","http://localhost:3000","http://localhost"]'
     depends_on:
       db:

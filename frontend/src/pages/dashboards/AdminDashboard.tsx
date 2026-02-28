@@ -12,12 +12,12 @@ import {
   AlertTriangle,
   CheckCircle2,
   Clock,
-  Activity,
-  Loader2,
+  Activity
 } from "lucide-react";
 import { analyticsApi, dispatchApi } from "../../api/client";
 import type { DashboardKPIs, MonthlyReport } from "../../api/client";
 import { useTheme } from "../../context/ThemeContext";
+import { DashboardSkeleton } from "../../components/ui/DashboardSkeleton";
 
 const card = "rounded-3xl border transition-all duration-300 relative overflow-hidden backdrop-blur-xl shrink-0";
 const lightCard = "bg-gradient-to-br from-white via-white to-slate-50/80 border-slate-200/60 shadow-[0_8px_30px_rgb(0,0,0,0.06)] hover:shadow-[0_8px_30px_rgb(0,0,0,0.12)]";
@@ -85,11 +85,7 @@ export default function AdminDashboard() {
   const utilizationPct = kpi ? parseFloat(kpi.fleet.utilizationRate) : 0;
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <Loader2 className="w-8 h-8 animate-spin text-violet-600" />
-      </div>
-    );
+    return <DashboardSkeleton />;
   }
 
   return (

@@ -27,7 +27,6 @@ import {
   XCircle,
   FileEdit,
   BarChart3,
-  Loader2,
   AlertTriangle,
 } from "lucide-react";
 import { useTheme } from "../context/ThemeContext";
@@ -40,6 +39,7 @@ import { TripForm } from "../components/forms/TripForm";
 import { TripCompleteModal } from "../components/forms/TripCompleteModal";
 import { TripCancelDialog } from "../components/forms/TripCancelDialog";
 import { TripLedgerDrawer } from "../components/forms/TripLedgerDrawer";
+import { TableSkeleton } from "../components/ui/TableSkeleton";
 import { AnimatePresence, motion } from "framer-motion";
 
 /* ─── Types ─── */
@@ -458,10 +458,7 @@ export default function TripDispatcher() {
         {/* ── Table ── */}
         <div className={`rounded-xl border overflow-hidden ${cardBg}`}>
           {loading ? (
-            <div className="py-20 text-center">
-              <Loader2 className={`w-6 h-6 mx-auto animate-spin ${textSecondary}`} />
-              <p className={`text-sm mt-2 ${textSecondary}`}>{t("tripDispatcher.loading")}</p>
-            </div>
+            <TableSkeleton columns={8} rows={5} />
           ) : filtered.length === 0 ? (
             <div className="py-16 text-center">
               <Navigation className={`w-10 h-10 mx-auto mb-3 ${isDark ? "text-neutral-600" : "text-slate-300"}`} />

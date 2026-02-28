@@ -14,9 +14,9 @@ import {
   Briefcase,
   Droplets,
   Filter,
-  ArrowUpDown,
-  Loader2,
+  ArrowUpDown
 } from "lucide-react";
+import { DashboardSkeleton } from "../../components/ui/DashboardSkeleton";
 import { analyticsApi } from "../../api/client";
 import type { MonthlyReport, FuelEfficiency } from "../../api/client";
 import { useTheme } from "../../context/ThemeContext";
@@ -138,11 +138,7 @@ export default function FinanceDashboard() {
   const fuelMax = Math.max(...fuelMonths.map((m) => m.value), 1);
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <Loader2 className="w-8 h-8 animate-spin text-violet-600" />
-      </div>
-    );
+    return <DashboardSkeleton />;
   }
 
   return (

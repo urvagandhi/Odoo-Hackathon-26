@@ -7,8 +7,9 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { motion } from "framer-motion";
 import {
-  Power, Play, CheckCircle2, Navigation, Clock, Activity, Loader2
+  Power, Play, CheckCircle2, Navigation, Clock, Activity
 } from "lucide-react";
+import { DashboardSkeleton } from "../components/ui/DashboardSkeleton";
 import { meApi } from "../api/client";
 import type { Trip, Driver } from "../api/client";
 import { useAuth } from "../context/AuthContext";
@@ -100,11 +101,7 @@ export default function DriverDashboard() {
   };
 
   if (loading) {
-    return (
-      <div className="flex-1 flex items-center justify-center min-h-[500px]">
-        <Loader2 className="w-8 h-8 animate-spin text-violet-500" />
-      </div>
-    );
+    return <DashboardSkeleton />;
   }
 
   if (!profile) {

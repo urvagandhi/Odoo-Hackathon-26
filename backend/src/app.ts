@@ -23,6 +23,9 @@ import { meRouter } from './modules/me/me.routes';
 export function createApp(): Application {
     const app = express();
 
+    // ── Trust proxy (required on Render/Vercel behind load balancer) ──
+    app.set('trust proxy', 1);
+
     // ── Security headers ──────────────────────────────────────────
     app.use(helmet());
 
