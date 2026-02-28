@@ -1,0 +1,1303 @@
+{
+  "common": {
+    "appName": "FleetFlow",
+    "save": "सहेजें",
+    "cancel": "रद्द करें",
+    "delete": "हटाएँ",
+    "create": "बनाएँ",
+    "update": "अपडेट करें",
+    "edit": "संपादित करें",
+    "add": "जोड़ें",
+    "close": "बंद करें",
+    "search": "खोजें",
+    "loading": "लोड हो रहा है…",
+    "saving": "सहेजा जा रहा है...",
+    "updating": "अपडेट हो रहा है...",
+    "back": "वापस",
+    "next": "अगला",
+    "yes": "हाँ",
+    "no": "नहीं",
+    "all": "सभी",
+    "export": "निर्यात करें",
+    "refresh": "रीफ़्रेश करें",
+    "logout": "लॉग आउट",
+    "actions": "कार्रवाइयाँ",
+    "noData": "कोई डेटा उपलब्ध नहीं",
+    "page": "पृष्ठ",
+    "of": "का",
+    "records": "रिकॉर्ड",
+    "total": "कुल"
+  },
+  "roles": {
+    "MANAGER": "बेड़ा प्रबंधक",
+    "DISPATCHER": "यात्रा प्रेषक",
+    "SAFETY_OFFICER": "सुरक्षा अधिकारी",
+    "FINANCE_ANALYST": "वित्त विश्लेषक",
+    "DRIVER": "चालक"
+  },
+  "roleLabelsShort": {
+    "MANAGER": "प्रबंधक",
+    "DISPATCHER": "प्रेषक",
+    "SAFETY_OFFICER": "सुरक्षा अधिकारी",
+    "FINANCE_ANALYST": "वित्त विश्लेषक",
+    "DRIVER": "चालक"
+  },
+  "nav": {
+    "sections": {
+      "mainMenu": "मुख्य मेनू",
+      "general": "सामान्य",
+      "others": "अन्य",
+      "fleet": "बेड़ा",
+      "safety": "सुरक्षा",
+      "maintenance": "रखरखाव",
+      "finance": "वित्त",
+      "reports": "रिपोर्ट"
+    },
+    "items": {
+      "fleetHub": "बेड़ा केंद्र",
+      "vehicleRegistry": "वाहन रजिस्ट्री",
+      "dispatchControl": "प्रेषण नियंत्रण",
+      "communications": "संचार",
+      "operationalFeed": "परिचालन फ़ीड",
+      "financialReports": "वित्तीय रिपोर्ट",
+      "helpCenter": "सहायता केंद्र",
+      "myIdentity": "मेरी पहचान",
+      "settings": "सेटिंग्स",
+      "tripLedger": "यात्रा खाता",
+      "initiateTrip": "यात्रा आरंभ करें",
+      "fleetCatalog": "बेड़ा सूची",
+      "crewRecords": "चालक दल अभिलेख",
+      "alertCenter": "अलर्ट केंद्र",
+      "safetyLog": "सुरक्षा लॉग",
+      "crewScores": "चालक दल अंक",
+      "serviceLogs": "सेवा लॉग",
+      "incidentIntel": "घटना विश्लेषण",
+      "revenueStream": "राजस्व धारा",
+      "fuelIntel": "ईंधन विश्लेषण",
+      "profitLoss": "लाभ और हानि",
+      "costIntel": "लागत विश्लेषण",
+      "operationsIntel": "परिचालन विश्लेषण",
+      "crewGateway": "चालक दल पोर्टल"
+    }
+  },
+  "topBar": {
+    "pageTitles": {
+      "MANAGER": "बेड़ा प्रबंधन",
+      "DISPATCHER": "यात्रा प्रेषण",
+      "SAFETY_OFFICER": "सुरक्षा केंद्र",
+      "FINANCE_ANALYST": "वित्तीय रिपोर्ट"
+    },
+    "myProfile": "मेरी प्रोफ़ाइल"
+  },
+  "auth": {
+    "login": {
+      "pageTitle": "FleetFlow | साइन इन",
+      "heroTitle": "बेड़ा प्रबंधन",
+      "heroSubtitle": "बुद्धिमान बनाया गया",
+      "heroDescription": "वास्तविक समय में ट्रैकिंग, प्रेषण अनुकूलन, और व्यापक बेड़ा विश्लेषण — सब एक ही मंच पर।",
+      "featureAnalytics": "विश्लेषण",
+      "featureSecure": "सुरक्षित",
+      "featureRealtime": "वास्तविक समय",
+      "statVehicles": "वाहन",
+      "statCountries": "देश",
+      "statUptime": "अपटाइम",
+      "welcomeBack": "पुनः स्वागत है",
+      "signInSubtitle": "अपने FleetFlow खाते में साइन इन करें",
+      "emailLabel": "ईमेल",
+      "emailPlaceholder": "your@email.com",
+      "passwordLabel": "पासवर्ड",
+      "passwordPlaceholder": "पासवर्ड दर्ज करें",
+      "forgotPassword": "पासवर्ड भूल गए?",
+      "signIn": "साइन इन",
+      "quickAccess": "त्वरित पहुँच (परीक्षण)",
+      "quickLoginFailed": "त्वरित लॉगिन विफल रहा।",
+      "noAccount": "खाता नहीं है? अपने प्रशासक से संपर्क करें।",
+      "switchToLight": "लाइट मोड में बदलें",
+      "switchToDark": "डार्क मोड में बदलें"
+    },
+    "forgotPassword": {
+      "title": "पासवर्ड भूल गए?",
+      "description": "अपना ईमेल दर्ज करें और हम आपको पासवर्ड रीसेट करने का लिंक भेजेंगे।",
+      "emailLabel": "ईमेल पता",
+      "emailPlaceholder": "your@email.com",
+      "submit": "रीसेट लिंक भेजें",
+      "successMessage": "यदि उस ईमेल से कोई खाता मौजूद है, तो पासवर्ड रीसेट लिंक भेज दिया गया है।",
+      "devModeLabel": "DEV MODE — रीसेट लिंक:",
+      "backToLogin": "लॉगिन पर वापस जाएँ"
+    },
+    "resetPassword": {
+      "title": "अपना पासवर्ड रीसेट करें",
+      "description": "नीचे अपना नया पासवर्ड दर्ज करें।",
+      "newPasswordLabel": "नया पासवर्ड",
+      "newPasswordPlaceholder": "न्यूनतम 8 अक्षर, 1 बड़ा अक्षर, 1 अंक",
+      "confirmPasswordLabel": "नए पासवर्ड की पुष्टि करें",
+      "confirmPasswordPlaceholder": "नया पासवर्ड पुनः दर्ज करें",
+      "submit": "पासवर्ड रीसेट करें",
+      "missingToken": "रीसेट टोकन गायब है। कृपया अपने ईमेल में दिए गए लिंक का उपयोग करें।",
+      "successTitle": "पासवर्ड रीसेट हो गया!",
+      "successMessage": "3 सेकंड में आपको लॉगिन पर भेजा जा रहा है…",
+      "backToLogin": "लॉगिन पर वापस जाएँ"
+    },
+    "validation": {
+      "minChars": "पासवर्ड कम से कम 8 अक्षरों का होना चाहिए",
+      "uppercase": "कम से कम एक बड़ा अक्षर होना चाहिए",
+      "number": "कम से कम एक अंक होना चाहिए",
+      "mismatch": "पासवर्ड मेल नहीं खाते"
+    }
+  },
+  "settings": {
+    "title": "सेटिंग्स",
+    "subtitle": "अपनी प्राथमिकताएँ और खाता प्रबंधित करें",
+    "tabs": {
+      "account": "खाता",
+      "security": "सुरक्षा",
+      "notifications": "सूचनाएँ",
+      "appearance": "दिखावट"
+    },
+    "account": {
+      "profileInfo": "प्रोफ़ाइल जानकारी",
+      "profileInfoDesc": "अपनी व्यक्तिगत जानकारी अपडेट करें",
+      "firstName": "पहला नाम",
+      "lastName": "अंतिम नाम",
+      "email": "ईमेल पता",
+      "phone": "फ़ोन",
+      "location": "स्थान",
+      "bio": "परिचय",
+      "dangerZone": "खतरा क्षेत्र",
+      "dangerZoneDesc": "अपरिवर्तनीय कार्रवाइयाँ",
+      "deleteAccount": "खाता हटाएँ",
+      "deleteAccountDesc": "अपना खाता और सभी संबंधित डेटा स्थायी रूप से हटाएँ।",
+      "deleteRestricted": "खाता हटाना प्रतिबंधित है। अपने बेड़ा प्रबंधक से संपर्क करें।",
+      "actionRestricted": "कार्रवाई प्रतिबंधित",
+      "profileSaved": "प्रोफ़ाइल सहेजी गई",
+      "profileSavedMsg": "प्रोफ़ाइल सफलतापूर्वक अपडेट हो गई।",
+      "updateFailed": "अपडेट विफल",
+      "updateFailedMsg": "प्रोफ़ाइल अपडेट करने में विफल।",
+      "validationError": "मान्यता त्रुटि",
+      "fullNameMin": "पूरा नाम कम से कम 2 अक्षरों का होना चाहिए।",
+      "invalidEmail": "कृपया एक मान्य ईमेल पता दर्ज करें।"
+    },
+    "security": {
+      "changePassword": "पासवर्ड बदलें",
+      "changePasswordDesc": "बेहतर सुरक्षा के लिए नियमित रूप से अपना पासवर्ड अपडेट करें",
+      "currentPassword": "वर्तमान पासवर्ड",
+      "newPassword": "नया पासवर्ड",
+      "confirmNewPassword": "नए पासवर्ड की पुष्टि करें",
+      "passwordPlaceholder": "••••••••",
+      "passwordUpdated": "पासवर्ड अपडेट हो गया",
+      "passwordUpdatedMsg": "पासवर्ड सफलतापूर्वक बदल दिया गया।",
+      "fillBothFields": "कृपया दोनों पासवर्ड फ़ील्ड भरें।",
+      "passwordsMismatch": "नए पासवर्ड मेल नहीं खाते।",
+      "minChars": "नया पासवर्ड कम से कम 8 अक्षरों का होना चाहिए।",
+      "needUppercase": "कम से कम एक बड़ा अक्षर होना चाहिए।",
+      "needNumber": "कम से कम एक अंक होना चाहिए।",
+      "reqMinChars": "कम से कम 8 अक्षर",
+      "reqUppercase": "एक बड़ा अक्षर",
+      "reqNumber": "एक अंक",
+      "twoFactorAuth": "दो-चरणीय प्रमाणीकरण",
+      "twoFactorAuthDesc": "सुरक्षा की एक अतिरिक्त परत जोड़ें",
+      "authenticatorApp": "प्रमाणक ऐप",
+      "authenticatorAppDesc": "कोड जनरेट करने के लिए प्रमाणक ऐप का उपयोग करें",
+      "activeSessions": "सक्रिय सत्र",
+      "activeSessionsDesc": "नए साइन-इन के लिए अलर्ट प्राप्त करें"
+    },
+    "notifications": {
+      "title": "सूचना प्राथमिकताएँ",
+      "titleDesc": "चुनें कि आप कौन सी सूचनाएँ प्राप्त करना चाहते हैं",
+      "emailNotifications": "ईमेल सूचनाएँ",
+      "emailNotificationsDesc": "अपनी गतिविधि के बारे में ईमेल अपडेट प्राप्त करें",
+      "pushNotifications": "पुश सूचनाएँ",
+      "pushNotificationsDesc": "अपने उपकरणों पर पुश सूचनाएँ प्राप्त करें",
+      "weeklyDigest": "साप्ताहिक सारांश",
+      "weeklyDigestDesc": "हर सप्ताह गतिविधि का सारांश प्राप्त करें",
+      "marketingEmails": "मार्केटिंग ईमेल",
+      "marketingEmailsDesc": "समाचार, अपडेट और प्रचार प्राप्त करें",
+      "securityAlerts": "सुरक्षा अलर्ट",
+      "securityAlertsDesc": "आपके खाते की सुरक्षा से संबंधित महत्वपूर्ण अलर्ट",
+      "teamUpdates": "टीम अपडेट",
+      "teamUpdatesDesc": "आपकी टीम के सदस्यों और परियोजनाओं से अपडेट",
+      "preferencesSaved": "प्राथमिकताएँ सहेजी गईं",
+      "preferencesSavedMsg": "सूचना प्राथमिकताएँ सहेजी गईं।"
+    },
+    "appearance": {
+      "theme": "थीम",
+      "themeDesc": "अपनी पसंदीदा थीम चुनें",
+      "light": "लाइट",
+      "lightDesc": "डिफ़ॉल्ट लाइट थीम",
+      "dark": "डार्क",
+      "darkDesc": "आँखों के लिए आरामदायक",
+      "system": "सिस्टम",
+      "systemDesc": "OS प्राथमिकता के अनुसार",
+      "active": "सक्रिय",
+      "languageDisplay": "भाषा और प्रदर्शन",
+      "languageDisplayDesc": "स्थानीय भाषा और प्रदर्शन प्राथमिकताएँ",
+      "language": "भाषा",
+      "compactMode": "संक्षिप्त मोड",
+      "compactModeDesc": "सघन लेआउट के लिए रिक्ति और पैडिंग कम करें",
+      "preferencesSaved": "प्राथमिकताएँ सहेजी गईं",
+      "preferencesSavedMsg": "दिखावट प्राथमिकताएँ सहेजी गईं।"
+    }
+  },
+  "profile": {
+    "accountDetails": "खाता विवरण",
+    "fullName": "पूरा नाम",
+    "email": "ईमेल",
+    "role": "भूमिका",
+    "userId": "उपयोगकर्ता आईडी",
+    "yourCapabilities": "आपकी क्षमताएँ",
+    "online": "ऑनलाइन",
+    "kpi": {
+      "totalVehicles": "कुल वाहन",
+      "activeTrips": "सक्रिय यात्राएँ",
+      "fleetUtilization": "बेड़ा उपयोगिता",
+      "alerts": "अलर्ट"
+    },
+    "capabilities": {
+      "MANAGER": [
+        "संपूर्ण बेड़े की निगरानी और वाहन प्रबंधन",
+        "उपयोगकर्ता प्रशासन (बनाना, निष्क्रिय करना)",
+        "सभी विश्लेषण और वित्तीय रिपोर्ट देखें",
+        "प्रेषण और रखरखाव कार्यों को मंजूरी दें",
+        "बिना किसी प्रतिबंध के सभी मॉड्यूल तक पहुँच"
+      ],
+      "DISPATCHER": [
+        "यात्राएँ और असाइनमेंट बनाएँ और प्रबंधित करें",
+        "वाहन उपलब्धता और चालक पूल देखें",
+        "यात्रा की स्थिति बदलें (ड्राफ्ट → प्रेषित → पूर्ण)",
+        "मार्ग बिंदु जोड़ें और मार्गों को ट्रैक करें"
+      ],
+      "SAFETY_OFFICER": [
+        "चालक प्रमाणपत्र और लाइसेंस प्रबंधन",
+        "वाहन निरीक्षण और रखरखाव लॉगिंग",
+        "घटना रिपोर्ट बनाना और जाँच",
+        "सुरक्षा अंक समायोजन",
+        "चालक स्थिति प्रबंधन (निलंबित/पुनः सक्रिय)"
+      ],
+      "FINANCE_ANALYST": [
+        "ईंधन लॉग प्रविष्टि और व्यय ट्रैकिंग",
+        "राजस्व, व्यय और लाभ रिपोर्ट देखें",
+        "मासिक वित्तीय रिपोर्ट तैयार करना",
+        "वाहन ROI और ईंधन दक्षता विश्लेषण",
+        "यात्रा डेटा को CSV में निर्यात करें"
+      ]
+    }
+  },
+  "fleet": {
+    "title": "वाहन रजिस्ट्री",
+    "vehiclesInFleet": "बेड़े में {{count}} वाहन",
+    "addVehicle": "वाहन जोड़ें",
+    "searchPlaceholder": "प्लेट, निर्माता, मॉडल खोजें…",
+    "status": {
+      "AVAILABLE": "उपलब्ध",
+      "ON_TRIP": "यात्रा पर",
+      "IN_SHOP": "मरम्मत में",
+      "RETIRED": "सेवानिवृत्त"
+    },
+    "columns": {
+      "vehicle": "वाहन",
+      "type": "प्रकार",
+      "licensePlate": "लाइसेंस प्लेट",
+      "capacity": "क्षमता",
+      "odometer": "ओडोमीटर",
+      "status": "स्थिति",
+      "actions": "कार्रवाइयाँ"
+    },
+    "noVehicles": "कोई वाहन नहीं मिला",
+    "editVehicle": "वाहन संपादित करें",
+    "addNewVehicle": "नया वाहन जोड़ें",
+    "form": {
+      "make": "निर्माता",
+      "model": "मॉडल",
+      "year": "वर्ष",
+      "color": "रंग",
+      "licensePlate": "लाइसेंस प्लेट",
+      "vin": "VIN",
+      "vehicleType": "वाहन प्रकार",
+      "capacity": "क्षमता (किग्रा)",
+      "odometer": "वर्तमान ओडोमीटर (किमी)",
+      "selectType": "प्रकार चुनें",
+      "makePlaceholder": "Toyota",
+      "modelPlaceholder": "Land Cruiser",
+      "colorPlaceholder": "सफ़ेद",
+      "platePlaceholder": "MH01AB1234",
+      "vinPlaceholder": "वैकल्पिक"
+    },
+    "createVehicle": "वाहन बनाएँ",
+    "updateVehicle": "वाहन अपडेट करें",
+    "retireVehicle": "वाहन सेवानिवृत्त करें?",
+    "retireVehicleDesc": "इससे {{plate}} को सेवानिवृत्त के रूप में चिह्नित किया जाएगा। यह अब प्रेषण के लिए उपलब्ध नहीं होगा।",
+    "toast": {
+      "updated": "वाहन विवरण सफलतापूर्वक अपडेट हो गए।",
+      "updatedTitle": "सफल",
+      "created": "बेड़े में नया वाहन जोड़ा गया।",
+      "createdTitle": "वाहन पंजीकृत",
+      "retired": "वाहन को सक्रिय बेड़े से सेवानिवृत्त कर दिया गया।",
+      "retireFailed": "वाहन सेवानिवृत्त नहीं किया जा सका।",
+      "statusUpdated": "स्थिति अपडेट हो गई",
+      "statusFailed": "वाहन स्थिति अपडेट करने में विफल।"
+    }
+  },
+  "dispatch": {
+    "title": "प्रेषण नियंत्रण",
+    "tripsTotal": "कुल {{count}} यात्राएँ",
+    "newTrip": "नई यात्रा",
+    "searchPlaceholder": "यात्राएँ खोजें…",
+    "status": {
+      "DRAFT": "ड्राफ्ट",
+      "DISPATCHED": "प्रेषित",
+      "COMPLETED": "पूर्ण",
+      "CANCELLED": "रद्द"
+    },
+    "noTrips": "कोई यात्रा नहीं मिली",
+    "detail": {
+      "vehicle": "वाहन",
+      "driver": "चालक",
+      "cargo": "माल",
+      "distance": "दूरी (अनुमानित)",
+      "revenue": "राजस्व",
+      "dispatched": "प्रेषित",
+      "client": "ग्राहक"
+    },
+    "actions": {
+      "dispatch": "प्रेषित करें",
+      "complete": "पूर्ण करें",
+      "cancel": "रद्द करें"
+    },
+    "dispatchTrip": "यात्रा प्रेषित करें?",
+    "dispatchTripDesc": "इससे चालक को सूचित किया जाएगा और वाहन को यात्रा पर चिह्नित किया जाएगा।",
+    "createTrip": "नई यात्रा बनाएँ",
+    "form": {
+      "vehicle": "वाहन",
+      "driver": "चालक",
+      "origin": "उत्पत्ति स्थान",
+      "destination": "गंतव्य",
+      "distance": "दूरी (किमी)",
+      "cargoWeight": "माल का वज़न (किग्रा)",
+      "revenue": "राजस्व (₹)",
+      "cargoDescription": "माल का विवरण",
+      "clientName": "ग्राहक का नाम",
+      "selectVehicle": "उपलब्ध वाहन चुनें",
+      "selectDriver": "ड्यूटी पर मौजूद चालक चुनें",
+      "originPlaceholder": "मुंबई, महाराष्ट्र",
+      "destinationPlaceholder": "पुणे, महाराष्ट्र"
+    },
+    "map": {
+      "calculatingRoute": "सबसे छोटा मार्ग गणना हो रहा है…",
+      "selectTrip": "एक यात्रा चुनें",
+      "selectTripDesc": "मानचित्र पर मार्ग देखने के लिए किसी यात्रा पर क्लिक करें"
+    },
+    "toast": {
+      "created": "नई यात्रा ड्राफ्ट में जोड़ दी गई।",
+      "transitioned": "यात्रा सफलतापूर्वक {{status}} स्थिति में बदली गई।",
+      "transitionFailed": "यात्रा स्थिति बदलने में विफल।"
+    }
+  },
+  "drivers": {
+    "title": "चालक दल अभिलेख",
+    "stats": "{{total}} चालक · {{onDuty}} ड्यूटी पर · {{onTrip}} यात्रा पर",
+    "exportCSV": "CSV निर्यात करें",
+    "addDriver": "चालक जोड़ें",
+    "kpi": {
+      "totalDrivers": "कुल चालक",
+      "onDuty": "ड्यूटी पर",
+      "onTrip": "यात्रा पर",
+      "suspended": "निलंबित",
+      "avgSafetyScore": "औसत सुरक्षा अंक"
+    },
+    "expiringLicenses": "{{count}} लाइसेंस 30 दिनों में समाप्त हो रहे हैं",
+    "searchPlaceholder": "नाम, लाइसेंस, ईमेल खोजें…",
+    "status": {
+      "ON_DUTY": "ड्यूटी पर",
+      "OFF_DUTY": "ड्यूटी से बाहर",
+      "ON_TRIP": "यात्रा पर",
+      "SUSPENDED": "निलंबित"
+    },
+    "columns": {
+      "driver": "चालक",
+      "license": "लाइसेंस",
+      "safety": "सुरक्षा",
+      "licenseExpiry": "लाइसेंस समाप्ति",
+      "status": "स्थिति",
+      "actions": "कार्रवाइयाँ"
+    },
+    "noDrivers": "कोई चालक नहीं मिला",
+    "selectDriver": "एक चालक चुनें",
+    "selectDriverDesc": "विवरण देखने के लिए एक पंक्ति पर क्लिक करें",
+    "detail": {
+      "license": "लाइसेंस",
+      "class": "श्रेणी",
+      "phone": "फ़ोन",
+      "email": "ईमेल",
+      "dob": "जन्म तिथि",
+      "licenseExpiry": "लाइसेंस समाप्ति",
+      "safetyScore": "सुरक्षा अंक"
+    },
+    "form": {
+      "fullName": "पूरा नाम",
+      "licenseNumber": "लाइसेंस नंबर",
+      "phone": "फ़ोन",
+      "email": "ईमेल",
+      "dateOfBirth": "जन्म तिथि",
+      "licenseExpiry": "लाइसेंस समाप्ति",
+      "licenseClass": "लाइसेंस श्रेणी",
+      "safetyScore": "सुरक्षा अंक",
+      "fullNamePlaceholder": "रमेश कुमार",
+      "licensePlaceholder": "MH-CDL-A-001234",
+      "phonePlaceholder": "+91-98201-12345",
+      "emailPlaceholder": "driver@email.com",
+      "licenseClassPlaceholder": "CDL-A, CDL-B, B"
+    },
+    "updateDriver": "चालक अपडेट करें",
+    "removeDriver": "चालक हटाएँ?",
+    "removeDriverDesc": "इससे {{name}} को रजिस्ट्री से स्थायी रूप से हटा दिया जाएगा।",
+    "map": {
+      "title": "बेड़ा वाहन स्थान",
+      "speed": "गति: {{speed}} किमी/घंटा"
+    },
+    "toast": {
+      "deleted": "चालक प्रोफ़ाइल हटा दी गई।",
+      "deletedTitle": "चालक हटाया गया",
+      "deleteFailed": "चालक हटाया नहीं जा सका।",
+      "deleteFailedTitle": "त्रुटि",
+      "statusUpdated": "{{name}} की स्थिति अब {{status}} है।",
+      "statusUpdatedTitle": "स्थिति अपडेट हुई",
+      "statusUpdateFailed": "चालक की स्थिति अपडेट करने में विफल।",
+      "statusUpdateFailedTitle": "अपडेट विफल",
+      "statusFailed": "स्थिति अपडेट करने में विफल",
+      "saveFailed": "चालक सहेजा नहीं जा सका।",
+      "exported": "चालकों को CSV में निर्यात किया गया।",
+      "exportedTitle": "निर्यात पूर्ण",
+      "exportFailed": "चालकों को निर्यात नहीं किया जा सका।",
+      "exportFailedTitle": "निर्यात विफल"
+    }
+  },
+  "analytics": {
+    "title": "परिचालन विश्लेषण",
+    "subtitle": "वित्तीय प्रदर्शन और परिचालन अंतर्दृष्टि — {{year}}",
+    "exportPDF": "PDF निर्यात करें",
+    "exportCSV": "CSV निर्यात करें",
+    "tabs": {
+      "overview": "अवलोकन",
+      "fuelEfficiency": "ईंधन दक्षता",
+      "vehicleROI": "वाहन ROI"
+    },
+    "kpi": {
+      "totalRevenue": "कुल राजस्व",
+      "totalExpenses": "कुल व्यय",
+      "netProfit": "शुद्ध लाभ",
+      "avgFuelEfficiency": "औसत ईंधन दक्षता"
+    },
+    "charts": {
+      "revenueCostTrend": "राजस्व बनाम लागत प्रवृत्ति",
+      "revenue": "राजस्व",
+      "cost": "लागत",
+      "profit": "लाभ",
+      "expenseBreakdown": "व्यय विभाजन"
+    },
+    "monthly": {
+      "title": "बेड़ा प्रदर्शन",
+      "month": "महीना",
+      "trips": "यात्राएँ",
+      "distance": "दूरी (किमी)",
+      "revenue": "राजस्व",
+      "fuel": "ईंधन",
+      "maintenance": "रखरखाव",
+      "other": "अन्य",
+      "totalCost": "कुल लागत",
+      "profit": "लाभ"
+    },
+    "fuelTable": {
+      "title": "वाहन के अनुसार ईंधन दक्षता (km/L)",
+      "vehicle": "वाहन",
+      "totalDistance": "कुल दूरी",
+      "totalLiters": "कुल लीटर",
+      "fuelCost": "ईंधन लागत",
+      "kmPerL": "km/L",
+      "costPerKm": "₹/km"
+    },
+    "roiTable": {
+      "title": "वाहन ROI — वाहन के अनुसार लाभ",
+      "formula": "ROI = (राजस्व − (रखरखाव + ईंधन + व्यय)) / राजस्व",
+      "vehicle": "वाहन",
+      "revenue": "राजस्व",
+      "fuelCost": "ईंधन लागत",
+      "maintenance": "रखरखाव",
+      "expenses": "व्यय",
+      "totalCost": "कुल लागत",
+      "profit": "लाभ",
+      "roi": "ROI"
+    },
+    "noData": {
+      "monthly": "कोई मासिक डेटा नहीं",
+      "expenses": "कोई व्यय डेटा नहीं",
+      "fuel": "कोई ईंधन दक्षता डेटा नहीं",
+      "roi": "कोई ROI डेटा नहीं"
+    },
+    "toast": {
+      "exportingPDF": "PDF तैयार हो रही है",
+      "exportingPDFMessage": "कृपया प्रतीक्षा करें जब तक हम चार्ट और डेटा कैप्चर कर रहे हैं...",
+      "pdfSuccess": "विश्लेषण रिपोर्ट डाउनलोड हो गई।",
+      "pdfSuccessTitle": "निर्यात सफल",
+      "pdfErrorTitle": "PDF बनाने में त्रुटि",
+      "pdfExportFailed": "निर्यात विफल: {{message}}",
+      "chartWarningTitle": "चार्ट कैप्चर चेतावनी",
+      "chartWarningMessage": "PDF में राजस्व चार्ट शामिल नहीं किया जा सका, लेकिन डेटा के साथ जारी है...",
+      "csvSuccess": "यात्राएँ और सारांश डेटा CSV में निर्यात किए गए।",
+      "exportFailed": "निर्यात विफल",
+      "csvFailed": "CSV निर्यात तैयार नहीं हो सका।"
+    }
+  },
+  "expenses": {
+    "title": "वित्त और व्यय",
+    "subtitle": "ईंधन खपत और यात्रा व्यय ट्रैक करें",
+    "addRecord": "रिकॉर्ड जोड़ें",
+    "summary": {
+      "fuelLogs": "ईंधन लॉग",
+      "expenses": "व्यय",
+      "combined": "संयुक्त",
+      "total": "{{amount}} कुल"
+    },
+    "tabs": {
+      "fuel": "ईंधन लॉग ({{count}})",
+      "expenses": "व्यय ({{count}})"
+    },
+    "pagination": "पृष्ठ {{page}} का {{totalPages}} · {{count}} रिकॉर्ड",
+    "fuelColumns": {
+      "vehicle": "वाहन",
+      "trip": "यात्रा",
+      "liters": "लीटर",
+      "costPerLiter": "₹/L",
+      "total": "कुल",
+      "odometer": "ओडोमीटर",
+      "date": "तिथि"
+    },
+    "expenseColumns": {
+      "vehicle": "वाहन",
+      "trip": "यात्रा",
+      "category": "श्रेणी",
+      "amount": "राशि",
+      "description": "विवरण",
+      "date": "तिथि"
+    },
+    "empty": {
+      "fuel": "अभी कोई ईंधन लॉग नहीं",
+      "fuelDesc": "शुरू करने के लिए अपना पहला ईंधन स्टॉप दर्ज करें।",
+      "expenses": "अभी कोई व्यय नहीं",
+      "expensesDesc": "अपना पहला यात्रा व्यय दर्ज करें।"
+    }
+  },
+  "maintenance": {
+    "title": "रखरखाव लॉग",
+    "subtitle": "वाहन के अनुसार सेवा इतिहास",
+    "logService": "सेवा दर्ज करें",
+    "selectVehicle": "वाहन चुनें",
+    "allVehicles": "— सभी वाहन / एक चुनें —",
+    "serviceCount": "{{count}} सेवा रिकॉर्ड · कुल लागत: ₹{{total}}",
+    "selectVehiclePrompt": "सेवा इतिहास देखने के लिए एक वाहन चुनें",
+    "noRecords": "कोई रखरखाव रिकॉर्ड नहीं",
+    "columns": {
+      "date": "तिथि",
+      "serviceType": "सेवा प्रकार",
+      "description": "विवरण",
+      "cost": "लागत",
+      "odometer": "ओडोमीटर",
+      "shop": "दुकान / तकनीशियन",
+      "nextDue": "अगली सेवा तिथि"
+    },
+    "form": {
+      "title": "रखरखाव घटना दर्ज करें",
+      "vehicle": "वाहन",
+      "serviceType": "सेवा प्रकार",
+      "cost": "लागत (₹)",
+      "description": "विवरण",
+      "odometer": "ओडोमीटर (किमी)",
+      "serviceDate": "सेवा तिथि",
+      "shopName": "दुकान का नाम",
+      "technician": "तकनीशियन",
+      "nextServiceDue": "अगली सेवा तिथि",
+      "serviceTypePlaceholder": "तेल बदलना, टायर रोटेशन…",
+      "descriptionPlaceholder": "की गई सेवा का विवरण",
+      "shopPlaceholder": "ऑटोकेयर सर्विस",
+      "technicianPlaceholder": "रवि कुमार"
+    }
+  },
+  "landing": {
+    "features": "सुविधाएँ",
+    "howItWorks": "यह कैसे काम करता है",
+    "signIn": "साइन इन",
+    "heroTag": "अगली पीढ़ी का लॉजिस्टिक्स प्लेटफ़ॉर्म",
+    "heroTitle": "बेहतर बेड़ा प्रबंधन। अधिकतम दक्षता।",
+    "heroDescription": "AI-संचालित रूटिंग, पूर्वानुमानित रखरखाव और वास्तविक समय विश्लेषण के साथ अपने लॉजिस्टिक्स संचालन को बदलें। आधुनिक बेड़ों के लिए बनाया गया।",
+    "getStarted": "अभी शुरू करें",
+    "exploreFeatures": "सुविधाएँ देखें",
+    "featuresList": {
+      "dispatch": "वास्तविक समय प्रेषण",
+      "dispatchDesc": "बेहतर बेड़ा दक्षता के लिए AI-संचालित रूटिंग और लाइव ट्रैकिंग।",
+      "maintenance": "पूर्वानुमानित रखरखाव",
+      "maintenanceDesc": "बुद्धिमान रखरखाव शेड्यूलिंग और अलर्ट के साथ डाउनटाइम कम करें।",
+      "analytics": "उन्नत विश्लेषण",
+      "analyticsDesc": "ईंधन खपत, चालक प्रदर्शन और लागत पर व्यापक अंतर्दृष्टि।",
+      "safety": "सुरक्षा और अनुपालन",
+      "safetyDesc": "चालक व्यवहार की निगरानी करें और निरंतर नियामक अनुपालन सुनिश्चित करें।",
+      "drivers": "चालक प्रबंधन",
+      "driversDesc": "संपूर्ण चालक प्रोफ़ाइल, शिफ्ट ट्रैकिंग और प्रदर्शन स्कोरिंग।",
+      "odoo": "Odoo एकीकरण",
+      "odooDesc": "एकीकृत लॉजिस्टिक्स संचालन के लिए Odoo ERP के साथ सहज तालमेल।"
+    },
+    "everythingYouNeed": "अपना बेड़ा चलाने के लिए आपको जो कुछ चाहिए",
+    "everythingYouNeedDesc": "प्रेषकों, प्रबंधकों और सुरक्षा अधिकारियों के लिए डिज़ाइन किए गए एकीकृत उपकरण जो वास्तविक समय में एक साथ सहजता से काम करते हैं।",
+    "designedForScale": "पैमाने के लिए डिज़ाइन किया गया। प्रदर्शन के लिए बनाया गया।",
+    "benefits": {
+      "zeroDowntime": "शून्य-डाउनटाइम तैनाती",
+      "zeroDowntimeDesc": "SaaS आर्किटेक्चर जो तुरंत स्केल होता है।",
+      "security": "एंटरप्राइज़-स्तर सुरक्षा",
+      "securityDesc": "सुरक्षित डेटा पाइपलाइन और SOC2 अनुपालन।",
+      "realtime": "वास्तविक समय ट्रैकिंग",
+      "realtimeDesc": "बिना किसी विलंब के लाइव मानचित्र अपडेट के लिए WebSockets।"
+    },
+    "readyToTransform": "अपने बेड़े को बदलने के लिए तैयार हैं?",
+    "readyToTransformDesc": "FleetFlow के साथ अपने लॉजिस्टिक्स को अनुकूलित करने और लागत कम करने वाली दूरदर्शी कंपनियों से जुड़ें।",
+    "goToDashboard": "डैशबोर्ड पर जाएँ",
+    "contactSales": "बिक्री से संपर्क करें",
+    "footer": {
+      "product": "उत्पाद",
+      "features": "सुविधाएँ",
+      "pricing": "मूल्य निर्धारण",
+      "company": "कंपनी"
+    },
+    "copyright": "© {{year}} FleetFlow. Odoo Hackathon 2026. Recharts द्वारा डेटा विज़ुअलाइज़ेशन।",
+    "privacyPolicy": "गोपनीयता नीति",
+    "termsOfService": "सेवा की शर्तें"
+  },
+  "notFound": {
+    "errorLabel": "404 त्रुटि",
+    "title": "पृष्ठ",
+    "titleHighlight": "+",
+    "titleEnd": "नहीं मिला",
+    "description": "उफ़! जो पृष्ठ आप खोज रहे हैं वह भटक गया लगता है। हो सकता है कि इसे हटा दिया गया हो, नाम बदल दिया गया हो, या यह पहले से मौजूद ही नहीं था।",
+    "searchPlaceholder": "पृष्ठ खोजें...",
+    "goHome": "होम जाएँ",
+    "goBack": "वापस जाएँ",
+    "helpCenter": "सहायता केंद्र",
+    "copyright": "© 2026 FleetFlow. सर्वाधिकार सुरक्षित।"
+  },
+  "comingSoon": {
+    "description": "यह अनुभाग वर्तमान में निर्माणाधीन है। हम कुछ बेहतरीन बना रहे हैं — जल्द ही पुनः देखें!",
+    "backToDashboard": "डैशबोर्ड पर वापस जाएँ"
+  },
+  "layout": {
+    "fleetOverview": "बेड़ा अवलोकन",
+    "onTrip": "यात्रा पर",
+    "available": "उपलब्ध",
+    "inShop": "मरम्मत में",
+    "utilization": "उपयोगिता",
+    "vehiclesInShop": "{{count}} वाहन मरम्मत में",
+    "licensesExpiring": "{{count}} लाइसेंस समाप्त हो रहे हैं",
+    "intelligenceInMotion": "गति में बुद्धिमत्ता",
+    "notifications": "सूचनाएँ",
+    "notifNew": "{{count}} नई",
+    "maintenanceAlert": "रखरखाव अलर्ट",
+    "maintenanceAlertMsg": "{{count}} वाहन वर्तमान में मरम्मत में हैं और ध्यान देने की आवश्यकता है",
+    "highPriority": "उच्च प्राथमिकता",
+    "licenseExpiryWarning": "लाइसेंस समाप्ति चेतावनी",
+    "licenseExpiryMsg": "{{count}} चालक लाइसेंस 30 दिनों में समाप्त हो रहे हैं",
+    "urgent": "अत्यावश्यक",
+    "suspendedDrivers": "निलंबित चालक",
+    "suspendedDriversMsg": "{{count}} चालक वर्तमान में ड्यूटी से निलंबित हैं",
+    "actionRequired": "कार्रवाई आवश्यक",
+    "retiredVehicles": "सेवानिवृत्त वाहन",
+    "retiredVehiclesMsg": "{{count}} वाहन बेड़े से सेवानिवृत्त कर दिए गए हैं",
+    "informational": "सूचनात्मक",
+    "allClear": "सब ठीक — कोई अलर्ट नहीं",
+    "systemConfig": "सिस्टम कॉन्फ़िग"
+  },
+  "fuelExpenses": {
+    "title": "ईंधन और व्यय",
+    "subtitle": "सभी परिचालन लागतों को ट्रैक करें",
+    "addEntry": "प्रविष्टि जोड़ें",
+    "totalFuelCost": "कुल ईंधन लागत",
+    "totalExpenses": "कुल व्यय",
+    "fillUps": "{{count}} ईंधन भराई",
+    "entries": "{{count}} प्रविष्टियाँ",
+    "fuelLogs": "ईंधन लॉग",
+    "expensesTab": "व्यय",
+    "allVehicles": "सभी वाहन",
+    "noFuelLogs": "कोई ईंधन लॉग नहीं",
+    "noExpenses": "कोई व्यय नहीं",
+    "fuelColumns": {
+      "date": "तिथि",
+      "vehicle": "वाहन",
+      "liters": "लीटर",
+      "costPerLiter": "₹/लीटर",
+      "total": "कुल",
+      "odometer": "ओडोमीटर",
+      "station": "पंप"
+    },
+    "expenseColumns": {
+      "date": "तिथि",
+      "vehicle": "वाहन",
+      "category": "श्रेणी",
+      "amount": "राशि",
+      "description": "विवरण"
+    },
+    "form": {
+      "fuelTab": "ईंधन",
+      "expenseTab": "व्यय",
+      "vehicle": "वाहन *",
+      "selectVehicle": "वाहन चुनें",
+      "liters": "लीटर *",
+      "costPerLiter": "₹/लीटर *",
+      "odometer": "ओडोमीटर *",
+      "totalLabel": "कुल: ₹{{amount}}",
+      "station": "पंप",
+      "stationPlaceholder": "IOCL पंप",
+      "date": "तिथि",
+      "category": "श्रेणी *",
+      "amount": "राशि (₹) *",
+      "description": "विवरण",
+      "descriptionPlaceholder": "राष्ट्रीय राजमार्ग टोल…",
+      "logFuel": "ईंधन दर्ज करें",
+      "logExpense": "व्यय दर्ज करें"
+    }
+  },
+  "incidents": {
+    "title": "घटना रिपोर्ट",
+    "subtitle": "सुरक्षा घटनाओं को ट्रैक और प्रबंधित करें",
+    "reportIncident": "घटना की रिपोर्ट करें",
+    "summary": {
+      "total": "कुल",
+      "open": "खुली",
+      "investigating": "जाँच जारी",
+      "damageEst": "क्षति अनुमान"
+    },
+    "searchPlaceholder": "घटनाएँ खोजें...",
+    "allStatuses": "सभी स्थितियाँ",
+    "noIncidents": "कोई घटना नहीं मिली",
+    "noIncidentsDesc": "अभी तक कोई सुरक्षा घटना रिपोर्ट नहीं की गई है।",
+    "injuries": "चोटें",
+    "columns": {
+      "incident": "घटना",
+      "type": "प्रकार",
+      "status": "स्थिति",
+      "vehicle": "वाहन",
+      "driver": "चालक",
+      "damageEst": "क्षति अनुमान",
+      "date": "तिथि"
+    },
+    "closeButton": "बंद करें",
+    "closeModal": {
+      "title": "घटना बंद करें",
+      "closing": "बंद हो रहा:",
+      "placeholder": "समाधान सारांश (न्यूनतम 10 अक्षर)...",
+      "confirm": "घटना बंद करें"
+    },
+    "createModal": {
+      "title": "नई घटना रिपोर्ट करें",
+      "titleField": "शीर्षक *",
+      "titlePlaceholder": "संक्षिप्त घटना शीर्षक",
+      "type": "प्रकार *",
+      "date": "तिथि *",
+      "description": "विवरण *",
+      "descriptionPlaceholder": "विस्तृत विवरण (न्यूनतम 10 अक्षर)",
+      "location": "स्थान",
+      "locationPlaceholder": "यह कहाँ हुआ?",
+      "damageEstimate": "क्षति अनुमान (₹)",
+      "injuriesReported": "चोटें रिपोर्ट की गईं",
+      "submitReport": "रिपोर्ट जमा करें"
+    }
+  },
+  "driverManagement": {
+    "title": "चालक प्रदर्शन और सुरक्षा",
+    "subtitle": "अपने बेड़े के चालकों की निगरानी और प्रबंधन करें",
+    "addDriver": "चालक जोड़ें",
+    "licensesExpiringSoon": "जल्द समाप्त होने वाले लाइसेंस ({{count}})",
+    "daysLeft": "{{days}} दिन शेष",
+    "statusCards": {
+      "onDuty": "ड्यूटी पर",
+      "onTrip": "यात्रा पर",
+      "offDuty": "ड्यूटी से बाहर",
+      "suspended": "निलंबित"
+    },
+    "search": "नाम, लाइसेंस, ईमेल खोजें...",
+    "allStatuses": "सभी स्थितियाँ",
+    "allLicenses": "सभी लाइसेंस",
+    "expiringSoon": "जल्द समाप्त (< 30 दिन)",
+    "expired": "समाप्त",
+    "columns": {
+      "number": "#",
+      "name": "नाम",
+      "license": "लाइसेंस #",
+      "expiry": "समाप्ति",
+      "safetyScore": "सुरक्षा अंक",
+      "status": "स्थिति",
+      "actions": "कार्रवाइयाँ"
+    },
+    "noDrivers": "कोई चालक नहीं मिला",
+    "adjustFilters": "अपने फ़िल्टर समायोजित करके देखें",
+    "addFirstDriver": "शुरू करने के लिए अपना पहला चालक जोड़ें",
+    "editTooltip": "संपादित करें",
+    "clockIn": "ड्यूटी शुरू करें",
+    "clockOut": "ड्यूटी समाप्त करें",
+    "onTripLabel": "यात्रा पर",
+    "suspendTooltip": "निलंबित करें",
+    "suspendDialog": {
+      "title": "चालक को निलंबित करें?",
+      "description": "<strong>{{name}}</strong> को निलंबित करने से इस चालक के लिए सभी प्रेषण कार्य अवरुद्ध हो जाएँगे।",
+      "placeholder": "निलंबन का कारण (आवश्यक)...",
+      "confirm": "चालक निलंबित करें"
+    },
+    "adjustScoreTooltip": "सुरक्षा अंक समायोजित करें",
+    "deleteTooltip": "हटाएँ",
+    "deleteDialog": {
+      "title": "चालक हटाएँ?",
+      "description": "यह <strong>{{name}}</strong> को सॉफ्ट-डिलीट कर देगा। ऐतिहासिक यात्रा डेटा संरक्षित रहेगा।",
+      "confirm": "हटाएँ"
+    },
+    "scoreModal": {
+      "title": "सुरक्षा अंक समायोजित करें",
+      "adjustment": "समायोजन:",
+      "reason": "कारण *",
+      "placeholder": "समायोजन का कारण (न्यूनतम 5 अक्षर)..."
+    },
+    "pagination": {
+      "total": "{{count}} चालक कुल"
+    }
+  },
+  "driverPerformance": {
+    "title": "चालक प्रदर्शन",
+    "subtitle": "प्रति चालक सुरक्षा अंक और यात्रा मेट्रिक्स",
+    "stats": {
+      "drivers": "चालक",
+      "avgSafetyScore": "औसत सुरक्षा अंक",
+      "totalTrips": "कुल यात्राएँ",
+      "totalIncidents": "कुल घटनाएँ"
+    },
+    "searchPlaceholder": "चालक खोजें...",
+    "noData": "अभी तक कोई चालक प्रदर्शन डेटा नहीं।",
+    "trips": "यात्राएँ",
+    "completed": "पूर्ण",
+    "incidentsLabel": "घटनाएँ"
+  },
+  "driverDashboard": {
+    "welcome": "स्वागत है, {{name}}",
+    "onDuty": "ड्यूटी पर",
+    "offDuty": "ड्यूटी से बाहर",
+    "goOffDuty": "ड्यूटी बंद करें",
+    "goOnDuty": "ड्यूटी शुरू करें",
+    "statusUpdated": "स्थिति अपडेट हुई",
+    "statusUpdateFailed": "आपकी ड्यूटी स्थिति अपडेट करने में विफल।",
+    "updateFailed": "अपडेट विफल",
+    "gpsTracker": "लाइव GPS ट्रैकर",
+    "broadcasting": "स्थान प्रसारित हो रहा है...",
+    "trackerPaused": "ट्रैकर रुका हुआ है। स्थान साझा करने के लिए शुरू करें।",
+    "stopTracker": "ट्रैकर बंद करें",
+    "startTracker": "ट्रैकर शुरू करें",
+    "lastPing": "अंतिम पिंग:",
+    "currentAssignment": "वर्तमान असाइनमेंट",
+    "dispatched": "प्रेषित",
+    "vehicleLabel": "वाहन:",
+    "origin": "उत्पत्ति स्थान",
+    "destination": "गंतव्य",
+    "cargoWeight": "माल का वज़न",
+    "cargoDescription": "विवरण",
+    "noActiveTrips": "कोई सक्रिय यात्रा नहीं",
+    "noActiveTripsDesc": "आपके पास वर्तमान में कोई प्रेषित यात्रा नहीं है।",
+    "recentHistory": "हालिया इतिहास",
+    "accountUnlinked": "खाता असंबद्ध",
+    "accountUnlinkedDesc": "आपका उपयोगकर्ता खाता ({{email}}) किसी चालक प्रोफ़ाइल से जुड़ा नहीं है। कृपया अपना खाता कॉन्फ़िगर करने के लिए किसी प्रबंधक या प्रेषक से संपर्क करें।"
+  },
+  "fleetDashboard": {
+    "title": "कमांड सेंटर",
+    "liveOverview": "लाइव बेड़ा अवलोकन — {{date}}",
+    "kpi": {
+      "activeFleet": "सक्रिय बेड़ा",
+      "ofTotal": "कुल {{total}} में से",
+      "maintenanceAlerts": "रखरखाव अलर्ट",
+      "vehiclesInShop": "मरम्मत में वाहन",
+      "utilizationRate": "उपयोग दर",
+      "fleetAssignedVsIdle": "बेड़ा नियुक्त बनाम निष्क्रिय",
+      "pendingCargo": "लंबित माल",
+      "tripsInDraft": "ड्राफ्ट में यात्राएँ",
+      "activeTrips": "सक्रिय यात्राएँ",
+      "currentlyDispatched": "वर्तमान में प्रेषित",
+      "driversOnDuty": "ड्यूटी पर चालक",
+      "ofDrivers": "कुल {{total}} चालकों में से",
+      "completedToday": "आज पूर्ण हुईं",
+      "tripsFinishedToday": "आज पूर्ण हुई यात्राएँ",
+      "expiringLicenses": "समाप्त होने वाले लाइसेंस",
+      "within30Days": "30 दिनों के भीतर"
+    },
+    "liveFleetMap": "लाइव बेड़ा मानचित्र",
+    "vehiclesTracked": "{{count}} वाहन ट्रैक किए जा रहे हैं",
+    "noLiveData": "कोई लाइव डेटा नहीं",
+    "vehicleNumber": "वाहन #{{id}}",
+    "inTransit": "पारगमन में — {{origin}} → {{destination}}",
+    "revenueCostYear": "राजस्व बनाम लागत — {{year}}",
+    "monthly": "मासिक",
+    "loadingChart": "चार्ट लोड हो रहा है...",
+    "noTripData": "अभी तक कोई यात्रा डेटा नहीं",
+    "fleetStatus": "बेड़ा स्थिति",
+    "noVehicles": "कोई वाहन नहीं",
+    "monthlyPerformance": "मासिक प्रदर्शन सारांश",
+    "tableHeaders": {
+      "month": "महीना",
+      "trips": "यात्राएँ",
+      "distance": "दूरी (km)",
+      "revenue": "राजस्व",
+      "fuelCost": "ईंधन लागत",
+      "maintenance": "रखरखाव",
+      "profit": "लाभ"
+    }
+  },
+  "commandCenter": {
+    "greeting": {
+      "morning": "सुप्रभात",
+      "afternoon": "शुभ अपराह्न",
+      "evening": "शुभ संध्या",
+      "fallback": "नमस्ते"
+    },
+    "subtitle": "आज आपके बेड़े में क्या हो रहा है, यह रहा।",
+    "loadError": "डैशबोर्ड डेटा लोड करने में विफल। क्या बैकएंड चल रहा है?",
+    "noDataAvailable": "कोई डेटा उपलब्ध नहीं।",
+    "filtering": "फ़िल्टर हो रहा है...",
+    "matchCount": "{{count}} वाहन मेल खाते हैं",
+    "filter": {
+      "vehicleType": "वाहन प्रकार",
+      "status": "स्थिति",
+      "region": "क्षेत्र"
+    },
+    "regions": {
+      "north": "उत्तर",
+      "south": "दक्षिण",
+      "east": "पूर्व",
+      "west": "पश्चिम",
+      "central": "मध्य"
+    },
+    "kpi": {
+      "activeFleet": "सक्रिय बेड़ा",
+      "available": "उपलब्ध",
+      "maintenanceAlerts": "रखरखाव अलर्ट",
+      "vehiclesInShop": "मरम्मत में वाहन",
+      "allOperational": "सभी वाहन चालू",
+      "utilizationRate": "उपयोग दर",
+      "onTrip": "यात्रा पर",
+      "pendingCargo": "लंबित माल",
+      "activeSuffix": "सक्रिय",
+      "doneToday": "आज पूर्ण"
+    },
+    "fleetDistribution": "बेड़ा वितरण",
+    "attentionRequired": "ध्यान आवश्यक",
+    "noActiveAlerts": "कोई सक्रिय अलर्ट नहीं",
+    "driverSummary": "चालक सारांश",
+    "driverStats": {
+      "totalDrivers": "कुल चालक",
+      "onDuty": "ड्यूटी पर",
+      "suspended": "निलंबित",
+      "expiringLicenses": "समाप्त होने वाले लाइसेंस"
+    },
+    "quickActions": "त्वरित कार्रवाइयाँ",
+    "actions": {
+      "vehicleRegistry": "वाहन रजिस्ट्री",
+      "driverManagement": "चालक प्रबंधन",
+      "tripDispatcher": "यात्रा प्रेषक",
+      "maintenance": "रखरखाव",
+      "analytics": "विश्लेषण"
+    }
+  },
+  "vehicleRegistry": {
+    "title": "वाहन रजिस्ट्री",
+    "subtitle": "अपनी बेड़ा संपत्तियों का प्रबंधन करें",
+    "exportCSV": "CSV निर्यात करें",
+    "newVehicle": "नया वाहन",
+    "columns": {
+      "number": "#",
+      "plate": "प्लेट",
+      "makeModel": "निर्माता / मॉडल",
+      "type": "प्रकार",
+      "capacity": "क्षमता",
+      "odometer": "ओडोमीटर",
+      "status": "स्थिति",
+      "actions": "कार्रवाइयाँ"
+    },
+    "noVehicles": "कोई वाहन नहीं मिला",
+    "adjustFilters": "अपने फ़िल्टर समायोजित करके देखें",
+    "addFirstVehicle": "शुरू करने के लिए अपना पहला वाहन पंजीकृत करें",
+    "editTooltip": "संपादित करें",
+    "retireTooltip": "सेवानिवृत्त करें",
+    "retireDialog": {
+      "title": "वाहन सेवानिवृत्त करें?",
+      "description": "यह <strong>{{plate}}</strong> को स्थायी रूप से सेवा से बाहर कर देगा। सेवानिवृत्त वाहनों को प्रेषित नहीं किया जा सकता।",
+      "confirm": "वाहन सेवानिवृत्त करें"
+    },
+    "deleteTooltip": "हटाएँ",
+    "deleteDialog": {
+      "title": "वाहन हटाएँ?",
+      "description": "यह <strong>{{plate}}</strong> को सॉफ्ट-डिलीट कर देगा। इस कार्रवाई के लिए सुपर एडमिन पहुँच आवश्यक है।",
+      "confirm": "हटाएँ"
+    },
+    "pagination": {
+      "total": "{{count}} वाहन कुल"
+    },
+    "toast": {
+      "exportSuccess": "वाहन रजिस्ट्री CSV में निर्यात कर दी गई।",
+      "exportSuccessTitle": "निर्यात सफल",
+      "exportFailed": "वाहन निर्यात तैयार नहीं हो सका।",
+      "exportFailedTitle": "निर्यात विफल"
+    }
+  },
+  "tripDispatcher": {
+    "title": "यात्रा प्रेषक",
+    "subtitle": "बेड़े की यात्राओं की योजना बनाएँ, प्रेषित करें और ट्रैक करें",
+    "newTrip": "नई यात्रा",
+    "searchPlaceholder": "यात्राएँ खोजें (मार्ग, वाहन, चालक, ग्राहक)...",
+    "allStatuses": "सभी स्थितियाँ",
+    "columns": {
+      "number": "#",
+      "vehicle": "वाहन",
+      "driver": "चालक",
+      "route": "मार्ग",
+      "cargo": "माल",
+      "distance": "दूरी",
+      "status": "स्थिति",
+      "actions": "कार्रवाइयाँ"
+    },
+    "actions": {
+      "dispatch": "प्रेषित करें",
+      "cancel": "रद्द करें",
+      "complete": "पूर्ण करें",
+      "ledger": "खाता"
+    },
+    "loading": "यात्राएँ लोड हो रही हैं...",
+    "noTrips": "कोई यात्रा नहीं मिली",
+    "adjustFilters": "अपने फ़िल्टर समायोजित करके देखें",
+    "addFirstTrip": "शुरू करने के लिए अपनी पहली यात्रा बनाएँ",
+    "dispatchDialog": {
+      "title": "यात्रा प्रेषित करें?",
+      "description": "{{origin}} → {{destination}} प्रेषित करें? वाहन को ON_TRIP चिह्नित किया जाएगा और चालक को असाइन किया जाएगा।",
+      "confirm": "अभी प्रेषित करें",
+      "dispatching": "प्रेषित हो रहा है..."
+    },
+    "toast": {
+      "dispatched": "यात्रा सफलतापूर्वक प्रेषित हो गई।",
+      "dispatchedTitle": "प्रेषित",
+      "dispatchFailed": "यात्रा प्रेषित करने में विफल",
+      "errorTitle": "त्रुटि"
+    }
+  },
+  "financialReports": {
+    "title": "वित्तीय रिपोर्ट",
+    "subtitle": "राजस्व, लागत, ईंधन दक्षता और वाहन ROI",
+    "exportCSV": "CSV निर्यात करें",
+    "summary": {
+      "totalRevenue": "कुल राजस्व",
+      "totalCosts": "कुल लागत",
+      "netProfit": "शुद्ध लाभ"
+    },
+    "tabs": {
+      "pnl": "मासिक लाभ-हानि",
+      "fuelEfficiency": "ईंधन दक्षता",
+      "roi": "वाहन ROI"
+    },
+    "pnlColumns": {
+      "month": "महीना",
+      "revenue": "राजस्व",
+      "fuel": "ईंधन",
+      "maintenance": "रखरखाव",
+      "other": "अन्य",
+      "profit": "लाभ",
+      "trips": "यात्राएँ"
+    },
+    "noDataForYear": "{{year}} के लिए कोई डेटा नहीं",
+    "fuelEfficiency": {
+      "noData": "कोई ईंधन दक्षता डेटा नहीं।",
+      "kmPerL": "km/L",
+      "totalFuel": "कुल ईंधन",
+      "fuelCost": "ईंधन लागत"
+    },
+    "roiColumns": {
+      "vehicle": "वाहन",
+      "revenue": "राजस्व",
+      "cost": "लागत",
+      "roi": "ROI %"
+    },
+    "noRoiData": "कोई ROI डेटा नहीं।"
+  },
+  "forms": {
+    "driver": {
+      "editTitle": "चालक संपादित करें",
+      "newTitle": "नया चालक",
+      "editSubtitle": "चालक विवरण अपडेट करें",
+      "newSubtitle": "एक नए चालक का पंजीकरण करें",
+      "fullName": "पूरा नाम *",
+      "fullNamePlaceholder": "रमेश कुमार",
+      "licenseNumber": "लाइसेंस नंबर *",
+      "licensePlaceholder": "DL-1234567890",
+      "licenseClass": "लाइसेंस श्रेणी",
+      "licenseClassPlaceholder": "CDL-A",
+      "licenseExpiry": "लाइसेंस समाप्ति तिथि *",
+      "phone": "फ़ोन",
+      "phonePlaceholder": "+91 98765 43210",
+      "email": "ईमेल",
+      "emailPlaceholder": "driver@fleetflow.io",
+      "dateOfBirth": "जन्म तिथि",
+      "updateDriver": "चालक अपडेट करें",
+      "createDriver": "चालक बनाएँ"
+    },
+    "vehicle": {
+      "editTitle": "वाहन संपादित करें",
+      "newTitle": "नया वाहन",
+      "editSubtitle": "वाहन विवरण अपडेट करें",
+      "newSubtitle": "एक नई बेड़ा संपत्ति पंजीकृत करें",
+      "licensePlate": "पंजीकरण प्लेट *",
+      "licensePlatePlaceholder": "MH-12-AB-1234",
+      "make": "निर्माता *",
+      "makePlaceholder": "Tata",
+      "model": "मॉडल *",
+      "modelPlaceholder": "Prima",
+      "year": "वर्ष *",
+      "color": "रंग",
+      "colorPlaceholder": "सफ़ेद",
+      "vin": "VIN",
+      "vinPlaceholder": "17-अक्षर VIN (वैकल्पिक)",
+      "vehicleType": "वाहन प्रकार *",
+      "selectType": "प्रकार चुनें...",
+      "maxCapacity": "अधिकतम क्षमता (kg) *",
+      "capacityPlaceholder": "5000",
+      "volume": "आयतन (m³)",
+      "region": "क्षेत्र",
+      "regionPlaceholder": "जैसे उत्तर भारत",
+      "acquisitionCost": "अधिग्रहण लागत ($)",
+      "initialOdometer": "प्रारंभिक ओडोमीटर (km)",
+      "updateVehicle": "वाहन अपडेट करें",
+      "createVehicle": "वाहन बनाएँ"
+    },
+    "expense": {
+      "fuelTitle": "नया ईंधन लॉग",
+      "expenseTitle": "नया व्यय",
+      "fuelSubtitle": "ईंधन भराई की घटना दर्ज करें",
+      "expenseSubtitle": "यात्रा व्यय दर्ज करें",
+      "fuelTab": "ईंधन लॉग",
+      "expenseTab": "व्यय",
+      "loadingVehicles": "वाहन लोड हो रहे हैं...",
+      "vehicle": "वाहन *",
+      "selectVehicle": "वाहन चुनें...",
+      "tripId": "यात्रा ID (वैकल्पिक)",
+      "tripIdPlaceholder": "जैसे 42",
+      "liters": "लीटर *",
+      "costPerLiter": "₹/लीटर *",
+      "totalLabel": "कुल: ₹{{amount}}",
+      "odometerAtFill": "ईंधन भराई पर ओडोमीटर *",
+      "fuelStation": "ईंधन पंप",
+      "fuelStationPlaceholder": "Shell, HP, Indian Oil...",
+      "category": "श्रेणी *",
+      "amount": "राशि (₹) *",
+      "description": "विवरण",
+      "descriptionPlaceholder": "मुंबई एक्सप्रेसवे पर टोल...",
+      "createFuelLog": "ईंधन लॉग बनाएँ",
+      "createExpense": "व्यय बनाएँ",
+      "categories": {
+        "TOLL": "टोल",
+        "LODGING": "आवास",
+        "MAINTENANCE_EN_ROUTE": "मार्ग पर रखरखाव",
+        "MISC": "विविध"
+      }
+    },
+    "maintenance": {
+      "title": "नया सेवा लॉग",
+      "subtitle": "एक रखरखाव घटना दर्ज करें",
+      "warning": "यह लॉग बनाने से वाहन <strong>IN_SHOP</strong> पर सेट हो जाएगा और प्रेषक के उपलब्ध पूल से हटा दिया जाएगा।",
+      "loadingVehicles": "वाहन लोड हो रहे हैं...",
+      "vehicle": "वाहन *",
+      "selectVehicle": "वाहन चुनें...",
+      "serviceType": "सेवा प्रकार *",
+      "selectType": "प्रकार चुनें...",
+      "description": "विवरण",
+      "descriptionPlaceholder": "सेवा का विवरण...",
+      "cost": "लागत (₹) *",
+      "odometerAtService": "सेवा पर ओडोमीटर *",
+      "technicianName": "तकनीशियन का नाम",
+      "technicianPlaceholder": "रवि कुमार",
+      "shopName": "दुकान का नाम",
+      "shopPlaceholder": "ऑटोकेयर",
+      "serviceDate": "सेवा तिथि *",
+      "nextServiceDue": "अगली सेवा की तिथि",
+      "createServiceLog": "सेवा लॉग बनाएँ"
+    },
+    "trip": {
+      "title": "नई यात्रा",
+      "subtitle": "एक नई प्रेषण यात्रा की योजना बनाएँ",
+      "loadingVehiclesDrivers": "वाहन और चालक लोड हो रहे हैं...",
+      "vehicleLabel": "वाहन (केवल उपलब्ध) *",
+      "selectVehicle": "वाहन चुनें...",
+      "noAvailableVehicles": "कोई उपलब्ध वाहन नहीं",
+      "driverLabel": "चालक (ड्यूटी पर, मान्य लाइसेंस) *",
+      "selectDriver": "चालक चुनें...",
+      "noEligibleDrivers": "कोई पात्र चालक नहीं",
+      "origin": "उत्पत्ति स्थान *",
+      "destination": "गंतव्य *",
+      "locationPlaceholder": "टाइप करना शुरू करें...",
+      "cargoWeight": "माल का वज़न (kg) *",
+      "estDistance": "अनुमानित दूरी (km) *",
+      "cargoExceedsCapacity": "माल वाहन की क्षमता से अधिक है",
+      "cargoDescription": "माल का विवरण",
+      "cargoDescPlaceholder": "जैसे इलेक्ट्रॉनिक्स, नाशवान सामान...",
+      "clientName": "ग्राहक का नाम",
+      "clientPlaceholder": "Acme Corp",
+      "revenue": "राजस्व (₹)",
+      "createTripDraft": "यात्रा बनाएँ (ड्राफ्ट)"
+    },
+    "tripComplete": {
+      "title": "यात्रा पूर्ण करें",
+      "description": "इस यात्रा को पूर्ण करने के लिए वास्तविक दूरी दर्ज करें। वाहन और चालक मुक्त कर दिए जाएँगे।",
+      "actualDistance": "वास्तविक दूरी (km) *",
+      "distancePlaceholder": "जैसे 1450",
+      "odometerEnd": "अंतिम ओडोमीटर (वैकल्पिक)",
+      "odometerPlaceholder": "वर्तमान ओडोमीटर रीडिंग",
+      "confirm": "यात्रा पूर्ण करें"
+    },
+    "tripCancel": {
+      "title": "यात्रा रद्द करें",
+      "description": "यह कार्रवाई यात्रा रद्द कर देगी। यदि यात्रा प्रेषित की गई थी, तो वाहन और चालक मुक्त कर दिए जाएँगे।",
+      "reasonLabel": "रद्द करने का कारण *",
+      "reasonPlaceholder": "कृपया बताएँ कि यह यात्रा क्यों रद्द की जा रही है (न्यूनतम 5 अक्षर)...",
+      "minLength": "न्यूनतम 5 अक्षर आवश्यक हैं",
+      "keepTrip": "यात्रा रखें",
+      "confirm": "यात्रा रद्द करें"
+    },
+    "tripLedger": {
+      "title": "यात्रा खाता",
+      "subtitle": "यात्रा #{{id}} का वित्तीय सारांश",
+      "revenue": "राजस्व",
+      "totalCost": "कुल लागत",
+      "profit": "लाभ",
+      "roi": "ROI",
+      "costBreakdown": "लागत विभाजन",
+      "fuel": "ईंधन",
+      "expenses": "व्यय",
+      "fuelLogs": "ईंधन लॉग ({{count}})",
+      "expensesList": "व्यय ({{count}})",
+      "noRecords": "इस यात्रा के लिए अभी तक कोई ईंधन लॉग या व्यय दर्ज नहीं किए गए हैं।"
+    }
+  },
+  "ui": {
+    "capacityBar": {
+      "cargo": "माल:",
+      "capacity": "{{value}} kg क्षमता",
+      "exceedsCapacity": "{{pct}}% — क्षमता से अधिक",
+      "utilized": "{{pct}}% उपयोग — ठीक"
+    },
+    "licenseExpiry": {
+      "expired": "समाप्त",
+      "expiresIn": "{{days}} दिन में समाप्त!",
+      "expiringIn": "{{days}} दिन में समाप्त हो रहा"
+    },
+    "navbar": {
+      "searchPlaceholder": "यहाँ खोजें...",
+      "clearSearch": "खोज साफ़ करें",
+      "notifications": "सूचनाएँ",
+      "toggleDarkMode": "डार्क मोड टॉगल करें",
+      "userMenu": "उपयोगकर्ता मेनू",
+      "fallbackName": "FleetFlow उपयोगकर्ता"
+    }
+  }
+}

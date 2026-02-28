@@ -3,6 +3,7 @@
  * Fuel costs, expenses, revenue, profit, ROI.
  */
 import { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, BarChart3, Loader2, TrendingUp, TrendingDown, Fuel, Receipt, IndianRupee } from "lucide-react";
 import { useTheme } from "../../context/ThemeContext";
@@ -42,6 +43,7 @@ interface LedgerData {
 
 export function TripLedgerDrawer({ open, tripId, onClose }: TripLedgerDrawerProps) {
   const { isDark } = useTheme();
+  const { t } = useTranslation();
   const [ledger, setLedger] = useState<LedgerData | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -127,8 +129,8 @@ export function TripLedgerDrawer({ open, tripId, onClose }: TripLedgerDrawerProp
                   <BarChart3 className="w-4.5 h-4.5 text-white" />
                 </div>
                 <div>
-                  <h2 className={`text-base font-bold ${textPrimary}`}>Trip Ledger</h2>
-                  <p className={`text-xs ${textSecondary}`}>Financial summary for trip #{tripId}</p>
+                  <h2 className={`text-base font-bold ${textPrimary}`}>{t("forms.tripLedger.title")}</h2>
+                  <p className={`text-xs ${textSecondary}`}>{t("forms.tripLedger.subtitle", { id: tripId })}</p>
                 </div>
               </div>
               <button
@@ -162,7 +164,7 @@ export function TripLedgerDrawer({ open, tripId, onClose }: TripLedgerDrawerProp
                     <div className={`rounded-lg border p-3 ${cardBg}`}>
                       <div className="flex items-center gap-1.5 mb-1">
                         <IndianRupee className={`w-3.5 h-3.5 ${isDark ? "text-emerald-400" : "text-emerald-600"}`} />
-                        <span className={`text-xs ${textSecondary}`}>Revenue</span>
+                        <span className={`text-xs ${textSecondary}`}>{t("forms.tripLedger.revenue")}</span>
                       </div>
                       <p className={`text-lg font-bold tabular-nums ${isDark ? "text-emerald-400" : "text-emerald-600"}`}>
                         {formatCurrency(ledger.revenue)}
@@ -172,7 +174,7 @@ export function TripLedgerDrawer({ open, tripId, onClose }: TripLedgerDrawerProp
                     <div className={`rounded-lg border p-3 ${cardBg}`}>
                       <div className="flex items-center gap-1.5 mb-1">
                         <Receipt className={`w-3.5 h-3.5 ${isDark ? "text-red-400" : "text-red-600"}`} />
-                        <span className={`text-xs ${textSecondary}`}>Total Cost</span>
+                        <span className={`text-xs ${textSecondary}`}>{t("forms.tripLedger.totalCost")}</span>
                       </div>
                       <p className={`text-lg font-bold tabular-nums ${isDark ? "text-red-400" : "text-red-600"}`}>
                         {formatCurrency(ledger.totalCost)}
@@ -186,7 +188,7 @@ export function TripLedgerDrawer({ open, tripId, onClose }: TripLedgerDrawerProp
                         ) : (
                           <TrendingDown className={`w-3.5 h-3.5 ${isDark ? "text-red-400" : "text-red-600"}`} />
                         )}
-                        <span className={`text-xs ${textSecondary}`}>Profit</span>
+                        <span className={`text-xs ${textSecondary}`}>{t("forms.tripLedger.profit")}</span>
                       </div>
                       <p className={`text-lg font-bold tabular-nums ${
                         ledger.profit >= 0
@@ -200,7 +202,7 @@ export function TripLedgerDrawer({ open, tripId, onClose }: TripLedgerDrawerProp
                     <div className={`rounded-lg border p-3 ${cardBg}`}>
                       <div className="flex items-center gap-1.5 mb-1">
                         <BarChart3 className={`w-3.5 h-3.5 ${isDark ? "text-violet-400" : "text-violet-600"}`} />
-                        <span className={`text-xs ${textSecondary}`}>ROI</span>
+                        <span className={`text-xs ${textSecondary}`}>{t("forms.tripLedger.roi")}</span>
                       </div>
                       <p className={`text-lg font-bold tabular-nums ${isDark ? "text-violet-400" : "text-violet-600"}`}>
                         {ledger.roi}
@@ -210,19 +212,19 @@ export function TripLedgerDrawer({ open, tripId, onClose }: TripLedgerDrawerProp
 
                   {/* Cost Breakdown */}
                   <div>
-                    <h4 className={`text-sm font-semibold mb-2 ${textPrimary}`}>Cost Breakdown</h4>
+                    <h4 className={`text-sm font-semibold mb-2 ${textPrimary}`}>{t("forms.tripLedger.costBreakdown")}</h4>
                     <div className={`rounded-lg border divide-y ${isDark ? "border-neutral-600 divide-neutral-600" : "border-slate-200 divide-slate-200"}`}>
                       <div className={`flex items-center justify-between px-3 py-2 text-sm ${cardBg.split(" ")[0]}`}>
                         <div className="flex items-center gap-2">
                           <Fuel className={`w-3.5 h-3.5 ${isDark ? "text-amber-400" : "text-amber-600"}`} />
-                          <span className={textPrimary}>Fuel</span>
+                          <span className={textPrimary}>{t("forms.tripLedger.fuel")}</span>
                         </div>
                         <span className={`font-medium tabular-nums ${textPrimary}`}>{formatCurrency(ledger.fuelCost)}</span>
                       </div>
                       <div className={`flex items-center justify-between px-3 py-2 text-sm ${cardBg.split(" ")[0]}`}>
                         <div className="flex items-center gap-2">
                           <Receipt className={`w-3.5 h-3.5 ${isDark ? "text-blue-400" : "text-blue-600"}`} />
-                          <span className={textPrimary}>Expenses</span>
+                          <span className={textPrimary}>{t("forms.tripLedger.expenses")}</span>
                         </div>
                         <span className={`font-medium tabular-nums ${textPrimary}`}>{formatCurrency(ledger.expenseCost)}</span>
                       </div>
@@ -232,7 +234,7 @@ export function TripLedgerDrawer({ open, tripId, onClose }: TripLedgerDrawerProp
                   {/* Fuel Logs */}
                   {ledger.fuelLogs.length > 0 && (
                     <div>
-                      <h4 className={`text-sm font-semibold mb-2 ${textPrimary}`}>Fuel Logs ({ledger.fuelLogs.length})</h4>
+                      <h4 className={`text-sm font-semibold mb-2 ${textPrimary}`}>{t("forms.tripLedger.fuelLogs", { count: ledger.fuelLogs.length })}</h4>
                       <div className="space-y-2">
                         {ledger.fuelLogs.map((log) => (
                           <div key={log.id} className={`rounded-lg border p-2.5 text-xs ${cardBg}`}>
@@ -250,7 +252,7 @@ export function TripLedgerDrawer({ open, tripId, onClose }: TripLedgerDrawerProp
                   {/* Expenses */}
                   {ledger.expenses.length > 0 && (
                     <div>
-                      <h4 className={`text-sm font-semibold mb-2 ${textPrimary}`}>Expenses ({ledger.expenses.length})</h4>
+                      <h4 className={`text-sm font-semibold mb-2 ${textPrimary}`}>{t("forms.tripLedger.expensesList", { count: ledger.expenses.length })}</h4>
                       <div className="space-y-2">
                         {ledger.expenses.map((exp) => (
                           <div key={exp.id} className={`rounded-lg border p-2.5 text-xs ${cardBg}`}>
@@ -270,7 +272,7 @@ export function TripLedgerDrawer({ open, tripId, onClose }: TripLedgerDrawerProp
                   {/* Empty state */}
                   {ledger.fuelLogs.length === 0 && ledger.expenses.length === 0 && (
                     <div className={`text-center py-6 text-sm ${textSecondary}`}>
-                      No fuel logs or expenses recorded for this trip yet.
+                      {t("forms.tripLedger.noRecords")}
                     </div>
                   )}
                 </>

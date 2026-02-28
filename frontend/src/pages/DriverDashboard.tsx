@@ -4,6 +4,7 @@
  * and simulate live GPS location pings.
  */
 import { useState, useEffect, useCallback, useRef } from "react";
+import { useTranslation } from "react-i18next";
 import { motion } from "framer-motion";
 import {
   Power, Play, CheckCircle2, Navigation, Clock, Activity, Loader2
@@ -15,6 +16,7 @@ import { useTheme } from "../context/ThemeContext";
 import { useToast } from "../hooks/useToast";
 
 export default function DriverDashboard() {
+  const { t } = useTranslation();
   const { isDark } = useTheme();
   const { user } = useAuth();
   const toast = useToast();
@@ -62,9 +64,9 @@ export default function DriverDashboard() {
     try {
       const updated = await meApi.updateStatus(newStatus);
       setProfile(updated);
-      toast.success(`You are now ${newStatus.replace('_', ' ').toLowerCase()}.`, { title: "Status Updated" });
+      toast.success(`You are now ${newStatus.replace('_', ' ').toLowerCase()}.`, { title: t("driverDashboard.statusUpdated") });
     } catch (err) {
-      toast.error("Failed to update your duty status.", { title: "Update Failed" });
+      toast.error(t("driverDashboard.statusUpdateFailed"), { title: t("driverDashboard.updateFailed") });
     }
   };
 
@@ -111,10 +113,9 @@ export default function DriverDashboard() {
         <div className="w-16 h-16 rounded-full bg-red-100 flex items-center justify-center mb-4">
           <Activity className="w-8 h-8 text-red-600" />
         </div>
-        <h2 className={`text-xl font-bold ${isDark ? "text-white" : "text-slate-900"}`}>Account Unlinked</h2>
+        <h2 className={`text-xl font-bold ${isDark ? "text-white" : "text-slate-900"}`}>{t("driverDashboard.accountUnlinked")}</h2>
         <p className={`mt-2 ${isDark ? "text-slate-400" : "text-slate-500"}`}>
-          Your user account ({user?.email}) is not linked to a Driver profile.<br/>
-          Please contact a Manager or Dispatcher to configure your account.
+          {t("driverDashboard.accountUnlinkedDesc", { email: user?.email })}
         </p>
       </div>
     );
@@ -130,11 +131,11 @@ export default function DriverDashboard() {
       <div className="flex items-start justify-between">
         <div>
           <h1 className={`text-2xl font-bold tracking-tight ${isDark ? "text-slate-100" : "text-slate-900"}`}>
-            Welcome, {profile.fullName.split(" ")[0]}
+            {t("driverDashboard.welcome", { name: profile.fullName.split(" ")[0] })}
           </h1>
           <p className={`text-sm mt-1 font-medium flex items-center gap-2 ${isDark ? "text-slate-400" : "text-slate-500"}`}>
             <span className={`w-2 h-2 rounded-full ${isOnDuty ? "bg-emerald-500" : "bg-red-500"}`} />
-            {isOnDuty ? "On Duty" : "Off Duty"} — {profile.licenseNumber}
+            {isOnDuty ? t("driverDashboard.onDuty") : t("driverDashboard.offDuty")} — {profile.licenseNumber}
           </p>
         </div>
         
@@ -147,7 +148,7 @@ export default function DriverDashboard() {
           }`}
         >
           <Power className="w-4 h-4" />
-          {isOnDuty ? "Go Off Duty" : "Go On Duty"}
+          {isOnDuty ? t("driverDashboard.goOffDuty") : t("driverDashboard.goOnDuty")}
         </button>
       </div>
 
@@ -167,15 +168,15 @@ export default function DriverDashboard() {
               <Navigation className="w-6 h-6" />
             </div>
             <div>
-              <h3 className={`font-bold ${isDark ? "text-slate-100" : "text-slate-900"}`}>Live GPS Tracker</h3>
+              <h3 className={`font-bold ${isDark ? "text-slate-100" : "text-slate-900"}`}>{t("driverDashboard.gpsTracker")}</h3>
               <p className={`text-sm ${isSimulatingTracking ? "text-blue-600 dark:text-blue-400 font-medium" : "text-slate-500 dark:text-slate-400"}`}>
                 {isSimulatingTracking ? (
                   <span className="flex items-center gap-1.5">
                     <span className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-ping" />
-                    Broadcasting location...
+                    {t("driverDashboard.broadcasting")}
                   </span>
                 ) : (
-                  "Tracker paused. Start to share location."
+                  t("driverDashboard.trackerPaused")
                 )}
               </p>
             </div>
@@ -191,11 +192,11 @@ export default function DriverDashboard() {
               }`}
             >
               {isSimulatingTracking ? <Power className="w-4 h-4" /> : <Play className="w-4 h-4" />}
-              {isSimulatingTracking ? "Stop Tracker" : "Start Tracker"}
+              {isSimulatingTracking ? t("driverDashboard.stopTracker") : t("driverDashboard.startTracker")}
             </button>
             {lastPing && isSimulatingTracking && (
               <p className="text-[10px] text-slate-500 dark:text-slate-400">
-                Last ping: {lastPing.toLocaleTimeString()}
+                {t("driverDashboard.lastPing")} {lastPing.toLocaleTimeString()}
               </p>
             )}
           </div>
@@ -205,7 +206,7 @@ export default function DriverDashboard() {
       {/* Active Trip Card */}
       <div className="space-y-3">
         <h2 className={`font-bold uppercase tracking-wider text-xs ${isDark ? "text-slate-400" : "text-slate-500"}`}>
-          Current Assignment
+          {t("driverDashboard.currentAssignment")}
         </h2>
         {activeTrip ? (
           <motion.div initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} 
@@ -216,22 +217,22 @@ export default function DriverDashboard() {
             <div className="absolute top-0 left-0 w-2 h-full bg-blue-500" />
             <div className="flex items-start justify-between mb-6">
               <span className="px-3 py-1 bg-blue-100 text-blue-700 dark:bg-blue-500/10 dark:text-blue-400 text-xs font-bold rounded-full uppercase tracking-wide">
-                Dispatched
+                {t("driverDashboard.dispatched")}
               </span>
               <span className={`text-sm font-medium ${isDark ? "text-slate-400" : "text-slate-500"}`}>
-                Vehicle: {activeTrip.vehicle?.licensePlate || "N/A"}
+                {t("driverDashboard.vehicleLabel")} {activeTrip.vehicle?.licensePlate || "N/A"}
               </span>
             </div>
             
             <div className="relative pl-6 pb-6 border-l-2 border-dashed border-slate-200 dark:border-slate-700 ml-2 space-y-6">
               <div className="relative">
                 <div className="absolute -left-[31px] w-4 h-4 rounded-full border-4 border-white dark:border-slate-900 bg-blue-500" />
-                <p className={`text-xs font-semibold mb-1 ${isDark ? "text-slate-400" : "text-slate-500"}`}>Origin</p>
+                <p className={`text-xs font-semibold mb-1 ${isDark ? "text-slate-400" : "text-slate-500"}`}>{t("driverDashboard.origin")}</p>
                 <p className={`font-bold text-lg ${isDark ? "text-white" : "text-slate-900"}`}>{activeTrip.origin}</p>
               </div>
               <div className="relative">
                 <div className="absolute -left-[31px] w-4 h-4 rounded-full border-4 border-white dark:border-slate-900 bg-emerald-500" />
-                <p className={`text-xs font-semibold mb-1 ${isDark ? "text-slate-400" : "text-slate-500"}`}>Destination</p>
+                <p className={`text-xs font-semibold mb-1 ${isDark ? "text-slate-400" : "text-slate-500"}`}>{t("driverDashboard.destination")}</p>
                 <p className={`font-bold text-lg ${isDark ? "text-white" : "text-slate-900"}`}>{activeTrip.destination}</p>
               </div>
             </div>
@@ -240,13 +241,13 @@ export default function DriverDashboard() {
               <div className={`mt-4 pt-4 border-t grid grid-cols-2 gap-4 ${isDark ? "border-slate-800" : "border-slate-100"}`}>
                 {activeTrip.cargoWeight && (
                   <div>
-                    <p className={`text-xs ${isDark ? "text-slate-400" : "text-slate-500"}`}>Cargo Weight</p>
+                    <p className={`text-xs ${isDark ? "text-slate-400" : "text-slate-500"}`}>{t("driverDashboard.cargoWeight")}</p>
                     <p className={`font-semibold ${isDark ? "text-slate-200" : "text-slate-700"}`}>{activeTrip.cargoWeight} kg</p>
                   </div>
                 )}
                 {activeTrip.cargoDescription && (
                   <div>
-                    <p className={`text-xs ${isDark ? "text-slate-400" : "text-slate-500"}`}>Description</p>
+                    <p className={`text-xs ${isDark ? "text-slate-400" : "text-slate-500"}`}>{t("driverDashboard.cargoDescription")}</p>
                     <p className={`font-semibold ${isDark ? "text-slate-200" : "text-slate-700"}`}>{activeTrip.cargoDescription}</p>
                   </div>
                 )}
@@ -260,9 +261,9 @@ export default function DriverDashboard() {
             <div className="w-16 h-16 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center mb-4 text-slate-400">
               <Clock className="w-8 h-8" />
             </div>
-            <h3 className={`font-bold text-lg mb-1 ${isDark ? "text-white" : "text-slate-900"}`}>No Active Trips</h3>
+            <h3 className={`font-bold text-lg mb-1 ${isDark ? "text-white" : "text-slate-900"}`}>{t("driverDashboard.noActiveTrips")}</h3>
             <p className="text-sm text-slate-500 dark:text-slate-400">
-              You do not have any trips currently dispatched to you.
+              {t("driverDashboard.noActiveTripsDesc")}
             </p>
           </div>
         )}
@@ -272,7 +273,7 @@ export default function DriverDashboard() {
       {pastTrips.length > 0 && (
         <div className="space-y-3">
           <h2 className={`font-bold uppercase tracking-wider text-xs ${isDark ? "text-slate-400" : "text-slate-500"}`}>
-            Recent History
+            {t("driverDashboard.recentHistory")}
           </h2>
           <div className={`rounded-3xl border overflow-hidden ${isDark ? "bg-slate-900 border-slate-700" : "bg-white border-slate-200"}`}>
             {pastTrips.map((trip, idx) => (

@@ -4,6 +4,7 @@
  */
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
+import { useTranslation } from "react-i18next";
 import {
   User,
   Mail,
@@ -29,12 +30,7 @@ const itemVariants = {
   visible: { opacity: 1, y: 0, transition: { duration: 0.4, ease: [0.4, 0, 0.2, 1] as const } },
 };
 
-const ROLE_LABELS: Record<string, string> = {
-  MANAGER: "Fleet Manager",
-  DISPATCHER: "Trip Dispatcher",
-  SAFETY_OFFICER: "Safety Officer",
-  FINANCE_ANALYST: "Finance Analyst",
-};
+// Role labels are now from i18n: t("roles.MANAGER") etc.
 
 const ROLE_COLORS: Record<string, { bg: string; text: string; accent: string }> = {
   MANAGER: { bg: "bg-emerald-50 dark:bg-emerald-950/30", text: "text-emerald-700 dark:text-emerald-300", accent: "bg-emerald-600" },
@@ -45,6 +41,7 @@ const ROLE_COLORS: Record<string, { bg: string; text: string; accent: string }> 
 
 export default function Profile() {
   const { user } = useAuth();
+  const { t } = useTranslation();
   const [kpis, setKpis] = useState<DashboardKPIs | null>(null);
 
   useEffect(() => {
@@ -86,7 +83,7 @@ export default function Profile() {
                 <div className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full ${roleStyle.bg} border border-current/10 mb-3`}>
                   <Shield className={`w-3.5 h-3.5 ${roleStyle.text}`} />
                   <span className={`text-xs font-semibold uppercase tracking-wider ${roleStyle.text}`}>
-                    {ROLE_LABELS[user.role] ?? user.role}
+                    {t(`roles.${user.role}`)}
                   </span>
                 </div>
                 <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">
@@ -109,15 +106,15 @@ export default function Profile() {
             <div className="px-6 py-5 border-b border-slate-100 dark:border-neutral-800 bg-slate-50/30 dark:bg-neutral-800/30">
               <h2 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
                 <User className="w-5 h-5 text-emerald-500" />
-                Account Details
+                {t("profile.accountDetails")}
               </h2>
             </div>
             <div className="p-6 space-y-5">
               {[
-                { icon: User, label: "Full Name", value: user.fullName },
-                { icon: Mail, label: "Email", value: user.email },
-                { icon: Shield, label: "Role", value: ROLE_LABELS[user.role] ?? user.role },
-                { icon: Calendar, label: "User ID", value: `#${user.id}` },
+                { icon: User, label: t("profile.fullName"), value: user.fullName },
+                { icon: Mail, label: t("profile.email"), value: user.email },
+                { icon: Shield, label: t("profile.role"), value: t(`roles.${user.role}`) },
+                { icon: Calendar, label: t("profile.userId"), value: `#${user.id}` },
               ].map(({ icon: Icon, label, value }) => (
                 <div key={label} className="flex items-start gap-3">
                   <div className="w-9 h-9 rounded-lg bg-slate-100 dark:bg-neutral-800 flex items-center justify-center shrink-0">
@@ -137,11 +134,11 @@ export default function Profile() {
             <div className="px-6 py-5 border-b border-slate-100 dark:border-neutral-800 bg-slate-50/30 dark:bg-neutral-800/30">
               <h2 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
                 <Activity className="w-5 h-5 text-emerald-500" />
-                Your Capabilities
+                {t("profile.yourCapabilities")}
               </h2>
             </div>
             <div className="p-6 space-y-3">
-              {getRoleCapabilities(user.role).map((cap) => (
+              {(t(`profile.capabilities.${user.role}`, { returnObjects: true }) as string[]).map((cap) => (
                 <div key={cap} className="flex items-center gap-2.5">
                   <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
                   <span className="text-sm text-slate-700 dark:text-neutral-300">{cap}</span>
@@ -155,10 +152,10 @@ export default function Profile() {
         {kpis && (
           <motion.div variants={itemVariants} className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {[
-              { label: "Total Vehicles", value: kpis.fleet.total, icon: Truck, color: "text-emerald-600" },
-              { label: "Active Trips", value: kpis.trips.active, icon: MapPin, color: "text-blue-600" },
-              { label: "Fleet Utilization", value: kpis.fleet.utilizationRate, icon: Activity, color: "text-violet-600" },
-              { label: "Alerts", value: kpis.alerts.maintenanceAlerts + kpis.alerts.expiringLicenses + kpis.alerts.suspendedDrivers, icon: AlertTriangle, color: "text-amber-600" },
+              { label: t("profile.kpi.totalVehicles"), value: kpis.fleet.total, icon: Truck, color: "text-emerald-600" },
+              { label: t("profile.kpi.activeTrips"), value: kpis.trips.active, icon: MapPin, color: "text-blue-600" },
+              { label: t("profile.kpi.fleetUtilization"), value: kpis.fleet.utilizationRate, icon: Activity, color: "text-violet-600" },
+              { label: t("profile.kpi.alerts"), value: kpis.alerts.maintenanceAlerts + kpis.alerts.expiringLicenses + kpis.alerts.suspendedDrivers, icon: AlertTriangle, color: "text-amber-600" },
             ].map(({ label, value, icon: Icon, color }) => (
               <div key={label} className="bg-white dark:bg-neutral-900 rounded-2xl border border-slate-200 dark:border-neutral-800 p-5 shadow-sm">
                 <Icon className={`w-5 h-5 ${color} mb-2`} />
@@ -171,37 +168,4 @@ export default function Profile() {
       </motion.div>
     </div>
   );
-}
-
-function getRoleCapabilities(role: string): string[] {
-  const caps: Record<string, string[]> = {
-    MANAGER: [
-      "Full fleet oversight & vehicle management",
-      "User administration (create, deactivate)",
-      "View all analytics & financial reports",
-      "Approve dispatch & maintenance actions",
-      "Access all modules without restriction",
-    ],
-    DISPATCHER: [
-      "Create & manage trips and assignments",
-      "View vehicle availability & driver pool",
-      "Transition trip statuses (Draft → Dispatched → Completed)",
-      "Add waypoints and track routes",
-    ],
-    SAFETY_OFFICER: [
-      "Driver credential & license management",
-      "Vehicle inspection & maintenance logging",
-      "Incident report creation & investigation",
-      "Safety score adjustments",
-      "Driver status management (suspend/reactivate)",
-    ],
-    FINANCE_ANALYST: [
-      "Fuel log entry & expense tracking",
-      "View revenue, expenses & profit reports",
-      "Monthly financial report generation",
-      "Vehicle ROI & fuel efficiency analysis",
-      "Export trip data to CSV",
-    ],
-  };
-  return caps[role] ?? [];
 }

@@ -1,6 +1,7 @@
 
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import {
   ShieldAlert,
   Wrench,
@@ -33,43 +34,38 @@ const staggerContainer = {
 export default function Landing() {
   const navigate = useNavigate();
   const { isDark, toggleTheme } = useTheme();
+  const { t } = useTranslation();
 
   const features = [
     {
       icon: <Map className="w-8 h-8 text-blue-500" />,
-      title: "Real-time Dispatch",
-      description:
-        "AI-powered routing and live tracking for optimal fleet efficiency.",
+      title: t("landing.featuresList.dispatch"),
+      description: t("landing.featuresList.dispatchDesc"),
     },
     {
       icon: <Wrench className="w-8 h-8 text-orange-500" />,
-      title: "Predictive Maintenance",
-      description:
-        "Reduce downtime with intelligent maintenance scheduling and alerts.",
+      title: t("landing.featuresList.maintenance"),
+      description: t("landing.featuresList.maintenanceDesc"),
     },
     {
       icon: <BarChart3 className="w-8 h-8 text-green-500" />,
-      title: "Advanced Analytics",
-      description:
-        "Comprehensive insights into fuel consumption, driver performance, and costs.",
+      title: t("landing.featuresList.analytics"),
+      description: t("landing.featuresList.analyticsDesc"),
     },
     {
       icon: <ShieldAlert className="w-8 h-8 text-red-500" />,
-      title: "Safety & Compliance",
-      description:
-        "Monitor driver behavior and ensure continuous regulatory compliance.",
+      title: t("landing.featuresList.safety"),
+      description: t("landing.featuresList.safetyDesc"),
     },
     {
       icon: <Users className="w-8 h-8 text-purple-500" />,
-      title: "Driver Management",
-      description:
-        "Complete driver profiles, shift tracking, and performance scoring.",
+      title: t("landing.featuresList.drivers"),
+      description: t("landing.featuresList.driversDesc"),
     },
     {
       icon: <Globe className="w-8 h-8 text-teal-500" />,
-      title: "Odoo Integration",
-      description:
-        "Seamless synchronization with Odoo ERP for unified logistics operations.",
+      title: t("landing.featuresList.odoo"),
+      description: t("landing.featuresList.odooDesc"),
     },
   ];
 
@@ -93,13 +89,13 @@ export default function Landing() {
                   href="#features"
                   className={`font-medium transition-colors ${isDark ? "text-slate-300 hover:text-white" : "text-slate-600 hover:text-slate-900"}`}
                 >
-                  Features
+                  {t("landing.features")}
                 </a>
                 <a
                   href="#how-it-works"
                   className={`font-medium transition-colors ${isDark ? "text-slate-300 hover:text-white" : "text-slate-600 hover:text-slate-900"}`}
                 >
-                  How it Works
+                  {t("landing.howItWorks")}
                 </a>
               </div>
               
@@ -119,7 +115,7 @@ export default function Landing() {
                 onClick={() => navigate("/login")}
                 className="px-6 py-2.5 rounded-full bg-blue-600 hover:bg-blue-500 text-white font-medium transition-all transform hover:scale-105 active:scale-95 shadow-[0_0_20px_rgba(37,99,235,0.3)]"
               >
-                Sign In
+                {t("landing.signIn")}
               </button>
             </div>
           </div>
@@ -147,7 +143,7 @@ export default function Landing() {
             >
               <Zap className="w-4 h-4 text-blue-500" />
               <span className={`text-sm font-medium ${isDark ? "text-slate-300" : "text-slate-700"}`}>
-                Next-Gen Logistics Platform
+                {t("landing.heroTag")}
               </span>
             </motion.div>
 
@@ -155,19 +151,14 @@ export default function Landing() {
               variants={fadeIn}
               className="text-5xl lg:text-7xl font-extrabold tracking-tight mb-8"
             >
-              Smarter Fleet Management. <br className="hidden lg:block" />
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-500 via-teal-500 to-blue-600 dark:from-blue-400 dark:via-teal-400 dark:to-blue-500">
-                Maximum Efficiency.
-              </span>
+              {t("landing.heroTitle")}
             </motion.h1>
 
             <motion.p
               variants={fadeIn}
               className={`text-xl mb-12 max-w-2xl mx-auto leading-relaxed ${isDark ? "text-slate-400" : "text-slate-600"}`}
             >
-              Transform your logistics operations with AI-driven routing,
-              predictive maintenance, and real-time analytics. Built for modern
-              fleets.
+              {t("landing.heroDescription")}
             </motion.p>
 
             <motion.div
@@ -178,7 +169,7 @@ export default function Landing() {
                 onClick={() => navigate("/login")}
                 className="group w-full sm:w-auto px-8 py-4 rounded-full bg-blue-600 hover:bg-blue-500 text-white font-semibold text-lg transition-all transform hover:scale-105 active:scale-95 shadow-[0_0_30px_rgba(37,99,235,0.4)] flex items-center justify-center space-x-2"
               >
-                <span>Get Started Now</span>
+                <span>{t("landing.getStarted")}</span>
                 <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
               </button>
               <a
@@ -189,7 +180,7 @@ export default function Landing() {
                     : "bg-white hover:bg-slate-50 text-slate-700 border-slate-200 hover:border-slate-300"
                 }`}
               >
-                Explore Features
+                {t("landing.exploreFeatures")}
               </a>
             </motion.div>
           </motion.div>
@@ -276,17 +267,13 @@ export default function Landing() {
                 isDark ? "bg-blue-900/30 text-blue-400 border-blue-900" : "bg-blue-100 text-blue-700 border-blue-200"
               }`}
             >
-              Features
+              {t("landing.features")}
             </motion.div>
             <h2 className={`text-4xl md:text-5xl font-bold mb-6 ${isDark ? "text-slate-100" : "text-slate-900"}`}>
-              Everything you need to <br className="hidden md:block" />
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-500 to-teal-500 dark:from-blue-400 dark:to-teal-400">
-                run your fleet
-              </span>
+              {t("landing.everythingYouNeed")}
             </h2>
             <p className={`max-w-2xl mx-auto text-lg ${isDark ? "text-slate-400" : "text-slate-600"}`}>
-              Integrated tools designed for dispatchers, managers, and safety
-              officers to work together seamlessly in real time.
+              {t("landing.everythingYouNeedDesc")}
             </p>
           </div>
 
@@ -343,9 +330,7 @@ export default function Landing() {
               transition={{ duration: 0.6 }}
             >
               <h2 className={`text-4xl md:text-5xl font-bold mb-6 ${isDark ? "text-slate-100" : "text-slate-900"}`}>
-                Designed for scale.
-                <br />
-                <span className="text-blue-500 dark:text-blue-400">Built for performance.</span>
+                {t("landing.designedForScale")}
               </h2>
               <p className={`text-lg mb-8 leading-relaxed ${isDark ? "text-slate-400" : "text-slate-600"}`}>
                 Whether you're managing 10 vehicles or 10,000, FleetFlow adapts
@@ -355,16 +340,16 @@ export default function Landing() {
               <ul className="space-y-5">
                 {[
                   {
-                    title: "Zero-downtime deployment",
-                    desc: "SaaS architecture that scales instantly.",
+                    title: t("landing.benefits.zeroDowntime"),
+                    desc: t("landing.benefits.zeroDowntimeDesc"),
                   },
                   {
-                    title: "Enterprise-grade security",
-                    desc: "Secure data pipelines and SOC2 compliance.",
+                    title: t("landing.benefits.security"),
+                    desc: t("landing.benefits.securityDesc"),
                   },
                   {
-                    title: "Real-time tracking",
-                    desc: "WebSockets for live map updates with zero lag.",
+                    title: t("landing.benefits.realtime"),
+                    desc: t("landing.benefits.realtimeDesc"),
                   },
                 ].map((item, i) => (
                   <li
@@ -440,21 +425,20 @@ export default function Landing() {
             <img src="/logo-premium.png" alt="FleetFlow" className="w-full h-full object-cover transform rotate-6" />
           </div>
           <h2 className="text-4xl md:text-5xl font-extrabold text-white mb-6">
-            Ready to transform your fleet?
+            {t("landing.readyToTransform")}
           </h2>
           <p className="text-blue-100 text-xl mb-10 max-w-2xl mx-auto opacity-90">
-            Join forward-thinking companies optimizing their logistics and
-            reducing costs with FleetFlow.
+            {t("landing.readyToTransformDesc")}
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center space-y-4 sm:space-y-0 sm:space-x-4">
             <button
               onClick={() => navigate("/login")}
               className="w-full sm:w-auto px-10 py-4 rounded-full bg-white text-blue-900 font-bold text-lg hover:bg-slate-50 transition-all transform hover:scale-105 active:scale-95 shadow-[0_0_40px_rgba(255,255,255,0.3)] flex items-center justify-center"
             >
-              Go to Dashboard
+              {t("landing.goToDashboard")}
             </button>
             <button className="w-full sm:w-auto px-10 py-4 rounded-full bg-blue-800/50 text-white font-bold text-lg hover:bg-blue-800/80 transition-all border border-blue-700/50 backdrop-blur-sm">
-              Contact Sales
+              {t("landing.contactSales")}
             </button>
           </div>
         </motion.div>
@@ -473,12 +457,17 @@ export default function Landing() {
               </span>
             </div>
             <div className="flex space-x-6">
-              {["Product", "Features", "Pricing", "Company"].map((link) => (
+              {[
+                { key: "product", label: t("landing.footer.product") },
+                { key: "features", label: t("landing.footer.features") },
+                { key: "pricing", label: t("landing.footer.pricing") },
+                { key: "company", label: t("landing.footer.company") },
+              ].map((link) => (
                 <span
-                  key={link}
+                  key={link.key}
                   className={`cursor-pointer transition-colors text-sm font-medium ${isDark ? "text-slate-400 hover:text-white" : "text-slate-500 hover:text-blue-600"}`}
                 >
-                  {link}
+                  {link.label}
                 </span>
               ))}
             </div>
@@ -486,15 +475,14 @@ export default function Landing() {
 
           <div className="flex flex-col md:flex-row justify-between items-center">
             <p className={`text-sm mb-4 md:mb-0 font-medium ${isDark ? "text-slate-500" : "text-slate-500"}`}>
-              &copy; {new Date().getFullYear()} FleetFlow. Odoo Hackathon 2026.
-              Data visualization by Recharts.
+              {t("landing.copyright", { year: new Date().getFullYear() })}
             </p>
             <div className={`flex space-x-4 text-sm font-medium ${isDark ? "text-slate-500" : "text-slate-500"}`}>
               <span className={`cursor-pointer transition-colors ${isDark ? "hover:text-white" : "hover:text-blue-600"}`}>
-                Privacy Policy
+                {t("landing.privacyPolicy")}
               </span>
               <span className={`cursor-pointer transition-colors ${isDark ? "hover:text-white" : "hover:text-blue-600"}`}>
-                Terms of Service
+                {t("landing.termsOfService")}
               </span>
             </div>
           </div>

@@ -4,6 +4,7 @@
  * safety score bars, duty toggle, suspend, adjust score, soft delete.
  */
 import { useState, useEffect, useCallback } from "react";
+import { useTranslation } from "react-i18next";
 import { motion } from "framer-motion";
 import {
   Users,
@@ -55,20 +56,21 @@ interface Driver {
 }
 
 const STATUS_FILTERS = [
-  { value: "", label: "All Statuses" },
-  { value: "ON_DUTY", label: "On Duty" },
-  { value: "ON_TRIP", label: "On Trip" },
-  { value: "OFF_DUTY", label: "Off Duty" },
-  { value: "SUSPENDED", label: "Suspended" },
+  { value: "", labelKey: "driverManagement.allStatuses" },
+  { value: "ON_DUTY", labelKey: "driverManagement.statusCards.onDuty" },
+  { value: "ON_TRIP", labelKey: "driverManagement.statusCards.onTrip" },
+  { value: "OFF_DUTY", labelKey: "driverManagement.statusCards.offDuty" },
+  { value: "SUSPENDED", labelKey: "driverManagement.statusCards.suspended" },
 ];
 
 const EXPIRY_FILTERS = [
-  { value: "", label: "All Licenses" },
-  { value: "expiring", label: "Expiring Soon (< 30d)" },
-  { value: "expired", label: "Expired" },
+  { value: "", labelKey: "driverManagement.allLicenses" },
+  { value: "expiring", labelKey: "driverManagement.expiringSoon" },
+  { value: "expired", labelKey: "driverManagement.expired" },
 ];
 
 export default function DriverManagement() {
+  const { t } = useTranslation();
   const { isDark } = useTheme();
   const { user } = useAuth();
 
@@ -262,8 +264,8 @@ export default function DriverManagement() {
             <Users className="w-5 h-5 text-white" />
           </div>
           <div>
-            <h1 className={`text-xl font-bold leading-tight ${textPrimary}`}>Driver Performance & Safety</h1>
-            <p className={`text-sm mt-0.5 ${textSecondary}`}>Monitor and manage your fleet drivers</p>
+            <h1 className={`text-xl font-bold leading-tight ${textPrimary}`}>{t("driverManagement.title")}</h1>
+            <p className={`text-sm mt-0.5 ${textSecondary}`}>{t("driverManagement.subtitle")}</p>
           </div>
         </div>
 
@@ -273,7 +275,7 @@ export default function DriverManagement() {
             className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-violet-600 hover:bg-violet-500 text-white text-sm font-medium transition-colors shadow-lg shadow-violet-500/20"
           >
             <Plus className="w-4 h-4" />
-            Add Driver
+            {t("driverManagement.addDriver")}
           </button>
         )}
       </motion.div>
@@ -288,7 +290,7 @@ export default function DriverManagement() {
           <div className="flex items-center gap-2 mb-2">
             <AlertTriangle className={`w-4 h-4 ${isDark ? "text-amber-400" : "text-amber-600"}`} />
             <span className={`text-sm font-semibold ${isDark ? "text-amber-300" : "text-amber-700"}`}>
-              Licenses Expiring Soon ({expiringDrivers.length})
+              {t("driverManagement.licensesExpiringSoon", { count: expiringDrivers.length })}
             </span>
           </div>
           <div className="flex flex-wrap gap-2">
@@ -304,7 +306,7 @@ export default function DriverManagement() {
                       : isDark ? "bg-amber-900/30 text-amber-300" : "bg-amber-100 text-amber-700"
                   }`}
                 >
-                  {d.fullName} — {daysLeft <= 0 ? "EXPIRED" : `${daysLeft}d left`}
+                  {d.fullName} — {daysLeft <= 0 ? t("common.expired") : t("driverManagement.daysLeft", { days: daysLeft })}
                 </span>
               );
             })}
@@ -318,10 +320,10 @@ export default function DriverManagement() {
       {/* Status Summary Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         {([
-          { key: "ON_DUTY", label: "On Duty", icon: "🟢", color: isDark ? "text-emerald-400" : "text-emerald-600" },
-          { key: "ON_TRIP", label: "On Trip", icon: "🔵", color: isDark ? "text-blue-400" : "text-blue-600" },
-          { key: "OFF_DUTY", label: "Off Duty", icon: "⚫", color: isDark ? "text-neutral-400" : "text-slate-500" },
-          { key: "SUSPENDED", label: "Suspended", icon: "🔴", color: isDark ? "text-red-400" : "text-red-600" },
+          { key: "ON_DUTY", label: t("driverManagement.statusCards.onDuty"), icon: "🟢", color: isDark ? "text-emerald-400" : "text-emerald-600" },
+          { key: "ON_TRIP", label: t("driverManagement.statusCards.onTrip"), icon: "🔵", color: isDark ? "text-blue-400" : "text-blue-600" },
+          { key: "OFF_DUTY", label: t("driverManagement.statusCards.offDuty"), icon: "⚫", color: isDark ? "text-neutral-400" : "text-slate-500" },
+          { key: "SUSPENDED", label: t("driverManagement.statusCards.suspended"), icon: "🔴", color: isDark ? "text-red-400" : "text-red-600" },
         ] as const).map((item) => (
           <motion.div
             key={item.key}
@@ -354,7 +356,7 @@ export default function DriverManagement() {
           <Search className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 ${isDark ? "text-neutral-500" : "text-slate-400"}`} />
           <input
             className={`${inputCls} pl-9 w-full`}
-            placeholder="Search name, license, email..."
+            placeholder={t("driverManagement.search")}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
@@ -368,7 +370,7 @@ export default function DriverManagement() {
             onChange={(e) => { setStatusFilter(e.target.value); setPage(1); }}
           >
             {STATUS_FILTERS.map((f) => (
-              <option key={f.value} value={f.value}>{f.label}</option>
+              <option key={f.value} value={f.value}>{t(f.labelKey)}</option>
             ))}
           </select>
         </div>
@@ -381,7 +383,7 @@ export default function DriverManagement() {
             onChange={(e) => setExpiryFilter(e.target.value)}
           >
             {EXPIRY_FILTERS.map((f) => (
-              <option key={f.value} value={f.value}>{f.label}</option>
+              <option key={f.value} value={f.value}>{t(f.labelKey)}</option>
             ))}
           </select>
         </div>
@@ -397,7 +399,7 @@ export default function DriverManagement() {
           <table className="w-full text-sm">
             <thead>
               <tr className={`border-b ${isDark ? "border-neutral-700 bg-neutral-800/50" : "border-slate-200 bg-slate-50"}`}>
-                {["#", "Name", "License #", "Expiry", "Safety Score", "Status", "Actions"].map((h) => (
+                {[t("driverManagement.columns.number"), t("driverManagement.columns.name"), t("driverManagement.columns.license"), t("driverManagement.columns.expiry"), t("driverManagement.columns.safetyScore"), t("driverManagement.columns.status"), t("driverManagement.columns.actions")].map((h) => (
                   <th key={h} className={`text-left px-4 py-3 text-xs font-semibold uppercase tracking-wide ${textSecondary}`}>
                     {h}
                   </th>
@@ -420,9 +422,9 @@ export default function DriverManagement() {
                 <tr>
                   <td colSpan={7} className="py-16 text-center">
                     <Users className={`w-10 h-10 mx-auto mb-2 ${isDark ? "text-neutral-600" : "text-slate-300"}`} />
-                    <p className={`text-sm font-medium ${textPrimary}`}>No drivers found</p>
+                    <p className={`text-sm font-medium ${textPrimary}`}>{t("driverManagement.noDrivers")}</p>
                     <p className={`text-xs mt-1 ${textSecondary}`}>
-                      {search || statusFilter || expiryFilter ? "Try adjusting your filters" : "Add your first driver to get started"}
+                      {search || statusFilter || expiryFilter ? t("driverManagement.adjustFilters") : t("driverManagement.addFirstDriver")}
                     </p>
                   </td>
                 </tr>
@@ -460,7 +462,7 @@ export default function DriverManagement() {
                             className={`p-1.5 rounded-lg transition-colors ${
                               isDark ? "hover:bg-neutral-600 text-neutral-400" : "hover:bg-slate-100 text-slate-400"
                             }`}
-                            title="Edit"
+                            title={t("driverManagement.editTooltip")}
                           >
                             <Edit2 className="w-3.5 h-3.5" />
                           </button>
@@ -473,7 +475,7 @@ export default function DriverManagement() {
                             className={`p-1.5 rounded-lg transition-colors ${
                               isDark ? "hover:bg-emerald-900/30 text-emerald-400" : "hover:bg-emerald-50 text-emerald-600"
                             }`}
-                            title="Clock In"
+                            title={t("driverManagement.clockIn")}
                           >
                             <LogIn className="w-3.5 h-3.5" />
                           </button>
@@ -484,14 +486,14 @@ export default function DriverManagement() {
                             className={`p-1.5 rounded-lg transition-colors ${
                               isDark ? "hover:bg-neutral-600 text-neutral-400" : "hover:bg-slate-100 text-slate-500"
                             }`}
-                            title="Clock Out"
+                            title={t("driverManagement.clockOut")}
                           >
                             <LogOut className="w-3.5 h-3.5" />
                           </button>
                         )}
                         {d.status === "ON_TRIP" && (
                           <span className={`text-xs px-1.5 ${textSecondary}`} title="Driver is on a trip — status managed by dispatch">
-                            On Trip
+                            {t("driverManagement.onTripLabel")}
                           </span>
                         )}
 
@@ -506,15 +508,15 @@ export default function DriverManagement() {
                                 className={`p-1.5 rounded-lg transition-colors ${
                                   isDark ? "hover:bg-red-900/30 text-red-400" : "hover:bg-red-50 text-red-500"
                                 }`}
-                                title="Suspend"
+                                title={t("driverManagement.suspendTooltip")}
                               >
                                 <ShieldAlert className="w-3.5 h-3.5" />
                               </button>
                             <AlertDialogContent>
                               <AlertDialogHeader>
-                                <AlertDialogTitle>Suspend Driver?</AlertDialogTitle>
+                                <AlertDialogTitle>{t("driverManagement.suspendDialog.title")}</AlertDialogTitle>
                                 <AlertDialogDescription>
-                                  Suspending <strong>{d.fullName}</strong> will block all dispatch operations for this driver.
+                                  <span dangerouslySetInnerHTML={{ __html: t("driverManagement.suspendDialog.description", { name: d.fullName }) }} />
                                 </AlertDialogDescription>
                               </AlertDialogHeader>
                               <div className="px-6 pb-2">
@@ -522,16 +524,16 @@ export default function DriverManagement() {
                                   className={`w-full px-3 py-2 rounded-lg border text-sm ${
                                     isDark ? "bg-neutral-700 border-neutral-600 text-white" : "bg-white border-slate-200 text-slate-900"
                                   }`}
-                                  placeholder="Reason for suspension (required)..."
+                                  placeholder={t("driverManagement.suspendDialog.placeholder")}
                                   rows={3}
                                   value={suspendReason}
                                   onChange={(e) => setSuspendReason(e.target.value)}
                                 />
                               </div>
                               <AlertDialogFooter>
-                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                <AlertDialogCancel>{t("common.cancel")}</AlertDialogCancel>
                                 <AlertDialogAction variant="destructive" onClick={handleSuspend} disabled={!suspendReason.trim()}>
-                                  Suspend Driver
+                                  {t("driverManagement.suspendDialog.confirm")}
                                 </AlertDialogAction>
                               </AlertDialogFooter>
                             </AlertDialogContent>
@@ -550,7 +552,7 @@ export default function DriverManagement() {
                             className={`p-1.5 rounded-lg transition-colors ${
                               isDark ? "hover:bg-violet-900/30 text-violet-400" : "hover:bg-violet-50 text-violet-500"
                             }`}
-                            title="Adjust Safety Score"
+                            title={t("driverManagement.adjustScoreTooltip")}
                           >
                             <SlidersHorizontal className="w-3.5 h-3.5" />
                           </button>
@@ -567,21 +569,21 @@ export default function DriverManagement() {
                                 className={`p-1.5 rounded-lg transition-colors ${
                                   isDark ? "hover:bg-red-900/30 text-red-400" : "hover:bg-red-50 text-red-500"
                                 }`}
-                                title="Delete"
+                                title={t("driverManagement.deleteTooltip")}
                               >
                                 <Trash2 className="w-3.5 h-3.5" />
                               </button>
                             <AlertDialogContent>
                               <AlertDialogHeader>
-                                <AlertDialogTitle>Delete Driver?</AlertDialogTitle>
+                                <AlertDialogTitle>{t("driverManagement.deleteDialog.title")}</AlertDialogTitle>
                                 <AlertDialogDescription>
-                                  This will soft-delete <strong>{d.fullName}</strong>. Historical trip data will be preserved.
+                                  <span dangerouslySetInnerHTML={{ __html: t("driverManagement.deleteDialog.description", { name: d.fullName }) }} />
                                 </AlertDialogDescription>
                               </AlertDialogHeader>
                               <AlertDialogFooter>
-                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                <AlertDialogCancel>{t("common.cancel")}</AlertDialogCancel>
                                 <AlertDialogAction variant="destructive" onClick={handleDelete}>
-                                  Delete
+                                  {t("driverManagement.deleteDialog.confirm")}
                                 </AlertDialogAction>
                               </AlertDialogFooter>
                             </AlertDialogContent>
@@ -643,7 +645,7 @@ export default function DriverManagement() {
           </button>
 
           <span className={`text-xs ml-2 ${textSecondary}`}>
-            {total} driver{total !== 1 ? "s" : ""} total
+            {t("driverManagement.pagination.total", { count: total })}
           </span>
         </div>
       )}
@@ -664,11 +666,11 @@ export default function DriverManagement() {
               isDark ? "bg-neutral-800 border border-neutral-700" : "bg-white border border-slate-200"
             }`}
           >
-            <h3 className={`text-base font-bold mb-4 ${textPrimary}`}>Adjust Safety Score</h3>
+            <h3 className={`text-base font-bold mb-4 ${textPrimary}`}>{t("driverManagement.scoreModal.title")}</h3>
 
             <div className="mb-4">
               <label className={`block text-xs font-semibold mb-2 ${isDark ? "text-neutral-300" : "text-slate-600"}`}>
-                Adjustment: <span className={`font-bold ${scoreAdjustment >= 0 ? "text-emerald-500" : "text-red-500"}`}>
+                {t("driverManagement.scoreModal.adjustment")} <span className={`font-bold ${scoreAdjustment >= 0 ? "text-emerald-500" : "text-red-500"}`}>
                   {scoreAdjustment > 0 ? "+" : ""}{scoreAdjustment}
                 </span>
               </label>
@@ -690,13 +692,13 @@ export default function DriverManagement() {
 
             <div className="mb-4">
               <label className={`block text-xs font-semibold mb-1 ${isDark ? "text-neutral-300" : "text-slate-600"}`}>
-                Reason *
+                {t("driverManagement.scoreModal.reason")}
               </label>
               <textarea
                 className={`w-full px-3 py-2 rounded-lg border text-sm ${
                   isDark ? "bg-neutral-700 border-neutral-600 text-white" : "bg-white border-slate-200 text-slate-900"
                 }`}
-                placeholder="Reason for adjustment (min 5 chars)..."
+                placeholder={t("driverManagement.scoreModal.placeholder")}
                 rows={3}
                 value={scoreReason}
                 onChange={(e) => setScoreReason(e.target.value)}
@@ -708,14 +710,14 @@ export default function DriverManagement() {
                 onClick={() => setScoreModalOpen(false)}
                 className={`px-4 py-2 rounded-lg text-sm font-medium ${isDark ? "text-neutral-300 hover:bg-neutral-700" : "text-slate-600 hover:bg-slate-100"}`}
               >
-                Cancel
+                {t("common.cancel")}
               </button>
               <button
                 onClick={handleAdjustScore}
                 disabled={scoreSubmitting || scoreReason.length < 5 || scoreAdjustment === 0}
                 className="px-4 py-2 rounded-lg bg-violet-600 hover:bg-violet-500 text-white text-sm font-medium disabled:opacity-50"
               >
-                Apply
+                {t("common.apply")}
               </button>
             </div>
           </motion.div>

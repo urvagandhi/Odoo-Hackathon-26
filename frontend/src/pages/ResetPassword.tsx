@@ -4,6 +4,7 @@
 import { useState } from "react";
 import { useNavigate, useSearchParams, Link } from "react-router-dom";
 import { motion } from "framer-motion";
+import { useTranslation } from "react-i18next";
 import {
   Lock,
   Eye,
@@ -23,6 +24,7 @@ export default function ResetPassword() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { isDark, toggleTheme } = useTheme();
+  const { t } = useTranslation();
   const token = searchParams.get("token") || "";
 
   const [form, setForm] = useState({ newPassword: "", confirmPassword: "" });
@@ -35,14 +37,14 @@ export default function ResetPassword() {
   const validate = (): boolean => {
     const errs: Record<string, string> = {};
     if (form.newPassword.length < 8)
-      errs.newPassword = "Password must be at least 8 characters";
+      errs.newPassword = t("auth.validation.minChars");
     else if (!/[A-Z]/.test(form.newPassword))
-      errs.newPassword = "Must contain at least one uppercase letter";
+      errs.newPassword = t("auth.validation.uppercase");
     else if (!/[0-9]/.test(form.newPassword))
-      errs.newPassword = "Must contain at least one number";
+      errs.newPassword = t("auth.validation.number");
 
     if (form.confirmPassword !== form.newPassword)
-      errs.confirmPassword = "Passwords do not match";
+      errs.confirmPassword = t("auth.validation.mismatch");
 
     setErrors(errs);
     return Object.keys(errs).length === 0;
@@ -54,7 +56,7 @@ export default function ResetPassword() {
     if (!validate()) return;
 
     if (!token) {
-      setServerError("Missing reset token. Please use the link from your email.");
+      setServerError(t("auth.resetPassword.missingToken"));
       return;
     }
 
@@ -132,7 +134,7 @@ export default function ResetPassword() {
           className="inline-flex items-center gap-1.5 text-sm text-emerald-500 hover:text-emerald-400 transition-colors mb-6"
         >
           <ArrowLeft className="w-4 h-4" />
-          Back to login
+          {t("auth.resetPassword.backToLogin")}
         </Link>
 
         {!success ? (
@@ -143,10 +145,10 @@ export default function ResetPassword() {
                   isDark ? "text-white" : "text-neutral-900"
                 }`}
               >
-                Reset your password
+                {t("auth.resetPassword.title")}
               </h2>
               <p className="text-sm text-neutral-500">
-                Enter your new password below.
+                {t("auth.resetPassword.description")}
               </p>
             </div>
 
@@ -183,7 +185,7 @@ export default function ResetPassword() {
                     isDark ? "text-neutral-400" : "text-neutral-700"
                   }`}
                 >
-                  New password
+                  {t("auth.resetPassword.newPasswordLabel")}
                 </label>
                 <div className="relative">
                   <Lock
@@ -197,7 +199,7 @@ export default function ResetPassword() {
                     onChange={(e) =>
                       setForm((p) => ({ ...p, newPassword: e.target.value }))
                     }
-                    placeholder="Min 8 chars, 1 uppercase, 1 number"
+                    placeholder={t("auth.resetPassword.newPasswordPlaceholder")}
                     className={inputClass("newPassword")}
                   />
                   <button
@@ -230,7 +232,7 @@ export default function ResetPassword() {
                     isDark ? "text-neutral-400" : "text-neutral-700"
                   }`}
                 >
-                  Confirm new password
+                  {t("auth.resetPassword.confirmPasswordLabel")}
                 </label>
                 <div className="relative">
                   <Lock
@@ -247,7 +249,7 @@ export default function ResetPassword() {
                         confirmPassword: e.target.value,
                       }))
                     }
-                    placeholder="Re-enter new password"
+                    placeholder={t("auth.resetPassword.confirmPasswordPlaceholder")}
                     className={inputClass("confirmPassword")}
                   />
                 </div>
@@ -266,7 +268,7 @@ export default function ResetPassword() {
                 {loading ? (
                   <Loader2 className="w-4 h-4 animate-spin" />
                 ) : (
-                  "Reset password"
+                  t("auth.resetPassword.submit")
                 )}
               </button>
             </form>
@@ -291,14 +293,14 @@ export default function ResetPassword() {
                 isDark ? "text-white" : "text-neutral-900"
               }`}
             >
-              Password reset!
+              {t("auth.resetPassword.successTitle")}
             </h3>
             <p
               className={`text-sm ${
                 isDark ? "text-neutral-400" : "text-neutral-600"
               }`}
             >
-              Redirecting you to login in 3 seconds…
+              {t("auth.resetPassword.successMessage")}
             </p>
           </motion.div>
         )}

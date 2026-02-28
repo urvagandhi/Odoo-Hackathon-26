@@ -5,6 +5,7 @@
  */
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import {
   Bell,
   ChevronDown,
@@ -15,24 +16,11 @@ import {
 import { useAuth } from "../../hooks/useAuth";
 import { useTheme } from "../../context/ThemeContext";
 
-const ROLE_LABELS: Record<string, string> = {
-  MANAGER: "Manager",
-  DISPATCHER: "Dispatcher",
-  SAFETY_OFFICER: "Safety Officer",
-  FINANCE_ANALYST: "Finance Analyst",
-};
-
-const PAGE_TITLES: Record<string, string> = {
-  MANAGER: "Fleet Management",
-  DISPATCHER: "Trip Dispatch",
-  SAFETY_OFFICER: "Safety Center",
-  FINANCE_ANALYST: "Financial Reports",
-};
-
 export default function TopBar() {
   const { user, logout } = useAuth();
   const { isDark } = useTheme();
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const [menuOpen, setMenuOpen] = useState(false);
 
   const role = user?.role ?? "MANAGER";
@@ -47,7 +35,7 @@ export default function TopBar() {
       {/* Left — Page title */}
       <div className="flex items-center gap-4">
         <h1 className={`text-xl font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>
-          {PAGE_TITLES[role]}
+          {t(`topBar.pageTitles.${role}`)}
         </h1>
       </div>
 
@@ -87,7 +75,7 @@ export default function TopBar() {
                 {user?.fullName ?? "User"}
               </p>
               <p className={`text-[11px] leading-tight ${isDark ? 'text-neutral-500' : 'text-slate-400'}`}>
-                {ROLE_LABELS[role] ?? role}
+                {t(`roleLabelsShort.${role}`)}
               </p>
             </div>
             <ChevronDown className={`w-3.5 h-3.5 transition-transform ${isDark ? 'text-neutral-600' : 'text-slate-300'} ${menuOpen ? "rotate-180" : ""}`} />
@@ -97,21 +85,21 @@ export default function TopBar() {
             <div className={`absolute right-0 top-full mt-2 w-48 rounded-xl border shadow-xl py-1 z-50 ${isDark ? 'bg-neutral-800 border-neutral-700' : 'bg-white border-slate-200'}`}>
               <div className={`px-3 py-2 border-b ${isDark ? 'border-neutral-700' : 'border-slate-100'}`}>
                 <p className={`text-[11px] font-semibold ${isDark ? 'text-neutral-300' : 'text-slate-700'}`}>{user?.email}</p>
-                <p className={`text-[10px] ${isDark ? 'text-neutral-500' : 'text-slate-400'}`}>{ROLE_LABELS[role] ?? role}</p>
+                <p className={`text-[10px] ${isDark ? 'text-neutral-500' : 'text-slate-400'}`}>{t(`roleLabelsShort.${role}`)}</p>
               </div>
               <button
                 onClick={() => { setMenuOpen(false); navigate("/profile"); }}
                 className={`w-full text-left flex items-center gap-2.5 px-3 py-2.5 text-[13px] transition-colors ${isDark ? 'text-neutral-400 hover:text-white hover:bg-neutral-700' : 'text-slate-600 hover:text-slate-800 hover:bg-slate-50'}`}
               >
                 <User className="w-4 h-4" />
-                My Profile
+                {t("topBar.myProfile")}
               </button>
               <button
                 onClick={handleLogout}
                 className={`w-full text-left flex items-center gap-2.5 px-3 py-2.5 text-[13px] transition-colors text-red-500 hover:text-red-600 ${isDark ? 'hover:bg-neutral-700' : 'hover:bg-red-50'}`}
               >
                 <LogOut className="w-4 h-4" />
-                Logout
+                {t("common.logout")}
               </button>
             </div>
           )}

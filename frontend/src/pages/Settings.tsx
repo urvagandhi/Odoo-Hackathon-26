@@ -1,7 +1,7 @@
 /**
  * Settings page — multi-tab settings using SettingsLayout.
  * Account wired to updateProfile API. Security wired to change-password API.
- * Appearance persists compact mode + language to localStorage.
+ * Appearance persists compact mode + language (i18next) to localStorage.
  */
 import { useState, useEffect, useCallback } from "react";
 import {
@@ -18,6 +18,7 @@ import {
   Sun,
   Loader2,
 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { SettingsLayout, type SettingsTab } from "../layouts/SettingsLayout";
 import { SectionCard } from "../components/ui/SectionCard";
 import { useAuth } from "../context/AuthContext";
@@ -82,6 +83,7 @@ const labelCls = "block text-sm font-medium text-slate-700 dark:text-neutral-300
 function AccountTab() {
   const { user } = useAuth();
   const toast = useToast();
+  const { t } = useTranslation();
   const nameParts = (user?.fullName ?? "").split(" ");
   const [form, setForm] = useState({
     firstName: nameParts[0] ?? "",
@@ -99,20 +101,20 @@ function AccountTab() {
   const handleSave = async () => {
     const fullName = `${form.firstName.trim()} ${form.lastName.trim()}`.trim();
     if (!fullName || fullName.length < 2) {
-      toast.error("Full name must be at least 2 characters.", { title: "Validation Error" });
+      toast.error(t("settings.account.fullNameMin"), { title: t("settings.account.validationError") });
       return;
     }
     if (!form.email.trim() || !/\S+@\S+\.\S+/.test(form.email)) {
-      toast.error("Please enter a valid email address.", { title: "Validation Error" });
+      toast.error(t("settings.account.invalidEmail"), { title: t("settings.account.validationError") });
       return;
     }
     setSaving(true);
     try {
       await authApi.updateProfile({ fullName, email: form.email.trim() });
-      toast.success("Profile updated successfully.", { title: "Profile Saved" });
+      toast.success(t("settings.account.profileSavedMsg"), { title: t("settings.account.profileSaved") });
     } catch (err: unknown) {
-      const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message ?? "Failed to update profile.";
-      toast.error(msg, { title: "Update Failed" });
+      const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message ?? t("settings.account.updateFailedMsg");
+      toast.error(msg, { title: t("settings.account.updateFailed") });
     } finally {
       setSaving(false);
     }
@@ -121,57 +123,57 @@ function AccountTab() {
   return (
     <div className="space-y-5">
       <SectionCard
-        title="Profile Information"
-        description="Update your personal information"
+        title={t("settings.account.profileInfo")}
+        description={t("settings.account.profileInfoDesc")}
         action={
           <button className={btnPrimaryCls} onClick={handleSave} disabled={saving}>
             {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-            {saving ? "Saving..." : "Save"}
+            {saving ? t("common.saving") : t("common.save")}
           </button>
         }
       >
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
           <div>
-            <label htmlFor="firstName" className={labelCls}>First Name</label>
+            <label htmlFor="firstName" className={labelCls}>{t("settings.account.firstName")}</label>
             <input id="firstName" className={inputCls} value={form.firstName} onChange={set("firstName")} />
           </div>
           <div>
-            <label htmlFor="lastName" className={labelCls}>Last Name</label>
+            <label htmlFor="lastName" className={labelCls}>{t("settings.account.lastName")}</label>
             <input id="lastName" className={inputCls} value={form.lastName} onChange={set("lastName")} />
           </div>
           <div className="sm:col-span-2">
-            <label htmlFor="email" className={labelCls}>Email Address</label>
+            <label htmlFor="email" className={labelCls}>{t("settings.account.email")}</label>
             <input id="email" type="email" className={inputCls} value={form.email} onChange={set("email")} />
           </div>
           <div>
-            <label htmlFor="phone" className={labelCls}>Phone</label>
+            <label htmlFor="phone" className={labelCls}>{t("settings.account.phone")}</label>
             <input id="phone" className={inputCls} value={form.phone} onChange={set("phone")} />
           </div>
           <div>
-            <label htmlFor="location" className={labelCls}>Location</label>
+            <label htmlFor="location" className={labelCls}>{t("settings.account.location")}</label>
             <input id="location" className={inputCls} value={form.location} onChange={set("location")} />
           </div>
           <div className="sm:col-span-2">
-            <label htmlFor="bio" className={labelCls}>Bio</label>
+            <label htmlFor="bio" className={labelCls}>{t("settings.account.bio")}</label>
             <textarea id="bio" rows={3} className={`${inputCls} resize-none`} value={form.bio} onChange={set("bio")} />
           </div>
         </div>
       </SectionCard>
 
       {/* Danger zone */}
-      <SectionCard title="Danger Zone" description="Irreversible actions">
+      <SectionCard title={t("settings.account.dangerZone")} description={t("settings.account.dangerZoneDesc")}>
         <div className="flex items-center justify-between p-4 rounded-lg border border-red-200 bg-red-50/50 dark:border-red-800 dark:bg-red-900/20">
           <div>
-            <p className="text-sm font-medium text-red-700 dark:text-red-400">Delete Account</p>
+            <p className="text-sm font-medium text-red-700 dark:text-red-400">{t("settings.account.deleteAccount")}</p>
             <p className="text-xs text-red-500 dark:text-red-500/80 mt-0.5">
-              Permanently delete your account and all associated data.
+              {t("settings.account.deleteAccountDesc")}
             </p>
           </div>
           <button
-            onClick={() => toast.warning("Account deletion is restricted. Contact your fleet manager.", { title: "Action Restricted" })}
+            onClick={() => toast.warning(t("settings.account.deleteRestricted"), { title: t("settings.account.actionRestricted") })}
             className="px-4 py-2 rounded-lg border border-red-300 bg-white text-sm font-medium text-red-600 hover:bg-red-50 transition-colors dark:bg-transparent dark:border-red-700 dark:text-red-400 dark:hover:bg-red-900/30"
           >
-            Delete
+            {t("common.delete")}
           </button>
         </div>
       </SectionCard>
@@ -185,6 +187,7 @@ function AccountTab() {
 
 function SecurityTab() {
   const toast = useToast();
+  const { t } = useTranslation();
   const [show, setShow] = useState({ current: false, new: false, confirm: false });
   const [passwords, setPasswords] = useState({ current: "", new: "", confirm: "" });
   const [saving, setSaving] = useState(false);
@@ -195,65 +198,65 @@ function SecurityTab() {
 
   const handleChangePassword = async () => {
     if (!passwords.current || !passwords.new) {
-      toast.error("Please fill in both password fields.", { title: "Validation Error" });
+      toast.error(t("settings.security.fillBothFields"), { title: t("settings.account.validationError") });
       return;
     }
     if (passwords.new !== passwords.confirm) {
-      toast.error("New passwords do not match.", { title: "Validation Error" });
+      toast.error(t("settings.security.passwordsMismatch"), { title: t("settings.account.validationError") });
       return;
     }
     if (passwords.new.length < 8) {
-      toast.error("New password must be at least 8 characters.", { title: "Validation Error" });
+      toast.error(t("settings.security.minChars"), { title: t("settings.account.validationError") });
       return;
     }
     if (!/[A-Z]/.test(passwords.new)) {
-      toast.error("Must contain at least one uppercase letter.", { title: "Validation Error" });
+      toast.error(t("settings.security.needUppercase"), { title: t("settings.account.validationError") });
       return;
     }
     if (!/[0-9]/.test(passwords.new)) {
-      toast.error("Must contain at least one number.", { title: "Validation Error" });
+      toast.error(t("settings.security.needNumber"), { title: t("settings.account.validationError") });
       return;
     }
     setSaving(true);
     try {
       await authApi.changePassword({ currentPassword: passwords.current, newPassword: passwords.new });
-      toast.success("Password changed successfully.", { title: "Password Updated" });
+      toast.success(t("settings.security.passwordUpdatedMsg"), { title: t("settings.security.passwordUpdated") });
       setPasswords({ current: "", new: "", confirm: "" });
     } catch (err: unknown) {
-      const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message ?? "Failed to change password.";
-      toast.error(msg, { title: "Update Failed" });
+      const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message ?? t("settings.account.updateFailedMsg");
+      toast.error(msg, { title: t("settings.account.updateFailed") });
     } finally {
       setSaving(false);
     }
   };
 
+  const PWD_FIELDS: [keyof typeof passwords, string][] = [
+    ["current", t("settings.security.currentPassword")],
+    ["new", t("settings.security.newPassword")],
+    ["confirm", t("settings.security.confirmNewPassword")],
+  ];
+
   return (
     <div className="space-y-5">
       <SectionCard
-        title="Change Password"
-        description="Update your password regularly for better security"
+        title={t("settings.security.changePassword")}
+        description={t("settings.security.changePasswordDesc")}
         action={
           <button className={btnPrimaryCls} onClick={handleChangePassword} disabled={saving}>
             {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-            {saving ? "Updating..." : "Update"}
+            {saving ? t("common.updating") : t("common.update")}
           </button>
         }
       >
         <div className="space-y-4 max-w-md">
-          {(
-            [
-              ["current", "Current Password"],
-              ["new", "New Password"],
-              ["confirm", "Confirm New Password"],
-            ] as const
-          ).map(([key, label]) => (
+          {PWD_FIELDS.map(([key, label]) => (
             <div key={key}>
               <label htmlFor={`pwd-${key}`} className={labelCls}>{label}</label>
               <div className="relative">
                 <input
                   id={`pwd-${key}`}
                   type={show[key] ? "text" : "password"}
-                  placeholder="••••••••"
+                  placeholder={t("settings.security.passwordPlaceholder")}
                   value={passwords[key]}
                   onChange={(e) => setPasswords((p) => ({ ...p, [key]: e.target.value }))}
                   className={`${inputCls} pr-10`}
@@ -262,7 +265,6 @@ function SecurityTab() {
                   type="button"
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:text-neutral-500 dark:hover:text-neutral-300 transition-colors"
                   onClick={toggle(key)}
-                  aria-label={show[key] ? "Hide password" : "Show password"}
                 >
                   {show[key] ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
@@ -273,20 +275,20 @@ function SecurityTab() {
           {passwords.new.length > 0 && (
             <div className="text-xs space-y-1 text-slate-500 dark:text-neutral-400">
               <p className={passwords.new.length >= 8 ? "text-emerald-600 dark:text-emerald-400" : ""}>
-                {passwords.new.length >= 8 ? "\u2713" : "\u2022"} At least 8 characters
+                {passwords.new.length >= 8 ? "\u2713" : "\u2022"} {t("settings.security.reqMinChars")}
               </p>
               <p className={/[A-Z]/.test(passwords.new) ? "text-emerald-600 dark:text-emerald-400" : ""}>
-                {/[A-Z]/.test(passwords.new) ? "\u2713" : "\u2022"} One uppercase letter
+                {/[A-Z]/.test(passwords.new) ? "\u2713" : "\u2022"} {t("settings.security.reqUppercase")}
               </p>
               <p className={/[0-9]/.test(passwords.new) ? "text-emerald-600 dark:text-emerald-400" : ""}>
-                {/[0-9]/.test(passwords.new) ? "\u2713" : "\u2022"} One number
+                {/[0-9]/.test(passwords.new) ? "\u2713" : "\u2022"} {t("settings.security.reqNumber")}
               </p>
             </div>
           )}
         </div>
       </SectionCard>
 
-      <SectionCard title="Two-Factor Authentication" description="Add an extra layer of security">
+      <SectionCard title={t("settings.security.twoFactorAuth")} description={t("settings.security.twoFactorAuthDesc")}>
         <div className="space-y-4">
           <div className="flex items-center justify-between p-4 rounded-lg bg-slate-50 dark:bg-neutral-700/50">
             <div className="flex items-center gap-3">
@@ -294,8 +296,8 @@ function SecurityTab() {
                 <Smartphone className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
               </div>
               <div>
-                <p className="text-sm font-medium text-slate-800 dark:text-white">Authenticator App</p>
-                <p className="text-xs text-slate-500 dark:text-neutral-400 mt-0.5">Use an authenticator app to generate codes</p>
+                <p className="text-sm font-medium text-slate-800 dark:text-white">{t("settings.security.authenticatorApp")}</p>
+                <p className="text-xs text-slate-500 dark:text-neutral-400 mt-0.5">{t("settings.security.authenticatorAppDesc")}</p>
               </div>
             </div>
             <Toggle id="toggle-2fa" checked={twoFA} onChange={setTwoFA} />
@@ -307,8 +309,8 @@ function SecurityTab() {
                 <Monitor className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
               </div>
               <div>
-                <p className="text-sm font-medium text-slate-800 dark:text-white">Active Sessions</p>
-                <p className="text-xs text-slate-500 dark:text-neutral-400 mt-0.5">Get alerts for new sign-ins</p>
+                <p className="text-sm font-medium text-slate-800 dark:text-white">{t("settings.security.activeSessions")}</p>
+                <p className="text-xs text-slate-500 dark:text-neutral-400 mt-0.5">{t("settings.security.activeSessionsDesc")}</p>
               </div>
             </div>
             <Toggle id="toggle-sessions" checked={sessions} onChange={setSessions} />
@@ -327,6 +329,7 @@ const NOTIF_STORAGE_KEY = "fleetflow_notification_prefs";
 
 function NotificationsTab() {
   const toast = useToast();
+  const { t } = useTranslation();
   const [prefs, setPrefs] = useState(() => {
     try {
       const stored = localStorage.getItem(NOTIF_STORAGE_KEY);
@@ -347,26 +350,26 @@ function NotificationsTab() {
 
   const handleSave = () => {
     localStorage.setItem(NOTIF_STORAGE_KEY, JSON.stringify(prefs));
-    toast.success("Notification preferences saved.", { title: "Preferences Saved" });
+    toast.success(t("settings.notifications.preferencesSavedMsg"), { title: t("settings.notifications.preferencesSaved") });
   };
 
-  const ITEMS: { key: keyof typeof prefs; title: string; desc: string }[] = [
-    { key: "emailNotifications", title: "Email Notifications", desc: "Receive email updates about your activity" },
-    { key: "pushNotifications", title: "Push Notifications", desc: "Get push notifications on your devices" },
-    { key: "weeklyDigest", title: "Weekly Digest", desc: "Get a summary of activity every week" },
-    { key: "marketingEmails", title: "Marketing Emails", desc: "Receive news, updates, and promotions" },
-    { key: "securityAlerts", title: "Security Alerts", desc: "Important alerts about your account security" },
-    { key: "teamUpdates", title: "Team Updates", desc: "Updates from your team members and projects" },
+  const ITEMS: { key: keyof typeof prefs; titleKey: string; descKey: string }[] = [
+    { key: "emailNotifications", titleKey: "settings.notifications.emailNotifications", descKey: "settings.notifications.emailNotificationsDesc" },
+    { key: "pushNotifications", titleKey: "settings.notifications.pushNotifications", descKey: "settings.notifications.pushNotificationsDesc" },
+    { key: "weeklyDigest", titleKey: "settings.notifications.weeklyDigest", descKey: "settings.notifications.weeklyDigestDesc" },
+    { key: "marketingEmails", titleKey: "settings.notifications.marketingEmails", descKey: "settings.notifications.marketingEmailsDesc" },
+    { key: "securityAlerts", titleKey: "settings.notifications.securityAlerts", descKey: "settings.notifications.securityAlertsDesc" },
+    { key: "teamUpdates", titleKey: "settings.notifications.teamUpdates", descKey: "settings.notifications.teamUpdatesDesc" },
   ];
 
   return (
     <SectionCard
-      title="Notification Preferences"
-      description="Choose what notifications you want to receive"
+      title={t("settings.notifications.title")}
+      description={t("settings.notifications.titleDesc")}
       action={
         <button className={btnPrimaryCls} onClick={handleSave}>
           <Save className="w-4 h-4" />
-          Save
+          {t("common.save")}
         </button>
       }
     >
@@ -374,8 +377,8 @@ function NotificationsTab() {
         {ITEMS.map((item) => (
           <div key={String(item.key)} className="flex items-center justify-between py-4 first:pt-0 last:pb-0">
             <div>
-              <p className="text-sm font-medium text-slate-800 dark:text-white">{item.title}</p>
-              <p className="text-xs text-slate-500 dark:text-neutral-400 mt-0.5">{item.desc}</p>
+              <p className="text-sm font-medium text-slate-800 dark:text-white">{t(item.titleKey)}</p>
+              <p className="text-xs text-slate-500 dark:text-neutral-400 mt-0.5">{t(item.descKey)}</p>
             </div>
             <Toggle id={`toggle-${String(item.key)}`} checked={prefs[item.key]} onChange={toggle(item.key)} />
           </div>
@@ -386,11 +389,12 @@ function NotificationsTab() {
 }
 
 /* ────────────────────────────────────────────────────────
-   Appearance Tab — theme, compact mode, language (all persisted)
+   Appearance Tab — theme, compact mode, language (i18next)
    ──────────────────────────────────────────────────────── */
 
 function AppearanceTab() {
   const toast = useToast();
+  const { t, i18n } = useTranslation();
   const { theme: currentTheme, setTheme: applyTheme } = useTheme();
   const [selection, setSelection] = useState<"light" | "dark" | "system">(() => {
     const stored = localStorage.getItem("fleetflow_theme_mode");
@@ -398,7 +402,6 @@ function AppearanceTab() {
     const osPref = window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
     return currentTheme === osPref ? "system" : currentTheme;
   });
-  const [language, setLanguage] = useState(() => localStorage.getItem("fleetflow_language") ?? "en");
   const [compactMode, setCompactMode] = useState(() => localStorage.getItem("fleetflow_compact") === "true");
 
   const handleThemeChange = (id: "light" | "dark" | "system") => {
@@ -410,6 +413,10 @@ function AppearanceTab() {
     } else {
       applyTheme(id);
     }
+  };
+
+  const handleLanguageChange = (lang: string) => {
+    i18n.changeLanguage(lang);
   };
 
   // Apply compact mode to document
@@ -428,28 +435,27 @@ function AppearanceTab() {
   };
 
   const handleSave = () => {
-    localStorage.setItem("fleetflow_language", language);
     localStorage.setItem("fleetflow_compact", String(compactMode));
     localStorage.setItem("fleetflow_theme_mode", selection);
-    toast.success("Appearance preferences saved.", { title: "Preferences Saved" });
+    toast.success(t("settings.appearance.preferencesSavedMsg"), { title: t("settings.appearance.preferencesSaved") });
   };
 
-  const themes: { id: "light" | "dark" | "system"; label: string; icon: React.FC<{ className?: string }>; desc: string }[] = [
-    { id: "light", label: "Light", icon: Sun, desc: "Default light theme" },
-    { id: "dark", label: "Dark", icon: Moon, desc: "Easy on the eyes" },
-    { id: "system", label: "System", icon: Monitor, desc: "Follow OS preference" },
+  const themes: { id: "light" | "dark" | "system"; labelKey: string; icon: React.FC<{ className?: string }>; descKey: string }[] = [
+    { id: "light", labelKey: "settings.appearance.light", icon: Sun, descKey: "settings.appearance.lightDesc" },
+    { id: "dark", labelKey: "settings.appearance.dark", icon: Moon, descKey: "settings.appearance.darkDesc" },
+    { id: "system", labelKey: "settings.appearance.system", icon: Monitor, descKey: "settings.appearance.systemDesc" },
   ];
 
   return (
     <div className="space-y-5">
-      <SectionCard title="Theme" description="Select your preferred theme">
+      <SectionCard title={t("settings.appearance.theme")} description={t("settings.appearance.themeDesc")}>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-          {themes.map((t) => {
-            const active = selection === t.id;
+          {themes.map((tm) => {
+            const active = selection === tm.id;
             return (
               <button
-                key={t.id}
-                onClick={() => handleThemeChange(t.id)}
+                key={tm.id}
+                onClick={() => handleThemeChange(tm.id)}
                 className={`
                   flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all duration-200
                   ${active
@@ -458,15 +464,15 @@ function AppearanceTab() {
                 `}
               >
                 <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${active ? "bg-indigo-100 dark:bg-indigo-900/50" : "bg-slate-100 dark:bg-neutral-600"}`}>
-                  <t.icon className={`w-5 h-5 ${active ? "text-indigo-600 dark:text-indigo-400" : "text-slate-400 dark:text-neutral-400"}`} />
+                  <tm.icon className={`w-5 h-5 ${active ? "text-indigo-600 dark:text-indigo-400" : "text-slate-400 dark:text-neutral-400"}`} />
                 </div>
                 <div className="text-center">
                   <p className={`text-sm font-semibold ${active ? "text-indigo-700 dark:text-indigo-300" : "text-slate-800 dark:text-white"}`}>
-                    {t.label}
+                    {t(tm.labelKey)}
                   </p>
-                  <p className="text-xs text-slate-500 dark:text-neutral-400 mt-0.5">{t.desc}</p>
+                  <p className="text-xs text-slate-500 dark:text-neutral-400 mt-0.5">{t(tm.descKey)}</p>
                 </div>
-                {active && <span className="text-xs font-medium text-indigo-600 dark:text-indigo-400">Active</span>}
+                {active && <span className="text-xs font-medium text-indigo-600 dark:text-indigo-400">{t("settings.appearance.active")}</span>}
               </button>
             );
           })}
@@ -474,22 +480,22 @@ function AppearanceTab() {
       </SectionCard>
 
       <SectionCard
-        title="Language & Display"
-        description="Locale and display preferences"
+        title={t("settings.appearance.languageDisplay")}
+        description={t("settings.appearance.languageDisplayDesc")}
         action={
           <button className={btnPrimaryCls} onClick={handleSave}>
             <Save className="w-4 h-4" />
-            Save
+            {t("common.save")}
           </button>
         }
       >
         <div className="space-y-5 max-w-md">
           <div>
-            <label htmlFor="language" className={labelCls}>Language</label>
+            <label htmlFor="language" className={labelCls}>{t("settings.appearance.language")}</label>
             <select
               id="language"
-              value={language}
-              onChange={(e) => setLanguage(e.target.value)}
+              value={i18n.language}
+              onChange={(e) => handleLanguageChange(e.target.value)}
               className={inputCls}
             >
               <option value="en">English</option>
@@ -504,9 +510,9 @@ function AppearanceTab() {
 
           <div className="flex items-center justify-between p-4 rounded-lg bg-slate-50 dark:bg-neutral-700/50">
             <div>
-              <p className="text-sm font-medium text-slate-800 dark:text-white">Compact Mode</p>
+              <p className="text-sm font-medium text-slate-800 dark:text-white">{t("settings.appearance.compactMode")}</p>
               <p className="text-xs text-slate-500 dark:text-neutral-400 mt-0.5">
-                Reduce spacing and padding for denser layouts
+                {t("settings.appearance.compactModeDesc")}
               </p>
             </div>
             <Toggle id="toggle-compact" checked={compactMode} onChange={handleCompactChange} />
@@ -522,17 +528,20 @@ function AppearanceTab() {
    ──────────────────────────────────────────────────────── */
 
 export default function Settings() {
+  const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState("account");
 
   const tabs: SettingsTab[] = [
-    { id: "account", label: "Account", icon: User, content: <AccountTab /> },
-    { id: "security", label: "Security", icon: Shield, content: <SecurityTab /> },
-    { id: "notifications", label: "Notifications", icon: Bell, content: <NotificationsTab /> },
-    { id: "appearance", label: "Appearance", icon: Palette, content: <AppearanceTab /> },
+    { id: "account", label: t("settings.tabs.account"), icon: User, content: <AccountTab /> },
+    { id: "security", label: t("settings.tabs.security"), icon: Shield, content: <SecurityTab /> },
+    { id: "notifications", label: t("settings.tabs.notifications"), icon: Bell, content: <NotificationsTab /> },
+    { id: "appearance", label: t("settings.tabs.appearance"), icon: Palette, content: <AppearanceTab /> },
   ];
 
   return (
     <SettingsLayout
+      title={t("settings.title")}
+      subtitle={t("settings.subtitle")}
       tabs={tabs}
       activeTab={activeTab}
       onTabChange={setActiveTab}

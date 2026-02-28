@@ -1,0 +1,1303 @@
+{
+  "common": {
+    "appName": "FleetFlow",
+    "save": "保存",
+    "cancel": "キャンセル",
+    "delete": "削除",
+    "create": "作成",
+    "update": "更新",
+    "edit": "編集",
+    "add": "追加",
+    "close": "閉じる",
+    "search": "検索",
+    "loading": "読み込み中…",
+    "saving": "保存中...",
+    "updating": "更新中...",
+    "back": "戻る",
+    "next": "次へ",
+    "yes": "はい",
+    "no": "いいえ",
+    "all": "すべて",
+    "export": "エクスポート",
+    "refresh": "更新",
+    "logout": "ログアウト",
+    "actions": "操作",
+    "noData": "データがありません",
+    "page": "ページ",
+    "of": "/",
+    "records": "件",
+    "total": "合計"
+  },
+  "roles": {
+    "MANAGER": "フリートマネージャー",
+    "DISPATCHER": "配車担当者",
+    "SAFETY_OFFICER": "安全管理者",
+    "FINANCE_ANALYST": "財務アナリスト",
+    "DRIVER": "ドライバー"
+  },
+  "roleLabelsShort": {
+    "MANAGER": "マネージャー",
+    "DISPATCHER": "配車担当",
+    "SAFETY_OFFICER": "安全管理者",
+    "FINANCE_ANALYST": "財務アナリスト",
+    "DRIVER": "ドライバー"
+  },
+  "nav": {
+    "sections": {
+      "mainMenu": "メインメニュー",
+      "general": "一般",
+      "others": "その他",
+      "fleet": "フリート",
+      "safety": "安全",
+      "maintenance": "メンテナンス",
+      "finance": "財務",
+      "reports": "レポート"
+    },
+    "items": {
+      "fleetHub": "フリートハブ",
+      "vehicleRegistry": "車両登録",
+      "dispatchControl": "配車管理",
+      "communications": "コミュニケーション",
+      "operationalFeed": "運行フィード",
+      "financialReports": "財務レポート",
+      "helpCenter": "ヘルプセンター",
+      "myIdentity": "マイプロフィール",
+      "settings": "設定",
+      "tripLedger": "運行台帳",
+      "initiateTrip": "運行開始",
+      "fleetCatalog": "フリートカタログ",
+      "crewRecords": "乗務員記録",
+      "alertCenter": "アラートセンター",
+      "safetyLog": "安全記録",
+      "crewScores": "乗務員スコア",
+      "serviceLogs": "整備記録",
+      "incidentIntel": "事故情報",
+      "revenueStream": "収益管理",
+      "fuelIntel": "燃料分析",
+      "profitLoss": "損益計算",
+      "costIntel": "コスト分析",
+      "operationsIntel": "運行分析",
+      "crewGateway": "乗務員ゲートウェイ"
+    }
+  },
+  "topBar": {
+    "pageTitles": {
+      "MANAGER": "フリート管理",
+      "DISPATCHER": "配車管理",
+      "SAFETY_OFFICER": "安全センター",
+      "FINANCE_ANALYST": "財務レポート"
+    },
+    "myProfile": "マイプロフィール"
+  },
+  "auth": {
+    "login": {
+      "pageTitle": "FleetFlow | サインイン",
+      "heroTitle": "フリート管理を",
+      "heroSubtitle": "よりスマートに",
+      "heroDescription": "リアルタイム追跡、配車最適化、包括的なフリート分析 — すべてを一つのプラットフォームで。",
+      "featureAnalytics": "アナリティクス",
+      "featureSecure": "セキュア",
+      "featureRealtime": "リアルタイム",
+      "statVehicles": "車両数",
+      "statCountries": "対応国数",
+      "statUptime": "稼働率",
+      "welcomeBack": "おかえりなさい",
+      "signInSubtitle": "FleetFlow アカウントにサインイン",
+      "emailLabel": "メールアドレス",
+      "emailPlaceholder": "your@email.com",
+      "passwordLabel": "パスワード",
+      "passwordPlaceholder": "パスワードを入力",
+      "forgotPassword": "パスワードをお忘れですか？",
+      "signIn": "サインイン",
+      "quickAccess": "クイックアクセス（テスト用）",
+      "quickLoginFailed": "クイックログインに失敗しました。",
+      "noAccount": "アカウントをお持ちでない場合は、管理者にお問い合わせください。",
+      "switchToLight": "ライトモードに切り替え",
+      "switchToDark": "ダークモードに切り替え"
+    },
+    "forgotPassword": {
+      "title": "パスワードをお忘れですか？",
+      "description": "メールアドレスを入力してください。パスワードリセットリンクをお送りします。",
+      "emailLabel": "メールアドレス",
+      "emailPlaceholder": "your@email.com",
+      "submit": "リセットリンクを送信",
+      "successMessage": "該当するアカウントが存在する場合、パスワードリセットリンクが送信されました。",
+      "devModeLabel": "開発モード — リセットリンク：",
+      "backToLogin": "ログインに戻る"
+    },
+    "resetPassword": {
+      "title": "パスワードをリセット",
+      "description": "新しいパスワードを入力してください。",
+      "newPasswordLabel": "新しいパスワード",
+      "newPasswordPlaceholder": "8文字以上、大文字1つ、数字1つ",
+      "confirmPasswordLabel": "新しいパスワードの確認",
+      "confirmPasswordPlaceholder": "新しいパスワードを再入力",
+      "submit": "パスワードをリセット",
+      "missingToken": "リセットトークンがありません。メールのリンクをご使用ください。",
+      "successTitle": "パスワードがリセットされました！",
+      "successMessage": "3秒後にログイン画面にリダイレクトします…",
+      "backToLogin": "ログインに戻る"
+    },
+    "validation": {
+      "minChars": "パスワードは8文字以上である必要があります",
+      "uppercase": "大文字を1つ以上含める必要があります",
+      "number": "数字を1つ以上含める必要があります",
+      "mismatch": "パスワードが一致しません"
+    }
+  },
+  "settings": {
+    "title": "設定",
+    "subtitle": "設定とアカウントの管理",
+    "tabs": {
+      "account": "アカウント",
+      "security": "セキュリティ",
+      "notifications": "通知",
+      "appearance": "外観"
+    },
+    "account": {
+      "profileInfo": "プロフィール情報",
+      "profileInfoDesc": "個人情報を更新",
+      "firstName": "名",
+      "lastName": "姓",
+      "email": "メールアドレス",
+      "phone": "電話番号",
+      "location": "所在地",
+      "bio": "自己紹介",
+      "dangerZone": "危険な操作",
+      "dangerZoneDesc": "取り消しできない操作",
+      "deleteAccount": "アカウント削除",
+      "deleteAccountDesc": "アカウントと関連するすべてのデータを完全に削除します。",
+      "deleteRestricted": "アカウント削除は制限されています。フリートマネージャーにお問い合わせください。",
+      "actionRestricted": "操作が制限されています",
+      "profileSaved": "プロフィール保存完了",
+      "profileSavedMsg": "プロフィールが正常に更新されました。",
+      "updateFailed": "更新失敗",
+      "updateFailedMsg": "プロフィールの更新に失敗しました。",
+      "validationError": "入力エラー",
+      "fullNameMin": "氏名は2文字以上で入力してください。",
+      "invalidEmail": "有効なメールアドレスを入力してください。"
+    },
+    "security": {
+      "changePassword": "パスワード変更",
+      "changePasswordDesc": "セキュリティ向上のため、定期的にパスワードを変更してください",
+      "currentPassword": "現在のパスワード",
+      "newPassword": "新しいパスワード",
+      "confirmNewPassword": "新しいパスワードの確認",
+      "passwordPlaceholder": "••••••••",
+      "passwordUpdated": "パスワード更新完了",
+      "passwordUpdatedMsg": "パスワードが正常に変更されました。",
+      "fillBothFields": "両方のパスワード欄を入力してください。",
+      "passwordsMismatch": "新しいパスワードが一致しません。",
+      "minChars": "新しいパスワードは8文字以上である必要があります。",
+      "needUppercase": "大文字を1つ以上含める必要があります。",
+      "needNumber": "数字を1つ以上含める必要があります。",
+      "reqMinChars": "8文字以上",
+      "reqUppercase": "大文字1つ以上",
+      "reqNumber": "数字1つ以上",
+      "twoFactorAuth": "二要素認証",
+      "twoFactorAuthDesc": "セキュリティの追加レイヤーを設定",
+      "authenticatorApp": "認証アプリ",
+      "authenticatorAppDesc": "認証アプリを使用してコードを生成",
+      "activeSessions": "アクティブセッション",
+      "activeSessionsDesc": "新しいサインインの通知を受け取る"
+    },
+    "notifications": {
+      "title": "通知設定",
+      "titleDesc": "受け取る通知を選択",
+      "emailNotifications": "メール通知",
+      "emailNotificationsDesc": "アクティビティに関するメール更新を受け取る",
+      "pushNotifications": "プッシュ通知",
+      "pushNotificationsDesc": "デバイスでプッシュ通知を受け取る",
+      "weeklyDigest": "週次ダイジェスト",
+      "weeklyDigestDesc": "毎週のアクティビティサマリーを受け取る",
+      "marketingEmails": "マーケティングメール",
+      "marketingEmailsDesc": "ニュース、更新情報、プロモーションを受け取る",
+      "securityAlerts": "セキュリティアラート",
+      "securityAlertsDesc": "アカウントセキュリティに関する重要な通知",
+      "teamUpdates": "チーム更新",
+      "teamUpdatesDesc": "チームメンバーとプロジェクトの更新情報",
+      "preferencesSaved": "設定保存完了",
+      "preferencesSavedMsg": "通知設定が保存されました。"
+    },
+    "appearance": {
+      "theme": "テーマ",
+      "themeDesc": "お好みのテーマを選択",
+      "light": "ライト",
+      "lightDesc": "デフォルトのライトテーマ",
+      "dark": "ダーク",
+      "darkDesc": "目に優しいテーマ",
+      "system": "システム",
+      "systemDesc": "OSの設定に従う",
+      "active": "有効",
+      "languageDisplay": "言語と表示",
+      "languageDisplayDesc": "ロケールと表示設定",
+      "language": "言語",
+      "compactMode": "コンパクトモード",
+      "compactModeDesc": "余白とパディングを減らして表示密度を高める",
+      "preferencesSaved": "設定保存完了",
+      "preferencesSavedMsg": "外観設定が保存されました。"
+    }
+  },
+  "profile": {
+    "accountDetails": "アカウント詳細",
+    "fullName": "氏名",
+    "email": "メールアドレス",
+    "role": "役割",
+    "userId": "ユーザーID",
+    "yourCapabilities": "あなたの権限",
+    "online": "オンライン",
+    "kpi": {
+      "totalVehicles": "総車両数",
+      "activeTrips": "進行中の運行",
+      "fleetUtilization": "フリート稼働率",
+      "alerts": "アラート"
+    },
+    "capabilities": {
+      "MANAGER": [
+        "フリート全体の監視と車両管理",
+        "ユーザー管理（作成・無効化）",
+        "すべての分析・財務レポートの閲覧",
+        "配車およびメンテナンスの承認",
+        "すべてのモジュールへの無制限アクセス"
+      ],
+      "DISPATCHER": [
+        "運行と配車の作成・管理",
+        "車両の空き状況とドライバープールの確認",
+        "運行ステータスの遷移（下書き → 配車済み → 完了）",
+        "ウェイポイントの追加とルートの追跡"
+      ],
+      "SAFETY_OFFICER": [
+        "ドライバーの資格と免許の管理",
+        "車両点検とメンテナンス記録",
+        "事故報告の作成と調査",
+        "安全スコアの調整",
+        "ドライバーステータスの管理（停止/再開）"
+      ],
+      "FINANCE_ANALYST": [
+        "燃料記録の入力と経費追跡",
+        "収益・経費・利益レポートの閲覧",
+        "月次財務レポートの作成",
+        "車両ROIと燃費分析",
+        "運行データのCSVエクスポート"
+      ]
+    }
+  },
+  "fleet": {
+    "title": "車両登録",
+    "vehiclesInFleet": "フリート内車両数: {{count}}台",
+    "addVehicle": "車両を追加",
+    "searchPlaceholder": "ナンバー、メーカー、車種を検索…",
+    "status": {
+      "AVAILABLE": "利用可能",
+      "ON_TRIP": "運行中",
+      "IN_SHOP": "整備中",
+      "RETIRED": "廃車済み"
+    },
+    "columns": {
+      "vehicle": "車両",
+      "type": "タイプ",
+      "licensePlate": "ナンバープレート",
+      "capacity": "積載量",
+      "odometer": "走行距離",
+      "status": "ステータス",
+      "actions": "操作"
+    },
+    "noVehicles": "車両が見つかりません",
+    "editVehicle": "車両を編集",
+    "addNewVehicle": "新規車両を追加",
+    "form": {
+      "make": "メーカー",
+      "model": "車種",
+      "year": "年式",
+      "color": "色",
+      "licensePlate": "ナンバープレート",
+      "vin": "車台番号",
+      "vehicleType": "車両タイプ",
+      "capacity": "積載量 (kg)",
+      "odometer": "現在の走行距離 (km)",
+      "selectType": "タイプを選択",
+      "makePlaceholder": "トヨタ",
+      "modelPlaceholder": "ランドクルーザー",
+      "colorPlaceholder": "ホワイト",
+      "platePlaceholder": "品川300あ1234",
+      "vinPlaceholder": "任意"
+    },
+    "createVehicle": "車両を登録",
+    "updateVehicle": "車両を更新",
+    "retireVehicle": "車両を廃車にしますか？",
+    "retireVehicleDesc": "{{plate}} を廃車として登録します。配車に利用できなくなります。",
+    "toast": {
+      "updated": "車両情報が正常に更新されました。",
+      "updatedTitle": "成功",
+      "created": "新しい車両がフリートに追加されました。",
+      "createdTitle": "車両登録完了",
+      "retired": "車両がアクティブフリートから廃車されました。",
+      "retireFailed": "車両を廃車にできませんでした。",
+      "statusUpdated": "ステータスが更新されました",
+      "statusFailed": "車両ステータスの更新に失敗しました。"
+    }
+  },
+  "dispatch": {
+    "title": "配車管理",
+    "tripsTotal": "全{{count}}件の運行",
+    "newTrip": "新規運行",
+    "searchPlaceholder": "運行を検索…",
+    "status": {
+      "DRAFT": "下書き",
+      "DISPATCHED": "配車済み",
+      "COMPLETED": "完了",
+      "CANCELLED": "キャンセル済み"
+    },
+    "noTrips": "運行が見つかりません",
+    "detail": {
+      "vehicle": "車両",
+      "driver": "ドライバー",
+      "cargo": "貨物",
+      "distance": "距離（推定）",
+      "revenue": "売上",
+      "dispatched": "配車済み",
+      "client": "顧客"
+    },
+    "actions": {
+      "dispatch": "配車",
+      "complete": "完了",
+      "cancel": "キャンセル"
+    },
+    "dispatchTrip": "配車しますか？",
+    "dispatchTripDesc": "ドライバーに通知され、車両は運行中としてマークされます。",
+    "createTrip": "新規運行を作成",
+    "form": {
+      "vehicle": "車両",
+      "driver": "ドライバー",
+      "origin": "出発地",
+      "destination": "目的地",
+      "distance": "距離 (km)",
+      "cargoWeight": "貨物重量 (kg)",
+      "revenue": "売上 (₹)",
+      "cargoDescription": "貨物の説明",
+      "clientName": "顧客名",
+      "selectVehicle": "利用可能な車両を選択",
+      "selectDriver": "勤務中のドライバーを選択",
+      "originPlaceholder": "東京都港区",
+      "destinationPlaceholder": "大阪府大阪市"
+    },
+    "map": {
+      "calculatingRoute": "最短ルートを計算中…",
+      "selectTrip": "運行を選択",
+      "selectTripDesc": "運行をクリックすると地図上にルートが表示されます"
+    },
+    "toast": {
+      "created": "新しい運行が下書きに追加されました。",
+      "transitioned": "運行が{{status}}ステータスに変更されました。",
+      "transitionFailed": "運行ステータスの変更に失敗しました。"
+    }
+  },
+  "drivers": {
+    "title": "乗務員記録",
+    "stats": "{{total}}名のドライバー · {{onDuty}}名勤務中 · {{onTrip}}名運行中",
+    "exportCSV": "CSVエクスポート",
+    "addDriver": "ドライバーを追加",
+    "kpi": {
+      "totalDrivers": "ドライバー総数",
+      "onDuty": "勤務中",
+      "onTrip": "運行中",
+      "suspended": "停止中",
+      "avgSafetyScore": "平均安全スコア"
+    },
+    "expiringLicenses": "{{count}}件の免許が30日以内に期限切れ",
+    "searchPlaceholder": "氏名、免許番号、メールで検索…",
+    "status": {
+      "ON_DUTY": "勤務中",
+      "OFF_DUTY": "非番",
+      "ON_TRIP": "運行中",
+      "SUSPENDED": "停止中"
+    },
+    "columns": {
+      "driver": "ドライバー",
+      "license": "免許",
+      "safety": "安全スコア",
+      "licenseExpiry": "免許有効期限",
+      "status": "ステータス",
+      "actions": "操作"
+    },
+    "noDrivers": "ドライバーが見つかりません",
+    "selectDriver": "ドライバーを選択",
+    "selectDriverDesc": "行をクリックして詳細を表示",
+    "detail": {
+      "license": "免許証",
+      "class": "区分",
+      "phone": "電話",
+      "email": "メール",
+      "dob": "生年月日",
+      "licenseExpiry": "免許有効期限",
+      "safetyScore": "安全スコア"
+    },
+    "form": {
+      "fullName": "氏名",
+      "licenseNumber": "免許番号",
+      "phone": "電話番号",
+      "email": "メールアドレス",
+      "dateOfBirth": "生年月日",
+      "licenseExpiry": "免許有効期限",
+      "licenseClass": "免許区分",
+      "safetyScore": "安全スコア",
+      "fullNamePlaceholder": "山田太郎",
+      "licensePlaceholder": "MH-CDL-A-001234",
+      "phonePlaceholder": "+81-90-1234-5678",
+      "emailPlaceholder": "driver@email.com",
+      "licenseClassPlaceholder": "CDL-A, CDL-B, B"
+    },
+    "updateDriver": "ドライバーを更新",
+    "removeDriver": "ドライバーを削除しますか？",
+    "removeDriverDesc": "{{name}} を登録から完全に削除します。",
+    "map": {
+      "title": "フリート車両位置情報",
+      "speed": "速度: {{speed}} km/h"
+    },
+    "toast": {
+      "deleted": "ドライバープロフィールが削除されました。",
+      "deleteFailed": "ドライバーを削除できませんでした。",
+      "statusUpdated": "{{name}} のステータスが {{status}} に変更されました。",
+      "statusFailed": "ステータスの更新に失敗しました",
+      "deletedTitle": "ドライバー削除済み",
+      "deleteFailedTitle": "エラー",
+      "statusUpdatedTitle": "ステータス更新",
+      "statusUpdateFailed": "ドライバーのステータスを更新できませんでした。",
+      "statusUpdateFailedTitle": "更新失敗",
+      "saveFailed": "ドライバーを保存できませんでした。",
+      "exported": "ドライバーをCSVにエクスポートしました。",
+      "exportedTitle": "エクスポート完了",
+      "exportFailed": "ドライバーをエクスポートできませんでした。",
+      "exportFailedTitle": "エクスポート失敗"
+    }
+  },
+  "analytics": {
+    "title": "運行分析",
+    "subtitle": "財務実績と運行インサイト — {{year}}",
+    "exportPDF": "PDFエクスポート",
+    "exportCSV": "CSVエクスポート",
+    "tabs": {
+      "overview": "概要",
+      "fuelEfficiency": "燃費",
+      "vehicleROI": "車両ROI"
+    },
+    "kpi": {
+      "totalRevenue": "総収益",
+      "totalExpenses": "総経費",
+      "netProfit": "純利益",
+      "avgFuelEfficiency": "平均燃費"
+    },
+    "charts": {
+      "revenueCostTrend": "収益とコストの推移",
+      "revenue": "収益",
+      "cost": "コスト",
+      "profit": "利益",
+      "expenseBreakdown": "経費内訳"
+    },
+    "monthly": {
+      "title": "フリートパフォーマンス",
+      "month": "月",
+      "trips": "運行数",
+      "distance": "距離 (km)",
+      "revenue": "収益",
+      "fuel": "燃料",
+      "maintenance": "メンテナンス",
+      "other": "その他",
+      "totalCost": "総コスト",
+      "profit": "利益"
+    },
+    "fuelTable": {
+      "title": "車両別燃費 (km/L)",
+      "vehicle": "車両",
+      "totalDistance": "総走行距離",
+      "totalLiters": "総給油量",
+      "fuelCost": "燃料費",
+      "kmPerL": "km/L",
+      "costPerKm": "₹/km"
+    },
+    "roiTable": {
+      "title": "車両ROI — 車両別利益",
+      "formula": "ROI = (収益 − (メンテナンス + 燃料 + 経費)) / 収益",
+      "vehicle": "車両",
+      "revenue": "収益",
+      "fuelCost": "燃料費",
+      "maintenance": "メンテナンス",
+      "expenses": "経費",
+      "totalCost": "総コスト",
+      "profit": "利益",
+      "roi": "ROI"
+    },
+    "noData": {
+      "monthly": "月次データがありません",
+      "expenses": "経費データがありません",
+      "fuel": "燃費データがありません",
+      "roi": "ROIデータがありません"
+    },
+    "toast": {
+      "exportingPDF": "PDFを生成中",
+      "pdfSuccess": "分析レポートがダウンロードされました。",
+      "pdfSuccessTitle": "エクスポート成功",
+      "exportFailed": "エクスポート失敗",
+      "csvFailed": "CSVエクスポートを生成できませんでした。",
+      "exportingPDFMessage": "チャートとデータをキャプチャしています...",
+      "pdfErrorTitle": "PDF生成エラー",
+      "pdfExportFailed": "エクスポート失敗: {{message}}",
+      "chartWarningTitle": "チャートキャプチャ警告",
+      "chartWarningMessage": "収益チャートをPDFに含めることができませんでしたが、データで続行します...",
+      "csvSuccess": "旅程とサマリーデータをCSVにエクスポートしました。"
+    }
+  },
+  "expenses": {
+    "title": "財務と経費",
+    "subtitle": "燃料消費と運行経費を追跡",
+    "addRecord": "記録を追加",
+    "summary": {
+      "fuelLogs": "燃料記録",
+      "expenses": "経費",
+      "combined": "合計",
+      "total": "合計 {{amount}}"
+    },
+    "tabs": {
+      "fuel": "燃料記録 ({{count}})",
+      "expenses": "経費 ({{count}})"
+    },
+    "pagination": "ページ {{page}} / {{totalPages}} · {{count}}件",
+    "fuelColumns": {
+      "vehicle": "車両",
+      "trip": "運行",
+      "liters": "リットル",
+      "costPerLiter": "₹/L",
+      "total": "合計",
+      "odometer": "走行距離",
+      "date": "日付"
+    },
+    "expenseColumns": {
+      "vehicle": "車両",
+      "trip": "運行",
+      "category": "カテゴリ",
+      "amount": "金額",
+      "description": "説明",
+      "date": "日付"
+    },
+    "empty": {
+      "fuel": "燃料記録がありません",
+      "fuelDesc": "最初の給油を記録して始めましょう。",
+      "expenses": "経費がありません",
+      "expensesDesc": "最初の運行経費を記録しましょう。"
+    }
+  },
+  "maintenance": {
+    "title": "メンテナンス記録",
+    "subtitle": "車両ごとの整備履歴",
+    "logService": "整備を記録",
+    "selectVehicle": "車両を選択",
+    "allVehicles": "— すべての車両 / 選択してください —",
+    "serviceCount": "{{count}}件の整備記録 · 総費用: ₹{{total}}",
+    "selectVehiclePrompt": "整備履歴を表示する車両を選択してください",
+    "noRecords": "メンテナンス記録がありません",
+    "columns": {
+      "date": "日付",
+      "serviceType": "整備種別",
+      "description": "説明",
+      "cost": "費用",
+      "odometer": "走行距離",
+      "shop": "整備工場 / 技術者",
+      "nextDue": "次回予定"
+    },
+    "form": {
+      "title": "メンテナンスイベントを記録",
+      "vehicle": "車両",
+      "serviceType": "整備種別",
+      "cost": "費用 (₹)",
+      "description": "説明",
+      "odometer": "走行距離 (km)",
+      "serviceDate": "整備日",
+      "shopName": "整備工場名",
+      "technician": "技術者",
+      "nextServiceDue": "次回整備予定日",
+      "serviceTypePlaceholder": "オイル交換、タイヤローテーション…",
+      "descriptionPlaceholder": "実施した整備内容の詳細",
+      "shopPlaceholder": "オートケアサービス",
+      "technicianPlaceholder": "田中一郎"
+    }
+  },
+  "landing": {
+    "features": "機能",
+    "howItWorks": "仕組み",
+    "signIn": "サインイン",
+    "heroTag": "次世代ロジスティクスプラットフォーム",
+    "heroTitle": "よりスマートなフリート管理。最大限の効率化。",
+    "heroDescription": "AI駆動のルーティング、予測メンテナンス、リアルタイム分析で物流オペレーションを変革。現代のフリートのために構築。",
+    "getStarted": "今すぐ始める",
+    "exploreFeatures": "機能を探る",
+    "featuresList": {
+      "dispatch": "リアルタイム配車",
+      "dispatchDesc": "AIによるルーティングとリアルタイム追跡で最適なフリート効率を実現。",
+      "maintenance": "予測メンテナンス",
+      "maintenanceDesc": "インテリジェントなメンテナンススケジューリングとアラートでダウンタイムを削減。",
+      "analytics": "高度な分析",
+      "analyticsDesc": "燃料消費、ドライバーパフォーマンス、コストに関する包括的なインサイト。",
+      "safety": "安全とコンプライアンス",
+      "safetyDesc": "ドライバーの行動を監視し、継続的な法規制遵守を確保。",
+      "drivers": "ドライバー管理",
+      "driversDesc": "完全なドライバープロフィール、シフト追跡、パフォーマンス評価。",
+      "odoo": "Odoo連携",
+      "odooDesc": "Odoo ERPとのシームレスな同期で統一されたロジスティクス運用を実現。"
+    },
+    "everythingYouNeed": "フリート運用に必要なすべて",
+    "everythingYouNeedDesc": "配車担当者、マネージャー、安全管理者がリアルタイムでシームレスに連携するための統合ツール。",
+    "designedForScale": "スケーラブルな設計。高性能な構築。",
+    "benefits": {
+      "zeroDowntime": "ゼロダウンタイムデプロイ",
+      "zeroDowntimeDesc": "即座にスケーリング可能なSaaSアーキテクチャ。",
+      "security": "エンタープライズグレードのセキュリティ",
+      "securityDesc": "安全なデータパイプラインとSOC2準拠。",
+      "realtime": "リアルタイム追跡",
+      "realtimeDesc": "WebSocketによるゼロラグのライブマップ更新。"
+    },
+    "readyToTransform": "フリートを変革する準備はできましたか？",
+    "readyToTransformDesc": "FleetFlow でロジスティクスを最適化し、コストを削減する先進企業の仲間入りをしましょう。",
+    "goToDashboard": "ダッシュボードへ",
+    "contactSales": "お問い合わせ",
+    "footer": {
+      "product": "製品",
+      "features": "機能",
+      "pricing": "料金",
+      "company": "企業情報"
+    },
+    "copyright": "© {{year}} FleetFlow. Odoo Hackathon 2026. データビジュアライゼーション by Recharts.",
+    "privacyPolicy": "プライバシーポリシー",
+    "termsOfService": "利用規約"
+  },
+  "notFound": {
+    "errorLabel": "404エラー",
+    "title": "ページが",
+    "titleHighlight": "+",
+    "titleEnd": "見つかりません",
+    "description": "お探しのページは見つかりませんでした。削除されたか、名前が変更されたか、存在しないページの可能性があります。",
+    "searchPlaceholder": "ページを検索...",
+    "goHome": "ホームに戻る",
+    "goBack": "前のページに戻る",
+    "helpCenter": "ヘルプセンター",
+    "copyright": "© 2026 FleetFlow. All rights reserved."
+  },
+  "comingSoon": {
+    "description": "このセクションは現在構築中です。素晴らしいものを準備しています — もうしばらくお待ちください！",
+    "backToDashboard": "ダッシュボードに戻る"
+  },
+  "layout": {
+    "fleetOverview": "フリート概要",
+    "onTrip": "運行中",
+    "available": "利用可能",
+    "inShop": "整備中",
+    "utilization": "稼働率",
+    "vehiclesInShop": "{{count}}台が整備中",
+    "licensesExpiring": "{{count}}件の免許が期限切れ間近",
+    "intelligenceInMotion": "インテリジェンス・イン・モーション",
+    "notifications": "通知",
+    "notifNew": "{{count}}件の新着",
+    "maintenanceAlert": "メンテナンスアラート",
+    "maintenanceAlertMsg": "{{count}}台の車両が現在整備中で対応が必要です",
+    "highPriority": "高優先度",
+    "licenseExpiryWarning": "免許期限切れ警告",
+    "licenseExpiryMsg": "{{count}}件のドライバー免許が30日以内に期限切れになります",
+    "urgent": "緊急",
+    "suspendedDrivers": "停止中のドライバー",
+    "suspendedDriversMsg": "{{count}}名のドライバーが現在業務停止中です",
+    "actionRequired": "対応が必要",
+    "retiredVehicles": "廃車済み車両",
+    "retiredVehiclesMsg": "{{count}}台の車両がフリートから廃車されました",
+    "informational": "情報",
+    "allClear": "問題なし — アラートはありません",
+    "systemConfig": "システム設定"
+  },
+  "fuelExpenses": {
+    "title": "燃料と経費",
+    "subtitle": "すべての運行コストを追跡",
+    "addEntry": "エントリーを追加",
+    "totalFuelCost": "燃料費合計",
+    "totalExpenses": "経費合計",
+    "fillUps": "{{count}}回の給油",
+    "entries": "{{count}}件のエントリー",
+    "fuelLogs": "燃料記録",
+    "expensesTab": "経費",
+    "allVehicles": "すべての車両",
+    "noFuelLogs": "燃料記録がありません",
+    "noExpenses": "経費がありません",
+    "fuelColumns": {
+      "date": "日付",
+      "vehicle": "車両",
+      "liters": "リットル",
+      "costPerLiter": "₹/リットル",
+      "total": "合計",
+      "odometer": "走行距離",
+      "station": "給油所"
+    },
+    "expenseColumns": {
+      "date": "日付",
+      "vehicle": "車両",
+      "category": "カテゴリ",
+      "amount": "金額",
+      "description": "説明"
+    },
+    "form": {
+      "fuelTab": "燃料",
+      "expenseTab": "経費",
+      "vehicle": "車両 *",
+      "selectVehicle": "車両を選択",
+      "liters": "リットル *",
+      "costPerLiter": "₹/リットル *",
+      "odometer": "走行距離 *",
+      "totalLabel": "合計: ₹{{amount}}",
+      "station": "給油所",
+      "stationPlaceholder": "IOCL スタンド",
+      "date": "日付",
+      "category": "カテゴリ *",
+      "amount": "金額 (₹) *",
+      "description": "説明",
+      "descriptionPlaceholder": "高速道路の通行料…",
+      "logFuel": "燃料を記録",
+      "logExpense": "経費を記録"
+    }
+  },
+  "incidents": {
+    "title": "事故報告",
+    "subtitle": "安全に関する事故を追跡・管理",
+    "reportIncident": "事故を報告",
+    "summary": {
+      "total": "合計",
+      "open": "未対応",
+      "investigating": "調査中",
+      "damageEst": "損害見積"
+    },
+    "searchPlaceholder": "事故を検索…",
+    "allStatuses": "すべてのステータス",
+    "noIncidents": "事故が見つかりません",
+    "noIncidentsDesc": "安全に関する事故はまだ報告されていません。",
+    "injuries": "負傷",
+    "columns": {
+      "incident": "事故",
+      "type": "種別",
+      "status": "ステータス",
+      "vehicle": "車両",
+      "driver": "ドライバー",
+      "damageEst": "損害見積",
+      "date": "日付"
+    },
+    "closeButton": "閉じる",
+    "closeModal": {
+      "title": "事故をクローズ",
+      "closing": "クローズ対象:",
+      "placeholder": "解決概要（10文字以上）…",
+      "confirm": "事故をクローズ"
+    },
+    "createModal": {
+      "title": "新規事故を報告",
+      "titleField": "タイトル *",
+      "titlePlaceholder": "事故の簡潔なタイトル",
+      "type": "種別 *",
+      "date": "日付 *",
+      "description": "説明 *",
+      "descriptionPlaceholder": "詳細な説明（10文字以上）",
+      "location": "場所",
+      "locationPlaceholder": "どこで発生しましたか？",
+      "damageEstimate": "損害見積 (₹)",
+      "injuriesReported": "負傷者あり",
+      "submitReport": "報告を提出"
+    }
+  },
+  "driverManagement": {
+    "title": "ドライバーパフォーマンスと安全",
+    "subtitle": "フリートドライバーの監視と管理",
+    "addDriver": "ドライバーを追加",
+    "licensesExpiringSoon": "まもなく期限切れの免許 ({{count}})",
+    "daysLeft": "残り{{days}}日",
+    "statusCards": {
+      "onDuty": "勤務中",
+      "onTrip": "運行中",
+      "offDuty": "非番",
+      "suspended": "停止中"
+    },
+    "search": "氏名、免許、メールで検索…",
+    "allStatuses": "すべてのステータス",
+    "allLicenses": "すべての免許",
+    "expiringSoon": "まもなく期限切れ (30日以内)",
+    "expired": "期限切れ",
+    "columns": {
+      "number": "#",
+      "name": "氏名",
+      "license": "免許番号",
+      "expiry": "有効期限",
+      "safetyScore": "安全スコア",
+      "status": "ステータス",
+      "actions": "操作"
+    },
+    "noDrivers": "ドライバーが見つかりません",
+    "adjustFilters": "フィルターを調整してみてください",
+    "addFirstDriver": "最初のドライバーを追加して開始しましょう",
+    "editTooltip": "編集",
+    "clockIn": "出勤",
+    "clockOut": "退勤",
+    "onTripLabel": "運行中",
+    "suspendTooltip": "停止",
+    "suspendDialog": {
+      "title": "ドライバーを停止しますか？",
+      "description": "<strong>{{name}}</strong> を停止すると、このドライバーへのすべての配車操作がブロックされます。",
+      "placeholder": "停止理由（必須）…",
+      "confirm": "ドライバーを停止"
+    },
+    "adjustScoreTooltip": "安全スコアを調整",
+    "deleteTooltip": "削除",
+    "deleteDialog": {
+      "title": "ドライバーを削除しますか？",
+      "description": "<strong>{{name}}</strong> を論理削除します。過去の運行データは保持されます。",
+      "confirm": "削除"
+    },
+    "scoreModal": {
+      "title": "安全スコアを調整",
+      "adjustment": "調整値:",
+      "reason": "理由 *",
+      "placeholder": "調整理由（5文字以上）…"
+    },
+    "pagination": {
+      "total": "{{count}}名のドライバー"
+    }
+  },
+  "driverPerformance": {
+    "title": "ドライバーパフォーマンス",
+    "subtitle": "ドライバー別の安全スコアと運行指標",
+    "stats": {
+      "drivers": "ドライバー",
+      "avgSafetyScore": "平均安全スコア",
+      "totalTrips": "総運行数",
+      "totalIncidents": "総事故数"
+    },
+    "searchPlaceholder": "ドライバーを検索…",
+    "noData": "ドライバーパフォーマンスデータがまだありません。",
+    "trips": "運行",
+    "completed": "完了",
+    "incidentsLabel": "事故"
+  },
+  "driverDashboard": {
+    "welcome": "ようこそ、{{name}}さん",
+    "onDuty": "勤務中",
+    "offDuty": "非番",
+    "goOffDuty": "非番にする",
+    "goOnDuty": "勤務を開始",
+    "statusUpdated": "ステータスが更新されました",
+    "statusUpdateFailed": "勤務ステータスの更新に失敗しました。",
+    "updateFailed": "更新失敗",
+    "gpsTracker": "ライブGPSトラッカー",
+    "broadcasting": "位置情報を送信中…",
+    "trackerPaused": "トラッカーが一時停止中です。開始して位置情報を共有してください。",
+    "stopTracker": "トラッカーを停止",
+    "startTracker": "トラッカーを開始",
+    "lastPing": "最終応答:",
+    "currentAssignment": "現在の割り当て",
+    "dispatched": "配車済み",
+    "vehicleLabel": "車両:",
+    "origin": "出発地",
+    "destination": "目的地",
+    "cargoWeight": "貨物重量",
+    "cargoDescription": "説明",
+    "noActiveTrips": "進行中の運行なし",
+    "noActiveTripsDesc": "現在配車されている運行はありません。",
+    "recentHistory": "最近の履歴",
+    "accountUnlinked": "アカウント未連携",
+    "accountUnlinkedDesc": "お使いのユーザーアカウント（{{email}}）はドライバープロフィールに紐付けられていません。マネージャーまたは配車担当者にお問い合わせください。"
+  },
+  "fleetDashboard": {
+    "title": "コマンドセンター",
+    "liveOverview": "フリートライブ概要 — {{date}}",
+    "kpi": {
+      "activeFleet": "稼働中フリート",
+      "ofTotal": "全{{total}}台中",
+      "maintenanceAlerts": "メンテナンスアラート",
+      "vehiclesInShop": "整備中の車両",
+      "utilizationRate": "稼働率",
+      "fleetAssignedVsIdle": "配車済み vs 待機中",
+      "pendingCargo": "保留中の貨物",
+      "tripsInDraft": "下書きの運行",
+      "activeTrips": "進行中の運行",
+      "currentlyDispatched": "現在配車中",
+      "driversOnDuty": "勤務中のドライバー",
+      "ofDrivers": "全{{total}}名中",
+      "completedToday": "本日完了",
+      "tripsFinishedToday": "本日完了した運行",
+      "expiringLicenses": "期限切れ間近の免許",
+      "within30Days": "30日以内"
+    },
+    "liveFleetMap": "フリートライブマップ",
+    "vehiclesTracked": "{{count}}台の車両を追跡中",
+    "noLiveData": "ライブデータなし",
+    "vehicleNumber": "車両 #{{id}}",
+    "inTransit": "輸送中 — {{origin}} → {{destination}}",
+    "revenueCostYear": "収益 vs コスト — {{year}}",
+    "monthly": "月次",
+    "loadingChart": "チャートを読み込み中…",
+    "noTripData": "運行データがまだありません",
+    "fleetStatus": "フリートステータス",
+    "noVehicles": "車両がありません",
+    "monthlyPerformance": "月次パフォーマンスサマリー",
+    "tableHeaders": {
+      "month": "月",
+      "trips": "運行数",
+      "distance": "距離 (km)",
+      "revenue": "収益",
+      "fuelCost": "燃料費",
+      "maintenance": "メンテナンス",
+      "profit": "利益"
+    }
+  },
+  "commandCenter": {
+    "greeting": {
+      "morning": "おはようございます",
+      "afternoon": "こんにちは",
+      "evening": "こんばんは",
+      "fallback": "こんにちは"
+    },
+    "subtitle": "本日のフリートの状況をご確認ください。",
+    "loadError": "ダッシュボードデータの読み込みに失敗しました。バックエンドは稼働していますか？",
+    "noDataAvailable": "データがありません。",
+    "filtering": "フィルター中…",
+    "matchCount": "{{count}}台の車両が一致",
+    "filter": {
+      "vehicleType": "車両タイプ",
+      "status": "ステータス",
+      "region": "地域"
+    },
+    "regions": {
+      "north": "北部",
+      "south": "南部",
+      "east": "東部",
+      "west": "西部",
+      "central": "中部"
+    },
+    "kpi": {
+      "activeFleet": "稼働中フリート",
+      "available": "利用可能",
+      "maintenanceAlerts": "メンテナンスアラート",
+      "vehiclesInShop": "整備中の車両",
+      "allOperational": "すべての車両が稼働中",
+      "utilizationRate": "稼働率",
+      "onTrip": "運行中",
+      "pendingCargo": "保留中の貨物",
+      "activeSuffix": "稼働中",
+      "doneToday": "本日完了"
+    },
+    "fleetDistribution": "フリート分布",
+    "attentionRequired": "対応が必要",
+    "noActiveAlerts": "アクティブなアラートはありません",
+    "driverSummary": "ドライバーサマリー",
+    "driverStats": {
+      "totalDrivers": "ドライバー総数",
+      "onDuty": "勤務中",
+      "suspended": "停止中",
+      "expiringLicenses": "期限切れ間近の免許"
+    },
+    "quickActions": "クイック操作",
+    "actions": {
+      "vehicleRegistry": "車両登録",
+      "driverManagement": "ドライバー管理",
+      "tripDispatcher": "配車管理",
+      "maintenance": "メンテナンス",
+      "analytics": "分析"
+    }
+  },
+  "vehicleRegistry": {
+    "title": "車両登録",
+    "subtitle": "フリート資産を管理",
+    "exportCSV": "CSVエクスポート",
+    "newVehicle": "新規車両",
+    "columns": {
+      "number": "#",
+      "plate": "ナンバー",
+      "makeModel": "メーカー / 車種",
+      "type": "タイプ",
+      "capacity": "積載量",
+      "odometer": "走行距離",
+      "status": "ステータス",
+      "actions": "操作"
+    },
+    "noVehicles": "車両が見つかりません",
+    "adjustFilters": "フィルターを調整してみてください",
+    "addFirstVehicle": "最初の車両を登録して開始しましょう",
+    "editTooltip": "編集",
+    "retireTooltip": "廃車",
+    "retireDialog": {
+      "title": "車両を廃車にしますか？",
+      "description": "<strong>{{plate}}</strong> を恒久的に廃車にします。廃車した車両は配車できません。",
+      "confirm": "車両を廃車"
+    },
+    "deleteTooltip": "削除",
+    "deleteDialog": {
+      "title": "車両を削除しますか？",
+      "description": "<strong>{{plate}}</strong> を論理削除します。この操作にはスーパー管理者権限が必要です。",
+      "confirm": "削除"
+    },
+    "pagination": {
+      "total": "{{count}}台の車両"
+    },
+    "toast": {
+      "exportSuccess": "車両登録データがCSVにエクスポートされました。",
+      "exportSuccessTitle": "エクスポート成功",
+      "exportFailed": "車両データのエクスポートに失敗しました。",
+      "exportFailedTitle": "エクスポート失敗"
+    }
+  },
+  "tripDispatcher": {
+    "title": "配車管理",
+    "subtitle": "フリートの運行を計画・配車・追跡",
+    "newTrip": "新規運行",
+    "searchPlaceholder": "運行を検索（ルート、車両、ドライバー、顧客）…",
+    "allStatuses": "すべてのステータス",
+    "columns": {
+      "number": "#",
+      "vehicle": "車両",
+      "driver": "ドライバー",
+      "route": "ルート",
+      "cargo": "貨物",
+      "distance": "距離",
+      "status": "ステータス",
+      "actions": "操作"
+    },
+    "actions": {
+      "dispatch": "配車",
+      "cancel": "キャンセル",
+      "complete": "完了",
+      "ledger": "台帳"
+    },
+    "loading": "運行を読み込み中…",
+    "noTrips": "運行が見つかりません",
+    "adjustFilters": "フィルターを調整してみてください",
+    "addFirstTrip": "最初の運行を作成して開始しましょう",
+    "dispatchDialog": {
+      "title": "運行を配車しますか？",
+      "description": "{{origin}} → {{destination}} を配車しますか？車両はON_TRIPに設定され、ドライバーが割り当てられます。",
+      "confirm": "今すぐ配車",
+      "dispatching": "配車中…"
+    },
+    "toast": {
+      "dispatched": "運行が正常に配車されました。",
+      "dispatchedTitle": "配車完了",
+      "dispatchFailed": "運行の配車に失敗しました",
+      "errorTitle": "エラー"
+    }
+  },
+  "financialReports": {
+    "title": "財務レポート",
+    "subtitle": "収益、コスト、燃費、車両ROI",
+    "exportCSV": "CSVエクスポート",
+    "summary": {
+      "totalRevenue": "総収益",
+      "totalCosts": "総コスト",
+      "netProfit": "純利益"
+    },
+    "tabs": {
+      "pnl": "月次損益",
+      "fuelEfficiency": "燃費",
+      "roi": "車両ROI"
+    },
+    "pnlColumns": {
+      "month": "月",
+      "revenue": "収益",
+      "fuel": "燃料",
+      "maintenance": "メンテナンス",
+      "other": "その他",
+      "profit": "利益",
+      "trips": "運行数"
+    },
+    "noDataForYear": "{{year}}年のデータがありません",
+    "fuelEfficiency": {
+      "noData": "燃費データがありません。",
+      "kmPerL": "km/L",
+      "totalFuel": "燃料合計",
+      "fuelCost": "燃料費"
+    },
+    "roiColumns": {
+      "vehicle": "車両",
+      "revenue": "収益",
+      "cost": "コスト",
+      "roi": "ROI %"
+    },
+    "noRoiData": "ROIデータがありません。"
+  },
+  "forms": {
+    "driver": {
+      "editTitle": "ドライバーを編集",
+      "newTitle": "新規ドライバー",
+      "editSubtitle": "ドライバー情報を更新",
+      "newSubtitle": "新しいドライバーを登録",
+      "fullName": "氏名 *",
+      "fullNamePlaceholder": "山田太郎",
+      "licenseNumber": "免許番号 *",
+      "licensePlaceholder": "DL-1234567890",
+      "licenseClass": "免許区分",
+      "licenseClassPlaceholder": "CDL-A",
+      "licenseExpiry": "免許有効期限 *",
+      "phone": "電話番号",
+      "phonePlaceholder": "+81 90-1234-5678",
+      "email": "メールアドレス",
+      "emailPlaceholder": "driver@fleetflow.io",
+      "dateOfBirth": "生年月日",
+      "updateDriver": "ドライバーを更新",
+      "createDriver": "ドライバーを登録"
+    },
+    "vehicle": {
+      "editTitle": "車両を編集",
+      "newTitle": "新規車両",
+      "editSubtitle": "車両情報を更新",
+      "newSubtitle": "新しいフリート資産を登録",
+      "licensePlate": "ナンバープレート *",
+      "licensePlatePlaceholder": "品川300あ1234",
+      "make": "メーカー *",
+      "makePlaceholder": "トヨタ",
+      "model": "車種 *",
+      "modelPlaceholder": "ハイエース",
+      "year": "年式 *",
+      "color": "色",
+      "colorPlaceholder": "ホワイト",
+      "vin": "車台番号",
+      "vinPlaceholder": "17桁のVIN（任意）",
+      "vehicleType": "車両タイプ *",
+      "selectType": "タイプを選択…",
+      "maxCapacity": "最大積載量 (kg) *",
+      "capacityPlaceholder": "5000",
+      "volume": "容量 (m³)",
+      "region": "地域",
+      "regionPlaceholder": "例: 関東地方",
+      "acquisitionCost": "取得費用 ($)",
+      "initialOdometer": "初期走行距離 (km)",
+      "updateVehicle": "車両を更新",
+      "createVehicle": "車両を登録"
+    },
+    "expense": {
+      "fuelTitle": "新規燃料記録",
+      "expenseTitle": "新規経費",
+      "fuelSubtitle": "給油イベントを記録",
+      "expenseSubtitle": "運行経費を記録",
+      "fuelTab": "燃料記録",
+      "expenseTab": "経費",
+      "loadingVehicles": "車両を読み込み中…",
+      "vehicle": "車両 *",
+      "selectVehicle": "車両を選択…",
+      "tripId": "運行ID（任意）",
+      "tripIdPlaceholder": "例: 42",
+      "liters": "リットル *",
+      "costPerLiter": "₹/リットル *",
+      "totalLabel": "合計: ₹{{amount}}",
+      "odometerAtFill": "給油時走行距離 *",
+      "fuelStation": "給油所",
+      "fuelStationPlaceholder": "Shell、HP、Indian Oil…",
+      "category": "カテゴリ *",
+      "amount": "金額 (₹) *",
+      "description": "説明",
+      "descriptionPlaceholder": "高速道路の通行料…",
+      "createFuelLog": "燃料記録を作成",
+      "createExpense": "経費を作成",
+      "categories": {
+        "TOLL": "通行料",
+        "LODGING": "宿泊",
+        "MAINTENANCE_EN_ROUTE": "走行中のメンテナンス",
+        "MISC": "その他"
+      }
+    },
+    "maintenance": {
+      "title": "新規整備記録",
+      "subtitle": "メンテナンスイベントを記録",
+      "warning": "この記録を作成すると、車両は<strong>IN_SHOP</strong>に設定され、配車可能なプールから除外されます。",
+      "loadingVehicles": "車両を読み込み中…",
+      "vehicle": "車両 *",
+      "selectVehicle": "車両を選択…",
+      "serviceType": "整備種別 *",
+      "selectType": "種別を選択…",
+      "description": "説明",
+      "descriptionPlaceholder": "整備内容の詳細…",
+      "cost": "費用 (₹) *",
+      "odometerAtService": "整備時走行距離 *",
+      "technicianName": "技術者名",
+      "technicianPlaceholder": "田中一郎",
+      "shopName": "整備工場名",
+      "shopPlaceholder": "オートケア",
+      "serviceDate": "整備日 *",
+      "nextServiceDue": "次回整備予定日",
+      "createServiceLog": "整備記録を作成"
+    },
+    "trip": {
+      "title": "新規運行",
+      "subtitle": "新しい配車運行を計画",
+      "loadingVehiclesDrivers": "車両とドライバーを読み込み中…",
+      "vehicleLabel": "車両（利用可能のみ）*",
+      "selectVehicle": "車両を選択…",
+      "noAvailableVehicles": "利用可能な車両がありません",
+      "driverLabel": "ドライバー（勤務中、有効な免許）*",
+      "selectDriver": "ドライバーを選択…",
+      "noEligibleDrivers": "条件を満たすドライバーがいません",
+      "origin": "出発地 *",
+      "destination": "目的地 *",
+      "locationPlaceholder": "入力を開始…",
+      "cargoWeight": "貨物重量 (kg) *",
+      "estDistance": "推定距離 (km) *",
+      "cargoExceedsCapacity": "貨物が車両の積載量を超えています",
+      "cargoDescription": "貨物の説明",
+      "cargoDescPlaceholder": "例: 電子機器、生鮮品…",
+      "clientName": "顧客名",
+      "clientPlaceholder": "Acme Corp",
+      "revenue": "売上 (₹)",
+      "createTripDraft": "運行を作成（下書き）"
+    },
+    "tripComplete": {
+      "title": "運行を完了",
+      "description": "この運行を完了するには、実際の走行距離を入力してください。車両とドライバーが解放されます。",
+      "actualDistance": "実際の距離 (km) *",
+      "distancePlaceholder": "例: 1450",
+      "odometerEnd": "最終走行距離（任意）",
+      "odometerPlaceholder": "現在の走行距離計の値",
+      "confirm": "運行を完了"
+    },
+    "tripCancel": {
+      "title": "運行をキャンセル",
+      "description": "この操作により運行がキャンセルされます。配車済みの場合、車両とドライバーが解放されます。",
+      "reasonLabel": "キャンセル理由 *",
+      "reasonPlaceholder": "この運行をキャンセルする理由を説明してください（5文字以上）…",
+      "minLength": "5文字以上入力してください",
+      "keepTrip": "運行を維持",
+      "confirm": "運行をキャンセル"
+    },
+    "tripLedger": {
+      "title": "運行台帳",
+      "subtitle": "運行 #{{id}} の財務サマリー",
+      "revenue": "収益",
+      "totalCost": "総コスト",
+      "profit": "利益",
+      "roi": "ROI",
+      "costBreakdown": "コスト内訳",
+      "fuel": "燃料",
+      "expenses": "経費",
+      "fuelLogs": "燃料記録 ({{count}})",
+      "expensesList": "経費 ({{count}})",
+      "noRecords": "この運行の燃料記録や経費はまだ記録されていません。"
+    }
+  },
+  "ui": {
+    "capacityBar": {
+      "cargo": "貨物:",
+      "capacity": "{{value}} kg の積載量",
+      "exceedsCapacity": "{{pct}}% — 積載量超過",
+      "utilized": "{{pct}}% 使用中 — 正常"
+    },
+    "licenseExpiry": {
+      "expired": "期限切れ",
+      "expiresIn": "あと{{days}}日で期限切れ！",
+      "expiringIn": "あと{{days}}日で期限切れ"
+    },
+    "navbar": {
+      "searchPlaceholder": "検索…",
+      "clearSearch": "検索をクリア",
+      "notifications": "通知",
+      "toggleDarkMode": "ダークモードの切り替え",
+      "userMenu": "ユーザーメニュー",
+      "fallbackName": "FleetFlow ユーザー"
+    }
+  }
+}

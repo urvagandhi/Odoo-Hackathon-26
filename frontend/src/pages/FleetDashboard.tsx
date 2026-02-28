@@ -4,6 +4,7 @@
  * Charts: Revenue trend (line), Expense breakdown (donut)
  */
 import { useState, useEffect, useRef } from "react";
+import { useTranslation } from "react-i18next";
 import { motion } from "framer-motion";
 import {
     Truck, Wrench, TrendingUp, Package, Users, AlertTriangle,
@@ -86,6 +87,7 @@ const darkCard = "bg-slate-900/60 border-slate-700/50 shadow-[0_8px_30px_rgb(0,0
 
 export default function FleetDashboard() {
     const { isDark } = useTheme();
+    const { t } = useTranslation();
     const cardClass = `${card} ${isDark ? darkCard : lightCard}`;
     const [kpis, setKpis] = useState<DashboardKPIs | null>(null);
     const [monthly, setMonthly] = useState<MonthlyReport[]>([]);
@@ -143,10 +145,10 @@ export default function FleetDashboard() {
             <div className="flex items-center justify-between">
                 <div>
                     <h1 className={`text-3xl font-extrabold tracking-tight ${isDark ? "text-slate-100" : "text-slate-900"}`}>
-                        Command Center
+                        {t("fleetDashboard.title")}
                     </h1>
                     <p className={`text-sm mt-1.5 font-medium ${isDark ? "text-slate-400" : "text-slate-500"}`}>
-                        Live fleet overview — {new Date().toLocaleDateString("en-IN", { weekday: "long", day: "numeric", month: "long", year: "numeric" })}
+                        {t("fleetDashboard.liveOverview", { date: new Date().toLocaleDateString("en-IN", { weekday: "long", day: "numeric", month: "long", year: "numeric" }) })}
                     </p>
                 </div>
                 <button
@@ -154,7 +156,7 @@ export default function FleetDashboard() {
                     className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-blue-600 text-white text-sm font-bold shadow-[0_0_15px_rgba(37,99,235,0.3)] hover:bg-blue-500 transition-all transform hover:scale-105 active:scale-95"
                 >
                     <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
-                    Refresh
+                    {t("common.refresh")}
                 </button>
             </div>
 
@@ -164,33 +166,33 @@ export default function FleetDashboard() {
                 className="grid grid-cols-2 lg:grid-cols-4 gap-4"
             >
                 <KpiCard
-                    label="Active Fleet"
+                    label={t("fleetDashboard.kpi.activeFleet")}
                     value={kpis ? `${kpis.fleet.onTrip}` : "—"}
-                    sub={kpis ? `of ${kpis.fleet.total} total` : "loading..."}
+                    sub={kpis ? t("fleetDashboard.kpi.ofTotal", { total: kpis.fleet.total }) : t("common.loading")}
                     icon={Truck}
                     color="emerald"
                     isDark={isDark}
                 />
                 <KpiCard
-                    label="Maintenance Alerts"
+                    label={t("fleetDashboard.kpi.maintenanceAlerts")}
                     value={kpis ? `${kpis.fleet.inShop}` : "—"}
-                    sub="vehicles in shop"
+                    sub={t("fleetDashboard.kpi.vehiclesInShop")}
                     icon={Wrench}
                     color="amber"
                     isDark={isDark}
                 />
                 <KpiCard
-                    label="Utilization Rate"
+                    label={t("fleetDashboard.kpi.utilizationRate")}
                     value={kpis ? kpis.fleet.utilizationRate : "—"}
-                    sub="fleet assigned vs idle"
+                    sub={t("fleetDashboard.kpi.fleetAssignedVsIdle")}
                     icon={TrendingUp}
                     color="violet"
                     isDark={isDark}
                 />
                 <KpiCard
-                    label="Pending Cargo"
+                    label={t("fleetDashboard.kpi.pendingCargo")}
                     value={kpis ? `${kpis.trips.pending}` : "—"}
-                    sub="trips in DRAFT"
+                    sub={t("fleetDashboard.kpi.tripsInDraft")}
                     icon={Package}
                     color="blue"
                     isDark={isDark}
@@ -203,33 +205,33 @@ export default function FleetDashboard() {
                 className="grid grid-cols-2 lg:grid-cols-4 gap-4"
             >
                 <KpiCard
-                    label="Active Trips"
+                    label={t("fleetDashboard.kpi.activeTrips")}
                     value={kpis ? `${kpis.trips.active}` : "—"}
-                    sub="currently dispatched"
+                    sub={t("fleetDashboard.kpi.currentlyDispatched")}
                     icon={BarChart3}
                     color="teal"
                     isDark={isDark}
                 />
                 <KpiCard
-                    label="Drivers On Duty"
+                    label={t("fleetDashboard.kpi.driversOnDuty")}
                     value={kpis ? `${kpis.drivers.onDuty}` : "—"}
-                    sub={kpis ? `of ${kpis.drivers.total} drivers` : ""}
+                    sub={kpis ? t("fleetDashboard.kpi.ofDrivers", { total: kpis.drivers.total }) : ""}
                     icon={Users}
                     color="emerald"
                     isDark={isDark}
                 />
                 <KpiCard
-                    label="Completed Today"
+                    label={t("fleetDashboard.kpi.completedToday")}
                     value={kpis ? `${kpis.trips.completedToday}` : "—"}
-                    sub="trips finished today"
+                    sub={t("fleetDashboard.kpi.tripsFinishedToday")}
                     icon={CheckCircle2}
                     color="green"
                     isDark={isDark}
                 />
                 <KpiCard
-                    label="Expiring Licenses"
+                    label={t("fleetDashboard.kpi.expiringLicenses")}
                     value={kpis ? `${kpis.alerts.expiringLicenses}` : "—"}
-                    sub="within 30 days"
+                    sub={t("fleetDashboard.kpi.within30Days")}
                     icon={AlertTriangle}
                     color="red"
                     isDark={isDark}
@@ -249,11 +251,11 @@ export default function FleetDashboard() {
                            <MapPin className="w-5 h-5" />
                         </div>
                         <h2 className={`text-lg font-bold ${isDark ? "text-slate-100" : "text-slate-900"}`}>
-                            Live Fleet Map
+                            {t("fleetDashboard.liveFleetMap")}
                         </h2>
                     </div>
                     <span className={`text-xs px-3 py-1.5 rounded-full font-bold uppercase tracking-wider ${locations.length > 0 ? (isDark ? "bg-blue-500/20 text-blue-400 border border-blue-500/30" : "bg-blue-100 text-blue-700") : (isDark ? "bg-slate-800 text-slate-400" : "bg-slate-200 text-slate-500")}`}>
-                        {locations.length > 0 ? `${locations.length} vehicle${locations.length > 1 ? "s" : ""} tracked` : "No live data"}
+                        {locations.length > 0 ? t("fleetDashboard.vehiclesTracked", { count: locations.length }) : t("fleetDashboard.noLiveData")}
                     </span>
                 </div>
                 <div className={`rounded-2xl overflow-hidden border relative z-10 ${isDark ? "border-slate-800" : "border-slate-200 shadow-inner"}`} style={{ height: 380 }}>
@@ -274,7 +276,7 @@ export default function FleetDashboard() {
                             <Marker key={loc.vehicleId} position={[loc.latitude, loc.longitude]} icon={truckIcon}>
                                 <Popup>
                                     <div className="text-sm">
-                                        <p className="font-bold">{loc.plateNumber || `Vehicle #${loc.vehicleId}`}</p>
+                                        <p className="font-bold">{loc.plateNumber || t("fleetDashboard.vehicleNumber", { id: loc.vehicleId })}</p>
                                         {loc.speed != null && <p className="text-xs text-neutral-500">{loc.speed} km/h</p>}
                                     </div>
                                 </Popup>
@@ -286,7 +288,7 @@ export default function FleetDashboard() {
                             <Popup>
                                 <div className="text-sm">
                                     <p className="font-bold">MH-01-AB-1234</p>
-                                    <p className="text-xs text-blue-600 font-medium">In Transit — Mumbai → Pune</p>
+                                    <p className="text-xs text-blue-600 font-medium">{t("fleetDashboard.inTransit", { origin: "Mumbai", destination: "Pune" })}</p>
                                     <p className="text-xs text-neutral-500">~65 km/h</p>
                                 </div>
                             </Popup>
@@ -306,9 +308,9 @@ export default function FleetDashboard() {
                     {!isDark && <div className="absolute -top-32 -left-32 w-64 h-64 bg-teal-400/10 rounded-full blur-3xl pointer-events-none" />}
                     <div className="flex items-center justify-between mb-6 relative z-10">
                         <h2 className={`text-lg font-bold ${isDark ? "text-slate-100" : "text-slate-900"}`}>
-                            Revenue vs Cost — {new Date().getFullYear()}
+                            {t("fleetDashboard.revenueCostYear", { year: new Date().getFullYear() })}
                         </h2>
-                        <span className={`text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full ${isDark ? "bg-emerald-500/10 text-emerald-400" : "bg-emerald-100 text-emerald-700"}`}>Monthly</span>
+                        <span className={`text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full ${isDark ? "bg-emerald-500/10 text-emerald-400" : "bg-emerald-100 text-emerald-700"}`}>{t("fleetDashboard.monthly")}</span>
                     </div>
                     {monthly.length > 0 ? (
                         <ResponsiveContainer width="100%" height={260}>
@@ -337,7 +339,7 @@ export default function FleetDashboard() {
                         </ResponsiveContainer>
                     ) : (
                         <div className="h-[260px] flex items-center justify-center text-slate-500 font-medium">
-                            <Clock className="w-5 h-5 mr-2" /> {loading ? "Loading chart..." : "No trip data yet"}
+                            <Clock className="w-5 h-5 mr-2" /> {loading ? t("fleetDashboard.loadingChart") : t("fleetDashboard.noTripData")}
                         </div>
                     )}
                 </div>
@@ -345,7 +347,7 @@ export default function FleetDashboard() {
                 {/* Fleet status donut */}
                 <div className={cardClass}>
                     <h2 className={`text-lg font-bold mb-6 relative z-10 ${isDark ? "text-slate-100" : "text-slate-900"}`}>
-                        Fleet Status
+                        {t("fleetDashboard.fleetStatus")}
                     </h2>
                     {expenseData.length > 0 ? (
                         <ResponsiveContainer width="100%" height={260}>
@@ -359,7 +361,7 @@ export default function FleetDashboard() {
                         </ResponsiveContainer>
                     ) : (
                         <div className="h-[220px] flex items-center justify-center text-neutral-400">
-                            {loading ? "Loading..." : "No vehicles"}
+                            {loading ? t("common.loading") : t("fleetDashboard.noVehicles")}
                         </div>
                     )}
                 </div>
@@ -372,13 +374,13 @@ export default function FleetDashboard() {
                     className={cardClass}
                 >
                     <h2 className={`text-lg font-bold mb-6 ${isDark ? "text-slate-100" : "text-slate-900"}`}>
-                        Monthly Performance Summary
+                        {t("fleetDashboard.monthlyPerformance")}
                     </h2>
                     <div className="overflow-x-auto">
                         <table className="w-full text-sm">
                             <thead>
                                 <tr className={isDark ? "text-slate-400 border-b border-slate-800" : "text-slate-500 border-b border-slate-200"}>
-                                    {["Month", "Trips", "Distance (km)", "Revenue", "Fuel Cost", "Maintenance", "Profit"].map(h =>
+                                    {[t("fleetDashboard.tableHeaders.month"), t("fleetDashboard.tableHeaders.trips"), t("fleetDashboard.tableHeaders.distance"), t("fleetDashboard.tableHeaders.revenue"), t("fleetDashboard.tableHeaders.fuelCost"), t("fleetDashboard.tableHeaders.maintenance"), t("fleetDashboard.tableHeaders.profit")].map(h =>
                                         <th key={h} className="text-left pb-4 pr-4 font-bold text-xs uppercase tracking-wider">{h}</th>
                                     )}
                                 </tr>

@@ -4,6 +4,7 @@
  * Settings is inside the avatar dropdown, not as a standalone icon.
  */
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Link, useNavigate } from "react-router-dom";
 import {
   Search,
@@ -33,6 +34,7 @@ interface NavbarProps {
 }
 
 export default function Navbar({ }: NavbarProps) {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { user, logout } = useAuth();
   const { isDark, toggleTheme } = useTheme();
@@ -79,7 +81,7 @@ export default function Navbar({ }: NavbarProps) {
                 <Search className="absolute left-3.5 w-4 h-4 text-slate-400 pointer-events-none" />
                 <input
                   type="text"
-                  placeholder="Search here..."
+                  placeholder={t("ui.navbar.searchPlaceholder")}
                   value={searchValue}
                   onChange={(e) => setSearchValue(e.target.value)}
                   onFocus={() => setSearchFocused(true)}
@@ -90,7 +92,7 @@ export default function Navbar({ }: NavbarProps) {
                   <button
                     onClick={() => setSearchValue("")}
                     className={`absolute right-3 w-5 h-5 rounded-full flex items-center justify-center transition-colors ${isDark ? "bg-neutral-600 hover:bg-neutral-500" : "bg-slate-200 hover:bg-slate-300"}`}
-                    aria-label="Clear search"
+                    aria-label={t("ui.navbar.clearSearch")}
                   >
                     <X className={`w-3 h-3 ${isDark ? "text-neutral-300" : "text-slate-500"}`} />
                   </button>
@@ -100,7 +102,7 @@ export default function Navbar({ }: NavbarProps) {
               {/* Notifications */}
               <button
                 className={`relative w-10 h-10 rounded-xl flex items-center justify-center transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 ${isDark ? "text-neutral-400 hover:bg-neutral-800 hover:text-neutral-200" : "text-slate-500 hover:bg-slate-100 hover:text-slate-700"}`}
-                aria-label="Notifications"
+                aria-label={t("ui.navbar.notifications")}
               >
                 <Bell className="w-[18px] h-[18px]" strokeWidth={1.8} />
                 <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border-[1.5px] border-white" />
@@ -110,7 +112,7 @@ export default function Navbar({ }: NavbarProps) {
               <button
                 onClick={toggleTheme}
                 className={`w-10 h-10 rounded-xl flex items-center justify-center transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 ${isDark ? "text-neutral-400 hover:bg-neutral-800 hover:text-neutral-200" : "text-slate-500 hover:bg-slate-100 hover:text-slate-700"}`}
-                aria-label="Toggle dark mode"
+                aria-label={t("ui.navbar.toggleDarkMode")}
               >
                 {isDark ? (
                   <Sun className="w-[18px] h-[18px]" strokeWidth={1.8} />
@@ -127,7 +129,7 @@ export default function Navbar({ }: NavbarProps) {
                 <DropdownMenuTrigger asChild>
                   <button
                     className={`flex items-center gap-2 p-1 pr-2 rounded-full transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 ${isDark ? "hover:bg-neutral-800" : "hover:bg-slate-50"}`}
-                    aria-label="User menu"
+                    aria-label={t("ui.navbar.userMenu")}
                   >
                     <div className="relative">
                       <div className="w-8 h-8 rounded-full bg-emerald-100 text-emerald-700 font-bold flex items-center justify-center shadow-sm ring-1 ring-inset ring-emerald-600/10">
@@ -147,7 +149,7 @@ export default function Navbar({ }: NavbarProps) {
                       </div>
                       <div className="min-w-0">
                         <p className={`text-sm font-semibold truncate ${isDark ? "text-white" : "text-slate-900"}`}>
-                          {user?.fullName ?? "FleetFlow User"}
+                          {user?.fullName ?? t("ui.navbar.fallbackName")}
                         </p>
                         <p className={`text-xs truncate ${isDark ? "text-neutral-400" : "text-slate-500"}`}>
                           {user?.email ?? ""}
@@ -161,11 +163,11 @@ export default function Navbar({ }: NavbarProps) {
                   <DropdownMenuGroup>
                     <DropdownMenuItem onSelect={() => navigate("/profile")}>
                       <User className="w-4 h-4 text-slate-400" />
-                      Profile
+                      {t("common.profile")}
                     </DropdownMenuItem>
                     <DropdownMenuItem onSelect={() => navigate("/settings")}>
                       <Settings className="w-4 h-4 text-slate-400" />
-                      Settings
+                      {t("common.settings")}
                     </DropdownMenuItem>
                   </DropdownMenuGroup>
 
@@ -176,7 +178,7 @@ export default function Navbar({ }: NavbarProps) {
                     onSelect={handleLogout}
                   >
                     <LogOut className="w-4 h-4" />
-                    Log out
+                    {t("common.logout")}
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>

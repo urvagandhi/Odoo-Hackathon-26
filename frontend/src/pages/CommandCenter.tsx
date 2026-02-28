@@ -5,6 +5,7 @@
  * Filters: Vehicle Type, Status — both backed by real API data.
  */
 import { useState, useEffect, useCallback } from "react";
+import { useTranslation } from "react-i18next";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import {
@@ -227,6 +228,7 @@ export default function CommandCenter() {
   const { isDark } = useTheme();
   const { user } = useAuth();
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   const [kpi, setKpi] = useState<DashboardKPIs | null>(null);
   const [loading, setLoading] = useState(true);
@@ -247,7 +249,7 @@ export default function CommandCenter() {
       const data = await analyticsApi.getDashboardKPIs(regionFilter || undefined);
       setKpi(data);
     } catch {
-      setError("Failed to load dashboard data. Is the backend running?");
+      setError(t("commandCenter.loadError"));
     } finally {
       setLoading(false);
     }
@@ -295,9 +297,9 @@ export default function CommandCenter() {
 
   const greeting = (() => {
     const h = new Date().getHours();
-    if (h < 12) return "Good morning";
-    if (h < 17) return "Good afternoon";
-    return "Good evening";
+    if (h < 12) return t("commandCenter.greeting.morning");
+    if (h < 17) return t("commandCenter.greeting.afternoon");
+    return t("commandCenter.greeting.evening");
   })();
 
   // ── Skeleton loading state ────────────────────────────
@@ -324,9 +326,9 @@ export default function CommandCenter() {
       <div className={`min-h-screen flex items-center justify-center ${isDark ? "bg-neutral-900" : "bg-slate-50"}`}>
         <div className="text-center max-w-md">
           <AlertTriangle className="w-10 h-10 mx-auto mb-3 text-amber-500" />
-          <p className={`text-sm ${isDark ? "text-neutral-300" : "text-slate-600"}`}>{error || "No data available."}</p>
+          <p className={`text-sm ${isDark ? "text-neutral-300" : "text-slate-600"}`}>{error || t("commandCenter.noDataAvailable")}</p>
           <button onClick={() => fetchKPIs(filterRegion)} className="mt-4 inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-violet-600 hover:bg-violet-500 text-white text-sm font-medium transition-colors">
-            <RefreshCw className="w-4 h-4" /> Retry
+            <RefreshCw className="w-4 h-4" /> {t("common.retry")}
           </button>
         </div>
       </div>
@@ -343,11 +345,11 @@ export default function CommandCenter() {
   ];
 
   const regionOptions = [
-    { value: "North", label: "North" },
-    { value: "South", label: "South" },
-    { value: "East", label: "East" },
-    { value: "West", label: "West" },
-    { value: "Central", label: "Central" },
+    { value: "North", label: t("commandCenter.regions.north") },
+    { value: "South", label: t("commandCenter.regions.south") },
+    { value: "East", label: t("commandCenter.regions.east") },
+    { value: "West", label: t("commandCenter.regions.west") },
+    { value: "Central", label: t("commandCenter.regions.central") },
   ];
 
   return (
@@ -356,10 +358,10 @@ export default function CommandCenter() {
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className={`text-2xl font-bold ${isDark ? "text-white" : "text-slate-900"}`}>
-            {greeting}, {user?.fullName?.split(" ")[0] ?? "there"} 👋
+            {greeting}, {user?.fullName?.split(" ")[0] ?? t("commandCenter.greeting.fallback")} 👋
           </h1>
           <p className={`text-sm mt-1 ${isDark ? "text-neutral-400" : "text-slate-500"}`}>
-            Here's what's happening with your fleet today.
+            {t("commandCenter.subtitle")}
           </p>
         </div>
         <button
@@ -376,24 +378,24 @@ export default function CommandCenter() {
       {/* Filter Bar */}
       <div className={`flex flex-wrap items-center gap-3 mb-6 p-4 ${getCardClass(isDark)}`}>
         <span className={`text-xs font-semibold uppercase tracking-wider ${isDark ? "text-neutral-500" : "text-slate-400"}`}>
-          Filter
+          {t("common.filter")}
         </span>
         <FilterSelect
-          label="Vehicle Type"
+          label={t("commandCenter.filter.vehicleType")}
           value={filterType}
           onChange={setFilterType}
           options={vehicleTypes.map((t) => ({ value: t.id, label: t.name }))}
           isDark={isDark}
         />
         <FilterSelect
-          label="Status"
+          label={t("commandCenter.filter.status")}
           value={filterStatus}
           onChange={setFilterStatus}
           options={statusOptions}
           isDark={isDark}
         />
         <FilterSelect
-          label="Region"
+          label={t("commandCenter.filter.region")}
           value={filterRegion}
           onChange={setFilterRegion}
           options={regionOptions}
@@ -406,15 +408,15 @@ export default function CommandCenter() {
               isDark ? "bg-neutral-700 text-neutral-300 hover:bg-neutral-600" : "bg-slate-100 text-slate-600 hover:bg-slate-200"
             }`}
           >
-            <X className="w-3 h-3" /> Clear
+            <X className="w-3 h-3" /> {t("common.clear")}
           </button>
         )}
         {hasFilter && (
           <span className={`ml-auto text-sm font-medium ${isDark ? "text-violet-400" : "text-violet-600"}`}>
             {filterLoading
-              ? "Filtering..."
+              ? t("commandCenter.filtering")
               : filteredCount !== null
-              ? `${filteredCount} vehicle${filteredCount !== 1 ? "s" : ""} match`
+              ? t("commandCenter.matchCount", { count: filteredCount })
               : ""}
           </span>
         )}
@@ -426,9 +428,9 @@ export default function CommandCenter() {
         <StatCard
           icon={Truck}
           iconBg="bg-violet-600"
-          label="Active Fleet"
+          label={t("commandCenter.kpi.activeFleet")}
           value={kpi.fleet.onTrip}
-          sub={`${kpi.fleet.available} available · ${kpi.fleet.total} total`}
+          sub={`${kpi.fleet.available} ${t("commandCenter.kpi.available")} · ${kpi.fleet.total} ${t("common.total")}`}
           isDark={isDark}
           onClick={() => navigate("/fleet/vehicles")}
         />
@@ -436,9 +438,9 @@ export default function CommandCenter() {
         <StatCard
           icon={Wrench}
           iconBg={kpi.fleet.inShop > 0 ? "bg-amber-600" : "bg-emerald-600"}
-          label="Maintenance Alerts"
+          label={t("commandCenter.kpi.maintenanceAlerts")}
           value={kpi.fleet.inShop}
-          sub={kpi.fleet.inShop > 0 ? "Vehicles in shop" : "All vehicles operational"}
+          sub={kpi.fleet.inShop > 0 ? t("commandCenter.kpi.vehiclesInShop") : t("commandCenter.kpi.allOperational")}
           isDark={isDark}
           onClick={() => navigate("/fleet/maintenance")}
         />
@@ -446,18 +448,18 @@ export default function CommandCenter() {
         <StatCard
           icon={Gauge}
           iconBg="bg-emerald-600"
-          label="Utilization Rate"
+          label={t("commandCenter.kpi.utilizationRate")}
           value={kpi.fleet.utilizationRate}
-          sub={`${kpi.fleet.onTrip} on trip / ${kpi.fleet.total} total`}
+          sub={`${kpi.fleet.onTrip} ${t("commandCenter.kpi.onTrip")} / ${kpi.fleet.total} ${t("common.total")}`}
           isDark={isDark}
         />
         {/* 4. Pending Cargo — shipments waiting for assignment (DRAFT trips) */}
         <StatCard
           icon={Package}
           iconBg={kpi.trips.pending > 0 ? "bg-blue-600" : "bg-emerald-600"}
-          label="Pending Cargo"
+          label={t("commandCenter.kpi.pendingCargo")}
           value={kpi.trips.pending}
-          sub={`${kpi.trips.active} active · ${kpi.trips.completedToday} done today`}
+          sub={`${kpi.trips.active} ${t("commandCenter.kpi.activeSuffix")} · ${kpi.trips.completedToday} ${t("commandCenter.kpi.doneToday")}`}
           isDark={isDark}
           onClick={() => navigate("/dispatch/trips")}
         />
@@ -472,7 +474,7 @@ export default function CommandCenter() {
         >
           <div className="flex items-center justify-between mb-4">
             <h3 className={`text-sm font-semibold ${isDark ? "text-neutral-300" : "text-slate-700"}`}>
-              Fleet Distribution
+              {t("commandCenter.fleetDistribution")}
             </h3>
             {hasFilter && filteredCount !== null && (
               <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${isDark ? "bg-violet-600/20 text-violet-400" : "bg-violet-50 text-violet-600"}`}>
@@ -505,7 +507,7 @@ export default function CommandCenter() {
           className={`p-6 ${getCardClass(isDark)}`}
         >
           <h3 className={`text-sm font-semibold mb-4 ${isDark ? "text-neutral-300" : "text-slate-700"}`}>
-            Attention Required
+            {t("commandCenter.attentionRequired")}
           </h3>
           <div className="space-y-2">
             <AlertRow icon={Wrench} color="bg-amber-600" label="Vehicles in maintenance" count={kpi.alerts.maintenanceAlerts} isDark={isDark} />
@@ -513,7 +515,7 @@ export default function CommandCenter() {
             <AlertRow icon={Shield} color="bg-orange-600" label="Suspended drivers" count={kpi.alerts.suspendedDrivers} isDark={isDark} />
             {totalAlerts === 0 && (
               <div className={`text-center py-6 ${isDark ? "text-neutral-500" : "text-slate-400"}`}>
-                <p className="text-sm">No active alerts</p>
+                <p className="text-sm">{t("commandCenter.noActiveAlerts")}</p>
               </div>
             )}
           </div>
@@ -530,14 +532,14 @@ export default function CommandCenter() {
           className={`p-6 ${getCardClass(isDark)}`}
         >
           <h3 className={`text-sm font-semibold mb-4 ${isDark ? "text-neutral-300" : "text-slate-700"}`}>
-            Driver Summary
+            {t("commandCenter.driverSummary")}
           </h3>
           <div className="grid grid-cols-2 gap-3">
             {[
-              { label: "Total Drivers", value: kpi.drivers.total, icon: Users, color: "bg-violet-600" },
-              { label: "On Duty", value: kpi.drivers.onDuty, icon: TrendingUp, color: "bg-emerald-600" },
-              { label: "Suspended", value: kpi.drivers.suspended, icon: Shield, color: "bg-red-600" },
-              { label: "Expiring Licenses", value: kpi.drivers.expiringLicenses, icon: Calendar, color: "bg-amber-600" },
+              { label: t("commandCenter.driverStats.totalDrivers"), value: kpi.drivers.total, icon: Users, color: "bg-violet-600" },
+              { label: t("commandCenter.driverStats.onDuty"), value: kpi.drivers.onDuty, icon: TrendingUp, color: "bg-emerald-600" },
+              { label: t("commandCenter.driverStats.suspended"), value: kpi.drivers.suspended, icon: Shield, color: "bg-red-600" },
+              { label: t("commandCenter.driverStats.expiringLicenses"), value: kpi.drivers.expiringLicenses, icon: Calendar, color: "bg-amber-600" },
             ].map((d) => (
               <div key={d.label} className={`flex items-center gap-3 p-3 rounded-xl ${isDark ? "bg-neutral-700/50" : "bg-slate-50"}`}>
                 <div className={`w-8 h-8 rounded-lg ${d.color} flex items-center justify-center shrink-0`}>
@@ -560,14 +562,14 @@ export default function CommandCenter() {
           className={`p-6 ${getCardClass(isDark)}`}
         >
           <h3 className={`text-sm font-semibold mb-4 ${isDark ? "text-neutral-300" : "text-slate-700"}`}>
-            Quick Actions
+            {t("commandCenter.quickActions")}
           </h3>
           <div className="space-y-2">
-            <QuickAction icon={Truck} label="Vehicle Registry" path="/fleet/vehicles" color="bg-violet-600" isDark={isDark} navigate={navigate} />
-            <QuickAction icon={Users} label="Driver Management" path="/hr/drivers" color="bg-blue-600" isDark={isDark} navigate={navigate} />
-            <QuickAction icon={Route} label="Trip Dispatcher" path="/dispatch/trips" color="bg-emerald-600" isDark={isDark} navigate={navigate} />
-            <QuickAction icon={Wrench} label="Maintenance" path="/fleet/maintenance" color="bg-amber-600" isDark={isDark} navigate={navigate} />
-            <QuickAction icon={MapPin} label="Analytics" path="/analytics" color="bg-pink-600" isDark={isDark} navigate={navigate} />
+            <QuickAction icon={Truck} label={t("commandCenter.actions.vehicleRegistry")} path="/fleet/vehicles" color="bg-violet-600" isDark={isDark} navigate={navigate} />
+            <QuickAction icon={Users} label={t("commandCenter.actions.driverManagement")} path="/hr/drivers" color="bg-blue-600" isDark={isDark} navigate={navigate} />
+            <QuickAction icon={Route} label={t("commandCenter.actions.tripDispatcher")} path="/dispatch/trips" color="bg-emerald-600" isDark={isDark} navigate={navigate} />
+            <QuickAction icon={Wrench} label={t("commandCenter.actions.maintenance")} path="/fleet/maintenance" color="bg-amber-600" isDark={isDark} navigate={navigate} />
+            <QuickAction icon={MapPin} label={t("commandCenter.actions.analytics")} path="/analytics" color="bg-pink-600" isDark={isDark} navigate={navigate} />
           </div>
         </motion.div>
       </div>

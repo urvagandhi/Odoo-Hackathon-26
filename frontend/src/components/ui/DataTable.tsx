@@ -3,6 +3,7 @@
  * Accepts column definitions and rows. Handles empty + loading states.
  */
 import { motion } from "framer-motion";
+import { useTranslation } from "react-i18next";
 import { useTheme } from "../../context/ThemeContext";
 
 export interface Column<T> {
@@ -17,8 +18,8 @@ interface DataTableProps<T> {
   rows: T[];
   rowKey: (row: T) => string | number;
   loading?: boolean;
-  emptyTitle?: string;
-  emptyMessage?: string;
+  emptyTitle?: string | null;
+  emptyMessage?: string | null;
   skeletonRows?: number;
 }
 
@@ -41,11 +42,14 @@ export function DataTable<T>({
   rows,
   rowKey,
   loading = false,
-  emptyTitle = "No data yet",
-  emptyMessage = "Create your first record to get started.",
+  emptyTitle,
+  emptyMessage,
   skeletonRows = 5,
 }: DataTableProps<T>) {
   const { isDark } = useTheme();
+  const { t } = useTranslation();
+  const resolvedEmptyTitle = emptyTitle ?? t("common.noDataYet");
+  const resolvedEmptyMessage = emptyMessage ?? t("common.createFirstRecord");
 
   return (
     <div className={`rounded-xl border shadow-sm overflow-hidden ${isDark ? 'bg-neutral-800 border-neutral-700' : 'bg-white border-slate-200'}`}>
@@ -74,8 +78,8 @@ export function DataTable<T>({
             ) : rows.length === 0 ? (
               <tr>
                 <td colSpan={columns.length} className="py-16 text-center">
-                  <p className={`text-sm font-medium ${isDark ? 'text-white' : 'text-slate-700'}`}>{emptyTitle}</p>
-                  <p className={`text-xs mt-1 ${isDark ? 'text-neutral-500' : 'text-slate-400'}`}>{emptyMessage}</p>
+                  <p className={`text-sm font-medium ${isDark ? 'text-white' : 'text-slate-700'}`}>{resolvedEmptyTitle}</p>
+                  <p className={`text-xs mt-1 ${isDark ? 'text-neutral-500' : 'text-slate-400'}`}>{resolvedEmptyMessage}</p>
                 </td>
               </tr>
             ) : (

@@ -4,6 +4,7 @@
  */
 import { useState, useEffect, useRef } from "react";
 import { Outlet, useLocation, useNavigate, Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import {
   LayoutDashboard, Settings, Bell, ChevronDown, LogOut, User,
   Car, Route, Users, AlertTriangle, Wrench, Sun, Moon,
@@ -17,37 +18,31 @@ import { useAuth } from "../context/AuthContext";
 import { useTheme } from "../context/ThemeContext";
 import { analyticsApi, type DashboardKPIs } from "../api/client";
 
-const ROLE_LABELS: Record<string, string> = {
-  MANAGER: "Fleet Manager",
-  DISPATCHER: "Dispatcher",
-  SAFETY_OFFICER: "Safety Officer",
-  FINANCE_ANALYST: "Finance Analyst",
-};
-
 // Nav items with role restrictions (empty = all roles can see)
 const NAV_ITEMS = [
-  { label: "Fleet Hub", path: "/dashboard", icon: LayoutDashboard, roles: [] },
-  { label: "Vehicle Registry", path: "/fleet", icon: Car, roles: ["MANAGER", "DISPATCHER", "SAFETY_OFFICER"] },
-  { label: "Dispatch Control", path: "/dispatch", icon: Route, roles: ["MANAGER", "DISPATCHER"] },
-  { label: "Service Station", path: "/maintenance", icon: Wrench, roles: ["MANAGER", "SAFETY_OFFICER"] },
-  { label: "Expense Ledger", path: "/fuel-expenses", icon: Fuel, roles: ["MANAGER", "FINANCE_ANALYST"] },
-  { label: "Crew Gateway", path: "/drivers", icon: Users, roles: ["MANAGER", "SAFETY_OFFICER"] },
-  { label: "Operations Intel", path: "/analytics", icon: BarChart3, roles: ["MANAGER", "FINANCE_ANALYST"] },
+  { labelKey: "nav.items.fleetHub", path: "/dashboard", icon: LayoutDashboard, roles: [] },
+  { labelKey: "nav.items.vehicleRegistry", path: "/fleet", icon: Car, roles: ["MANAGER", "DISPATCHER", "SAFETY_OFFICER"] },
+  { labelKey: "nav.items.dispatchControl", path: "/dispatch", icon: Route, roles: ["MANAGER", "DISPATCHER"] },
+  { labelKey: "nav.items.serviceLogs", path: "/maintenance", icon: Wrench, roles: ["MANAGER", "SAFETY_OFFICER"] },
+  { labelKey: "nav.items.fuelIntel", path: "/fuel-expenses", icon: Fuel, roles: ["MANAGER", "FINANCE_ANALYST"] },
+  { labelKey: "nav.items.crewGateway", path: "/drivers", icon: Users, roles: ["MANAGER", "SAFETY_OFFICER"] },
+  { labelKey: "nav.items.operationsIntel", path: "/analytics", icon: BarChart3, roles: ["MANAGER", "FINANCE_ANALYST"] },
 ];
 
-const PAGE_TITLES: Record<string, string> = {
-  "/dashboard": "Fleet Hub",
-  "/fleet": "Vehicle Registry",
-  "/dispatch": "Dispatch Control",
-  "/maintenance": "Service Station",
-  "/fuel-expenses": "Expense Ledger",
-  "/drivers": "Crew Gateway",
-  "/analytics": "Operations Intel",
-  "/profile": "My Profile",
-  "/settings": "System Config",
+const PAGE_TITLE_KEYS: Record<string, string> = {
+  "/dashboard": "nav.items.fleetHub",
+  "/fleet": "nav.items.vehicleRegistry",
+  "/dispatch": "nav.items.dispatchControl",
+  "/maintenance": "nav.items.serviceLogs",
+  "/fuel-expenses": "nav.items.fuelIntel",
+  "/drivers": "nav.items.crewGateway",
+  "/analytics": "nav.items.operationsIntel",
+  "/profile": "topBar.myProfile",
+  "/settings": "layout.systemConfig",
 };
 
 export default function Layout() {
+  const { t } = useTranslation();
   const location = useLocation();
   const navigate = useNavigate();
   const { user, logout } = useAuth();
@@ -73,11 +68,11 @@ export default function Layout() {
   }, []);
 
   useEffect(() => {
-    const section = PAGE_TITLES[location.pathname] || 
-                   NAV_ITEMS.find(item => location.pathname.startsWith(item.path))?.label ||
-                   "Intelligence in Motion";
-    document.title = `FleetFlow | ${section}`;
-  }, [location.pathname]);
+    const key = PAGE_TITLE_KEYS[location.pathname] ||
+                   NAV_ITEMS.find(item => location.pathname.startsWith(item.path))?.labelKey ||
+                   "layout.intelligenceInMotion";
+    document.title = `FleetFlow | ${t(key)}`;
+  }, [location.pathname, t]);
 
   const visibleNav = NAV_ITEMS.filter(item =>
     item.roles.length === 0 || (user && item.roles.includes(user.role))
@@ -116,23 +111,23 @@ export default function Layout() {
           <div className={`mx-4 mb-4 p-3.5 rounded-2xl border transition-colors ${
             isDark ? "bg-slate-900/50 border-slate-800/80 backdrop-blur-sm" : "bg-slate-50 border-slate-100"
           }`}>
-            <p className={`text-[10px] font-bold uppercase tracking-wider mb-3 ${isDark ? "text-blue-400" : "text-blue-600"}`}>Fleet Overview</p>
+            <p className={`text-[10px] font-bold uppercase tracking-wider mb-3 ${isDark ? "text-blue-400" : "text-blue-600"}`}>{t("layout.fleetOverview")}</p>
             <div className="grid grid-cols-2 gap-y-3 gap-x-2">
               <div className="text-center">
                 <p className={`text-xl font-extrabold ${isDark ? "text-slate-100" : "text-slate-900"}`}>{kpis.fleet.onTrip}</p>
-                <p className={`text-[10px] font-medium ${isDark ? "text-slate-500" : "text-slate-500"}`}>On Trip</p>
+                <p className={`text-[10px] font-medium ${isDark ? "text-slate-500" : "text-slate-500"}`}>{t("layout.onTrip")}</p>
               </div>
               <div className="text-center">
                 <p className={`text-xl font-extrabold ${isDark ? "text-teal-400" : "text-teal-600"}`}>{kpis.fleet.available}</p>
-                <p className={`text-[10px] font-medium ${isDark ? "text-slate-500" : "text-slate-500"}`}>Available</p>
+                <p className={`text-[10px] font-medium ${isDark ? "text-slate-500" : "text-slate-500"}`}>{t("layout.available")}</p>
               </div>
               <div className="text-center">
                 <p className={`text-xl font-extrabold ${isDark ? "text-amber-400" : "text-amber-600"}`}>{kpis.fleet.inShop}</p>
-                <p className={`text-[10px] font-medium ${isDark ? "text-slate-500" : "text-slate-500"}`}>In Shop</p>
+                <p className={`text-[10px] font-medium ${isDark ? "text-slate-500" : "text-slate-500"}`}>{t("layout.inShop")}</p>
               </div>
               <div className="text-center">
                 <p className={`text-xl font-extrabold ${isDark ? "text-slate-100" : "text-slate-900"}`}>{kpis.fleet.utilizationRate}</p>
-                <p className={`text-[10px] font-medium ${isDark ? "text-slate-500" : "text-slate-500"}`}>Utilization</p>
+                <p className={`text-[10px] font-medium ${isDark ? "text-slate-500" : "text-slate-500"}`}>{t("layout.utilization")}</p>
               </div>
             </div>
           </div>
@@ -146,13 +141,13 @@ export default function Layout() {
             {kpis.alerts.maintenanceAlerts > 0 && (
               <div className={`flex items-center gap-2 text-xs font-medium mb-1.5 ${isDark ? "text-amber-400" : "text-amber-700"}`}>
                 <AlertTriangle className="w-4 h-4" />
-                <span>{kpis.alerts.maintenanceAlerts} vehicles in shop</span>
+                <span>{t("layout.vehiclesInShop", { count: kpis.alerts.maintenanceAlerts })}</span>
               </div>
             )}
             {kpis.alerts.expiringLicenses > 0 && (
               <div className={`flex items-center gap-2 text-xs font-medium ${isDark ? "text-amber-400" : "text-amber-700"}`}>
                 <Shield className="w-4 h-4" />
-                <span>{kpis.alerts.expiringLicenses} licenses expiring</span>
+                <span>{t("layout.licensesExpiring", { count: kpis.alerts.expiringLicenses })}</span>
               </div>
             )}
           </div>
@@ -184,7 +179,7 @@ export default function Layout() {
                 }`}
               >
                 <item.icon className="w-5 h-5 shrink-0" />
-                {item.label}
+                {t(item.labelKey)}
               </Link>
             );
           })}
@@ -205,7 +200,7 @@ export default function Layout() {
               className={`w-10 h-10 rounded-full flex items-center justify-center transition-colors ${
                 isDark ? "text-slate-400 hover:bg-slate-800 hover:text-slate-100" : "text-slate-500 hover:bg-slate-100 hover:text-slate-900"
               }`}
-              title={isDark ? "Switch to light mode" : "Switch to dark mode"}
+              title={isDark ? t("common.switchToLight") : t("common.switchToDark")}
             >
               {isDark ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
             </button>
@@ -229,8 +224,8 @@ export default function Layout() {
                   <div className={`px-4 py-3 border-b font-bold text-sm flex items-center justify-between ${
                     isDark ? "border-slate-800 text-slate-100" : "border-slate-100 text-slate-900"
                   }`}>
-                    <span>Notifications</span>
-                    {kpis && <span className="text-[10px] px-2.5 py-1 rounded-full bg-red-500/10 text-red-500 font-bold uppercase tracking-wider">{kpis.alerts.maintenanceAlerts + kpis.alerts.expiringLicenses + kpis.alerts.suspendedDrivers + kpis.fleet.retired} New</span>}
+                    <span>{t("layout.notifications")}</span>
+                    {kpis && <span className="text-[10px] px-2.5 py-1 rounded-full bg-red-500/10 text-red-500 font-bold uppercase tracking-wider">{t("layout.notifNew", { count: kpis.alerts.maintenanceAlerts + kpis.alerts.expiringLicenses + kpis.alerts.suspendedDrivers + kpis.fleet.retired })}</span>}
                   </div>
                   <div className="max-h-64 overflow-y-auto">
                     {kpis && kpis.alerts.maintenanceAlerts > 0 && (
@@ -239,9 +234,9 @@ export default function Layout() {
                           <Wrench className="w-4 h-4 text-amber-500" />
                         </div>
                         <div>
-                          <p className={`text-sm font-medium ${isDark ? "text-white" : "text-neutral-900"}`}>Maintenance Alert</p>
-                          <p className={`text-xs mt-0.5 ${isDark ? "text-neutral-400" : "text-neutral-500"}`}>{kpis.alerts.maintenanceAlerts} vehicle{kpis.alerts.maintenanceAlerts > 1 ? "s" : ""} currently in the shop and require attention</p>
-                          <p className="text-[10px] text-amber-500 font-medium mt-1">High Priority</p>
+                          <p className={`text-sm font-medium ${isDark ? "text-white" : "text-neutral-900"}`}>{t("layout.maintenanceAlert")}</p>
+                          <p className={`text-xs mt-0.5 ${isDark ? "text-neutral-400" : "text-neutral-500"}`}>{t("layout.maintenanceAlertMsg", { count: kpis.alerts.maintenanceAlerts })}</p>
+                          <p className="text-[10px] text-amber-500 font-medium mt-1">{t("layout.highPriority")}</p>
                         </div>
                       </div>
                     )}
@@ -251,9 +246,9 @@ export default function Layout() {
                           <Shield className="w-4 h-4 text-red-500" />
                         </div>
                         <div>
-                          <p className={`text-sm font-medium ${isDark ? "text-white" : "text-neutral-900"}`}>License Expiry Warning</p>
-                          <p className={`text-xs mt-0.5 ${isDark ? "text-neutral-400" : "text-neutral-500"}`}>{kpis.alerts.expiringLicenses} driver license{kpis.alerts.expiringLicenses > 1 ? "s" : ""} expiring within 30 days</p>
-                          <p className="text-[10px] text-red-500 font-medium mt-1">Urgent</p>
+                          <p className={`text-sm font-medium ${isDark ? "text-white" : "text-neutral-900"}`}>{t("layout.licenseExpiryWarning")}</p>
+                          <p className={`text-xs mt-0.5 ${isDark ? "text-neutral-400" : "text-neutral-500"}`}>{t("layout.licenseExpiryMsg", { count: kpis.alerts.expiringLicenses })}</p>
+                          <p className="text-[10px] text-red-500 font-medium mt-1">{t("layout.urgent")}</p>
                         </div>
                       </div>
                     )}
@@ -263,9 +258,9 @@ export default function Layout() {
                           <AlertTriangle className="w-4 h-4 text-violet-500" />
                         </div>
                         <div>
-                          <p className={`text-sm font-medium ${isDark ? "text-white" : "text-neutral-900"}`}>Suspended Drivers</p>
-                          <p className={`text-xs mt-0.5 ${isDark ? "text-neutral-400" : "text-neutral-500"}`}>{kpis.alerts.suspendedDrivers} driver{kpis.alerts.suspendedDrivers > 1 ? "s" : ""} currently suspended from duty</p>
-                          <p className="text-[10px] text-violet-500 font-medium mt-1">Action Required</p>
+                          <p className={`text-sm font-medium ${isDark ? "text-white" : "text-neutral-900"}`}>{t("layout.suspendedDrivers")}</p>
+                          <p className={`text-xs mt-0.5 ${isDark ? "text-neutral-400" : "text-neutral-500"}`}>{t("layout.suspendedDriversMsg", { count: kpis.alerts.suspendedDrivers })}</p>
+                          <p className="text-[10px] text-violet-500 font-medium mt-1">{t("layout.actionRequired")}</p>
                         </div>
                       </div>
                     )}
@@ -275,21 +270,21 @@ export default function Layout() {
                           <Car className="w-4 h-4 text-neutral-500" />
                         </div>
                         <div>
-                          <p className={`text-sm font-medium ${isDark ? "text-white" : "text-neutral-900"}`}>Retired Vehicles</p>
-                          <p className={`text-xs mt-0.5 ${isDark ? "text-neutral-400" : "text-neutral-500"}`}>{kpis.fleet.retired} vehicle{kpis.fleet.retired > 1 ? "s" : ""} have been retired from the fleet</p>
-                          <p className="text-[10px] text-neutral-500 font-medium mt-1">Informational</p>
+                          <p className={`text-sm font-medium ${isDark ? "text-white" : "text-neutral-900"}`}>{t("layout.retiredVehicles")}</p>
+                          <p className={`text-xs mt-0.5 ${isDark ? "text-neutral-400" : "text-neutral-500"}`}>{t("layout.retiredVehiclesMsg", { count: kpis.fleet.retired })}</p>
+                          <p className="text-[10px] text-neutral-500 font-medium mt-1">{t("layout.informational")}</p>
                         </div>
                       </div>
                     )}
                     {kpis && kpis.fleet.inShop === 0 && kpis.alerts.expiringLicenses === 0 && kpis.alerts.suspendedDrivers === 0 && kpis.fleet.retired === 0 && (
                       <div className="px-4 py-8 text-center">
                         <Bell className={`w-8 h-8 mx-auto mb-2 ${isDark ? "text-neutral-600" : "text-neutral-300"}`} />
-                        <p className={`text-sm ${isDark ? "text-neutral-400" : "text-neutral-500"}`}>All clear — no alerts</p>
+                        <p className={`text-sm ${isDark ? "text-neutral-400" : "text-neutral-500"}`}>{t("layout.allClear")}</p>
                       </div>
                     )}
                   </div>
                   <div className={`px-4 py-3 border-t text-center ${isDark ? "border-slate-800 bg-slate-900/50" : "border-slate-100 bg-slate-50/50"}`}>
-                    <button onClick={() => { setShowNotifs(false); navigate("/dashboard"); }} className="text-xs text-blue-500 font-bold hover:text-blue-600 transition-colors">View Dashboard →</button>
+                    <button onClick={() => { setShowNotifs(false); navigate("/dashboard"); }} className="text-xs text-blue-500 font-bold hover:text-blue-600 transition-colors">{t("common.viewDashboard")}</button>
                   </div>
                 </div>
               )}
@@ -309,7 +304,7 @@ export default function Layout() {
                       {user?.fullName ?? "User"}
                     </p>
                     <p className={`text-[10px] font-medium leading-tight uppercase tracking-wide ${isDark ? "text-slate-500" : "text-slate-500"}`}>
-                      {ROLE_LABELS[user?.role ?? ""] ?? user?.role}
+                      {t(`roleLabelsShort.${user?.role ?? ""}`)}
                     </p>
                   </div>
                   <ChevronDown className={`w-4 h-4 ml-1 ${isDark ? "text-slate-500" : "text-slate-400"}`} />
@@ -320,21 +315,21 @@ export default function Layout() {
                   <p className="text-sm font-semibold text-slate-900">{user?.fullName}</p>
                   <p className="text-xs text-slate-500">{user?.email}</p>
                   <span className="inline-flex items-center mt-1.5 px-2 py-0.5 rounded-md text-[10px] font-semibold bg-emerald-50 text-emerald-700">
-                    {ROLE_LABELS[user?.role ?? ""] ?? user?.role}
+                    {t(`roleLabelsShort.${user?.role ?? ""}`)}
                   </span>
                 </div>
                 <DropdownMenuSeparator />
                 <DropdownMenuGroup>
                   <DropdownMenuItem onSelect={() => navigate("/profile")}>
-                    <User className="w-4 h-4 text-slate-400" /> Profile
+                    <User className="w-4 h-4 text-slate-400" /> {t("common.profile")}
                   </DropdownMenuItem>
                   <DropdownMenuItem onSelect={() => navigate("/settings")}>
-                    <Settings className="w-4 h-4 text-slate-400" /> Settings
+                    <Settings className="w-4 h-4 text-slate-400" /> {t("common.settings")}
                   </DropdownMenuItem>
                 </DropdownMenuGroup>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem destructive onSelect={handleLogout}>
-                  <LogOut className="w-4 h-4" /> Log out
+                  <LogOut className="w-4 h-4" /> {t("common.logout")}
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>

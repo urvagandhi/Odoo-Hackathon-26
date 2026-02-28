@@ -4,6 +4,7 @@
  * Roles: MANAGER, FINANCE_ANALYST
  */
 import { useState, useEffect, useCallback } from "react";
+import { useTranslation } from "react-i18next";
 import { motion } from "framer-motion";
 import {
   FileText,
@@ -46,6 +47,7 @@ interface VehicleROI {
 
 export default function FinancialReports() {
   const { isDark } = useTheme();
+  const { t } = useTranslation();
   const currentYear = new Date().getFullYear();
   const [year, setYear] = useState(currentYear);
   const [monthly, setMonthly] = useState<MonthRow[]>([]);
@@ -129,10 +131,10 @@ export default function FinancialReports() {
           </div>
           <div>
             <h1 className={`text-xl font-bold ${isDark ? "text-white" : "text-slate-900"}`}>
-              Financial Reports
+              {t("financialReports.title")}
             </h1>
             <p className={`text-sm ${isDark ? "text-neutral-400" : "text-slate-500"}`}>
-              Revenue, costs, fuel efficiency & vehicle ROI
+              {t("financialReports.subtitle")}
             </p>
           </div>
         </div>
@@ -151,7 +153,7 @@ export default function FinancialReports() {
             className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-medium transition-colors"
           >
             <Download className="w-4 h-4" />
-            Export CSV
+            {t("financialReports.exportCSV")}
           </button>
         </div>
       </div>
@@ -159,9 +161,9 @@ export default function FinancialReports() {
       {/* Summary cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
         {[
-          { label: "Total Revenue", value: `₹${totalRevenue.toLocaleString()}`, icon: TrendingUp, color: "text-emerald-500" },
-          { label: "Total Costs", value: `₹${totalCost.toLocaleString()}`, icon: TrendingDown, color: "text-red-500" },
-          { label: "Net Profit", value: `₹${netProfit.toLocaleString()}`, icon: DollarSign, color: netProfit >= 0 ? "text-emerald-500" : "text-red-500" },
+          { label: t("financialReports.summary.totalRevenue"), value: `₹${totalRevenue.toLocaleString()}`, icon: TrendingUp, color: "text-emerald-500" },
+          { label: t("financialReports.summary.totalCosts"), value: `₹${totalCost.toLocaleString()}`, icon: TrendingDown, color: "text-red-500" },
+          { label: t("financialReports.summary.netProfit"), value: `₹${netProfit.toLocaleString()}`, icon: DollarSign, color: netProfit >= 0 ? "text-emerald-500" : "text-red-500" },
         ].map((s) => (
           <motion.div
             key={s.label}
@@ -178,9 +180,9 @@ export default function FinancialReports() {
 
       {/* Tabs */}
       <div className="flex gap-2 mb-4">
-        <button className={tabCls(tab === "pnl")} onClick={() => setTab("pnl")}>P&L Monthly</button>
-        <button className={tabCls(tab === "fuel")} onClick={() => setTab("fuel")}>Fuel Efficiency</button>
-        <button className={tabCls(tab === "roi")} onClick={() => setTab("roi")}>Vehicle ROI</button>
+        <button className={tabCls(tab === "pnl")} onClick={() => setTab("pnl")}>{t("financialReports.tabs.pnl")}</button>
+        <button className={tabCls(tab === "fuel")} onClick={() => setTab("fuel")}>{t("financialReports.tabs.fuelEfficiency")}</button>
+        <button className={tabCls(tab === "roi")} onClick={() => setTab("roi")}>{t("financialReports.tabs.roi")}</button>
       </div>
 
       {loading ? (
@@ -195,19 +197,19 @@ export default function FinancialReports() {
               <table className="w-full text-sm">
                 <thead>
                   <tr className={isDark ? "text-neutral-400 border-b border-neutral-700" : "text-slate-500 border-b border-slate-200"}>
-                    <th className="text-left px-4 py-3 font-medium">Month</th>
-                    <th className="text-right px-4 py-3 font-medium">Revenue</th>
-                    <th className="text-right px-4 py-3 font-medium">Fuel</th>
-                    <th className="text-right px-4 py-3 font-medium">Maintenance</th>
-                    <th className="text-right px-4 py-3 font-medium">Other</th>
-                    <th className="text-right px-4 py-3 font-medium">Profit</th>
-                    <th className="text-right px-4 py-3 font-medium">Trips</th>
+                    <th className="text-left px-4 py-3 font-medium">{t("financialReports.pnlColumns.month")}</th>
+                    <th className="text-right px-4 py-3 font-medium">{t("financialReports.pnlColumns.revenue")}</th>
+                    <th className="text-right px-4 py-3 font-medium">{t("financialReports.pnlColumns.fuel")}</th>
+                    <th className="text-right px-4 py-3 font-medium">{t("financialReports.pnlColumns.maintenance")}</th>
+                    <th className="text-right px-4 py-3 font-medium">{t("financialReports.pnlColumns.other")}</th>
+                    <th className="text-right px-4 py-3 font-medium">{t("financialReports.pnlColumns.profit")}</th>
+                    <th className="text-right px-4 py-3 font-medium">{t("financialReports.pnlColumns.trips")}</th>
                   </tr>
                 </thead>
                 <tbody>
                   {monthly.length === 0 ? (
                     <tr>
-                      <td colSpan={7} className="text-center py-10 text-sm opacity-50">No data for {year}</td>
+                      <td colSpan={7} className="text-center py-10 text-sm opacity-50">{t("financialReports.noDataForYear", { year })}</td>
                     </tr>
                   ) : (
                     monthly.map((m) => {
@@ -238,7 +240,7 @@ export default function FinancialReports() {
               {fuel.length === 0 ? (
                 <div className="col-span-full text-center py-16">
                   <Fuel className={`w-12 h-12 mx-auto mb-3 ${isDark ? "text-neutral-600" : "text-slate-300"}`} />
-                  <p className={`text-sm ${isDark ? "text-neutral-400" : "text-slate-500"}`}>No fuel efficiency data.</p>
+                  <p className={`text-sm ${isDark ? "text-neutral-400" : "text-slate-500"}`}>{t("financialReports.fuelEfficiency.noData")}</p>
                 </div>
               ) : (
                 fuel.map((v) => (
@@ -252,15 +254,15 @@ export default function FinancialReports() {
                     <div className="grid grid-cols-3 gap-2 mt-3 text-center">
                       <div>
                         <p className="text-lg font-bold text-emerald-500">{Number(v.avgKmPerLiter ?? 0).toFixed(1)}</p>
-                        <p className={`text-[10px] ${isDark ? "text-neutral-500" : "text-slate-400"}`}>km/L</p>
+                        <p className={`text-[10px] ${isDark ? "text-neutral-500" : "text-slate-400"}`}>{t("financialReports.fuelEfficiency.kmPerL")}</p>
                       </div>
                       <div>
                         <p className={`text-lg font-bold ${isDark ? "text-white" : "text-slate-900"}`}>{Number(v.totalLiters ?? 0).toFixed(0)}L</p>
-                        <p className={`text-[10px] ${isDark ? "text-neutral-500" : "text-slate-400"}`}>Total Fuel</p>
+                        <p className={`text-[10px] ${isDark ? "text-neutral-500" : "text-slate-400"}`}>{t("financialReports.fuelEfficiency.totalFuel")}</p>
                       </div>
                       <div>
                         <p className="text-lg font-bold text-red-400 font-mono">₹{Number(v.totalFuelCost ?? 0).toLocaleString()}</p>
-                        <p className={`text-[10px] ${isDark ? "text-neutral-500" : "text-slate-400"}`}>Fuel Cost</p>
+                        <p className={`text-[10px] ${isDark ? "text-neutral-500" : "text-slate-400"}`}>{t("financialReports.fuelEfficiency.fuelCost")}</p>
                       </div>
                     </div>
                   </motion.div>
@@ -275,16 +277,16 @@ export default function FinancialReports() {
               <table className="w-full text-sm">
                 <thead>
                   <tr className={isDark ? "text-neutral-400 border-b border-neutral-700" : "text-slate-500 border-b border-slate-200"}>
-                    <th className="text-left px-4 py-3 font-medium">Vehicle</th>
-                    <th className="text-right px-4 py-3 font-medium">Revenue</th>
-                    <th className="text-right px-4 py-3 font-medium">Cost</th>
-                    <th className="text-right px-4 py-3 font-medium">ROI %</th>
+                    <th className="text-left px-4 py-3 font-medium">{t("financialReports.roiColumns.vehicle")}</th>
+                    <th className="text-right px-4 py-3 font-medium">{t("financialReports.roiColumns.revenue")}</th>
+                    <th className="text-right px-4 py-3 font-medium">{t("financialReports.roiColumns.cost")}</th>
+                    <th className="text-right px-4 py-3 font-medium">{t("financialReports.roiColumns.roi")}</th>
                   </tr>
                 </thead>
                 <tbody>
                   {roi.length === 0 ? (
                     <tr>
-                      <td colSpan={4} className="text-center py-10 text-sm opacity-50">No ROI data.</td>
+                      <td colSpan={4} className="text-center py-10 text-sm opacity-50">{t("financialReports.noRoiData")}</td>
                     </tr>
                   ) : (
                     roi.map((v) => (

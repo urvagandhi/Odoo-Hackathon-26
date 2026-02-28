@@ -1,0 +1,1303 @@
+{
+  "common": {
+    "appName": "FleetFlow",
+    "save": "સાચવો",
+    "cancel": "રદ કરો",
+    "delete": "કાઢી નાખો",
+    "create": "બનાવો",
+    "update": "અપડેટ કરો",
+    "edit": "ફેરફાર કરો",
+    "add": "ઉમેરો",
+    "close": "બંધ કરો",
+    "search": "શોધો",
+    "loading": "લોડ થઈ રહ્યું છે…",
+    "saving": "સાચવી રહ્યું છે...",
+    "updating": "અપડેટ થઈ રહ્યું છે...",
+    "back": "પાછળ",
+    "next": "આગળ",
+    "yes": "હા",
+    "no": "ના",
+    "all": "બધા",
+    "export": "નિકાસ",
+    "refresh": "રિફ્રેશ",
+    "logout": "લૉગ આઉટ",
+    "actions": "ક્રિયાઓ",
+    "noData": "કોઈ ડેટા ઉપલબ્ધ નથી",
+    "page": "પૃષ્ઠ",
+    "of": "માંથી",
+    "records": "રેકોર્ડ(ઓ)",
+    "total": "કુલ"
+  },
+  "roles": {
+    "MANAGER": "ફ્લીટ મેનેજર",
+    "DISPATCHER": "ટ્રિપ ડિસ્પેચર",
+    "SAFETY_OFFICER": "સુરક્ષા અધિકારી",
+    "FINANCE_ANALYST": "નાણાં વિશ્લેષક",
+    "DRIVER": "ડ્રાઇવર"
+  },
+  "roleLabelsShort": {
+    "MANAGER": "મેનેજર",
+    "DISPATCHER": "ડિસ્પેચર",
+    "SAFETY_OFFICER": "સુરક્ષા અધિકારી",
+    "FINANCE_ANALYST": "નાણાં વિશ્લેષક",
+    "DRIVER": "ડ્રાઇવર"
+  },
+  "nav": {
+    "sections": {
+      "mainMenu": "મુખ્ય મેનૂ",
+      "general": "સામાન્ય",
+      "others": "અન્ય",
+      "fleet": "ફ્લીટ",
+      "safety": "સુરક્ષા",
+      "maintenance": "જાળવણી",
+      "finance": "નાણાં",
+      "reports": "અહેવાલો"
+    },
+    "items": {
+      "fleetHub": "ફ્લીટ હબ",
+      "vehicleRegistry": "વાહન નોંધણી",
+      "dispatchControl": "ડિસ્પેચ નિયંત્રણ",
+      "communications": "સંદેશાવ્યવહાર",
+      "operationalFeed": "સંચાલન ફીડ",
+      "financialReports": "નાણાકીય અહેવાલો",
+      "helpCenter": "સહાય કેન્દ્ર",
+      "myIdentity": "મારી ઓળખ",
+      "settings": "સેટિંગ્સ",
+      "tripLedger": "ટ્રિપ ખાતાવહી",
+      "initiateTrip": "ટ્રિપ શરૂ કરો",
+      "fleetCatalog": "ફ્લીટ સૂચિ",
+      "crewRecords": "ક્રૂ રેકોર્ડ",
+      "alertCenter": "ચેતવણી કેન્દ્ર",
+      "safetyLog": "સુરક્ષા લૉગ",
+      "crewScores": "ક્રૂ સ્કોર",
+      "serviceLogs": "સેવા લૉગ",
+      "incidentIntel": "ઘટના માહિતી",
+      "revenueStream": "આવક પ્રવાહ",
+      "fuelIntel": "ઈંધણ માહિતી",
+      "profitLoss": "નફો અને નુકસાન",
+      "costIntel": "ખર્ચ માહિતી",
+      "operationsIntel": "સંચાલન માહિતી",
+      "crewGateway": "ક્રૂ ગેટવે"
+    }
+  },
+  "topBar": {
+    "pageTitles": {
+      "MANAGER": "ફ્લીટ વ્યવસ્થાપન",
+      "DISPATCHER": "ટ્રિપ ડિસ્પેચ",
+      "SAFETY_OFFICER": "સુરક્ષા કેન્દ્ર",
+      "FINANCE_ANALYST": "નાણાકીય અહેવાલો"
+    },
+    "myProfile": "મારી પ્રોફાઇલ"
+  },
+  "auth": {
+    "login": {
+      "pageTitle": "FleetFlow | સાઇન ઇન",
+      "heroTitle": "ફ્લીટ વ્યવસ્થાપન",
+      "heroSubtitle": "બુદ્ધિશાળી બનાવ્યું",
+      "heroDescription": "રીઅલ-ટાઇમ ટ્રેકિંગ, ડિસ્પેચ ઑપ્ટિમાઇઝેશન, અને વ્યાપક ફ્લીટ એનાલિટિક્સ — બધું એક જ પ્લેટફોર્મ પર.",
+      "featureAnalytics": "એનાલિટિક્સ",
+      "featureSecure": "સુરક્ષિત",
+      "featureRealtime": "રીઅલ-ટાઇમ",
+      "statVehicles": "વાહનો",
+      "statCountries": "દેશો",
+      "statUptime": "અપટાઇમ",
+      "welcomeBack": "ફરી પધારો",
+      "signInSubtitle": "તમારા FleetFlow એકાઉન્ટમાં સાઇન ઇન કરો",
+      "emailLabel": "ઈમેઇલ",
+      "emailPlaceholder": "your@email.com",
+      "passwordLabel": "પાસવર્ડ",
+      "passwordPlaceholder": "પાસવર્ડ દાખલ કરો",
+      "forgotPassword": "પાસવર્ડ ભૂલી ગયા?",
+      "signIn": "સાઇન ઇન",
+      "quickAccess": "ઝડપી ઍક્સેસ (પરીક્ષણ)",
+      "quickLoginFailed": "ઝડપી લૉગિન નિષ્ફળ.",
+      "noAccount": "એકાઉન્ટ નથી? તમારા વ્યવસ્થાપકનો સંપર્ક કરો.",
+      "switchToLight": "લાઇટ મોડ પર સ્વિચ કરો",
+      "switchToDark": "ડાર્ક મોડ પર સ્વિચ કરો"
+    },
+    "forgotPassword": {
+      "title": "તમારો પાસવર્ડ ભૂલી ગયા?",
+      "description": "તમારો ઈમેઇલ દાખલ કરો અને અમે તમને પાસવર્ડ રીસેટ લિંક મોકલીશું.",
+      "emailLabel": "ઈમેઇલ સરનામું",
+      "emailPlaceholder": "your@email.com",
+      "submit": "રીસેટ લિંક મોકલો",
+      "successMessage": "જો આ ઈમેઇલ સાથે કોઈ એકાઉન્ટ હોય, તો પાસવર્ડ રીસેટ લિંક મોકલવામાં આવી છે.",
+      "devModeLabel": "DEV MODE — રીસેટ લિંક:",
+      "backToLogin": "લૉગિન પર પાછા જાઓ"
+    },
+    "resetPassword": {
+      "title": "તમારો પાસવર્ડ રીસેટ કરો",
+      "description": "નીચે તમારો નવો પાસવર્ડ દાખલ કરો.",
+      "newPasswordLabel": "નવો પાસવર્ડ",
+      "newPasswordPlaceholder": "ઓછામાં ઓછા 8 અક્ષરો, 1 મોટો અક્ષર, 1 અંક",
+      "confirmPasswordLabel": "નવા પાસવર્ડની પુષ્ટિ કરો",
+      "confirmPasswordPlaceholder": "નવો પાસવર્ડ ફરીથી દાખલ કરો",
+      "submit": "પાસવર્ડ રીસેટ કરો",
+      "missingToken": "રીસેટ ટોકન ખૂટે છે. કૃપા કરીને તમારા ઈમેઇલની લિંક વાપરો.",
+      "successTitle": "પાસવર્ડ રીસેટ થયો!",
+      "successMessage": "3 સેકન્ડમાં તમને લૉગિન પર લઈ જવામાં આવશે…",
+      "backToLogin": "લૉગિન પર પાછા જાઓ"
+    },
+    "validation": {
+      "minChars": "પાસવર્ડ ઓછામાં ઓછા 8 અક્ષરોનો હોવો જોઈએ",
+      "uppercase": "ઓછામાં ઓછો એક મોટો અક્ષર હોવો જોઈએ",
+      "number": "ઓછામાં ઓછો એક અંક હોવો જોઈએ",
+      "mismatch": "પાસવર્ડ મેળ ખાતા નથી"
+    }
+  },
+  "settings": {
+    "title": "સેટિંગ્સ",
+    "subtitle": "તમારી પસંદગીઓ અને એકાઉન્ટ મેનેજ કરો",
+    "tabs": {
+      "account": "એકાઉન્ટ",
+      "security": "સુરક્ષા",
+      "notifications": "સૂચનાઓ",
+      "appearance": "દેખાવ"
+    },
+    "account": {
+      "profileInfo": "પ્રોફાઇલ માહિતી",
+      "profileInfoDesc": "તમારી વ્યક્તિગત માહિતી અપડેટ કરો",
+      "firstName": "પ્રથમ નામ",
+      "lastName": "અટક",
+      "email": "ઈમેઇલ સરનામું",
+      "phone": "ફોન",
+      "location": "સ્થાન",
+      "bio": "પરિચય",
+      "dangerZone": "ખતરનાક ઝોન",
+      "dangerZoneDesc": "ઉલટાવી ન શકાય તેવી ક્રિયાઓ",
+      "deleteAccount": "એકાઉન્ટ કાઢી નાખો",
+      "deleteAccountDesc": "તમારું એકાઉન્ટ અને સંકળાયેલ તમામ ડેટા કાયમ માટે કાઢી નાખો.",
+      "deleteRestricted": "એકાઉન્ટ ડિલીશન પ્રતિબંધિત છે. તમારા ફ્લીટ મેનેજરનો સંપર્ક કરો.",
+      "actionRestricted": "ક્રિયા પ્રતિબંધિત",
+      "profileSaved": "પ્રોફાઇલ સાચવવામાં આવી",
+      "profileSavedMsg": "પ્રોફાઇલ સફળતાપૂર્વક અપડેટ થઈ.",
+      "updateFailed": "અપડેટ નિષ્ફળ",
+      "updateFailedMsg": "પ્રોફાઇલ અપડેટ કરવામાં નિષ્ફળ.",
+      "validationError": "માન્યતા ભૂલ",
+      "fullNameMin": "પૂરું નામ ઓછામાં ઓછા 2 અક્ષરોનું હોવું જોઈએ.",
+      "invalidEmail": "કૃપા કરીને માન્ય ઈમેઇલ સરનામું દાખલ કરો."
+    },
+    "security": {
+      "changePassword": "પાસવર્ડ બદલો",
+      "changePasswordDesc": "વધુ સારી સુરક્ષા માટે નિયમિતપણે તમારો પાસવર્ડ બદલો",
+      "currentPassword": "વર્તમાન પાસવર્ડ",
+      "newPassword": "નવો પાસવર્ડ",
+      "confirmNewPassword": "નવા પાસવર્ડની પુષ્ટિ કરો",
+      "passwordPlaceholder": "••••••••",
+      "passwordUpdated": "પાસવર્ડ અપડેટ થયો",
+      "passwordUpdatedMsg": "પાસવર્ડ સફળતાપૂર્વક બદલાયો.",
+      "fillBothFields": "કૃપા કરીને બંને પાસવર્ડ ફીલ્ડ ભરો.",
+      "passwordsMismatch": "નવા પાસવર્ડ મેળ ખાતા નથી.",
+      "minChars": "નવો પાસવર્ડ ઓછામાં ઓછા 8 અક્ષરોનો હોવો જોઈએ.",
+      "needUppercase": "ઓછામાં ઓછો એક મોટો અક્ષર હોવો જોઈએ.",
+      "needNumber": "ઓછામાં ઓછો એક અંક હોવો જોઈએ.",
+      "reqMinChars": "ઓછામાં ઓછા 8 અક્ષરો",
+      "reqUppercase": "એક મોટો અક્ષર",
+      "reqNumber": "એક અંક",
+      "twoFactorAuth": "ટુ-ફેક્ટર ઓથેન્ટિકેશન",
+      "twoFactorAuthDesc": "સુરક્ષાનું વધારાનું સ્તર ઉમેરો",
+      "authenticatorApp": "ઓથેન્ટિકેટર એપ",
+      "authenticatorAppDesc": "કોડ જનરેટ કરવા માટે ઓથેન્ટિકેટર એપનો ઉપયોગ કરો",
+      "activeSessions": "સક્રિય સત્રો",
+      "activeSessionsDesc": "નવા સાઇન-ઇન માટે ચેતવણી મેળવો"
+    },
+    "notifications": {
+      "title": "સૂચના પસંદગીઓ",
+      "titleDesc": "તમે કઈ સૂચનાઓ મેળવવા માંગો છો તે પસંદ કરો",
+      "emailNotifications": "ઈમેઇલ સૂચનાઓ",
+      "emailNotificationsDesc": "તમારી પ્રવૃત્તિ વિશે ઈમેઇલ અપડેટ્સ મેળવો",
+      "pushNotifications": "પુશ સૂચનાઓ",
+      "pushNotificationsDesc": "તમારા ઉપકરણો પર પુશ સૂચનાઓ મેળવો",
+      "weeklyDigest": "સાપ્તાહિક સારાંશ",
+      "weeklyDigestDesc": "દર અઠવાડિયે પ્રવૃત્તિનો સારાંશ મેળવો",
+      "marketingEmails": "માર્કેટિંગ ઈમેઇલ",
+      "marketingEmailsDesc": "સમાચાર, અપડેટ્સ અને ઑફર્સ મેળવો",
+      "securityAlerts": "સુરક્ષા ચેતવણીઓ",
+      "securityAlertsDesc": "તમારા એકાઉન્ટની સુરક્ષા વિશે મહત્વપૂર્ણ ચેતવણીઓ",
+      "teamUpdates": "ટીમ અપડેટ્સ",
+      "teamUpdatesDesc": "તમારી ટીમના સભ્યો અને પ્રોજેક્ટ્સના અપડેટ્સ",
+      "preferencesSaved": "પસંદગીઓ સાચવવામાં આવી",
+      "preferencesSavedMsg": "સૂચના પસંદગીઓ સાચવવામાં આવી."
+    },
+    "appearance": {
+      "theme": "થીમ",
+      "themeDesc": "તમારી પસંદગીની થીમ પસંદ કરો",
+      "light": "લાઇટ",
+      "lightDesc": "ડિફૉલ્ટ લાઇટ થીમ",
+      "dark": "ડાર્ક",
+      "darkDesc": "આંખો માટે આરામદાયક",
+      "system": "સિસ્ટમ",
+      "systemDesc": "OS ની પસંદગી અનુસરો",
+      "active": "સક્રિય",
+      "languageDisplay": "ભાષા અને ડિસ્પ્લે",
+      "languageDisplayDesc": "ભાષા અને ડિસ્પ્લે પસંદગીઓ",
+      "language": "ભાષા",
+      "compactMode": "કોમ્પેક્ટ મોડ",
+      "compactModeDesc": "ગાઢ લેઆઉટ માટે અંતર અને પેડિંગ ઘટાડો",
+      "preferencesSaved": "પસંદગીઓ સાચવવામાં આવી",
+      "preferencesSavedMsg": "દેખાવ પસંદગીઓ સાચવવામાં આવી."
+    }
+  },
+  "profile": {
+    "accountDetails": "એકાઉન્ટ વિગતો",
+    "fullName": "પૂરું નામ",
+    "email": "ઈમેઇલ",
+    "role": "ભૂમિકા",
+    "userId": "વપરાશકર્તા ID",
+    "yourCapabilities": "તમારી ક્ષમતાઓ",
+    "online": "ઑનલાઇન",
+    "kpi": {
+      "totalVehicles": "કુલ વાહનો",
+      "activeTrips": "સક્રિય ટ્રિપ્સ",
+      "fleetUtilization": "ફ્લીટ ઉપયોગ",
+      "alerts": "ચેતવણીઓ"
+    },
+    "capabilities": {
+      "MANAGER": [
+        "સંપૂર્ણ ફ્લીટ દેખરેખ અને વાહન વ્યવસ્થાપન",
+        "વપરાશકર્તા વ્યવસ્થાપન (બનાવો, નિષ્ક્રિય કરો)",
+        "તમામ એનાલિટિક્સ અને નાણાકીય અહેવાલો જુઓ",
+        "ડિસ્પેચ અને જાળવણી ક્રિયાઓ મંજૂર કરો",
+        "પ્રતિબંધ વિના તમામ મોડ્યુલ ઍક્સેસ કરો"
+      ],
+      "DISPATCHER": [
+        "ટ્રિપ્સ અને સોંપણીઓ બનાવો અને મેનેજ કરો",
+        "વાહન ઉપલબ્ધતા અને ડ્રાઇવર પૂલ જુઓ",
+        "ટ્રિપ સ્થિતિ બદલો (ડ્રાફ્ટ → ડિસ્પેચ → પૂર્ણ)",
+        "વેપૉઇન્ટ ઉમેરો અને રૂટ ટ્રેક કરો"
+      ],
+      "SAFETY_OFFICER": [
+        "ડ્રાઇવર ઓળખપત્ર અને લાઇસન્સ વ્યવસ્થાપન",
+        "વાહન નિરીક્ષણ અને જાળવણી લૉગિંગ",
+        "ઘટના અહેવાલ બનાવવો અને તપાસ",
+        "સુરક્ષા સ્કોર ગોઠવણો",
+        "ડ્રાઇવર સ્થિતિ વ્યવસ્થાપન (સસ્પેન્ડ/પુનઃસક્રિય)"
+      ],
+      "FINANCE_ANALYST": [
+        "ઈંધણ લૉગ એન્ટ્રી અને ખર્ચ ટ્રેકિંગ",
+        "આવક, ખર્ચ અને નફાના અહેવાલો જુઓ",
+        "માસિક નાણાકીય અહેવાલ તૈયાર કરો",
+        "વાહન ROI અને ઈંધણ કાર્યક્ષમતા વિશ્લેષણ",
+        "ટ્રિપ ડેટા CSV માં નિકાસ કરો"
+      ]
+    }
+  },
+  "fleet": {
+    "title": "વાહન નોંધણી",
+    "vehiclesInFleet": "ફ્લીટમાં {{count}} વાહનો",
+    "addVehicle": "વાહન ઉમેરો",
+    "searchPlaceholder": "પ્લેટ, બ્રાન્ડ, મોડેલ શોધો…",
+    "status": {
+      "AVAILABLE": "ઉપલબ્ધ",
+      "ON_TRIP": "ટ્રિપ પર",
+      "IN_SHOP": "સમારકામમાં",
+      "RETIRED": "નિવૃત્ત"
+    },
+    "columns": {
+      "vehicle": "વાહન",
+      "type": "પ્રકાર",
+      "licensePlate": "લાઇસન્સ પ્લેટ",
+      "capacity": "ક્ષમતા",
+      "odometer": "ઓડોમીટર",
+      "status": "સ્થિતિ",
+      "actions": "ક્રિયાઓ"
+    },
+    "noVehicles": "કોઈ વાહન મળ્યું નથી",
+    "editVehicle": "વાહન ફેરફાર કરો",
+    "addNewVehicle": "નવું વાહન ઉમેરો",
+    "form": {
+      "make": "બ્રાન્ડ",
+      "model": "મોડેલ",
+      "year": "વર્ષ",
+      "color": "રંગ",
+      "licensePlate": "લાઇસન્સ પ્લેટ",
+      "vin": "VIN",
+      "vehicleType": "વાહન પ્રકાર",
+      "capacity": "ક્ષમતા (કિ.ગ્રા.)",
+      "odometer": "વર્તમાન ઓડોમીટર (કિ.મી.)",
+      "selectType": "પ્રકાર પસંદ કરો",
+      "makePlaceholder": "Toyota",
+      "modelPlaceholder": "Land Cruiser",
+      "colorPlaceholder": "સફેદ",
+      "platePlaceholder": "MH01AB1234",
+      "vinPlaceholder": "વૈકલ્પિક"
+    },
+    "createVehicle": "વાહન બનાવો",
+    "updateVehicle": "વાહન અપડેટ કરો",
+    "retireVehicle": "વાહન નિવૃત્ત કરવું?",
+    "retireVehicleDesc": "આ {{plate}} ને નિવૃત્ત તરીકે ચિહ્નિત કરશે. તે હવે ડિસ્પેચ માટે ઉપલબ્ધ રહેશે નહીં.",
+    "toast": {
+      "updated": "વાહનની વિગતો સફળતાપૂર્વક અપડેટ થઈ.",
+      "updatedTitle": "સફળતા",
+      "created": "ફ્લીટમાં નવું વાહન ઉમેરવામાં આવ્યું.",
+      "createdTitle": "વાહન નોંધાયું",
+      "retired": "વાહન સક્રિય ફ્લીટમાંથી નિવૃત્ત કરવામાં આવ્યું.",
+      "retireFailed": "વાહન નિવૃત્ત કરી શકાયું નહીં.",
+      "statusUpdated": "સ્થિતિ અપડેટ થઈ",
+      "statusFailed": "વાહનની સ્થિતિ અપડેટ કરવામાં નિષ્ફળ."
+    }
+  },
+  "dispatch": {
+    "title": "ડિસ્પેચ નિયંત્રણ",
+    "tripsTotal": "કુલ {{count}} ટ્રિપ્સ",
+    "newTrip": "નવી ટ્રિપ",
+    "searchPlaceholder": "ટ્રિપ્સ શોધો…",
+    "status": {
+      "DRAFT": "ડ્રાફ્ટ",
+      "DISPATCHED": "ડિસ્પેચ થયેલ",
+      "COMPLETED": "પૂર્ણ",
+      "CANCELLED": "રદ"
+    },
+    "noTrips": "કોઈ ટ્રિપ મળી નથી",
+    "detail": {
+      "vehicle": "વાહન",
+      "driver": "ડ્રાઇવર",
+      "cargo": "કાર્ગો",
+      "distance": "અંતર (અંદાજિત)",
+      "revenue": "આવક",
+      "dispatched": "ડિસ્પેચ થયેલ",
+      "client": "ગ્રાહક"
+    },
+    "actions": {
+      "dispatch": "ડિસ્પેચ",
+      "complete": "પૂર્ણ",
+      "cancel": "રદ કરો"
+    },
+    "dispatchTrip": "ટ્રિપ ડિસ્પેચ કરવી?",
+    "dispatchTripDesc": "આ ડ્રાઇવરને સૂચિત કરશે અને વાહનને ટ્રિપ પર તરીકે ચિહ્નિત કરશે.",
+    "createTrip": "નવી ટ્રિપ બનાવો",
+    "form": {
+      "vehicle": "વાહન",
+      "driver": "ડ્રાઇવર",
+      "origin": "ઉદ્ગમ સ્થાન",
+      "destination": "ગંતવ્ય",
+      "distance": "અંતર (કિ.મી.)",
+      "cargoWeight": "કાર્ગો વજન (કિ.ગ્રા.)",
+      "revenue": "આવક (₹)",
+      "cargoDescription": "કાર્ગો વર્ણન",
+      "clientName": "ગ્રાહક નામ",
+      "selectVehicle": "ઉપલબ્ધ વાહન પસંદ કરો",
+      "selectDriver": "ફરજ પરના ડ્રાઇવર પસંદ કરો",
+      "originPlaceholder": "મુંબઈ, મહારાષ્ટ્ર",
+      "destinationPlaceholder": "પુણે, મહારાષ્ટ્ર"
+    },
+    "map": {
+      "calculatingRoute": "ટૂંકામાં ટૂંકો માર્ગ ગણતરી કરી રહ્યા છીએ…",
+      "selectTrip": "ટ્રિપ પસંદ કરો",
+      "selectTripDesc": "નકશા પર તેનો માર્ગ જોવા માટે કોઈપણ ટ્રિપ પર ક્લિક કરો"
+    },
+    "toast": {
+      "created": "નવી ટ્રિપ ડ્રાફ્ટમાં ઉમેરવામાં આવી.",
+      "transitioned": "ટ્રિપ સફળતાપૂર્વક {{status}} સ્થિતિમાં ખસેડવામાં આવી.",
+      "transitionFailed": "ટ્રિપ સ્થિતિ બદલવામાં નિષ્ફળ."
+    }
+  },
+  "drivers": {
+    "title": "ક્રૂ રેકોર્ડ",
+    "stats": "{{total}} ડ્રાઇવર · {{onDuty}} ફરજ પર · {{onTrip}} ટ્રિપ પર",
+    "exportCSV": "CSV નિકાસ",
+    "addDriver": "ડ્રાઇવર ઉમેરો",
+    "kpi": {
+      "totalDrivers": "કુલ ડ્રાઇવરો",
+      "onDuty": "ફરજ પર",
+      "onTrip": "ટ્રિપ પર",
+      "suspended": "સસ્પેન્ડેડ",
+      "avgSafetyScore": "સરેરાશ સુરક્ષા સ્કોર"
+    },
+    "expiringLicenses": "{{count}} લાઇસન્સ 30 દિવસમાં સમાપ્ત થઈ રહ્યા છે",
+    "searchPlaceholder": "નામ, લાઇસન્સ, ઈમેઇલ શોધો…",
+    "status": {
+      "ON_DUTY": "ફરજ પર",
+      "OFF_DUTY": "ફરજ બહાર",
+      "ON_TRIP": "ટ્રિપ પર",
+      "SUSPENDED": "સસ્પેન્ડેડ"
+    },
+    "columns": {
+      "driver": "ડ્રાઇવર",
+      "license": "લાઇસન્સ",
+      "safety": "સુરક્ષા",
+      "licenseExpiry": "લાઇસન્સ સમાપ્તિ",
+      "status": "સ્થિતિ",
+      "actions": "ક્રિયાઓ"
+    },
+    "noDrivers": "કોઈ ડ્રાઇવર મળ્યા નથી",
+    "selectDriver": "ડ્રાઇવર પસંદ કરો",
+    "selectDriverDesc": "વિગતો જોવા માટે કોઈ પંક્તિ પર ક્લિક કરો",
+    "detail": {
+      "license": "લાઇસન્સ",
+      "class": "વર્ગ",
+      "phone": "ફોન",
+      "email": "ઈમેઇલ",
+      "dob": "જન્મ તારીખ",
+      "licenseExpiry": "લાઇસન્સ સમાપ્તિ",
+      "safetyScore": "સુરક્ષા સ્કોર"
+    },
+    "form": {
+      "fullName": "પૂરું નામ",
+      "licenseNumber": "લાઇસન્સ નંબર",
+      "phone": "ફોન",
+      "email": "ઈમેઇલ",
+      "dateOfBirth": "જન્મ તારીખ",
+      "licenseExpiry": "લાઇસન્સ સમાપ્તિ",
+      "licenseClass": "લાઇસન્સ વર્ગ",
+      "safetyScore": "સુરક્ષા સ્કોર",
+      "fullNamePlaceholder": "રમેશ કુમાર",
+      "licensePlaceholder": "MH-CDL-A-001234",
+      "phonePlaceholder": "+91-98201-12345",
+      "emailPlaceholder": "driver@email.com",
+      "licenseClassPlaceholder": "CDL-A, CDL-B, B"
+    },
+    "updateDriver": "ડ્રાઇવર અપડેટ કરો",
+    "removeDriver": "ડ્રાઇવર દૂર કરવા?",
+    "removeDriverDesc": "આ {{name}} ને નોંધણીમાંથી કાયમ માટે દૂર કરશે.",
+    "map": {
+      "title": "ફ્લીટ વાહન સ્થાનો",
+      "speed": "ઝડપ: {{speed}} કિ.મી./કલાક"
+    },
+    "toast": {
+      "deleted": "ડ્રાઇવર પ્રોફાઇલ કાઢી નાખવામાં આવી.",
+      "deletedTitle": "ડ્રાઇવર દૂર કરવામાં આવ્યા",
+      "deleteFailed": "ડ્રાઇવરને દૂર કરી શકાયા નહીં.",
+      "deleteFailedTitle": "ભૂલ",
+      "statusUpdated": "{{name}} ની સ્થિતિ હવે {{status}} છે.",
+      "statusUpdatedTitle": "સ્થિતિ અપડેટ થઈ",
+      "statusUpdateFailed": "ડ્રાઇવરની સ્થિતિ અપડેટ કરવામાં નિષ્ફળ.",
+      "statusUpdateFailedTitle": "અપડેટ નિષ્ફળ",
+      "statusFailed": "સ્થિતિ અપડેટ કરવામાં નિષ્ફળ",
+      "saveFailed": "ડ્રાઇવર સાચવી શકાયા નહીં.",
+      "exported": "ડ્રાઇવરો CSV માં નિકાસ કરવામાં આવ્યા.",
+      "exportedTitle": "નિકાસ પૂર્ણ",
+      "exportFailed": "ડ્રાઇવરો નિકાસ કરી શકાયા નહીં.",
+      "exportFailedTitle": "નિકાસ નિષ્ફળ"
+    }
+  },
+  "analytics": {
+    "title": "સંચાલન માહિતી",
+    "subtitle": "નાણાકીય પ્રદર્શન અને સંચાલન આંતરદૃષ્ટિ — {{year}}",
+    "exportPDF": "PDF નિકાસ",
+    "exportCSV": "CSV નિકાસ",
+    "tabs": {
+      "overview": "ઝાંખી",
+      "fuelEfficiency": "ઈંધણ કાર્યક્ષમતા",
+      "vehicleROI": "વાહન ROI"
+    },
+    "kpi": {
+      "totalRevenue": "કુલ આવક",
+      "totalExpenses": "કુલ ખર્ચ",
+      "netProfit": "ચોખ્ખો નફો",
+      "avgFuelEfficiency": "સરેરાશ ઈંધણ કાર્યક્ષમતા"
+    },
+    "charts": {
+      "revenueCostTrend": "આવક વિ. ખર્ચ વલણ",
+      "revenue": "આવક",
+      "cost": "ખર્ચ",
+      "profit": "નફો",
+      "expenseBreakdown": "ખર્ચ વિભાજન"
+    },
+    "monthly": {
+      "title": "ફ્લીટ પ્રદર્શન",
+      "month": "મહિનો",
+      "trips": "ટ્રિપ્સ",
+      "distance": "અંતર (કિ.મી.)",
+      "revenue": "આવક",
+      "fuel": "ઈંધણ",
+      "maintenance": "જાળવણી",
+      "other": "અન્ય",
+      "totalCost": "કુલ ખર્ચ",
+      "profit": "નફો"
+    },
+    "fuelTable": {
+      "title": "વાહન દીઠ ઈંધણ કાર્યક્ષમતા (km/L)",
+      "vehicle": "વાહન",
+      "totalDistance": "કુલ અંતર",
+      "totalLiters": "કુલ લિટર",
+      "fuelCost": "ઈંધણ ખર્ચ",
+      "kmPerL": "km/L",
+      "costPerKm": "₹/km"
+    },
+    "roiTable": {
+      "title": "વાહન ROI — વાહન દીઠ નફો",
+      "formula": "ROI = (આવક − (જાળવણી + ઈંધણ + ખર્ચ)) / આવક",
+      "vehicle": "વાહન",
+      "revenue": "આવક",
+      "fuelCost": "ઈંધણ ખર્ચ",
+      "maintenance": "જાળવણી",
+      "expenses": "ખર્ચ",
+      "totalCost": "કુલ ખર્ચ",
+      "profit": "નફો",
+      "roi": "ROI"
+    },
+    "noData": {
+      "monthly": "કોઈ માસિક ડેટા નથી",
+      "expenses": "કોઈ ખર્ચ ડેટા નથી",
+      "fuel": "કોઈ ઈંધણ કાર્યક્ષમતા ડેટા નથી",
+      "roi": "કોઈ ROI ડેટા નથી"
+    },
+    "toast": {
+      "exportingPDF": "PDF તૈયાર થઈ રહ્યું છે",
+      "exportingPDFMessage": "કૃપા કરીને રાહ જુઓ જ્યારે અમે ચાર્ટ અને ડેટા કેપ્ચર કરી રહ્યા છીએ...",
+      "pdfSuccess": "એનાલિટિક્સ રિપોર્ટ ડાઉનલોડ થઈ.",
+      "pdfSuccessTitle": "નિકાસ સફળ",
+      "pdfErrorTitle": "PDF બનાવવામાં ભૂલ",
+      "pdfExportFailed": "નિકાસ નિષ્ફળ: {{message}}",
+      "chartWarningTitle": "ચાર્ટ કેપ્ચર ચેતવણી",
+      "chartWarningMessage": "PDF માં આવક ચાર્ટ સામેલ કરી શકાયો નહીં, પરંતુ ડેટા સાથે ચાલુ રાખી રહ્યા છીએ...",
+      "csvSuccess": "ટ્રિપ્સ અને સારાંશ ડેટા CSV માં નિકાસ કરવામાં આવ્યા.",
+      "exportFailed": "નિકાસ નિષ્ફળ",
+      "csvFailed": "CSV નિકાસ તૈયાર કરી શકાઈ નહીં."
+    }
+  },
+  "expenses": {
+    "title": "નાણાં અને ખર્ચ",
+    "subtitle": "ઈંધણ વપરાશ અને ટ્રિપ ખર્ચ ટ્રેક કરો",
+    "addRecord": "રેકોર્ડ ઉમેરો",
+    "summary": {
+      "fuelLogs": "ઈંધણ લૉગ",
+      "expenses": "ખર્ચ",
+      "combined": "સંયુક્ત",
+      "total": "{{amount}} કુલ"
+    },
+    "tabs": {
+      "fuel": "ઈંધણ લૉગ ({{count}})",
+      "expenses": "ખર્ચ ({{count}})"
+    },
+    "pagination": "પૃષ્ઠ {{page}} માંથી {{totalPages}} · {{count}} રેકોર્ડ(ઓ)",
+    "fuelColumns": {
+      "vehicle": "વાહન",
+      "trip": "ટ્રિપ",
+      "liters": "લિટર",
+      "costPerLiter": "₹/L",
+      "total": "કુલ",
+      "odometer": "ઓડોમીટર",
+      "date": "તારીખ"
+    },
+    "expenseColumns": {
+      "vehicle": "વાહન",
+      "trip": "ટ્રિપ",
+      "category": "શ્રેણી",
+      "amount": "રકમ",
+      "description": "વર્ણન",
+      "date": "તારીખ"
+    },
+    "empty": {
+      "fuel": "હજુ સુધી કોઈ ઈંધણ લૉગ નથી",
+      "fuelDesc": "શરૂ કરવા માટે તમારું પ્રથમ ઈંધણ સ્ટોપ રેકોર્ડ કરો.",
+      "expenses": "હજુ સુધી કોઈ ખર્ચ નથી",
+      "expensesDesc": "તમારો પ્રથમ ટ્રિપ ખર્ચ લૉગ કરો."
+    }
+  },
+  "maintenance": {
+    "title": "જાળવણી લૉગ",
+    "subtitle": "વાહન દીઠ સેવા ઇતિહાસ",
+    "logService": "સેવા લૉગ કરો",
+    "selectVehicle": "વાહન પસંદ કરો",
+    "allVehicles": "— બધા વાહનો / એક પસંદ કરો —",
+    "serviceCount": "{{count}} સેવા રેકોર્ડ · કુલ ખર્ચ: ₹{{total}}",
+    "selectVehiclePrompt": "સેવા ઇતિહાસ જોવા માટે વાહન પસંદ કરો",
+    "noRecords": "કોઈ જાળવણી રેકોર્ડ નથી",
+    "columns": {
+      "date": "તારીખ",
+      "serviceType": "સેવા પ્રકાર",
+      "description": "વર્ણન",
+      "cost": "ખર્ચ",
+      "odometer": "ઓડોમીટર",
+      "shop": "દુકાન / ટેકનિશિયન",
+      "nextDue": "આગામી નિયત"
+    },
+    "form": {
+      "title": "જાળવણી ઘટના લૉગ કરો",
+      "vehicle": "વાહન",
+      "serviceType": "સેવા પ્રકાર",
+      "cost": "ખર્ચ (₹)",
+      "description": "વર્ણન",
+      "odometer": "ઓડોમીટર (કિ.મી.)",
+      "serviceDate": "સેવા તારીખ",
+      "shopName": "દુકાનનું નામ",
+      "technician": "ટેકનિશિયન",
+      "nextServiceDue": "આગામી સેવા નિયત",
+      "serviceTypePlaceholder": "ઓઇલ ચેન્જ, ટાયર રોટેશન…",
+      "descriptionPlaceholder": "કરવામાં આવેલ સેવાની વિગતો",
+      "shopPlaceholder": "ઑટોકેર સર્વિસ",
+      "technicianPlaceholder": "રવિ કુમાર"
+    }
+  },
+  "landing": {
+    "features": "સુવિધાઓ",
+    "howItWorks": "કેવી રીતે કામ કરે છે",
+    "signIn": "સાઇન ઇન",
+    "heroTag": "નેક્સ્ટ-જેન લોજિસ્ટિક્સ પ્લેટફોર્મ",
+    "heroTitle": "વધુ બુદ્ધિશાળી ફ્લીટ વ્યવસ્થાપન. મહત્તમ કાર્યક્ષમતા.",
+    "heroDescription": "AI-સંચાલિત રૂટિંગ, અનુમાનિત જાળવણી, અને રીઅલ-ટાઇમ એનાલિટિક્સ સાથે તમારા લોજિસ્ટિક્સ સંચાલનને રૂપાંતરિત કરો. આધુનિક ફ્લીટ માટે બનાવેલ.",
+    "getStarted": "હમણાં શરૂ કરો",
+    "exploreFeatures": "સુવિધાઓ અન્વેષણ કરો",
+    "featuresList": {
+      "dispatch": "રીઅલ-ટાઇમ ડિસ્પેચ",
+      "dispatchDesc": "શ્રેષ્ઠ ફ્લીટ કાર્યક્ષમતા માટે AI-સંચાલિત રૂટિંગ અને લાઇવ ટ્રેકિંગ.",
+      "maintenance": "અનુમાનિત જાળવણી",
+      "maintenanceDesc": "બુદ્ધિશાળી જાળવણી સમયપત્રક અને ચેતવણીઓ સાથે ડાઉનટાઇમ ઘટાડો.",
+      "analytics": "અદ્યતન એનાલિટિક્સ",
+      "analyticsDesc": "ઈંધણ વપરાશ, ડ્રાઇવર પ્રદર્શન અને ખર્ચ વિશે વ્યાપક આંતરદૃષ્ટિ.",
+      "safety": "સુરક્ષા અને અનુપાલન",
+      "safetyDesc": "ડ્રાઇવર વર્તન પર દેખરેખ રાખો અને સતત નિયમનકારી અનુપાલન સુનિશ્ચિત કરો.",
+      "drivers": "ડ્રાઇવર વ્યવસ્થાપન",
+      "driversDesc": "સંપૂર્ણ ડ્રાઇવર પ્રોફાઇલ, શિફ્ટ ટ્રેકિંગ, અને પ્રદર્શન સ્કોરિંગ.",
+      "odoo": "Odoo એકીકરણ",
+      "odooDesc": "એકીકૃત લોજિસ્ટિક્સ સંચાલન માટે Odoo ERP સાથે સરળ સમન્વય."
+    },
+    "everythingYouNeed": "તમારી ફ્લીટ ચલાવવા માટે તમને જે જોઈએ તે બધું",
+    "everythingYouNeedDesc": "ડિસ્પેચર, મેનેજર અને સુરક્ષા અધિકારીઓ માટે રીઅલ-ટાઇમમાં એકસાથે કામ કરવા માટે રચાયેલા સંકલિત સાધનો.",
+    "designedForScale": "સ્કેલ માટે રચાયેલ. પ્રદર્શન માટે બનાવેલ.",
+    "benefits": {
+      "zeroDowntime": "ઝીરો-ડાઉનટાઇમ ડિપ્લોયમેન્ટ",
+      "zeroDowntimeDesc": "SaaS આર્કિટેક્ચર જે તરત જ સ્કેલ થાય છે.",
+      "security": "એન્ટરપ્રાઇઝ-ગ્રેડ સુરક્ષા",
+      "securityDesc": "સુરક્ષિત ડેટા પાઇપલાઇન અને SOC2 અનુપાલન.",
+      "realtime": "રીઅલ-ટાઇમ ટ્રેકિંગ",
+      "realtimeDesc": "શૂન્ય વિલંબ સાથે લાઇવ નકશા અપડેટ્સ માટે WebSockets."
+    },
+    "readyToTransform": "તમારી ફ્લીટ બદલવા માટે તૈયાર છો?",
+    "readyToTransformDesc": "FleetFlow સાથે તેમના લોજિસ્ટિક્સને ઑપ્ટિમાઇઝ કરતી અને ખર્ચ ઘટાડતી અગ્રેસર કંપનીઓ સાથે જોડાઓ.",
+    "goToDashboard": "ડેશબોર્ડ પર જાઓ",
+    "contactSales": "વેચાણ સંપર્ક",
+    "footer": {
+      "product": "ઉત્પાદન",
+      "features": "સુવિધાઓ",
+      "pricing": "કિંમત",
+      "company": "કંપની"
+    },
+    "copyright": "© {{year}} FleetFlow. Odoo Hackathon 2026. Recharts દ્વારા ડેટા વિઝ્યુઅલાઇઝેશન.",
+    "privacyPolicy": "ગોપનીયતા નીતિ",
+    "termsOfService": "સેવાની શરતો"
+  },
+  "notFound": {
+    "errorLabel": "404 ભૂલ",
+    "title": "પૃષ્ઠ",
+    "titleHighlight": "+",
+    "titleEnd": "મળ્યું નથી",
+    "description": "અરે! તમે જે પૃષ્ઠ શોધી રહ્યા છો તે ભટકી ગયું લાગે છે. તે કદાચ દૂર કરવામાં આવ્યું, નામ બદલવામાં આવ્યું, અથવા પહેલેથી અસ્તિત્વમાં ન હતું.",
+    "searchPlaceholder": "પૃષ્ઠો શોધો...",
+    "goHome": "હોમ પર જાઓ",
+    "goBack": "પાછા જાઓ",
+    "helpCenter": "સહાય કેન્દ્ર",
+    "copyright": "© 2026 FleetFlow. સર્વ હક્કો અમારી પાસે રાખેલ છે."
+  },
+  "comingSoon": {
+    "description": "આ વિભાગ હાલમાં નિર્માણાધીન છે. અમે કંઈક શાનદાર બનાવી રહ્યા છીએ — ટૂંક સમયમાં ફરી તપાસો!",
+    "backToDashboard": "ડેશબોર્ડ પર પાછા જાઓ"
+  },
+  "layout": {
+    "fleetOverview": "ફ્લીટ ઝાંખી",
+    "onTrip": "ટ્રિપ પર",
+    "available": "ઉપલબ્ધ",
+    "inShop": "સમારકામમાં",
+    "utilization": "ઉપયોગ",
+    "vehiclesInShop": "{{count}} વાહનો સમારકામમાં",
+    "licensesExpiring": "{{count}} લાઇસન્સ સમાપ્ત થઈ રહ્યા છે",
+    "intelligenceInMotion": "ગતિમાં બુદ્ધિમત્તા",
+    "notifications": "સૂચનાઓ",
+    "notifNew": "{{count}} નવી",
+    "maintenanceAlert": "જાળવણી ચેતવણી",
+    "maintenanceAlertMsg": "{{count}} વાહન(ો) હાલમાં સમારકામમાં છે અને ધ્યાન આપવાની જરૂર છે",
+    "highPriority": "ઉચ્ચ પ્રાથમિકતા",
+    "licenseExpiryWarning": "લાઇસન્સ સમાપ્તિ ચેતવણી",
+    "licenseExpiryMsg": "{{count}} ડ્રાઇવર લાઇસન્સ(ઓ) 30 દિવસમાં સમાપ્ત થઈ રહ્યા છે",
+    "urgent": "તાત્કાલિક",
+    "suspendedDrivers": "સસ્પેન્ડ થયેલા ડ્રાઇવરો",
+    "suspendedDriversMsg": "{{count}} ડ્રાઇવર(ઓ) હાલમાં ફરજમાંથી સસ્પેન્ડ છે",
+    "actionRequired": "ક્રિયા જરૂરી",
+    "retiredVehicles": "નિવૃત્ત વાહનો",
+    "retiredVehiclesMsg": "{{count}} વાહન(ો) ફ્લીટમાંથી નિવૃત્ત કરવામાં આવ્યા છે",
+    "informational": "માહિતીપ્રદ",
+    "allClear": "બધું સ્પષ્ટ — કોઈ ચેતવણી નથી",
+    "systemConfig": "સિસ્ટમ ગોઠવણી"
+  },
+  "fuelExpenses": {
+    "title": "ઈંધણ અને ખર્ચ",
+    "subtitle": "તમામ સંચાલન ખર્ચ ટ્રેક કરો",
+    "addEntry": "એન્ટ્રી ઉમેરો",
+    "totalFuelCost": "કુલ ઈંધણ ખર્ચ",
+    "totalExpenses": "કુલ ખર્ચ",
+    "fillUps": "{{count}} ઈંધણ ભરાવ",
+    "entries": "{{count}} એન્ટ્રીઓ",
+    "fuelLogs": "ઈંધણ લૉગ",
+    "expensesTab": "ખર્ચ",
+    "allVehicles": "બધા વાહનો",
+    "noFuelLogs": "કોઈ ઈંધણ લૉગ નથી",
+    "noExpenses": "કોઈ ખર્ચ નથી",
+    "fuelColumns": {
+      "date": "તારીખ",
+      "vehicle": "વાહન",
+      "liters": "લિટર",
+      "costPerLiter": "₹/લિટર",
+      "total": "કુલ",
+      "odometer": "ઓડોમીટર",
+      "station": "પંપ"
+    },
+    "expenseColumns": {
+      "date": "તારીખ",
+      "vehicle": "વાહન",
+      "category": "શ્રેણી",
+      "amount": "રકમ",
+      "description": "વર્ણન"
+    },
+    "form": {
+      "fuelTab": "ઈંધણ",
+      "expenseTab": "ખર્ચ",
+      "vehicle": "વાહન *",
+      "selectVehicle": "વાહન પસંદ કરો",
+      "liters": "લિટર *",
+      "costPerLiter": "₹/લિટર *",
+      "odometer": "ઓડોમીટર *",
+      "totalLabel": "કુલ: ₹{{amount}}",
+      "station": "પંપ",
+      "stationPlaceholder": "IOCL પંપ",
+      "date": "તારીખ",
+      "category": "શ્રેણી *",
+      "amount": "રકમ (₹) *",
+      "description": "વર્ણન",
+      "descriptionPlaceholder": "રાષ્ટ્રીય ધોરીમાર્ગ ટોલ…",
+      "logFuel": "ઈંધણ નોંધો",
+      "logExpense": "ખર્ચ નોંધો"
+    }
+  },
+  "incidents": {
+    "title": "ઘટના અહેવાલ",
+    "subtitle": "સુરક્ષા ઘટનાઓ ટ્રેક કરો અને મેનેજ કરો",
+    "reportIncident": "ઘટનાની જાણ કરો",
+    "summary": {
+      "total": "કુલ",
+      "open": "ખુલ્લી",
+      "investigating": "તપાસ ચાલુ",
+      "damageEst": "નુકસાન અંદાજ"
+    },
+    "searchPlaceholder": "ઘટનાઓ શોધો...",
+    "allStatuses": "બધી સ્થિતિઓ",
+    "noIncidents": "કોઈ ઘટના મળી નથી",
+    "noIncidentsDesc": "હજુ સુધી કોઈ સુરક્ષા ઘટનાની જાણ કરવામાં આવી નથી.",
+    "injuries": "ઈજાઓ",
+    "columns": {
+      "incident": "ઘટના",
+      "type": "પ્રકાર",
+      "status": "સ્થિતિ",
+      "vehicle": "વાહન",
+      "driver": "ડ્રાઇવર",
+      "damageEst": "નુકસાન અંદાજ",
+      "date": "તારીખ"
+    },
+    "closeButton": "બંધ કરો",
+    "closeModal": {
+      "title": "ઘટના બંધ કરો",
+      "closing": "બંધ થઈ રહ્યું:",
+      "placeholder": "ઉકેલ સારાંશ (ઓછામાં ઓછા 10 અક્ષરો)...",
+      "confirm": "ઘટના બંધ કરો"
+    },
+    "createModal": {
+      "title": "નવી ઘટનાની જાણ કરો",
+      "titleField": "શીર્ષક *",
+      "titlePlaceholder": "ટૂંકું ઘટના શીર્ષક",
+      "type": "પ્રકાર *",
+      "date": "તારીખ *",
+      "description": "વર્ણન *",
+      "descriptionPlaceholder": "વિગતવાર વર્ણન (ઓછામાં ઓછા 10 અક્ષરો)",
+      "location": "સ્થાન",
+      "locationPlaceholder": "ક્યાં બન્યું?",
+      "damageEstimate": "નુકસાન અંદાજ (₹)",
+      "injuriesReported": "ઈજાઓ નોંધાઈ",
+      "submitReport": "અહેવાલ સબમિટ કરો"
+    }
+  },
+  "driverManagement": {
+    "title": "ડ્રાઇવર પ્રદર્શન અને સુરક્ષા",
+    "subtitle": "તમારા ફ્લીટ ડ્રાઇવરોની દેખરેખ અને વ્યવસ્થાપન કરો",
+    "addDriver": "ડ્રાઇવર ઉમેરો",
+    "licensesExpiringSoon": "ટૂંક સમયમાં સમાપ્ત થતા લાઇસન્સ ({{count}})",
+    "daysLeft": "{{days}} દિવસ બાકી",
+    "statusCards": {
+      "onDuty": "ફરજ પર",
+      "onTrip": "ટ્રિપ પર",
+      "offDuty": "ફરજ બહાર",
+      "suspended": "સસ્પેન્ડેડ"
+    },
+    "search": "નામ, લાઇસન્સ, ઈમેઇલ શોધો...",
+    "allStatuses": "બધી સ્થિતિઓ",
+    "allLicenses": "બધા લાઇસન્સ",
+    "expiringSoon": "ટૂંક સમયમાં સમાપ્ત (< 30 દિવસ)",
+    "expired": "સમાપ્ત",
+    "columns": {
+      "number": "#",
+      "name": "નામ",
+      "license": "લાઇસન્સ #",
+      "expiry": "સમાપ્તિ",
+      "safetyScore": "સુરક્ષા સ્કોર",
+      "status": "સ્થિતિ",
+      "actions": "ક્રિયાઓ"
+    },
+    "noDrivers": "કોઈ ડ્રાઇવર મળ્યા નથી",
+    "adjustFilters": "તમારા ફિલ્ટર સમાયોજિત કરીને જુઓ",
+    "addFirstDriver": "શરૂ કરવા માટે તમારો પ્રથમ ડ્રાઇવર ઉમેરો",
+    "editTooltip": "ફેરફાર કરો",
+    "clockIn": "ફરજ શરૂ કરો",
+    "clockOut": "ફરજ સમાપ્ત કરો",
+    "onTripLabel": "ટ્રિપ પર",
+    "suspendTooltip": "સસ્પેન્ડ કરો",
+    "suspendDialog": {
+      "title": "ડ્રાઇવરને સસ્પેન્ડ કરવા?",
+      "description": "<strong>{{name}}</strong> ને સસ્પેન્ડ કરવાથી આ ડ્રાઇવર માટે તમામ ડિસ્પેચ કામગીરી અવરોધિત થશે.",
+      "placeholder": "સસ્પેન્શનનું કારણ (આવશ્યક)...",
+      "confirm": "ડ્રાઇવર સસ્પેન્ડ કરો"
+    },
+    "adjustScoreTooltip": "સુરક્ષા સ્કોર સમાયોજિત કરો",
+    "deleteTooltip": "કાઢી નાખો",
+    "deleteDialog": {
+      "title": "ડ્રાઇવર કાઢી નાખવા?",
+      "description": "આ <strong>{{name}}</strong> ને સોફ્ટ-ડિલીટ કરશે. ઐતિહાસિક ટ્રિપ ડેટા સાચવવામાં આવશે.",
+      "confirm": "કાઢી નાખો"
+    },
+    "scoreModal": {
+      "title": "સુરક્ષા સ્કોર સમાયોજિત કરો",
+      "adjustment": "સમાયોજન:",
+      "reason": "કારણ *",
+      "placeholder": "સમાયોજનનું કારણ (ઓછામાં ઓછા 5 અક્ષરો)..."
+    },
+    "pagination": {
+      "total": "{{count}} ડ્રાઇવર કુલ"
+    }
+  },
+  "driverPerformance": {
+    "title": "ડ્રાઇવર પ્રદર્શન",
+    "subtitle": "ડ્રાઇવર દીઠ સુરક્ષા સ્કોર અને ટ્રિપ મેટ્રિક્સ",
+    "stats": {
+      "drivers": "ડ્રાઇવરો",
+      "avgSafetyScore": "સરેરાશ સુરક્ષા સ્કોર",
+      "totalTrips": "કુલ ટ્રિપ્સ",
+      "totalIncidents": "કુલ ઘટનાઓ"
+    },
+    "searchPlaceholder": "ડ્રાઇવર શોધો...",
+    "noData": "હજુ સુધી કોઈ ડ્રાઇવર પ્રદર્શન ડેટા નથી.",
+    "trips": "ટ્રિપ્સ",
+    "completed": "પૂર્ણ",
+    "incidentsLabel": "ઘટનાઓ"
+  },
+  "driverDashboard": {
+    "welcome": "સ્વાગત છે, {{name}}",
+    "onDuty": "ફરજ પર",
+    "offDuty": "ફરજ બહાર",
+    "goOffDuty": "ફરજ બંધ કરો",
+    "goOnDuty": "ફરજ શરૂ કરો",
+    "statusUpdated": "સ્થિતિ અપડેટ થઈ",
+    "statusUpdateFailed": "તમારી ફરજ સ્થિતિ અપડેટ કરવામાં નિષ્ફળ.",
+    "updateFailed": "અપડેટ નિષ્ફળ",
+    "gpsTracker": "લાઇવ GPS ટ્રેકર",
+    "broadcasting": "સ્થાન પ્રસારિત થઈ રહ્યું છે...",
+    "trackerPaused": "ટ્રેકર થોભ્યું છે. સ્થાન શેર કરવા માટે શરૂ કરો.",
+    "stopTracker": "ટ્રેકર બંધ કરો",
+    "startTracker": "ટ્રેકર શરૂ કરો",
+    "lastPing": "છેલ્લું પિંગ:",
+    "currentAssignment": "વર્તમાન સોંપણી",
+    "dispatched": "ડિસ્પેચ થયેલ",
+    "vehicleLabel": "વાહન:",
+    "origin": "ઉદ્ગમ સ્થાન",
+    "destination": "ગંતવ્ય",
+    "cargoWeight": "કાર્ગો વજન",
+    "cargoDescription": "વર્ણન",
+    "noActiveTrips": "કોઈ સક્રિય ટ્રિપ નથી",
+    "noActiveTripsDesc": "તમારી પાસે હાલમાં કોઈ ડિસ્પેચ થયેલી ટ્રિપ નથી.",
+    "recentHistory": "તાજેતરનો ઇતિહાસ",
+    "accountUnlinked": "એકાઉન્ટ અસંબંધિત",
+    "accountUnlinkedDesc": "તમારું વપરાશકર્તા એકાઉન્ટ ({{email}}) કોઈ ડ્રાઇવર પ્રોફાઇલ સાથે જોડાયેલ નથી. કૃપા કરીને તમારું એકાઉન્ટ ગોઠવવા માટે કોઈ મેનેજર અથવા ડિસ્પેચરનો સંપર્ક કરો."
+  },
+  "fleetDashboard": {
+    "title": "કમાન્ડ સેન્ટર",
+    "liveOverview": "લાઇવ ફ્લીટ ઝાંખી — {{date}}",
+    "kpi": {
+      "activeFleet": "સક્રિય ફ્લીટ",
+      "ofTotal": "કુલ {{total}} માંથી",
+      "maintenanceAlerts": "જાળવણી ચેતવણીઓ",
+      "vehiclesInShop": "સમારકામમાં વાહનો",
+      "utilizationRate": "ઉપયોગ દર",
+      "fleetAssignedVsIdle": "ફ્લીટ સોંપાયેલ વિ. નિષ્ક્રિય",
+      "pendingCargo": "બાકી કાર્ગો",
+      "tripsInDraft": "ડ્રાફ્ટમાં ટ્રિપ્સ",
+      "activeTrips": "સક્રિય ટ્રિપ્સ",
+      "currentlyDispatched": "હાલમાં ડિસ્પેચ થયેલ",
+      "driversOnDuty": "ફરજ પરના ડ્રાઇવરો",
+      "ofDrivers": "કુલ {{total}} ડ્રાઇવરોમાંથી",
+      "completedToday": "આજે પૂર્ણ થયેલ",
+      "tripsFinishedToday": "આજે પૂર્ણ થયેલ ટ્રિપ્સ",
+      "expiringLicenses": "સમાપ્ત થતા લાઇસન્સ",
+      "within30Days": "30 દિવસમાં"
+    },
+    "liveFleetMap": "લાઇવ ફ્લીટ નકશો",
+    "vehiclesTracked": "{{count}} વાહન(ો) ટ્રેક થઈ રહ્યા છે",
+    "noLiveData": "કોઈ લાઇવ ડેટા નથી",
+    "vehicleNumber": "વાહન #{{id}}",
+    "inTransit": "પરિવહનમાં — {{origin}} → {{destination}}",
+    "revenueCostYear": "આવક વિ. ખર્ચ — {{year}}",
+    "monthly": "માસિક",
+    "loadingChart": "ચાર્ટ લોડ થઈ રહ્યો છે...",
+    "noTripData": "હજુ સુધી કોઈ ટ્રિપ ડેટા નથી",
+    "fleetStatus": "ફ્લીટ સ્થિતિ",
+    "noVehicles": "કોઈ વાહન નથી",
+    "monthlyPerformance": "માસિક પ્રદર્શન સારાંશ",
+    "tableHeaders": {
+      "month": "મહિનો",
+      "trips": "ટ્રિપ્સ",
+      "distance": "અંતર (km)",
+      "revenue": "આવક",
+      "fuelCost": "ઈંધણ ખર્ચ",
+      "maintenance": "જાળવણી",
+      "profit": "નફો"
+    }
+  },
+  "commandCenter": {
+    "greeting": {
+      "morning": "સુપ્રભાત",
+      "afternoon": "શુભ બપોર",
+      "evening": "શુભ સાંજ",
+      "fallback": "નમસ્તે"
+    },
+    "subtitle": "આજે તમારા ફ્લીટમાં શું થઈ રહ્યું છે તે અહીં છે.",
+    "loadError": "ડેશબોર્ડ ડેટા લોડ કરવામાં નિષ્ફળ. શું બેકએન્ડ ચાલી રહ્યું છે?",
+    "noDataAvailable": "કોઈ ડેટા ઉપલબ્ધ નથી.",
+    "filtering": "ફિલ્ટર થઈ રહ્યું છે...",
+    "matchCount": "{{count}} વાહન(ો) મેળ ખાય છે",
+    "filter": {
+      "vehicleType": "વાહન પ્રકાર",
+      "status": "સ્થિતિ",
+      "region": "પ્રદેશ"
+    },
+    "regions": {
+      "north": "ઉત્તર",
+      "south": "દક્ષિણ",
+      "east": "પૂર્વ",
+      "west": "પશ્ચિમ",
+      "central": "મધ્ય"
+    },
+    "kpi": {
+      "activeFleet": "સક્રિય ફ્લીટ",
+      "available": "ઉપલબ્ધ",
+      "maintenanceAlerts": "જાળવણી ચેતવણીઓ",
+      "vehiclesInShop": "સમારકામમાં વાહનો",
+      "allOperational": "બધા વાહનો ચાલુ",
+      "utilizationRate": "ઉપયોગ દર",
+      "onTrip": "ટ્રિપ પર",
+      "pendingCargo": "બાકી કાર્ગો",
+      "activeSuffix": "સક્રિય",
+      "doneToday": "આજે પૂર્ણ"
+    },
+    "fleetDistribution": "ફ્લીટ વિતરણ",
+    "attentionRequired": "ધ્યાન જરૂરી",
+    "noActiveAlerts": "કોઈ સક્રિય ચેતવણી નથી",
+    "driverSummary": "ડ્રાઇવર સારાંશ",
+    "driverStats": {
+      "totalDrivers": "કુલ ડ્રાઇવરો",
+      "onDuty": "ફરજ પર",
+      "suspended": "સસ્પેન્ડેડ",
+      "expiringLicenses": "સમાપ્ત થતા લાઇસન્સ"
+    },
+    "quickActions": "ઝડપી ક્રિયાઓ",
+    "actions": {
+      "vehicleRegistry": "વાહન નોંધણી",
+      "driverManagement": "ડ્રાઇવર વ્યવસ્થાપન",
+      "tripDispatcher": "ટ્રિપ ડિસ્પેચર",
+      "maintenance": "જાળવણી",
+      "analytics": "એનાલિટિક્સ"
+    }
+  },
+  "vehicleRegistry": {
+    "title": "વાહન નોંધણી",
+    "subtitle": "તમારી ફ્લીટ સંપત્તિઓનું વ્યવસ્થાપન કરો",
+    "exportCSV": "CSV નિકાસ કરો",
+    "newVehicle": "નવું વાહન",
+    "columns": {
+      "number": "#",
+      "plate": "પ્લેટ",
+      "makeModel": "બ્રાન્ડ / મોડેલ",
+      "type": "પ્રકાર",
+      "capacity": "ક્ષમતા",
+      "odometer": "ઓડોમીટર",
+      "status": "સ્થિતિ",
+      "actions": "ક્રિયાઓ"
+    },
+    "noVehicles": "કોઈ વાહન મળ્યું નથી",
+    "adjustFilters": "તમારા ફિલ્ટર સમાયોજિત કરીને જુઓ",
+    "addFirstVehicle": "શરૂ કરવા માટે તમારું પ્રથમ વાહન નોંધણી કરો",
+    "editTooltip": "ફેરફાર કરો",
+    "retireTooltip": "નિવૃત્ત કરો",
+    "retireDialog": {
+      "title": "વાહન નિવૃત્ત કરવું?",
+      "description": "આ <strong>{{plate}}</strong> ને કાયમ માટે સેવામાંથી બહાર કરશે. નિવૃત્ત વાહનોને ડિસ્પેચ કરી શકાતા નથી.",
+      "confirm": "વાહન નિવૃત્ત કરો"
+    },
+    "deleteTooltip": "કાઢી નાખો",
+    "deleteDialog": {
+      "title": "વાહન કાઢી નાખવું?",
+      "description": "આ <strong>{{plate}}</strong> ને સોફ્ટ-ડિલીટ કરશે. આ ક્રિયા માટે સુપર એડમિન ઍક્સેસ જરૂરી છે.",
+      "confirm": "કાઢી નાખો"
+    },
+    "pagination": {
+      "total": "{{count}} વાહન કુલ"
+    },
+    "toast": {
+      "exportSuccess": "વાહન નોંધણી CSV માં નિકાસ કરવામાં આવી.",
+      "exportSuccessTitle": "નિકાસ સફળ",
+      "exportFailed": "વાહન નિકાસ તૈયાર કરી શકાઈ નહીં.",
+      "exportFailedTitle": "નિકાસ નિષ્ફળ"
+    }
+  },
+  "tripDispatcher": {
+    "title": "ટ્રિપ ડિસ્પેચર",
+    "subtitle": "ફ્લીટ ટ્રિપ્સનું આયોજન, ડિસ્પેચ અને ટ્રેકિંગ કરો",
+    "newTrip": "નવી ટ્રિપ",
+    "searchPlaceholder": "ટ્રિપ્સ શોધો (રૂટ, વાહન, ડ્રાઇવર, ગ્રાહક)...",
+    "allStatuses": "બધી સ્થિતિઓ",
+    "columns": {
+      "number": "#",
+      "vehicle": "વાહન",
+      "driver": "ડ્રાઇવર",
+      "route": "રૂટ",
+      "cargo": "કાર્ગો",
+      "distance": "અંતર",
+      "status": "સ્થિતિ",
+      "actions": "ક્રિયાઓ"
+    },
+    "actions": {
+      "dispatch": "ડિસ્પેચ કરો",
+      "cancel": "રદ કરો",
+      "complete": "પૂર્ણ કરો",
+      "ledger": "ખાતાવહી"
+    },
+    "loading": "ટ્રિપ્સ લોડ થઈ રહી છે...",
+    "noTrips": "કોઈ ટ્રિપ મળી નથી",
+    "adjustFilters": "તમારા ફિલ્ટર સમાયોજિત કરીને જુઓ",
+    "addFirstTrip": "શરૂ કરવા માટે તમારી પ્રથમ ટ્રિપ બનાવો",
+    "dispatchDialog": {
+      "title": "ટ્રિપ ડિસ્પેચ કરવી?",
+      "description": "{{origin}} → {{destination}} ડિસ્પેચ કરવું? વાહનને ON_TRIP તરીકે ચિહ્નિત કરવામાં આવશે અને ડ્રાઇવરને સોંપવામાં આવશે.",
+      "confirm": "હમણાં ડિસ્પેચ કરો",
+      "dispatching": "ડિસ્પેચ થઈ રહ્યું છે..."
+    },
+    "toast": {
+      "dispatched": "ટ્રિપ સફળતાપૂર્વક ડિસ્પેચ કરવામાં આવી.",
+      "dispatchedTitle": "ડિસ્પેચ થયેલ",
+      "dispatchFailed": "ટ્રિપ ડિસ્પેચ કરવામાં નિષ્ફળ",
+      "errorTitle": "ભૂલ"
+    }
+  },
+  "financialReports": {
+    "title": "નાણાકીય અહેવાલો",
+    "subtitle": "આવક, ખર્ચ, ઈંધણ કાર્યક્ષમતા અને વાહન ROI",
+    "exportCSV": "CSV નિકાસ કરો",
+    "summary": {
+      "totalRevenue": "કુલ આવક",
+      "totalCosts": "કુલ ખર્ચ",
+      "netProfit": "ચોખ્ખો નફો"
+    },
+    "tabs": {
+      "pnl": "માસિક નફો-નુકસાન",
+      "fuelEfficiency": "ઈંધણ કાર્યક્ષમતા",
+      "roi": "વાહન ROI"
+    },
+    "pnlColumns": {
+      "month": "મહિનો",
+      "revenue": "આવક",
+      "fuel": "ઈંધણ",
+      "maintenance": "જાળવણી",
+      "other": "અન્ય",
+      "profit": "નફો",
+      "trips": "ટ્રિપ્સ"
+    },
+    "noDataForYear": "{{year}} માટે કોઈ ડેટા નથી",
+    "fuelEfficiency": {
+      "noData": "કોઈ ઈંધણ કાર્યક્ષમતા ડેટા નથી.",
+      "kmPerL": "km/L",
+      "totalFuel": "કુલ ઈંધણ",
+      "fuelCost": "ઈંધણ ખર્ચ"
+    },
+    "roiColumns": {
+      "vehicle": "વાહન",
+      "revenue": "આવક",
+      "cost": "ખર્ચ",
+      "roi": "ROI %"
+    },
+    "noRoiData": "કોઈ ROI ડેટા નથી."
+  },
+  "forms": {
+    "driver": {
+      "editTitle": "ડ્રાઇવર ફેરફાર કરો",
+      "newTitle": "નવો ડ્રાઇવર",
+      "editSubtitle": "ડ્રાઇવર વિગતો અપડેટ કરો",
+      "newSubtitle": "નવા ડ્રાઇવરની નોંધણી કરો",
+      "fullName": "પૂરું નામ *",
+      "fullNamePlaceholder": "રમેશ કુમાર",
+      "licenseNumber": "લાઇસન્સ નંબર *",
+      "licensePlaceholder": "DL-1234567890",
+      "licenseClass": "લાઇસન્સ વર્ગ",
+      "licenseClassPlaceholder": "CDL-A",
+      "licenseExpiry": "લાઇસન્સ સમાપ્તિ તારીખ *",
+      "phone": "ફોન",
+      "phonePlaceholder": "+91 98765 43210",
+      "email": "ઈમેઇલ",
+      "emailPlaceholder": "driver@fleetflow.io",
+      "dateOfBirth": "જન્મ તારીખ",
+      "updateDriver": "ડ્રાઇવર અપડેટ કરો",
+      "createDriver": "ડ્રાઇવર બનાવો"
+    },
+    "vehicle": {
+      "editTitle": "વાહન ફેરફાર કરો",
+      "newTitle": "નવું વાહન",
+      "editSubtitle": "વાહન વિગતો અપડેટ કરો",
+      "newSubtitle": "નવી ફ્લીટ સંપત્તિ નોંધણી કરો",
+      "licensePlate": "નોંધણી પ્લેટ *",
+      "licensePlatePlaceholder": "MH-12-AB-1234",
+      "make": "બ્રાન્ડ *",
+      "makePlaceholder": "Tata",
+      "model": "મોડેલ *",
+      "modelPlaceholder": "Prima",
+      "year": "વર્ષ *",
+      "color": "રંગ",
+      "colorPlaceholder": "સફેદ",
+      "vin": "VIN",
+      "vinPlaceholder": "17-અક્ષર VIN (વૈકલ્પિક)",
+      "vehicleType": "વાહન પ્રકાર *",
+      "selectType": "પ્રકાર પસંદ કરો...",
+      "maxCapacity": "મહત્તમ ક્ષમતા (kg) *",
+      "capacityPlaceholder": "5000",
+      "volume": "વોલ્યુમ (m³)",
+      "region": "પ્રદેશ",
+      "regionPlaceholder": "દા.ત. ઉત્તર ભારત",
+      "acquisitionCost": "સંપાદન ખર્ચ ($)",
+      "initialOdometer": "પ્રારંભિક ઓડોમીટર (km)",
+      "updateVehicle": "વાહન અપડેટ કરો",
+      "createVehicle": "વાહન બનાવો"
+    },
+    "expense": {
+      "fuelTitle": "નવું ઈંધણ લૉગ",
+      "expenseTitle": "નવો ખર્ચ",
+      "fuelSubtitle": "ઈંધણ ભરાવની ઘટના નોંધો",
+      "expenseSubtitle": "ટ્રિપ ખર્ચ નોંધો",
+      "fuelTab": "ઈંધણ લૉગ",
+      "expenseTab": "ખર્ચ",
+      "loadingVehicles": "વાહનો લોડ થઈ રહ્યા છે...",
+      "vehicle": "વાહન *",
+      "selectVehicle": "વાહન પસંદ કરો...",
+      "tripId": "ટ્રિપ ID (વૈકલ્પિક)",
+      "tripIdPlaceholder": "દા.ત. 42",
+      "liters": "લિટર *",
+      "costPerLiter": "₹/લિટર *",
+      "totalLabel": "કુલ: ₹{{amount}}",
+      "odometerAtFill": "ભરાવ સમયે ઓડોમીટર *",
+      "fuelStation": "ઈંધણ પંપ",
+      "fuelStationPlaceholder": "Shell, HP, Indian Oil...",
+      "category": "શ્રેણી *",
+      "amount": "રકમ (₹) *",
+      "description": "વર્ણન",
+      "descriptionPlaceholder": "મુંબઈ એક્સપ્રેસવે પર ટોલ...",
+      "createFuelLog": "ઈંધણ લૉગ બનાવો",
+      "createExpense": "ખર્ચ બનાવો",
+      "categories": {
+        "TOLL": "ટોલ",
+        "LODGING": "રહેવાસ",
+        "MAINTENANCE_EN_ROUTE": "માર્ગ પર જાળવણી",
+        "MISC": "વિવિધ"
+      }
+    },
+    "maintenance": {
+      "title": "નવું સેવા લૉગ",
+      "subtitle": "જાળવણી ઘટના નોંધો",
+      "warning": "આ લૉગ બનાવવાથી વાહનને <strong>IN_SHOP</strong> પર સેટ કરવામાં આવશે અને ડિસ્પેચરના ઉપલબ્ધ પૂલમાંથી દૂર કરવામાં આવશે.",
+      "loadingVehicles": "વાહનો લોડ થઈ રહ્યા છે...",
+      "vehicle": "વાહન *",
+      "selectVehicle": "વાહન પસંદ કરો...",
+      "serviceType": "સેવા પ્રકાર *",
+      "selectType": "પ્રકાર પસંદ કરો...",
+      "description": "વર્ણન",
+      "descriptionPlaceholder": "સેવાની વિગતો...",
+      "cost": "ખર્ચ (₹) *",
+      "odometerAtService": "સેવા સમયે ઓડોમીટર *",
+      "technicianName": "ટેકનિશિયનનું નામ",
+      "technicianPlaceholder": "રવિ કુમાર",
+      "shopName": "દુકાનનું નામ",
+      "shopPlaceholder": "ઑટોકેર",
+      "serviceDate": "સેવા તારીખ *",
+      "nextServiceDue": "આગામી સેવા નિયત",
+      "createServiceLog": "સેવા લૉગ બનાવો"
+    },
+    "trip": {
+      "title": "નવી ટ્રિપ",
+      "subtitle": "નવી ડિસ્પેચ ટ્રિપનું આયોજન કરો",
+      "loadingVehiclesDrivers": "વાહનો અને ડ્રાઇવરો લોડ થઈ રહ્યા છે...",
+      "vehicleLabel": "વાહન (ફક્ત ઉપલબ્ધ) *",
+      "selectVehicle": "વાહન પસંદ કરો...",
+      "noAvailableVehicles": "કોઈ ઉપલબ્ધ વાહન નથી",
+      "driverLabel": "ડ્રાઇવર (ફરજ પર, માન્ય લાઇસન્સ) *",
+      "selectDriver": "ડ્રાઇવર પસંદ કરો...",
+      "noEligibleDrivers": "કોઈ પાત્ર ડ્રાઇવર નથી",
+      "origin": "ઉદ્ગમ સ્થાન *",
+      "destination": "ગંતવ્ય *",
+      "locationPlaceholder": "ટાઇપ કરવાનું શરૂ કરો...",
+      "cargoWeight": "કાર્ગો વજન (kg) *",
+      "estDistance": "અંદાજિત અંતર (km) *",
+      "cargoExceedsCapacity": "કાર્ગો વાહનની ક્ષમતા કરતાં વધારે છે",
+      "cargoDescription": "કાર્ગો વર્ણન",
+      "cargoDescPlaceholder": "દા.ત. ઈલેક્ટ્રોનિક્સ, નાશવંત સામાન...",
+      "clientName": "ગ્રાહકનું નામ",
+      "clientPlaceholder": "Acme Corp",
+      "revenue": "આવક (₹)",
+      "createTripDraft": "ટ્રિપ બનાવો (ડ્રાફ્ટ)"
+    },
+    "tripComplete": {
+      "title": "ટ્રિપ પૂર્ણ કરો",
+      "description": "આ ટ્રિપ પૂર્ણ કરવા માટે ખરેખર કાપેલું અંતર દાખલ કરો. વાહન અને ડ્રાઇવરને મુક્ત કરવામાં આવશે.",
+      "actualDistance": "ખરેખર અંતર (km) *",
+      "distancePlaceholder": "દા.ત. 1450",
+      "odometerEnd": "અંતિમ ઓડોમીટર (વૈકલ્પિક)",
+      "odometerPlaceholder": "વર્તમાન ઓડોમીટર રીડિંગ",
+      "confirm": "ટ્રિપ પૂર્ણ કરો"
+    },
+    "tripCancel": {
+      "title": "ટ્રિપ રદ કરો",
+      "description": "આ ક્રિયા ટ્રિપ રદ કરશે. જો ટ્રિપ ડિસ્પેચ કરવામાં આવી હતી, તો વાહન અને ડ્રાઇવરને મુક્ત કરવામાં આવશે.",
+      "reasonLabel": "રદ કરવાનું કારણ *",
+      "reasonPlaceholder": "કૃપા કરીને જણાવો કે આ ટ્રિપ શા માટે રદ કરવામાં આવી રહી છે (ઓછામાં ઓછા 5 અક્ષરો)...",
+      "minLength": "ઓછામાં ઓછા 5 અક્ષરો જરૂરી છે",
+      "keepTrip": "ટ્રિપ રાખો",
+      "confirm": "ટ્રિપ રદ કરો"
+    },
+    "tripLedger": {
+      "title": "ટ્રિપ ખાતાવહી",
+      "subtitle": "ટ્રિપ #{{id}} નો નાણાકીય સારાંશ",
+      "revenue": "આવક",
+      "totalCost": "કુલ ખર્ચ",
+      "profit": "નફો",
+      "roi": "ROI",
+      "costBreakdown": "ખર્ચ વિભાજન",
+      "fuel": "ઈંધણ",
+      "expenses": "ખર્ચ",
+      "fuelLogs": "ઈંધણ લૉગ ({{count}})",
+      "expensesList": "ખર્ચ ({{count}})",
+      "noRecords": "આ ટ્રિપ માટે હજુ સુધી કોઈ ઈંધણ લૉગ અથવા ખર્ચ નોંધાયા નથી."
+    }
+  },
+  "ui": {
+    "capacityBar": {
+      "cargo": "કાર્ગો:",
+      "capacity": "{{value}} kg ક્ષમતા",
+      "exceedsCapacity": "{{pct}}% — ક્ષમતા કરતાં વધારે",
+      "utilized": "{{pct}}% ઉપયોગ — ઠીક"
+    },
+    "licenseExpiry": {
+      "expired": "સમાપ્ત",
+      "expiresIn": "{{days}} દિવસમાં સમાપ્ત!",
+      "expiringIn": "{{days}} દિવસમાં સમાપ્ત થઈ રહ્યું"
+    },
+    "navbar": {
+      "searchPlaceholder": "અહીં શોધો...",
+      "clearSearch": "શોધ સાફ કરો",
+      "notifications": "સૂચનાઓ",
+      "toggleDarkMode": "ડાર્ક મોડ ટૉગલ કરો",
+      "userMenu": "વપરાશકર્તા મેનૂ",
+      "fallbackName": "FleetFlow વપરાશકર્તા"
+    }
+  }
+}

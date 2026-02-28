@@ -1,11 +1,10 @@
 /**
- * Sidebar — Drivergo-inspired clean white sidebar with section labels
- * and a purple/violet active state indicator.
- * Matches reference: white bg, grouped nav with MAIN MENU / GENERAL / OTHERS.
- * Supports dark mode.
+ * Sidebar — clean white sidebar with section labels and active indicator.
+ * Supports dark mode and i18n.
  */
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
+import { useTranslation } from "react-i18next";
 import {
   LayoutDashboard,
   Truck,
@@ -32,14 +31,14 @@ import Logo from "../Branding/Logo";
 
 /* ── Types ──────────────────────────────────────────────── */
 interface NavItem {
-  label: string;
+  labelKey: string;
   icon: LucideIcon;
   path: string;
   badge?: number;
 }
 
 interface NavSection {
-  title?: string;
+  titleKey?: string;
   items: NavItem[];
 }
 
@@ -47,126 +46,126 @@ interface NavSection {
 const NAV_SECTIONS: Record<string, NavSection[]> = {
   MANAGER: [
     {
-      title: "MAIN MENU",
+      titleKey: "nav.sections.mainMenu",
       items: [
-        { label: "Fleet Hub", icon: LayoutDashboard, path: "/dashboard" },
-        { label: "Vehicle Registry", icon: Truck, path: "/fleet/vehicles" },
-        { label: "Dispatch Control", icon: Route, path: "/dispatch/trips" },
-        { label: "Communications", icon: MessageSquare, path: "/messages", badge: 6 },
-        { label: "Operational Feed", icon: Activity, path: "/activity" },
+        { labelKey: "nav.items.fleetHub", icon: LayoutDashboard, path: "/dashboard" },
+        { labelKey: "nav.items.vehicleRegistry", icon: Truck, path: "/fleet/vehicles" },
+        { labelKey: "nav.items.dispatchControl", icon: Route, path: "/dispatch/trips" },
+        { labelKey: "nav.items.communications", icon: MessageSquare, path: "/messages", badge: 6 },
+        { labelKey: "nav.items.operationalFeed", icon: Activity, path: "/activity" },
       ],
     },
     {
-      title: "GENERAL",
+      titleKey: "nav.sections.general",
       items: [
-        { label: "Financial Reports", icon: FileText, path: "/finance/reports" },
-        { label: "Help Center", icon: HelpCircle, path: "/support" },
-        { label: "My Identity", icon: User, path: "/settings" },
+        { labelKey: "nav.items.financialReports", icon: FileText, path: "/finance/reports" },
+        { labelKey: "nav.items.helpCenter", icon: HelpCircle, path: "/support" },
+        { labelKey: "nav.items.myIdentity", icon: User, path: "/settings" },
       ],
     },
     {
-      title: "OTHERS",
+      titleKey: "nav.sections.others",
       items: [
-        { label: "Settings", icon: Settings, path: "/settings/general" },
+        { labelKey: "nav.items.settings", icon: Settings, path: "/settings/general" },
       ],
     },
   ],
   DISPATCHER: [
     {
-      title: "MAIN MENU",
+      titleKey: "nav.sections.mainMenu",
       items: [
-        { label: "Fleet Hub", icon: LayoutDashboard, path: "/dashboard" },
-        { label: "Trip Ledger", icon: Route, path: "/dispatch/trips" },
-        { label: "Initiate Trip", icon: Route, path: "/dispatch/new" },
+        { labelKey: "nav.items.fleetHub", icon: LayoutDashboard, path: "/dashboard" },
+        { labelKey: "nav.items.tripLedger", icon: Route, path: "/dispatch/trips" },
+        { labelKey: "nav.items.initiateTrip", icon: Route, path: "/dispatch/new" },
       ],
     },
     {
-      title: "FLEET",
+      titleKey: "nav.sections.fleet",
       items: [
-        { label: "Fleet Catalog", icon: Truck, path: "/fleet/vehicles" },
-        { label: "Crew Records", icon: Users, path: "/hr/drivers" },
+        { labelKey: "nav.items.fleetCatalog", icon: Truck, path: "/fleet/vehicles" },
+        { labelKey: "nav.items.crewRecords", icon: Users, path: "/hr/drivers" },
       ],
     },
     {
-      title: "OTHERS",
+      titleKey: "nav.sections.others",
       items: [
-        { label: "Alert Center", icon: Bell, path: "/notifications" },
-        { label: "Settings", icon: Settings, path: "/settings" },
+        { labelKey: "nav.items.alertCenter", icon: Bell, path: "/notifications" },
+        { labelKey: "nav.items.settings", icon: Settings, path: "/settings" },
       ],
     },
   ],
   SAFETY_OFFICER: [
     {
-      title: "MAIN MENU",
+      titleKey: "nav.sections.mainMenu",
       items: [
-        { label: "Fleet Hub", icon: LayoutDashboard, path: "/dashboard" },
+        { labelKey: "nav.items.fleetHub", icon: LayoutDashboard, path: "/dashboard" },
       ],
     },
     {
-      title: "SAFETY",
+      titleKey: "nav.sections.safety",
       items: [
-        { label: "Safety Log", icon: AlertTriangle, path: "/safety/incidents" },
-        { label: "Crew Records", icon: Users, path: "/hr/drivers" },
-        { label: "Crew Scores", icon: BarChart3, path: "/hr/performance" },
+        { labelKey: "nav.items.safetyLog", icon: AlertTriangle, path: "/safety/incidents" },
+        { labelKey: "nav.items.crewRecords", icon: Users, path: "/hr/drivers" },
+        { labelKey: "nav.items.crewScores", icon: BarChart3, path: "/hr/performance" },
       ],
     },
     {
-      title: "MAINTENANCE",
+      titleKey: "nav.sections.maintenance",
       items: [
-        { label: "Service Logs", icon: Wrench, path: "/fleet/maintenance" },
-        { label: "Fleet Catalog", icon: Truck, path: "/fleet/vehicles" },
+        { labelKey: "nav.items.serviceLogs", icon: Wrench, path: "/fleet/maintenance" },
+        { labelKey: "nav.items.fleetCatalog", icon: Truck, path: "/fleet/vehicles" },
       ],
     },
     {
-      title: "OTHERS",
+      titleKey: "nav.sections.others",
       items: [
-        { label: "Incident Intel", icon: FileText, path: "/safety/reports" },
-        { label: "Settings", icon: Settings, path: "/settings" },
+        { labelKey: "nav.items.incidentIntel", icon: FileText, path: "/safety/reports" },
+        { labelKey: "nav.items.settings", icon: Settings, path: "/settings" },
       ],
     },
   ],
   FINANCE_ANALYST: [
     {
-      title: "MAIN MENU",
+      titleKey: "nav.sections.mainMenu",
       items: [
-        { label: "Fleet Hub", icon: LayoutDashboard, path: "/dashboard" },
+        { labelKey: "nav.items.fleetHub", icon: LayoutDashboard, path: "/dashboard" },
       ],
     },
     {
-      title: "FINANCE",
+      titleKey: "nav.sections.finance",
       items: [
-        { label: "Revenue Stream", icon: DollarSign, path: "/finance/ledger" },
-        { label: "Fuel Intel", icon: Fuel, path: "/finance/fuel" },
-        { label: "Profit & Loss", icon: DollarSign, path: "/finance/pnl" },
+        { labelKey: "nav.items.revenueStream", icon: DollarSign, path: "/finance/ledger" },
+        { labelKey: "nav.items.fuelIntel", icon: Fuel, path: "/finance/fuel" },
+        { labelKey: "nav.items.profitLoss", icon: DollarSign, path: "/finance/pnl" },
       ],
     },
     {
-      title: "REPORTS",
+      titleKey: "nav.sections.reports",
       items: [
-        { label: "Financial Reports", icon: FileText, path: "/finance/reports" },
-        { label: "Cost Intel", icon: BarChart3, path: "/finance/cost-analysis" },
+        { labelKey: "nav.items.financialReports", icon: FileText, path: "/finance/reports" },
+        { labelKey: "nav.items.costIntel", icon: BarChart3, path: "/finance/cost-analysis" },
       ],
     },
     {
-      title: "OTHERS",
+      titleKey: "nav.sections.others",
       items: [
-        { label: "Operations Intel", icon: BarChart3, path: "/analytics" },
-        { label: "Settings", icon: Settings, path: "/settings" },
+        { labelKey: "nav.items.operationsIntel", icon: BarChart3, path: "/analytics" },
+        { labelKey: "nav.items.settings", icon: Settings, path: "/settings" },
       ],
     },
   ],
   DRIVER: [
     {
-      title: "MAIN MENU",
+      titleKey: "nav.sections.mainMenu",
       items: [
-        { label: "Crew Gateway", icon: LayoutDashboard, path: "/driver" },
+        { labelKey: "nav.items.crewGateway", icon: LayoutDashboard, path: "/driver" },
       ],
     },
     {
-      title: "GENERAL",
+      titleKey: "nav.sections.general",
       items: [
-        { label: "Help Center", icon: HelpCircle, path: "/support" },
-        { label: "My Identity", icon: User, path: "/settings" },
+        { labelKey: "nav.items.helpCenter", icon: HelpCircle, path: "/support" },
+        { labelKey: "nav.items.myIdentity", icon: User, path: "/settings" },
       ],
     },
   ],
@@ -177,6 +176,7 @@ export default function Sidebar() {
   const location = useLocation();
   const navigate = useNavigate();
   const { isDark } = useTheme();
+  const { t } = useTranslation();
 
   const role = user?.role ?? "MANAGER";
   const sections = NAV_SECTIONS[role] ?? NAV_SECTIONS["MANAGER"];
@@ -197,9 +197,9 @@ export default function Sidebar() {
       <nav className="flex-1 overflow-y-auto py-4 px-3 space-y-6">
         {sections.map((section, sIdx) => (
           <div key={sIdx}>
-            {section.title && (
+            {section.titleKey && (
               <p className={`px-3 mb-2 text-[10px] font-semibold uppercase tracking-[0.12em] ${isDark ? 'text-neutral-600' : 'text-slate-400'}`}>
-                {section.title}
+                {t(section.titleKey)}
               </p>
             )}
             <div className="space-y-0.5">
@@ -229,7 +229,7 @@ export default function Sidebar() {
                       />
                     )}
                     <Icon className={`w-[18px] h-[18px] shrink-0 ${active ? "text-white" : ""}`} />
-                    <span className="flex-1 text-left whitespace-nowrap">{item.label}</span>
+                    <span className="flex-1 text-left whitespace-nowrap">{t(item.labelKey)}</span>
                     {item.badge && (
                       <span className={`min-w-[20px] h-5 px-1.5 rounded-full text-[11px] font-bold flex items-center justify-center ${
                         active ? "bg-white/20 text-white" : "bg-violet-100 text-violet-600"
@@ -253,7 +253,7 @@ export default function Sidebar() {
           className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors text-sm ${isDark ? 'text-neutral-500 hover:text-red-400 hover:bg-red-900/20' : 'text-slate-400 hover:text-red-500 hover:bg-red-50'}`}
         >
           <LogOut className="w-4 h-4 shrink-0" />
-          <span>Log out</span>
+          <span>{t("common.logout")}</span>
         </button>
       </div>
     </aside>

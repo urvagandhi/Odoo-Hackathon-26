@@ -2,6 +2,7 @@
  * LicenseExpiryBadge — color-coded license expiry indicator.
  * > 90 days → green, 30-90 → amber, < 30 → red, expired → red bg EXPIRED
  */
+import { useTranslation } from "react-i18next";
 import { useTheme } from "../../context/ThemeContext";
 
 interface LicenseExpiryBadgeProps {
@@ -11,6 +12,7 @@ interface LicenseExpiryBadgeProps {
 
 export function LicenseExpiryBadge({ expiryDate, className = "" }: LicenseExpiryBadgeProps) {
   const { isDark } = useTheme();
+  const { t } = useTranslation();
   const now = new Date();
   const expiry = new Date(expiryDate);
   const diffMs = expiry.getTime() - now.getTime();
@@ -21,7 +23,7 @@ export function LicenseExpiryBadge({ expiryDate, className = "" }: LicenseExpiry
       <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold ${
         isDark ? "bg-red-900/50 text-red-300" : "bg-red-100 text-red-700"
       } ${className}`}>
-        EXPIRED
+        {t("ui.licenseExpiry.expired")}
       </span>
     );
   }
@@ -29,7 +31,7 @@ export function LicenseExpiryBadge({ expiryDate, className = "" }: LicenseExpiry
   if (daysLeft < 30) {
     return (
       <span className={`text-xs font-semibold ${isDark ? "text-red-400" : "text-red-600"} ${className}`}>
-        Expires in {daysLeft}d!
+        {t("ui.licenseExpiry.expiresIn", { days: daysLeft })}
       </span>
     );
   }
@@ -37,7 +39,7 @@ export function LicenseExpiryBadge({ expiryDate, className = "" }: LicenseExpiry
   if (daysLeft <= 90) {
     return (
       <span className={`text-xs font-medium ${isDark ? "text-amber-400" : "text-amber-600"} ${className}`}>
-        Expiring in {daysLeft}d
+        {t("ui.licenseExpiry.expiringIn", { days: daysLeft })}
       </span>
     );
   }

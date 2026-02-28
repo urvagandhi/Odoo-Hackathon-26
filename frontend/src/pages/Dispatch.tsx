@@ -4,6 +4,7 @@
  * Embedded Leaflet map with OpenRouteService routing for shortest path
  */
 import { useState, useEffect, useCallback } from "react";
+import { useTranslation } from "react-i18next";
 import { motion, AnimatePresence } from "framer-motion";
 import {
     Plus, X, Route, MapPin, Truck, User, Clock, CheckCircle2,
@@ -36,11 +37,11 @@ L.Icon.Default.mergeOptions({
     shadowUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png",
 });
 
-const STATUS_CONFIG: Record<string, { label: string; className: string; icon: React.ElementType }> = {
-    DRAFT: { label: "Draft", className: "bg-neutral-100 text-neutral-600", icon: Clock },
-    DISPATCHED: { label: "Dispatched", className: "bg-blue-100 text-blue-700", icon: Route },
-    COMPLETED: { label: "Completed", className: "bg-emerald-100 text-emerald-700", icon: CheckCircle2 },
-    CANCELLED: { label: "Cancelled", className: "bg-red-100 text-red-600", icon: XCircle },
+const STATUS_CONFIG: Record<string, { labelKey: string; className: string; icon: React.ElementType }> = {
+    DRAFT: { labelKey: "dispatch.status.DRAFT", className: "bg-neutral-100 text-neutral-600", icon: Clock },
+    DISPATCHED: { labelKey: "dispatch.status.DISPATCHED", className: "bg-blue-100 text-blue-700", icon: Route },
+    COMPLETED: { labelKey: "dispatch.status.COMPLETED", className: "bg-emerald-100 text-emerald-700", icon: CheckCircle2 },
+    CANCELLED: { labelKey: "dispatch.status.CANCELLED", className: "bg-red-100 text-red-600", icon: XCircle },
 };
 
 const FIELD = "block w-full rounded-xl border px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-colors";
@@ -98,6 +99,7 @@ function MapBounds({ bounds }: { bounds: [[number, number], [number, number]] | 
 
 export default function Dispatch() {
     const { isDark } = useTheme();
+    const { t } = useTranslation();
     const toast = useToast();
     const [trips, setTrips] = useState<Trip[]>([]);
     const [vehicles, setVehicles] = useState<Vehicle[]>([]);
@@ -128,14 +130,14 @@ export default function Dispatch() {
     const load = useCallback(async () => {
         setLoading(true);
         try {
-            const [t, v, d] = await Promise.all([
+            const [tripsRes, vRes, dRes] = await Promise.all([
                 dispatchApi.listTrips({ limit: 100 }),
                 fleetApi.listVehicles({ status: "AVAILABLE", limit: 100 }),
                 hrApi.listDrivers({ status: "ON_DUTY", limit: 100 }),
             ]);
-            setTrips(t.data ?? []);
-            setVehicles(v.data ?? []);
-            setDrivers(d.data ?? []);
+            setTrips(tripsRes.data ?? []);
+            setVehicles(vRes.data ?? []);
+            setDrivers(dRes.data ?? []);
         } finally { setLoading(false); }
     }, []);
 
@@ -162,11 +164,11 @@ export default function Dispatch() {
         loadRoute();
     }, [selectedTrip]);
 
-    const filtered = trips.filter(t =>
-        (!statusFilter || t.status === statusFilter) &&
-        (!search || t.origin.toLowerCase().includes(search.toLowerCase()) ||
-            t.destination.toLowerCase().includes(search.toLowerCase()) ||
-            t.driver?.fullName?.toLowerCase().includes(search.toLowerCase()))
+    const filtered = trips.filter(tr =>
+        (!statusFilter || tr.status === statusFilter) &&
+        (!search || tr.origin.toLowerCase().includes(search.toLowerCase()) ||
+            tr.destination.toLowerCase().includes(search.toLowerCase()) ||
+            tr.driver?.fullName?.toLowerCase().includes(search.toLowerCase()))
     );
 
     const handleCreate = async (e: React.FormEvent) => {
@@ -179,7 +181,7 @@ export default function Dispatch() {
                 return;
             }
             await dispatchApi.createTrip({ ...form, distanceEstimated: form.distanceEstimated });
-            toast.success("New trip has been added to draft.", { title: "Trip Created" });
+            toast.success(t("dispatch.toast.created"));
             setShowModal(false);
             load();
         } catch (err: unknown) {
@@ -190,14 +192,14 @@ export default function Dispatch() {
     const handleTransition = async (trip: Trip, status: "DISPATCHED" | "COMPLETED" | "CANCELLED") => {
         try {
             await dispatchApi.transitionStatus(trip.id, { status });
-            toast.success(`Trip successfully moved to ${status.toLowerCase()} status.`, { title: `Trip ${status.charAt(0) + status.slice(1).toLowerCase()}` });
+            toast.success(t("dispatch.toast.transitioned", { status: status.toLowerCase() }));
             load();
             if (selectedTrip?.id === trip.id) {
                 const updated = await dispatchApi.getTrip(trip.id);
                 setSelectedTrip(updated);
             }
         } catch (err: unknown) {
-            toast.error((err as { response?: { data?: { message?: string } } })?.response?.data?.message ?? "Failed to transition trip status.", { title: "Update Failed" });
+            toast.error((err as { response?: { data?: { message?: string } } })?.response?.data?.message ?? t("dispatch.toast.transitionFailed"));
         }
         setTransitioning(null);
     };
@@ -208,11 +210,11 @@ export default function Dispatch() {
         <div className="max-w-[1600px] mx-auto h-full">
             <div className="flex items-center justify-between mb-5">
                 <div>
-                    <h1 className={`text-2xl font-bold ${isDark ? "text-white" : "text-neutral-900"}`}>Dispatch Control</h1>
-                    <p className={`text-sm ${isDark ? "text-neutral-400" : "text-neutral-500"}`}>{trips.length} trips total</p>
+                    <h1 className={`text-2xl font-bold ${isDark ? "text-white" : "text-neutral-900"}`}>{t("dispatch.title")}</h1>
+                    <p className={`text-sm ${isDark ? "text-neutral-400" : "text-neutral-500"}`}>{t("dispatch.tripsTotal", { count: trips.length })}</p>
                 </div>
                 <button onClick={() => { setFormError(""); setShowModal(true); }} className="flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-500 text-white text-sm font-semibold hover:bg-emerald-600 transition-colors">
-                    <Plus className="w-4 h-4" /> New Trip
+                    <Plus className="w-4 h-4" /> {t("dispatch.newTrip")}
                 </button>
             </div>
 
@@ -223,14 +225,14 @@ export default function Dispatch() {
                     <div className={`p-3 space-y-2 border-b ${isDark ? "border-neutral-700" : "border-neutral-100"}`}>
                         <div className="relative">
                             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400" />
-                            <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search trips…" className={`${inputClass} pl-9`} />
+                            <input value={search} onChange={e => setSearch(e.target.value)} placeholder={t("dispatch.searchPlaceholder")} className={`${inputClass} pl-9`} />
                         </div>
                         <div className="flex gap-1 flex-wrap">
                             {["", "DRAFT", "DISPATCHED", "COMPLETED", "CANCELLED"].map(s => (
                                 <button key={s} onClick={() => setStatusFilter(s)}
                                     className={`px-2.5 py-1 rounded-lg text-xs font-semibold transition-colors ${statusFilter === s ? "bg-emerald-500 text-white" : isDark ? "text-neutral-400 hover:bg-neutral-700" : "text-neutral-500 hover:bg-neutral-100"}`}
                                 >
-                                    {s || "All"}
+                                    {s || t("common.all")}
                                 </button>
                             ))}
                         </div>
@@ -239,17 +241,17 @@ export default function Dispatch() {
                     {/* Trip list */}
                     <div className="flex-1 overflow-y-auto">
                         {loading ? (
-                            <div className="flex items-center justify-center h-32 text-neutral-400">Loading…</div>
+                            <div className="flex items-center justify-center h-32 text-neutral-400">{t("common.loading")}</div>
                         ) : filtered.length === 0 ? (
                             <div className="flex flex-col items-center justify-center h-32 text-neutral-400">
                                 <Route className="w-8 h-8 mb-2 opacity-30" />
-                                <p className="text-sm">No trips found</p>
+                                <p className="text-sm">{t("dispatch.noTrips")}</p>
                             </div>
                         ) : filtered.map(trip => {
                             const cfg = STATUS_CONFIG[trip.status];
                             const isSelected = selectedTrip?.id === trip.id;
                             return (
-                                <button key={trip.id} onClick={() => setSelectedTrip(t => t?.id === trip.id ? null : trip)}
+                                <button key={trip.id} onClick={() => setSelectedTrip(prev => prev?.id === trip.id ? null : trip)}
                                     className={`w-full text-left p-4 border-b transition-all ${isDark ? "border-neutral-700 hover:bg-neutral-700/40" : "border-neutral-50 hover:bg-neutral-50"
                                         } ${isSelected ? (isDark ? "bg-emerald-500/10 border-l-2 border-l-emerald-500" : "bg-emerald-50 border-l-2 border-l-emerald-500") : ""}`}
                                 >
@@ -261,7 +263,7 @@ export default function Dispatch() {
                                                 <p className={`text-xs ${isDark ? "text-neutral-400" : "text-neutral-500"}`}>→ {trip.destination}</p>
                                             </div>
                                         </div>
-                                        <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${cfg?.className}`}>{cfg?.label}</span>
+                                        <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${cfg?.className}`}>{t(cfg?.labelKey ?? "")}</span>
                                     </div>
                                     <div className={`flex items-center gap-3 text-xs ${isDark ? "text-neutral-400" : "text-neutral-500"}`}>
                                         <span className="flex items-center gap-1"><Truck className="w-3 h-3" />{trip.vehicle?.licensePlate ?? "—"}</span>
@@ -284,14 +286,14 @@ export default function Dispatch() {
                                 <div className="flex items-start justify-between mb-3">
                                     <div>
                                         <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${STATUS_CONFIG[selectedTrip.status]?.className}`}>
-                                            {STATUS_CONFIG[selectedTrip.status]?.label}
+                                            {t(STATUS_CONFIG[selectedTrip.status]?.labelKey ?? "")}
                                         </span>
                                         <h2 className={`text-base font-bold mt-1.5 ${isDark ? "text-white" : "text-neutral-900"}`}>
                                             {selectedTrip.origin} → {selectedTrip.destination}
                                         </h2>
                                         {selectedTrip.clientName && (
                                             <p className={`text-xs mt-0.5 ${isDark ? "text-neutral-400" : "text-neutral-500"}`}>
-                                                Client: {selectedTrip.clientName}
+                                                {t("dispatch.detail.client")} {selectedTrip.clientName}
                                             </p>
                                         )}
                                     </div>
@@ -303,19 +305,19 @@ export default function Dispatch() {
                                             >
                                                 <button onClick={() => setTransitioning({ id: selectedTrip.id, status: "DISPATCHED" })}
                                                     className="px-3 py-1.5 rounded-xl text-xs font-semibold bg-blue-500 text-white hover:bg-blue-600 transition-colors shadow-sm">
-                                                    Dispatch
+                                                    {t("dispatch.actions.dispatch")}
                                                 </button>
                                                 <AlertDialogContent>
                                                     <AlertDialogHeader>
-                                                        <AlertDialogTitle>Dispatch Trip?</AlertDialogTitle>
+                                                        <AlertDialogTitle>{t("dispatch.dispatchTrip")}</AlertDialogTitle>
                                                         <AlertDialogDescription>
-                                                            This will notify the driver and mark the vehicle as on-trip.
+                                                            {t("dispatch.dispatchTripDesc")}
                                                         </AlertDialogDescription>
                                                     </AlertDialogHeader>
                                                     <AlertDialogFooter>
-                                                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                                        <AlertDialogCancel>{t("common.cancel")}</AlertDialogCancel>
                                                         <AlertDialogAction onClick={() => handleTransition(selectedTrip, "DISPATCHED")}>
-                                                            Confirm Dispatch
+                                                            {t("dispatch.actions.dispatch")}
                                                         </AlertDialogAction>
                                                     </AlertDialogFooter>
                                                 </AlertDialogContent>
@@ -324,24 +326,24 @@ export default function Dispatch() {
                                         {selectedTrip.status === "DISPATCHED" && (
                                             <button onClick={() => setCompleteTripId(selectedTrip.id)}
                                                 className="px-3 py-1.5 rounded-xl text-xs font-semibold bg-emerald-500 text-white hover:bg-emerald-600 transition-colors shadow-sm">
-                                                Complete
+                                                {t("dispatch.actions.complete")}
                                             </button>
                                         )}
                                         {["DRAFT", "DISPATCHED"].includes(selectedTrip.status) && (
                                             <button onClick={() => setCancelTripId(selectedTrip.id)}
                                                 className="px-3 py-1.5 rounded-xl text-xs font-semibold bg-red-50 text-red-600 hover:bg-red-100 border border-red-200 transition-colors">
-                                                Cancel
+                                                {t("dispatch.actions.cancel")}
                                             </button>
                                         )}
                                     </div>
                                 </div>
                                 <div className="grid grid-cols-3 gap-4 text-sm">
-                                    <InfoBox label="Vehicle" value={`${selectedTrip.vehicle?.year ?? ""} ${selectedTrip.vehicle?.make ?? "—"} ${selectedTrip.vehicle?.model ?? ""}`} sub={selectedTrip.vehicle?.licensePlate} isDark={isDark} />
-                                    <InfoBox label="Driver" value={selectedTrip.driver?.fullName ?? "—"} sub={selectedTrip.driver?.licenseNumber} isDark={isDark} />
-                                    <InfoBox label="Cargo" value={selectedTrip.cargoWeight ? `${selectedTrip.cargoWeight} kg` : "—"} sub={selectedTrip.cargoDescription} isDark={isDark} />
-                                    {selectedTrip.distanceEstimated > 0 && <InfoBox label="Distance (est.)" value={`${selectedTrip.distanceEstimated} km`} isDark={isDark} />}
-                                    {selectedTrip.revenue && <InfoBox label="Revenue" value={`₹${Number(selectedTrip.revenue).toLocaleString()}`} isDark={isDark} />}
-                                    {selectedTrip.dispatchTime && <InfoBox label="Dispatched" value={new Date(selectedTrip.dispatchTime).toLocaleString("en-IN")} isDark={isDark} />}
+                                    <InfoBox label={t("dispatch.detail.vehicle")} value={`${selectedTrip.vehicle?.year ?? ""} ${selectedTrip.vehicle?.make ?? "—"} ${selectedTrip.vehicle?.model ?? ""}`} sub={selectedTrip.vehicle?.licensePlate} isDark={isDark} />
+                                    <InfoBox label={t("dispatch.detail.driver")} value={selectedTrip.driver?.fullName ?? "—"} sub={selectedTrip.driver?.licenseNumber} isDark={isDark} />
+                                    <InfoBox label={t("dispatch.detail.cargo")} value={selectedTrip.cargoWeight ? `${selectedTrip.cargoWeight} kg` : "—"} sub={selectedTrip.cargoDescription} isDark={isDark} />
+                                    {selectedTrip.distanceEstimated > 0 && <InfoBox label={t("dispatch.detail.distance")} value={`${selectedTrip.distanceEstimated} km`} isDark={isDark} />}
+                                    {selectedTrip.revenue && <InfoBox label={t("dispatch.detail.revenue")} value={`₹${Number(selectedTrip.revenue).toLocaleString()}`} isDark={isDark} />}
+                                    {selectedTrip.dispatchTime && <InfoBox label={t("dispatch.detail.dispatched")} value={new Date(selectedTrip.dispatchTime).toLocaleString("en-IN")} isDark={isDark} />}
                                 </div>
                             </div>
 
@@ -350,7 +352,7 @@ export default function Dispatch() {
                                 {mapLoading && (
                                     <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/80 backdrop-blur-sm">
                                         <div className="text-sm text-neutral-500 flex items-center gap-2">
-                                            <Route className="w-4 h-4 animate-pulse text-emerald-500" /> Calculating shortest route…
+                                            <Route className="w-4 h-4 animate-pulse text-emerald-500" /> {t("dispatch.map.calculatingRoute")}
                                         </div>
                                     </div>
                                 )}
@@ -382,8 +384,8 @@ export default function Dispatch() {
                                 <Route className="w-8 h-8 text-emerald-500" />
                             </div>
                             <div className="text-center">
-                                <p className={`font-semibold ${isDark ? "text-white" : "text-neutral-900"}`}>Select a trip</p>
-                                <p className={`text-sm mt-1 ${isDark ? "text-neutral-400" : "text-neutral-500"}`}>Click any trip to view its route on the map</p>
+                                <p className={`font-semibold ${isDark ? "text-white" : "text-neutral-900"}`}>{t("dispatch.map.selectTrip")}</p>
+                                <p className={`text-sm mt-1 ${isDark ? "text-neutral-400" : "text-neutral-500"}`}>{t("dispatch.map.selectTripDesc")}</p>
                             </div>
                         </div>
                     )}
@@ -401,7 +403,7 @@ export default function Dispatch() {
                             className={`w-full max-w-2xl rounded-3xl border p-6 shadow-2xl max-h-[90vh] overflow-y-auto ${isDark ? "bg-neutral-800 border-neutral-700" : "bg-white"}`}
                         >
                             <div className="flex items-center justify-between mb-5">
-                                <h2 className={`text-lg font-bold ${isDark ? "text-white" : "text-neutral-900"}`}>Create New Trip</h2>
+                                <h2 className={`text-lg font-bold ${isDark ? "text-white" : "text-neutral-900"}`}>{t("dispatch.createTrip")}</h2>
                                 <button onClick={() => setShowModal(false)} className="p-1.5 rounded-lg text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-700 transition-colors"><X className="w-4 h-4" /></button>
                             </div>
 
@@ -410,58 +412,58 @@ export default function Dispatch() {
                             <form onSubmit={handleCreate} className="space-y-4">
                                 <div className="grid grid-cols-2 gap-4">
                                     <div>
-                                        <label className={`block text-xs font-semibold mb-1.5 ${isDark ? "text-neutral-300" : "text-neutral-700"}`}>Vehicle *</label>
+                                        <label className={`block text-xs font-semibold mb-1.5 ${isDark ? "text-neutral-300" : "text-neutral-700"}`}>{t("dispatch.form.vehicle")}</label>
                                         <select required value={form.vehicleId} onChange={e => setForm(f => ({ ...f, vehicleId: e.target.value }))} className={inputClass}>
-                                            <option value="">Select available vehicle</option>
+                                            <option value="">{t("dispatch.form.selectVehicle")}</option>
                                             {vehicles.map(v => <option key={v.id} value={v.id}>{v.licensePlate} — {v.make} {v.model}{v.capacityWeight ? ` (${v.capacityWeight} kg max)` : ""}</option>)}
                                         </select>
                                     </div>
                                     <div>
-                                        <label className={`block text-xs font-semibold mb-1.5 ${isDark ? "text-neutral-300" : "text-neutral-700"}`}>Driver *</label>
+                                        <label className={`block text-xs font-semibold mb-1.5 ${isDark ? "text-neutral-300" : "text-neutral-700"}`}>{t("dispatch.form.driver")}</label>
                                         <select required value={form.driverId} onChange={e => setForm(f => ({ ...f, driverId: e.target.value }))} className={inputClass}>
-                                            <option value="">Select on-duty driver</option>
+                                            <option value="">{t("dispatch.form.selectDriver")}</option>
                                             {drivers.map(d => <option key={d.id} value={d.id}>{d.fullName} ({d.licenseNumber})</option>)}
                                         </select>
                                     </div>
                                 </div>
                                 <div className="grid grid-cols-2 gap-4">
                                     <div>
-                                        <label className={`block text-xs font-semibold mb-1.5 ${isDark ? "text-neutral-300" : "text-neutral-700"}`}>Origin *</label>
-                                        <input required value={form.origin} onChange={e => setForm(f => ({ ...f, origin: e.target.value }))} className={inputClass} placeholder="Mumbai, Maharashtra" />
+                                        <label className={`block text-xs font-semibold mb-1.5 ${isDark ? "text-neutral-300" : "text-neutral-700"}`}>{t("dispatch.form.origin")}</label>
+                                        <input required value={form.origin} onChange={e => setForm(f => ({ ...f, origin: e.target.value }))} className={inputClass} placeholder={t("dispatch.form.originPlaceholder")} />
                                     </div>
                                     <div>
-                                        <label className={`block text-xs font-semibold mb-1.5 ${isDark ? "text-neutral-300" : "text-neutral-700"}`}>Destination *</label>
-                                        <input required value={form.destination} onChange={e => setForm(f => ({ ...f, destination: e.target.value }))} className={inputClass} placeholder="Pune, Maharashtra" />
+                                        <label className={`block text-xs font-semibold mb-1.5 ${isDark ? "text-neutral-300" : "text-neutral-700"}`}>{t("dispatch.form.destination")}</label>
+                                        <input required value={form.destination} onChange={e => setForm(f => ({ ...f, destination: e.target.value }))} className={inputClass} placeholder={t("dispatch.form.destinationPlaceholder")} />
                                     </div>
                                 </div>
                                 <div className="grid grid-cols-3 gap-4">
                                     <div>
-                                        <label className={`block text-xs font-semibold mb-1.5 ${isDark ? "text-neutral-300" : "text-neutral-700"}`}>Distance (km)</label>
+                                        <label className={`block text-xs font-semibold mb-1.5 ${isDark ? "text-neutral-300" : "text-neutral-700"}`}>{t("dispatch.form.distance")}</label>
                                         <input type="number" min="0" step="0.1" value={form.distanceEstimated || ""} onChange={e => setForm(f => ({ ...f, distanceEstimated: +e.target.value }))} className={inputClass} placeholder="150" />
                                     </div>
                                     <div>
-                                        <label className={`block text-xs font-semibold mb-1.5 ${isDark ? "text-neutral-300" : "text-neutral-700"}`}>Cargo Weight (kg)</label>
+                                        <label className={`block text-xs font-semibold mb-1.5 ${isDark ? "text-neutral-300" : "text-neutral-700"}`}>{t("dispatch.form.cargoWeight")}</label>
                                         <input type="number" min="0" value={form.cargoWeight || ""} onChange={e => setForm(f => ({ ...f, cargoWeight: +e.target.value }))} className={inputClass} placeholder="1000" />
                                     </div>
                                     <div>
-                                        <label className={`block text-xs font-semibold mb-1.5 ${isDark ? "text-neutral-300" : "text-neutral-700"}`}>Revenue (₹)</label>
+                                        <label className={`block text-xs font-semibold mb-1.5 ${isDark ? "text-neutral-300" : "text-neutral-700"}`}>{t("dispatch.form.revenue")}</label>
                                         <input type="number" min="0" value={form.revenue || ""} onChange={e => setForm(f => ({ ...f, revenue: +e.target.value }))} className={inputClass} placeholder="50000" />
                                     </div>
                                 </div>
                                 <div className="grid grid-cols-2 gap-4">
                                     <div>
-                                        <label className={`block text-xs font-semibold mb-1.5 ${isDark ? "text-neutral-300" : "text-neutral-700"}`}>Cargo Description</label>
+                                        <label className={`block text-xs font-semibold mb-1.5 ${isDark ? "text-neutral-300" : "text-neutral-700"}`}>{t("dispatch.form.cargoDescription")}</label>
                                         <input value={form.cargoDescription} onChange={e => setForm(f => ({ ...f, cargoDescription: e.target.value }))} className={inputClass} placeholder="Electronics, perishables…" />
                                     </div>
                                     <div>
-                                        <label className={`block text-xs font-semibold mb-1.5 ${isDark ? "text-neutral-300" : "text-neutral-700"}`}>Client Name</label>
+                                        <label className={`block text-xs font-semibold mb-1.5 ${isDark ? "text-neutral-300" : "text-neutral-700"}`}>{t("dispatch.form.clientName")}</label>
                                         <input value={form.clientName} onChange={e => setForm(f => ({ ...f, clientName: e.target.value }))} className={inputClass} placeholder="Acme Corp" />
                                     </div>
                                 </div>
                                 <div className="flex gap-3 pt-2">
-                                    <button type="button" onClick={() => setShowModal(false)} className={`flex-1 py-2.5 rounded-xl text-sm font-semibold border transition-colors ${isDark ? "border-neutral-600 text-neutral-300 hover:bg-neutral-700" : "border-neutral-200 text-neutral-600 hover:bg-neutral-50"}`}>Cancel</button>
+                                    <button type="button" onClick={() => setShowModal(false)} className={`flex-1 py-2.5 rounded-xl text-sm font-semibold border transition-colors ${isDark ? "border-neutral-600 text-neutral-300 hover:bg-neutral-700" : "border-neutral-200 text-neutral-600 hover:bg-neutral-50"}`}>{t("common.cancel")}</button>
                                     <button type="submit" disabled={saving} className="flex-1 py-2.5 rounded-xl text-sm font-semibold bg-emerald-500 text-white hover:bg-emerald-600 disabled:opacity-60 transition-colors">
-                                        {saving ? "Creating…" : "Create Trip"}
+                                        {saving ? t("common.saving") : t("dispatch.createTrip")}
                                     </button>
                                 </div>
                             </form>

@@ -3,6 +3,7 @@
  * Status cards, search, filters, DataTable with pagination, create/edit slide-over.
  */
 import { useState, useEffect, useCallback } from "react";
+import { useTranslation } from "react-i18next";
 import { motion } from "framer-motion";
 import {
   Truck,
@@ -69,6 +70,7 @@ export default function VehicleRegistry() {
   const { isDark } = useTheme();
   const { user } = useAuth();
   const toast = useToast();
+  const { t } = useTranslation();
 
   // Data state
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
@@ -104,9 +106,9 @@ export default function VehicleRegistry() {
       a.download = `fleetflow-vehicles-${new Date().toISOString().split('T')[0]}.csv`;
       a.click();
       URL.revokeObjectURL(url);
-      toast.success("Vehicle registry has been exported to CSV.", { title: "Export Successful" });
+      toast.success(t("vehicleRegistry.toast.exportSuccess"), { title: t("vehicleRegistry.toast.exportSuccessTitle") });
     } catch {
-      toast.error("Could not generate vehicle export.", { title: "Export Failed" });
+      toast.error(t("vehicleRegistry.toast.exportFailed"), { title: t("vehicleRegistry.toast.exportFailedTitle") });
     }
   };
 
@@ -223,8 +225,8 @@ export default function VehicleRegistry() {
             <Truck className="w-5 h-5 text-white" />
           </div>
           <div>
-            <h1 className={`text-xl font-bold leading-tight ${textPrimary}`}>Vehicle Registry</h1>
-            <p className={`text-sm mt-0.5 ${textSecondary}`}>Manage your fleet assets</p>
+            <h1 className={`text-xl font-bold leading-tight ${textPrimary}`}>{t("vehicleRegistry.title")}</h1>
+            <p className={`text-sm mt-0.5 ${textSecondary}`}>{t("vehicleRegistry.subtitle")}</p>
           </div>
         </div>
 
@@ -238,7 +240,7 @@ export default function VehicleRegistry() {
             }`}
           >
             <Download className="w-4 h-4" />
-            Export CSV
+            {t("vehicleRegistry.exportCSV")}
           </button>
           {canMutate && (
             <button
@@ -246,7 +248,7 @@ export default function VehicleRegistry() {
               className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-violet-600 hover:bg-violet-500 text-white text-sm font-medium transition-colors shadow-lg shadow-violet-500/20"
             >
               <Plus className="w-4 h-4" />
-              New Vehicle
+              {t("vehicleRegistry.newVehicle")}
             </button>
           )}
         </div>
@@ -292,7 +294,7 @@ export default function VehicleRegistry() {
           <Search className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 ${isDark ? "text-neutral-500" : "text-slate-400"}`} />
           <input
             className={`${inputCls} pl-9 w-full`}
-            placeholder="Search plate, make, model..."
+            placeholder={t("common.search")}
             value={searchInput}
             onChange={(e) => setSearchInput(e.target.value)}
           />
@@ -323,7 +325,7 @@ export default function VehicleRegistry() {
           <table className="w-full text-sm">
             <thead>
               <tr className={`border-b ${isDark ? "border-neutral-700 bg-neutral-800/50" : "border-slate-200 bg-slate-50"}`}>
-                {["#", "Plate", "Make / Model", "Type", "Capacity", "Odometer", "Status", "Actions"].map((h) => (
+                {[t("vehicleRegistry.columns.number"), t("vehicleRegistry.columns.plate"), t("vehicleRegistry.columns.makeModel"), t("vehicleRegistry.columns.type"), t("vehicleRegistry.columns.capacity"), t("vehicleRegistry.columns.odometer"), t("vehicleRegistry.columns.status"), t("vehicleRegistry.columns.actions")].map((h) => (
                   <th key={h} className={`text-left px-4 py-3 text-xs font-semibold uppercase tracking-wide ${textSecondary}`}>
                     {h}
                   </th>
@@ -346,9 +348,9 @@ export default function VehicleRegistry() {
                 <tr>
                   <td colSpan={8} className="py-16 text-center">
                     <Truck className={`w-10 h-10 mx-auto mb-2 ${isDark ? "text-neutral-600" : "text-slate-300"}`} />
-                    <p className={`text-sm font-medium ${textPrimary}`}>No vehicles found</p>
+                    <p className={`text-sm font-medium ${textPrimary}`}>{t("vehicleRegistry.noVehicles")}</p>
                     <p className={`text-xs mt-1 ${textSecondary}`}>
-                      {searchInput || statusFilter ? "Try adjusting your filters" : "Register your first vehicle to get started"}
+                      {searchInput || statusFilter ? t("vehicleRegistry.adjustFilters") : t("vehicleRegistry.addFirstVehicle")}
                     </p>
                   </td>
                 </tr>
@@ -386,7 +388,7 @@ export default function VehicleRegistry() {
                             className={`p-1.5 rounded-lg transition-colors ${
                               isDark ? "hover:bg-neutral-600 text-neutral-400" : "hover:bg-slate-100 text-slate-400"
                             }`}
-                            title="Edit"
+                            title={t("vehicleRegistry.editTooltip")}
                           >
                             <Edit2 className="w-3.5 h-3.5" />
                           </button>
@@ -403,21 +405,21 @@ export default function VehicleRegistry() {
                                 className={`p-1.5 rounded-lg transition-colors ${
                                   isDark ? "hover:bg-amber-900/30 text-amber-400" : "hover:bg-amber-50 text-amber-600"
                                 }`}
-                                title="Retire"
+                                title={t("vehicleRegistry.retireTooltip")}
                               >
                                 <XCircle className="w-3.5 h-3.5" />
                               </button>
                             <AlertDialogContent>
                               <AlertDialogHeader>
-                                <AlertDialogTitle>Retire Vehicle?</AlertDialogTitle>
+                                <AlertDialogTitle>{t("vehicleRegistry.retireDialog.title")}</AlertDialogTitle>
                                 <AlertDialogDescription>
-                                  This will permanently decommission <strong>{v.licensePlate}</strong>. Retired vehicles cannot be dispatched.
+                                  {t("vehicleRegistry.retireDialog.description", { plate: v.licensePlate })}
                                 </AlertDialogDescription>
                               </AlertDialogHeader>
                               <AlertDialogFooter>
-                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                <AlertDialogCancel>{t("common.cancel")}</AlertDialogCancel>
                                 <AlertDialogAction variant="destructive" onClick={handleRetire}>
-                                  Retire Vehicle
+                                  {t("vehicleRegistry.retireDialog.confirm")}
                                 </AlertDialogAction>
                               </AlertDialogFooter>
                             </AlertDialogContent>
@@ -435,21 +437,21 @@ export default function VehicleRegistry() {
                                 className={`p-1.5 rounded-lg transition-colors ${
                                   isDark ? "hover:bg-red-900/30 text-red-400" : "hover:bg-red-50 text-red-500"
                                 }`}
-                                title="Delete"
+                                title={t("vehicleRegistry.deleteTooltip")}
                               >
                                 <Trash2 className="w-3.5 h-3.5" />
                               </button>
                             <AlertDialogContent>
                               <AlertDialogHeader>
-                                <AlertDialogTitle>Delete Vehicle?</AlertDialogTitle>
+                                <AlertDialogTitle>{t("vehicleRegistry.deleteDialog.title")}</AlertDialogTitle>
                                 <AlertDialogDescription>
-                                  This will soft-delete <strong>{v.licensePlate}</strong>. This action requires Super Admin access.
+                                  {t("vehicleRegistry.deleteDialog.description", { plate: v.licensePlate })}
                                 </AlertDialogDescription>
                               </AlertDialogHeader>
                               <AlertDialogFooter>
-                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                <AlertDialogCancel>{t("common.cancel")}</AlertDialogCancel>
                                 <AlertDialogAction variant="destructive" onClick={handleDelete}>
-                                  Delete
+                                  {t("vehicleRegistry.deleteDialog.confirm")}
                                 </AlertDialogAction>
                               </AlertDialogFooter>
                             </AlertDialogContent>
@@ -511,7 +513,7 @@ export default function VehicleRegistry() {
           </button>
 
           <span className={`text-xs ml-2 ${textSecondary}`}>
-            {total} vehicle{total !== 1 ? "s" : ""} total
+            {t("vehicleRegistry.pagination.total", { count: total })}
           </span>
         </div>
       )}

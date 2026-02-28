@@ -4,9 +4,11 @@
 import { useTheme } from "../context/ThemeContext";
 import { motion } from "framer-motion";
 import { Construction, ArrowLeft } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { useNavigate, useLocation } from "react-router-dom";
 
 export default function ComingSoon() {
+  const { t } = useTranslation();
   const { isDark } = useTheme();
   const navigate = useNavigate();
   const location = useLocation();
@@ -41,7 +43,7 @@ export default function ComingSoon() {
           {pageName}
         </h2>
         <p className={`text-sm max-w-md ${isDark ? "text-neutral-400" : "text-slate-500"}`}>
-          This section is currently under construction. We're building something great — check back soon!
+          {t("comingSoon.description")}
         </p>
       </motion.div>
 
@@ -57,7 +59,7 @@ export default function ComingSoon() {
         }`}
       >
         <ArrowLeft className="w-4 h-4" />
-        Back to Dashboard
+        {t("comingSoon.backToDashboard")}
       </motion.button>
     </div>
   );
