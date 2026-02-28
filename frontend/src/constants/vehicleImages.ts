@@ -57,15 +57,6 @@ export const vehicleImageMap: Record<string, VehicleImageInfo> = {
     gradient: "from-violet-500/20 to-purple-500/20",
     gradientDark: "from-violet-500/10 to-purple-500/10",
   },
-  PLANE: {
-    primary: "/vehicles/car-1.png",
-    alt: "/vehicles/car-1.png",
-    label: "Aircraft",
-    description: "Cargo aircraft for air freight",
-    icon: "✈️",
-    gradient: "from-rose-500/20 to-pink-500/20",
-    gradientDark: "from-rose-500/10 to-pink-500/10",
-  },
 };
 
 /**

@@ -157,7 +157,7 @@ export interface Expense {
 
 export interface VehicleType {
   id: string;
-  name: "TRUCK" | "VAN" | "BIKE" | "PLANE" | "CAR";
+  name: "TRUCK" | "VAN" | "BIKE" | "CAR";
   description?: string;
 }
 
