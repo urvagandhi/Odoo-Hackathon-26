@@ -1,12 +1,18 @@
 import { z } from 'zod';
 import dotenv from 'dotenv';
+import path from 'path';
 
-dotenv.config();
+// Load environment-specific .env file first, then fall back to base .env
+const nodeEnv = process.env.NODE_ENV || 'development';
+dotenv.config({ path: path.resolve(process.cwd(), `.env.${nodeEnv}`) });
+dotenv.config({ path: path.resolve(process.cwd(), '.env') }); // fallback
 
 const EnvSchema = z.object({
     NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
     PORT: z.coerce.number().default(3000),
     DATABASE_URL: z.string().min(1, 'DATABASE_URL is required'),
+    // DIRECT_URL required in production (Prisma migrations bypass pgBouncer)
+    DIRECT_URL: z.string().optional(),
     JWT_SECRET: z.string().min(32, 'JWT_SECRET must be at least 32 characters'),
     JWT_EXPIRES_IN: z.string().default('7d'),
     JWT_REFRESH_SECRET: z.string().min(32).optional(),
