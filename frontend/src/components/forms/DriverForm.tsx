@@ -3,12 +3,12 @@
  * Follows the same pattern as VehicleForm.
  */
 import { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Users, Save, Loader2 } from "lucide-react";
 import { useTheme } from "../../context/ThemeContext";
-import { driversApi } from "../../api/client";
+import { hrApi } from "../../api/client";
 import { createDriverSchema, type CreateDriverFormData } from "../../validators/driver";
-import type { ZodError } from "zod";
 
 interface DriverFormProps {
   open: boolean;
@@ -38,6 +38,7 @@ const INITIAL_FORM: CreateDriverFormData = {
 
 export function DriverForm({ open, onClose, onSuccess, editData }: DriverFormProps) {
   const { isDark } = useTheme();
+  const { t } = useTranslation();
   const isEditing = !!editData;
 
   const [form, setForm] = useState<CreateDriverFormData>(INITIAL_FORM);
@@ -77,7 +78,7 @@ export function DriverForm({ open, onClose, onSuccess, editData }: DriverFormPro
     const result = createDriverSchema.safeParse(form);
     if (!result.success) {
       const fieldErrors: Record<string, string> = {};
-      (result.error as ZodError).errors.forEach((err) => {
+      result.error.issues.forEach((err) => {
         const key = err.path[0] as string;
         if (!fieldErrors[key]) fieldErrors[key] = err.message;
       });
@@ -87,21 +88,20 @@ export function DriverForm({ open, onClose, onSuccess, editData }: DriverFormPro
 
     setSubmitting(true);
     try {
-      const payload: Record<string, unknown> = {
-        fullName: result.data.fullName,
-        licenseNumber: result.data.licenseNumber,
-        licenseExpiryDate: result.data.licenseExpiryDate,
+      const typedPayload = {
+        fullName: result.data.fullName as string,
+        licenseNumber: result.data.licenseNumber as string,
+        licenseExpiryDate: result.data.licenseExpiryDate as string,
+        ...(result.data.licenseClass ? { licenseClass: result.data.licenseClass as string } : {}),
+        ...(result.data.phone ? { phone: result.data.phone as string } : {}),
+        ...(result.data.email ? { email: result.data.email as string } : {}),
+        ...(result.data.dateOfBirth ? { dateOfBirth: result.data.dateOfBirth as string } : {}),
       };
 
-      if (result.data.licenseClass) payload.licenseClass = result.data.licenseClass;
-      if (result.data.phone) payload.phone = result.data.phone;
-      if (result.data.email) payload.email = result.data.email;
-      if (result.data.dateOfBirth) payload.dateOfBirth = result.data.dateOfBirth;
-
       if (isEditing && editData) {
-        await driversApi.updateDriver(editData.id, payload);
+        await hrApi.updateDriver(editData.id, typedPayload);
       } else {
-        await driversApi.createDriver(payload);
+        await hrApi.createDriver(typedPayload);
       }
 
       onSuccess();
@@ -157,10 +157,10 @@ export function DriverForm({ open, onClose, onSuccess, editData }: DriverFormPro
                 </div>
                 <div>
                   <h2 className={`text-base font-bold ${isDark ? "text-white" : "text-slate-900"}`}>
-                    {isEditing ? "Edit Driver" : "New Driver"}
+                    {isEditing ? t("forms.driver.editTitle") : t("forms.driver.newTitle")}
                   </h2>
                   <p className={`text-xs ${isDark ? "text-neutral-400" : "text-slate-500"}`}>
-                    {isEditing ? "Update driver details" : "Register a new driver"}
+                    {isEditing ? t("forms.driver.editSubtitle") : t("forms.driver.newSubtitle")}
                   </p>
                 </div>
               </div>
@@ -184,10 +184,10 @@ export function DriverForm({ open, onClose, onSuccess, editData }: DriverFormPro
 
               {/* Full Name */}
               <div>
-                <label className={labelCls}>Full Name *</label>
+                <label className={labelCls}>{t("forms.driver.fullName")}</label>
                 <input
                   className={`${inputCls} ${errors.fullName ? "border-red-400" : ""}`}
-                  placeholder="John Doe"
+                  placeholder={t("forms.driver.fullNamePlaceholder")}
                   value={form.fullName}
                   onChange={(e) => handleChange("fullName", e.target.value)}
                 />
@@ -197,20 +197,20 @@ export function DriverForm({ open, onClose, onSuccess, editData }: DriverFormPro
               {/* License Number + Class */}
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className={labelCls}>License Number *</label>
+                  <label className={labelCls}>{t("forms.driver.licenseNumber")}</label>
                   <input
                     className={`${inputCls} ${errors.licenseNumber ? "border-red-400" : ""}`}
-                    placeholder="DL-1234567890"
+                    placeholder={t("forms.driver.licensePlaceholder")}
                     value={form.licenseNumber}
                     onChange={(e) => handleChange("licenseNumber", e.target.value)}
                   />
                   {errors.licenseNumber && <p className={errCls}>{errors.licenseNumber}</p>}
                 </div>
                 <div>
-                  <label className={labelCls}>License Class</label>
+                  <label className={labelCls}>{t("forms.driver.licenseClass")}</label>
                   <input
                     className={inputCls}
-                    placeholder="CDL-A"
+                    placeholder={t("forms.driver.licenseClassPlaceholder")}
                     value={form.licenseClass ?? ""}
                     onChange={(e) => handleChange("licenseClass", e.target.value)}
                   />
@@ -219,7 +219,7 @@ export function DriverForm({ open, onClose, onSuccess, editData }: DriverFormPro
 
               {/* License Expiry */}
               <div>
-                <label className={labelCls}>License Expiry Date *</label>
+                <label className={labelCls}>{t("forms.driver.licenseExpiry")}</label>
                 <input
                   type="date"
                   className={`${inputCls} ${errors.licenseExpiryDate ? "border-red-400" : ""}`}
@@ -232,20 +232,20 @@ export function DriverForm({ open, onClose, onSuccess, editData }: DriverFormPro
               {/* Phone + Email */}
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className={labelCls}>Phone</label>
+                  <label className={labelCls}>{t("forms.driver.phone")}</label>
                   <input
                     className={inputCls}
-                    placeholder="+91 98765 43210"
+                    placeholder={t("forms.driver.phonePlaceholder")}
                     value={form.phone ?? ""}
                     onChange={(e) => handleChange("phone", e.target.value)}
                   />
                 </div>
                 <div>
-                  <label className={labelCls}>Email</label>
+                  <label className={labelCls}>{t("forms.driver.email")}</label>
                   <input
                     type="email"
                     className={`${inputCls} ${errors.email ? "border-red-400" : ""}`}
-                    placeholder="driver@fleetflow.io"
+                    placeholder={t("forms.driver.emailPlaceholder")}
                     value={form.email ?? ""}
                     onChange={(e) => handleChange("email", e.target.value)}
                   />
@@ -255,7 +255,7 @@ export function DriverForm({ open, onClose, onSuccess, editData }: DriverFormPro
 
               {/* Date of Birth */}
               <div>
-                <label className={labelCls}>Date of Birth</label>
+                <label className={labelCls}>{t("forms.driver.dateOfBirth")}</label>
                 <input
                   type="date"
                   className={inputCls}
@@ -276,7 +276,7 @@ export function DriverForm({ open, onClose, onSuccess, editData }: DriverFormPro
                   isDark ? "text-neutral-300 hover:bg-neutral-700" : "text-slate-600 hover:bg-slate-100"
                 }`}
               >
-                Cancel
+                {t("common.cancel")}
               </button>
               <button
                 onClick={handleSubmit}
@@ -288,7 +288,7 @@ export function DriverForm({ open, onClose, onSuccess, editData }: DriverFormPro
                 ) : (
                   <Save className="w-4 h-4" />
                 )}
-                {isEditing ? "Update Driver" : "Create Driver"}
+                {isEditing ? t("forms.driver.updateDriver") : t("forms.driver.createDriver")}
               </button>
             </div>
           </motion.div>

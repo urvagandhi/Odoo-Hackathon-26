@@ -5,19 +5,21 @@
  * Charts: Revenue line chart, expenses donut, fleet performance table, CO2 estimates
  */
 import { useState, useEffect, useCallback } from "react";
+import { useTranslation } from "react-i18next";
 import { motion } from "framer-motion";
 import {
     BarChart3, Fuel, DollarSign, TrendingUp, TrendingDown, Download, RefreshCw,
-    Truck, Calendar, ArrowUpRight, ArrowDownRight, PieChart as PieIcon,
+    Truck, ArrowUpRight, ArrowDownRight,
 } from "lucide-react";
+import { Line, AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
 import {
-    LineChart, Line, AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
-    ResponsiveContainer, PieChart, Pie, Cell, Legend,
-} from "recharts";
-import {
-    analyticsApi, type MonthlyReport, type VehicleROI, type FuelEfficiency, type DashboardKPIs,
+    analyticsApi, type MonthlyReport, type VehicleROI, type FuelEfficiency,
 } from "../api/client";
 import { useTheme } from "../context/ThemeContext";
+import { useToast } from "../hooks/useToast";
+import html2canvas from "html2canvas";
 
 const COLORS = ["#10b981", "#f59e0b", "#6366f1", "#ef4444", "#3b82f6", "#8b5cf6"];
 const card = "rounded-2xl border p-5 transition-all duration-200";
@@ -26,8 +28,9 @@ const darkCard = "bg-neutral-800 border-neutral-700 shadow-sm hover:shadow-md";
 
 export default function Analytics() {
     const { isDark } = useTheme();
+    const { t } = useTranslation();
+    const toast = useToast();
     const cardClass = `${card} ${isDark ? darkCard : lightCard}`;
-    const [kpis, setKpis] = useState<DashboardKPIs | null>(null);
     const [monthly, setMonthly] = useState<MonthlyReport[]>([]);
     const [fuelEff, setFuelEff] = useState<FuelEfficiency[]>([]);
     const [vehicleROI, setVehicleROI] = useState<VehicleROI[]>([]);
@@ -37,13 +40,11 @@ export default function Analytics() {
     const load = useCallback(async () => {
         setLoading(true);
         try {
-            const [k, m, f, r] = await Promise.all([
-                analyticsApi.getDashboardKPIs(),
+            const [m, f, r] = await Promise.all([
                 analyticsApi.getMonthlyReport(new Date().getFullYear()),
                 analyticsApi.getFuelEfficiency(),
                 analyticsApi.getVehicleROI(),
             ]);
-            setKpis(k);
             setMonthly(m);
             setFuelEff(f ?? []);
             setVehicleROI(r ?? []);
@@ -57,14 +58,148 @@ export default function Analytics() {
             const startDate = `${new Date().getFullYear()}-01-01`;
             const endDate = new Date().toISOString().slice(0, 10);
             const csv = await analyticsApi.exportTripsCSV(startDate, endDate);
-            const blob = new Blob([csv], { type: "text/csv" });
+            
+            // Add Summary section to CSV
+            const summaryHeaders = ["Summary Category", "Total Value"];
+            const summaryRows = [
+                ["Total Revenue", totalRevenue.toFixed(2)],
+                ["Total Expenses", totalCost.toFixed(2)],
+                ["Net Profit", totalProfit.toFixed(2)],
+                ["Total Completed Trips", totalTrips.toString()],
+                ["Avg Fuel Efficiency", avgFuelEfficiency],
+            ];
+            
+            const summaryCsv = [
+                "--- PERFORMANCE SUMMARY ---",
+                summaryHeaders.join(","),
+                ...summaryRows.map(r => r.join(",")),
+                "",
+                "--- DETAILED TRIP DATA ---",
+                csv
+            ].join("\n");
+
+            const blob = new Blob([summaryCsv], { type: "text/csv" });
             const url = URL.createObjectURL(blob);
             const a = document.createElement("a");
             a.href = url;
-            a.download = `fleetflow-trips-${endDate}.csv`;
+            a.download = `fleetflow-analytics-${endDate}.csv`;
             a.click();
             URL.revokeObjectURL(url);
-        } catch { alert("Export failed"); }
+            toast.success(t("analytics.toast.csvSuccess"), { title: t("analytics.toast.pdfSuccessTitle") });
+        } catch {
+            toast.error(t("analytics.toast.csvFailed"), { title: t("analytics.toast.exportFailed") });
+        }
+    };
+
+    const handleExportPDF = async () => {
+        toast.info(t("analytics.toast.exportingPDFMessage"), { title: t("analytics.toast.exportingPDF") });
+        try {
+            const doc = new jsPDF();
+            const year = new Date().getFullYear();
+            const dateStr = new Date().toLocaleDateString();
+
+            // Title & Branding
+            doc.setFont("helvetica", "bold");
+            doc.setFontSize(22);
+            doc.setTextColor(79, 70, 229); // Violet-600
+            doc.text("FleetFlow", 14, 20);
+            
+            doc.setFont("helvetica", "normal");
+            doc.setFontSize(14);
+            doc.setTextColor(17, 24, 39); // Gray-900
+            doc.text(`Financial & Operational Analytics Report`, 14, 30);
+            
+            doc.setFontSize(10);
+            doc.setTextColor(107, 114, 128); // Gray-500
+            doc.text(`Generated on: ${dateStr}`, 14, 36);
+
+            let startY = 46;
+
+            // Capture Charts if on Overview tab
+            const revenueChart = document.getElementById('revenue-trend-chart');
+            if (revenueChart) {
+                try {
+                    const canvas = await html2canvas(revenueChart, { 
+                        scale: 2,
+                        useCORS: true,
+                        logging: false,
+                        backgroundColor: isDark ? "#1f2937" : "#ffffff"
+                    });
+                    const imgData = canvas.toDataURL('image/png');
+                    doc.setFont("helvetica", "bold");
+                    doc.setFontSize(12);
+                    doc.setTextColor(17, 24, 39);
+                    doc.text("Revenue & Cost Trends", 14, startY);
+                    doc.addImage(imgData, 'PNG', 14, startY + 5, 180, 70);
+                    startY += 85;
+                } catch (chartErr) {
+                    console.error("Failed to capture revenue chart:", chartErr);
+                    toast.warning(t("analytics.toast.chartWarningMessage"), { title: t("analytics.toast.chartWarningTitle") });
+                    startY += 10;
+                }
+            }
+
+            // Table 1: Monthly Financials
+            if (monthly.length > 0) {
+                if (startY > 230) { doc.addPage(); startY = 20; }
+                doc.setFontSize(12);
+                doc.setTextColor(17, 24, 39);
+                doc.setFont("helvetica", "bold");
+                doc.text(`Monthly Financials (${year})`, 14, startY);
+                
+                const monthlyData = monthly.filter(m => m.tripsCompleted > 0).map(m => [
+                    m.label, m.tripsCompleted.toString(), m.totalDistanceKm.toString(),
+                    `Rs. ${m.revenue.toLocaleString()}`, `Rs. ${m.totalCost.toLocaleString()}`,
+                    `Rs. ${m.profit.toLocaleString()}`
+                ]);
+
+                autoTable(doc, {
+                    startY: startY + 4,
+                    head: [["Month", "Trips", "Distance (km)", "Revenue", "Total Cost", "Profit"]],
+                    body: monthlyData,
+                    theme: "grid",
+                    headStyles: { fillColor: [79, 70, 229] },
+                });
+                
+                // Track Y position
+                // @ts-ignore
+                startY = (doc as any).lastAutoTable.finalY + 15;
+            }
+
+            // Table 2: Vehicle ROI
+            if (vehicleROI.length > 0) {
+                if (startY > 230) {
+                    doc.addPage();
+                    startY = 20;
+                }
+                
+                doc.setFontSize(12);
+                doc.setTextColor(17, 24, 39);
+                doc.setFont("helvetica", "bold");
+                doc.text("Vehicle Performance & ROI", 14, startY);
+                
+                const roiData = vehicleROI.map(v => [
+                    v.licensePlate, `${v.make} ${v.model}`, `Rs. ${Number(v.revenue).toLocaleString()}`,
+                    `Rs. ${Number(v.totalCost).toLocaleString()}`, `Rs. ${Number(v.profit).toLocaleString()}`,
+                    v.roi
+                ]);
+
+                autoTable(doc, {
+                    startY: startY + 4,
+                    head: [["License Plate", "Vehicle", "Revenue", "Total Cost", "Profit", "ROI"]],
+                    body: roiData,
+                    theme: "grid",
+                    headStyles: { fillColor: [16, 185, 129] },
+                });
+            }
+
+            doc.save(`fleetflow-analytics-${year}.pdf`);
+            toast.success(t("analytics.toast.pdfSuccess"), { title: t("analytics.toast.pdfSuccessTitle") });
+        } catch (err) {
+            console.error("PDF Export Error:", err);
+            const msg = err instanceof Error ? err.message : "An unexpected error occurred.";
+            toast.error(t("analytics.toast.pdfExportFailed", { message: msg }), { title: t("analytics.toast.pdfErrorTitle") });
+        }
     };
 
     // Computed metrics
@@ -89,20 +224,24 @@ export default function Analytics() {
             <div className="flex items-center justify-between">
                 <div>
                     <h1 className={`text-2xl font-bold ${isDark ? "text-white" : "text-neutral-900"}`}>
-                        Analytics & Reports
+                        {t("analytics.title")}
                     </h1>
                     <p className={`text-sm mt-0.5 ${isDark ? "text-neutral-400" : "text-neutral-500"}`}>
-                        Financial performance & operational insights — {new Date().getFullYear()}
+                        {t("analytics.subtitle", { year: new Date().getFullYear() })}
                     </p>
                 </div>
                 <div className="flex items-center gap-2">
+                    <button onClick={handleExportPDF}
+                        className="flex items-center gap-2 px-4 py-2 rounded-xl border text-sm font-semibold transition-colors border-violet-200 text-violet-600 hover:bg-violet-50 dark:border-violet-500/30 dark:text-violet-400 dark:hover:bg-violet-500/10">
+                        <Download className="w-4 h-4" /> {t("analytics.exportPDF")}
+                    </button>
                     <button onClick={handleExport}
                         className="flex items-center gap-2 px-4 py-2 rounded-xl border text-sm font-semibold transition-colors border-emerald-200 text-emerald-600 hover:bg-emerald-50 dark:border-emerald-500/30 dark:text-emerald-400 dark:hover:bg-emerald-500/10">
-                        <Download className="w-4 h-4" /> Export CSV
+                        <Download className="w-4 h-4" /> {t("analytics.exportCSV")}
                     </button>
                     <button onClick={load}
                         className="flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-500 text-white text-sm font-semibold hover:bg-emerald-600 transition-colors">
-                        <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} /> Refresh
+                        <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} /> {t("common.refresh")}
                     </button>
                 </div>
             </div>
@@ -110,16 +249,16 @@ export default function Analytics() {
             {/* Tab navigation */}
             <div className={`inline-flex rounded-xl p-1 ${isDark ? "bg-neutral-800" : "bg-neutral-100"}`}>
                 {[
-                    { key: "overview", label: "Overview", icon: BarChart3 },
-                    { key: "fuel", label: "Fuel Efficiency", icon: Fuel },
-                    { key: "roi", label: "Vehicle ROI", icon: DollarSign },
-                ].map(t => (
-                    <button key={t.key} onClick={() => setActiveTab(t.key as typeof activeTab)}
-                        className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-colors ${activeTab === t.key
+                    { key: "overview", label: t("analytics.tabs.overview"), icon: BarChart3 },
+                    { key: "fuel", label: t("analytics.tabs.fuelEfficiency"), icon: Fuel },
+                    { key: "roi", label: t("analytics.tabs.vehicleROI"), icon: DollarSign },
+                ].map(tab => (
+                    <button key={tab.key} onClick={() => setActiveTab(tab.key as typeof activeTab)}
+                        className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-colors ${activeTab === tab.key
                             ? "bg-white text-neutral-900 shadow-sm dark:bg-neutral-700 dark:text-white"
                             : isDark ? "text-neutral-400 hover:text-white" : "text-neutral-500 hover:text-neutral-700"
                             }`}>
-                        <t.icon className="w-4 h-4" />{t.label}
+                        <tab.icon className="w-4 h-4" />{tab.label}
                     </button>
                 ))}
             </div>
@@ -129,26 +268,26 @@ export default function Analytics() {
                 <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
                     {/* Top KPIs */}
                     <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                        <FinKpi label="Total Revenue" value={`₹${(totalRevenue / 1000).toFixed(0)}K`} icon={DollarSign}
+                        <FinKpi label={t("analytics.kpi.totalRevenue")} value={`₹${(totalRevenue / 1000).toFixed(0)}K`} icon={DollarSign}
                             color="emerald" sub={`${totalTrips} trips`} isDark={isDark} />
-                        <FinKpi label="Total Expenses" value={`₹${(totalCost / 1000).toFixed(0)}K`} icon={TrendingDown}
+                        <FinKpi label={t("analytics.kpi.totalExpenses")} value={`₹${(totalCost / 1000).toFixed(0)}K`} icon={TrendingDown}
                             color="amber" sub="Fuel + Maintenance + Other" isDark={isDark} />
-                        <FinKpi label="Net Profit" value={`₹${(totalProfit / 1000).toFixed(0)}K`} icon={totalProfit >= 0 ? TrendingUp : TrendingDown}
+                        <FinKpi label={t("analytics.kpi.netProfit")} value={`₹${(totalProfit / 1000).toFixed(0)}K`} icon={totalProfit >= 0 ? TrendingUp : TrendingDown}
                             color={totalProfit >= 0 ? "emerald" : "red"} sub={totalRevenue > 0 ? `${((totalProfit / totalRevenue) * 100).toFixed(1)}% margin` : ""} isDark={isDark} />
-                        <FinKpi label="Avg Fuel Efficiency" value={`${avgFuelEfficiency} km/L`} icon={Fuel}
+                        <FinKpi label={t("analytics.kpi.avgFuelEfficiency")} value={`${avgFuelEfficiency} km/L`} icon={Fuel}
                             color="blue" sub={`${fuelEff.length} vehicles tracked`} isDark={isDark} />
                     </div>
 
                     {/* Revenue chart + Expense breakdown */}
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                         {/* Revenue/cost line chart */}
-                        <div className={`${cardClass} lg:col-span-2`}>
+                        <div className={`${cardClass} lg:col-span-2`} id="revenue-trend-chart">
                             <div className="flex items-center justify-between mb-4">
-                                <h2 className={`text-base font-bold ${isDark ? "text-white" : "text-neutral-900"}`}>Revenue vs Cost Trend</h2>
+                                <h2 className={`text-base font-bold ${isDark ? "text-white" : "text-neutral-900"}`}>{t("analytics.charts.revenueCostTrend")}</h2>
                                 <div className="flex items-center gap-4 text-xs">
-                                    <span className="flex items-center gap-1"><span className="w-3 h-3 rounded-full bg-emerald-500" /> Revenue</span>
-                                    <span className="flex items-center gap-1"><span className="w-3 h-3 rounded-full bg-amber-500" /> Cost</span>
-                                    <span className="flex items-center gap-1"><span className="w-3 h-3 rounded-full bg-violet-500" /> Profit</span>
+                                    <span className="flex items-center gap-1"><span className="w-3 h-3 rounded-full bg-emerald-500" /> {t("analytics.charts.revenue")}</span>
+                                    <span className="flex items-center gap-1"><span className="w-3 h-3 rounded-full bg-amber-500" /> {t("analytics.charts.cost")}</span>
+                                    <span className="flex items-center gap-1"><span className="w-3 h-3 rounded-full bg-violet-500" /> {t("analytics.charts.profit")}</span>
                                 </div>
                             </div>
                             {monthly.length > 0 ? (
@@ -169,31 +308,31 @@ export default function Analytics() {
                                         <YAxis tick={{ fontSize: 10, fill: isDark ? "#9CA3AF" : "#6B7280" }} tickFormatter={v => `₹${(v / 1000).toFixed(0)}k`} />
                                         <Tooltip
                                             contentStyle={{ background: isDark ? "#1f2937" : "#fff", border: "1px solid #e5e7eb", borderRadius: "12px", fontSize: 12 }}
-                                            formatter={(v: number, name: string) => [`₹${v.toLocaleString()}`, name]}
+                                            formatter={(v: unknown) => String(v)}
                                         />
                                         <Area type="monotone" dataKey="revenue" stroke="#10b981" strokeWidth={2} fill="url(#revGradA)" name="Revenue" />
                                         <Area type="monotone" dataKey="totalCost" stroke="#f59e0b" strokeWidth={2} fill="url(#costGradA)" name="Total Cost" />
                                         <Line type="monotone" dataKey="profit" stroke="#8b5cf6" strokeWidth={2} dot={false} name="Profit" />
                                     </AreaChart>
                                 </ResponsiveContainer>
-                            ) : <EmptyState loading={loading} isDark={isDark} text="No monthly data" />}
+                            ) : <EmptyState loading={loading} isDark={isDark} text={t("analytics.noData.monthly")} />}
                         </div>
 
                         {/* Expense donut */}
                         <div className={cardClass}>
-                            <h2 className={`text-base font-bold mb-4 ${isDark ? "text-white" : "text-neutral-900"}`}>Expense Breakdown</h2>
+                            <h2 className={`text-base font-bold mb-4 ${isDark ? "text-white" : "text-neutral-900"}`}>{t("analytics.charts.expenseBreakdown")}</h2>
                             {expenseBreakdown.length > 0 ? (
                                 <ResponsiveContainer width="100%" height={260}>
                                     <PieChart>
                                         <Pie data={expenseBreakdown} cx="50%" cy="45%" innerRadius={55} outerRadius={85} paddingAngle={3} dataKey="value"
-                                            label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                                            label={({ name, percent }) => `${name} ${((percent ?? 0) * 100).toFixed(0)}%`}
                                         >
                                             {expenseBreakdown.map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
                                         </Pie>
-                                        <Tooltip contentStyle={{ borderRadius: "12px", fontSize: 12 }} formatter={(v: number) => `₹${v.toLocaleString()}`} />
+                                        <Tooltip contentStyle={{ borderRadius: "12px", fontSize: 12 }} formatter={(v: unknown) => `₹${Number(v).toLocaleString()}`} />
                                     </PieChart>
                                 </ResponsiveContainer>
-                            ) : <EmptyState loading={loading} isDark={isDark} text="No expense data" />}
+                            ) : <EmptyState loading={loading} isDark={isDark} text={t("analytics.noData.expenses")} />}
                             {expenseBreakdown.length > 0 && (
                                 <div className="space-y-2 mt-2">
                                     {expenseBreakdown.map((e, i) => (
@@ -214,14 +353,14 @@ export default function Analytics() {
                     {vehicleROI.length > 0 && (
                         <div className={cardClass}>
                             <div className="flex items-center justify-between mb-4">
-                                <h2 className={`text-base font-bold ${isDark ? "text-white" : "text-neutral-900"}`}>Fleet Performance</h2>
+                                <h2 className={`text-base font-bold ${isDark ? "text-white" : "text-neutral-900"}`}>{t("analytics.monthly.title")}</h2>
                                 <span className={`text-xs ${isDark ? "text-neutral-400" : "text-neutral-500"}`}>By vehicle</span>
                             </div>
                             <div className="overflow-x-auto">
                                 <table className="w-full text-sm">
                                     <thead>
                                         <tr className={isDark ? "text-neutral-400 border-b border-neutral-700" : "text-neutral-500 border-b border-neutral-100"}>
-                                            {["#", "Fleet", "Revenue", "Cost", "Profit", "Margin"].map(h =>
+                                            {["#", t("analytics.monthly.title"), t("analytics.charts.revenue"), t("analytics.charts.cost"), t("analytics.charts.profit"), t("analytics.roiTable.roi")].map(h =>
                                                 <th key={h} className="text-left pb-3 pr-4 font-semibold text-xs">{h}</th>
                                             )}
                                         </tr>
@@ -252,11 +391,11 @@ export default function Analytics() {
                                                 <td className="py-2.5">
                                                     <div className="flex items-center gap-2">
                                                         <div className="flex-1 max-w-[80px] bg-neutral-200 dark:bg-neutral-600 rounded-full h-2 overflow-hidden">
-                                                            <div className={`h-full rounded-full ${parseFloat(v.profitMargin) >= 0 ? "bg-emerald-500" : "bg-red-500"}`}
-                                                                style={{ width: `${Math.min(100, Math.abs(parseFloat(v.profitMargin)))}%` }} />
+                                                            <div className={`h-full rounded-full ${parseFloat(v.roi) >= 0 ? "bg-emerald-500" : "bg-red-500"}`}
+                                                                style={{ width: `${Math.min(100, Math.abs(parseFloat(v.roi)))}%` }} />
                                                         </div>
-                                                        <span className={`text-xs font-semibold ${parseFloat(v.profitMargin) >= 0 ? "text-emerald-500" : "text-red-500"}`}>
-                                                            {v.profitMargin}
+                                                        <span className={`text-xs font-semibold ${parseFloat(v.roi) >= 0 ? "text-emerald-500" : "text-red-500"}`}>
+                                                            {v.roi}
                                                         </span>
                                                     </div>
                                                 </td>
@@ -272,13 +411,13 @@ export default function Analytics() {
                     {monthly.filter(m => m.tripsCompleted > 0).length > 0 && (
                         <div className={cardClass}>
                             <h2 className={`text-base font-bold mb-4 ${isDark ? "text-white" : "text-neutral-900"}`}>
-                                Monthly Financial Report
+                                {t("analytics.monthly.title")}
                             </h2>
                             <div className="overflow-x-auto">
                                 <table className="w-full text-sm">
                                     <thead>
                                         <tr className={isDark ? "text-neutral-400 border-b border-neutral-700" : "text-neutral-500 border-b border-neutral-100"}>
-                                            {["Month", "Trips", "Distance (km)", "Revenue", "Fuel", "Maintenance", "Other", "Total Cost", "Profit"].map(h =>
+                                            {[t("analytics.monthly.month"), t("analytics.monthly.trips"), t("analytics.monthly.distance"), t("analytics.monthly.revenue"), t("analytics.monthly.fuel"), t("analytics.monthly.maintenance"), t("analytics.monthly.other"), t("analytics.monthly.totalCost"), t("analytics.monthly.profit")].map(h =>
                                                 <th key={h} className="text-left pb-3 pr-3 font-semibold text-xs">{h}</th>
                                             )}
                                         </tr>
@@ -312,7 +451,7 @@ export default function Analytics() {
                 <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
                     {/* Fuel efficiency bar chart */}
                     <div className={cardClass}>
-                        <h2 className={`text-base font-bold mb-4 ${isDark ? "text-white" : "text-neutral-900"}`}>Fuel Efficiency by Vehicle (km/L)</h2>
+                        <h2 className={`text-base font-bold mb-4 ${isDark ? "text-white" : "text-neutral-900"}`}>{t("analytics.fuelTable.title")}</h2>
                         {fuelEff.filter(f => f.kmPerLiter != null).length > 0 ? (
                             <ResponsiveContainer width="100%" height={320}>
                                 <BarChart data={fuelEff.filter(f => f.kmPerLiter != null)} margin={{ top: 4, right: 4, left: 0, bottom: 0 }}>
@@ -323,7 +462,7 @@ export default function Analytics() {
                                     <Bar dataKey="kmPerLiter" name="km/L" fill="#10b981" radius={[8, 8, 0, 0]} />
                                 </BarChart>
                             </ResponsiveContainer>
-                        ) : <EmptyState loading={loading} isDark={isDark} text="No fuel efficiency data" />}
+                        ) : <EmptyState loading={loading} isDark={isDark} text={t("analytics.noData.fuel")} />}
                     </div>
 
                     {/* Fuel efficiency table */}
@@ -333,7 +472,7 @@ export default function Analytics() {
                             <table className="w-full text-sm">
                                 <thead>
                                     <tr className={isDark ? "text-neutral-400 border-b border-neutral-700" : "text-neutral-500 border-b border-neutral-100"}>
-                                        {["Vehicle", "Total Distance", "Total Liters", "Fuel Cost", "km/L", "₹/km"].map(h =>
+                                        {[t("analytics.fuelTable.vehicle"), t("analytics.fuelTable.totalDistance"), t("analytics.fuelTable.totalLiters"), t("analytics.fuelTable.fuelCost"), t("analytics.fuelTable.kmPerL"), t("analytics.fuelTable.costPerKm")].map(h =>
                                             <th key={h} className="text-left pb-3 pr-4 font-semibold text-xs">{h}</th>
                                         )}
                                     </tr>
@@ -372,9 +511,9 @@ export default function Analytics() {
                 <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
                     {/* ROI bar chart */}
                     <div className={cardClass}>
-                        <h2 className={`text-base font-bold mb-4 ${isDark ? "text-white" : "text-neutral-900"}`}>Vehicle ROI — Profit by Vehicle</h2>
+                        <h2 className={`text-base font-bold mb-4 ${isDark ? "text-white" : "text-neutral-900"}`}>{t("analytics.roiTable.title")}</h2>
                         <p className={`text-xs mb-4 ${isDark ? "text-neutral-400" : "text-neutral-500"}`}>
-                            ROI = (Revenue − (Maintenance + Fuel + Expenses)) / Revenue
+                            {t("analytics.roiTable.formula")}
                         </p>
                         {vehicleROI.length > 0 ? (
                             <ResponsiveContainer width="100%" height={320}>
@@ -383,12 +522,12 @@ export default function Analytics() {
                                     <XAxis dataKey="licensePlate" tick={{ fontSize: 10, fill: isDark ? "#9CA3AF" : "#6B7280" }} />
                                     <YAxis tick={{ fontSize: 10, fill: isDark ? "#9CA3AF" : "#6B7280" }} tickFormatter={v => `₹${(v / 1000).toFixed(0)}k`} />
                                     <Tooltip contentStyle={{ background: isDark ? "#1f2937" : "#fff", border: "1px solid #e5e7eb", borderRadius: "12px", fontSize: 12 }}
-                                        formatter={(v: number, name: string) => [`₹${v.toLocaleString()}`, name]} />
+                                        formatter={(v: unknown) => String(v)} />
                                     <Bar dataKey="revenue" name="Revenue" fill="#10b981" radius={[4, 4, 0, 0]} stackId="a" />
                                     <Bar dataKey="totalCost" name="Cost" fill="#f59e0b" radius={[4, 4, 0, 0]} stackId="b" />
                                 </BarChart>
                             </ResponsiveContainer>
-                        ) : <EmptyState loading={loading} isDark={isDark} text="No ROI data" />}
+                        ) : <EmptyState loading={loading} isDark={isDark} text={t("analytics.noData.roi")} />}
                     </div>
 
                     {/* ROI details table */}
@@ -398,7 +537,7 @@ export default function Analytics() {
                             <table className="w-full text-sm">
                                 <thead>
                                     <tr className={isDark ? "text-neutral-400 border-b border-neutral-700" : "text-neutral-500 border-b border-neutral-100"}>
-                                        {["Vehicle", "Revenue", "Fuel Cost", "Maintenance", "Expenses", "Total Cost", "Profit", "Margin"].map(h =>
+                                        {[t("analytics.roiTable.vehicle"), t("analytics.roiTable.revenue"), t("analytics.roiTable.fuelCost"), t("analytics.roiTable.maintenance"), t("analytics.roiTable.expenses"), t("analytics.roiTable.totalCost"), t("analytics.roiTable.profit"), t("analytics.roiTable.roi")].map(h =>
                                             <th key={h} className="text-left pb-3 pr-3 font-semibold text-xs">{h}</th>
                                         )}
                                     </tr>
@@ -419,8 +558,8 @@ export default function Analytics() {
                                                 {Number(v.profit) >= 0 ? "+" : ""}₹{Number(v.profit).toLocaleString()}
                                             </td>
                                             <td className="py-2.5">
-                                                <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${parseFloat(v.profitMargin) >= 0 ? "bg-emerald-100 text-emerald-700" : "bg-red-100 text-red-600"}`}>
-                                                    {v.profitMargin}
+                                                <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${parseFloat(v.roi) >= 0 ? "bg-emerald-100 text-emerald-700" : "bg-red-100 text-red-600"}`}>
+                                                    {v.roi}%
                                                 </span>
                                             </td>
                                         </tr>
@@ -463,10 +602,11 @@ function FinKpi({ label, value, sub, icon: Icon, color, isDark }: {
 }
 
 function EmptyState({ loading, isDark, text }: { loading: boolean; isDark: boolean; text: string }) {
+    const { t } = useTranslation();
     return (
         <div className={`h-[260px] flex items-center justify-center ${isDark ? "text-neutral-500" : "text-neutral-400"}`}>
             <BarChart3 className="w-6 h-6 mr-2 opacity-40" />
-            {loading ? "Loading..." : text}
+            {loading ? t("common.loading") : text}
         </div>
     );
 }

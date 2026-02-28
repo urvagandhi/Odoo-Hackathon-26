@@ -2,6 +2,7 @@
  * CapacityBar — cargo weight vs vehicle capacity visual bar.
  * Green when within capacity, red when over capacity.
  */
+import { useTranslation } from "react-i18next";
 import { useTheme } from "../../context/ThemeContext";
 import { CheckCircle2, XCircle } from "lucide-react";
 
@@ -13,6 +14,7 @@ interface CapacityBarProps {
 
 export function CapacityBar({ cargoWeight, maxCapacity, className = "" }: CapacityBarProps) {
   const { isDark } = useTheme();
+  const { t } = useTranslation();
 
   if (maxCapacity <= 0) return null;
 
@@ -30,10 +32,10 @@ export function CapacityBar({ cargoWeight, maxCapacity, className = "" }: Capaci
     <div className={`space-y-1.5 ${className}`}>
       <div className="flex items-center justify-between text-xs">
         <span className={isDark ? "text-neutral-400" : "text-slate-500"}>
-          Cargo: <span className="font-semibold">{cargoWeight.toLocaleString()} kg</span>
+          {t("ui.capacityBar.cargo")} <span className="font-semibold">{cargoWeight.toLocaleString()} kg</span>
         </span>
         <span className={isDark ? "text-neutral-400" : "text-slate-500"}>
-          {maxCapacity.toLocaleString()} kg capacity
+          {t("ui.capacityBar.capacity", { value: maxCapacity.toLocaleString() })}
         </span>
       </div>
 
@@ -48,12 +50,12 @@ export function CapacityBar({ cargoWeight, maxCapacity, className = "" }: Capaci
         {isOver ? (
           <>
             <XCircle className="w-3.5 h-3.5" />
-            <span>{percentage.toFixed(0)}% — EXCEEDS CAPACITY</span>
+            <span>{t("ui.capacityBar.exceedsCapacity", { pct: percentage.toFixed(0) })}</span>
           </>
         ) : (
           <>
             <CheckCircle2 className="w-3.5 h-3.5" />
-            <span>{percentage.toFixed(0)}% utilized — OK</span>
+            <span>{t("ui.capacityBar.utilized", { pct: percentage.toFixed(0) })}</span>
           </>
         )}
       </div>

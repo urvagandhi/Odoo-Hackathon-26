@@ -7,6 +7,8 @@ description: Documentation & Technical Explanation Agent responsible for archite
 
 <!--
 HACKATHON_TOPIC: FleetFlow – Modular Fleet & Logistics Management System
+REFERENCE: Always read .github/agents/FLEETFLOW_ARCHITECTURE.md before writing documentation.
+The canonical module structure, enums, routes, and state machines are all defined there.
 -->
 
 ## Persona
@@ -65,38 +67,60 @@ You produce documentation as if preparing for **hackathon judges, technical revi
 
 ### Tech Stack (HARDCODED)
 
-| Layer      | Technology                                        |
-| ---------- | ------------------------------------------------- |
-| Backend    | Node.js 22 + Express.js 5                         |
-| ORM        | Prisma ORM (Prisma Client + Prisma Migrate)       |
-| Validation | Zod (backend) + Zod v4 (frontend)                 |
-| Frontend   | React 19 + TypeScript + Vite 7                    |
-| Styling    | Tailwind CSS v4                                   |
-| Routing    | React Router v7                                   |
-| Database   | PostgreSQL 16                                     |
-| HTTP       | Axios (frontend) + Express (backend)              |
-| Testing    | Jest + Supertest + Playwright + React Testing Lib |
-| Infra      | Docker Compose                                    |
+| Layer      | Technology                                            |
+| ---------- | ----------------------------------------------------- |
+| Backend    | Node.js 20 LTS + Express.js 4.x                       |
+| ORM        | Prisma ORM 5.x (Prisma Client + Prisma Migrate)       |
+| Validation | Zod 3.x (backend) + Zod 4.x (frontend)                |
+| Frontend   | React 19 + TypeScript + Vite 7                        |
+| Styling    | Tailwind CSS v4                                       |
+| Routing    | React Router v7                                       |
+| Database   | PostgreSQL 16                                         |
+| HTTP       | Axios (frontend) + Express (backend)                  |
+| Real-time  | Socket.IO 4.x                                         |
+| Security   | Helmet + express-rate-limit + JWT + bcryptjs          |
+| Testing    | Jest + Supertest + Playwright + React Testing Library |
+| Infra      | Docker Compose                                        |
 
 ### Folder Responsibilities
 
+> ⚠️ CRITICAL: Backend uses MODULE-BASED architecture. There is NO flat `routes/` or `services/` directory.
+
 ```
-backend/src/            → Express app (index.ts, config.ts)
-backend/src/routes/     → Express route handlers
-backend/src/services/   → Business logic layer
-backend/src/middleware/  → Auth, error handling, validation, rate limiting
-backend/src/validators/  → Zod request/response schemas
-backend/src/utils/       → Password hashing, JWT helpers, custom errors
-backend/prisma/          → Prisma schema and migrations
-backend/tests/           → Jest + Supertest test suite
-frontend/src/pages/       → Route-level page components
-frontend/src/components/  → Reusable UI components
-frontend/src/api/         → Axios client & API functions
-frontend/src/hooks/       → Custom React hooks
-frontend/src/validators/  → Zod validation schemas
-frontend/src/routes/      → React Router configuration
-.github/agents/           → AI agent configurations
-docs/                     → All project documentation
+backend/src/
+├── server.ts, app.ts, prisma.ts
+├── config/             → env.ts (Zod-validated), swagger.ts
+├── middleware/         → authenticate.ts, authorize.ts, validate.ts, errorHandler.ts, auditLogger.ts
+├── modules/            ← ALL DOMAIN CODE LIVES HERE
+│   ├── auth/           → auth.routes.ts + auth.controller.ts + auth.service.ts + auth.validator.ts
+│   ├── fleet/          → vehicles (CRUD + status machine)
+│   ├── dispatch/       → trips (create/dispatch/complete/cancel)
+│   ├── hr/             → drivers (CRUD + compliance)
+│   ├── finance/        → fuel logs + expenses
+│   ├── analytics/      → KPI aggregation
+│   ├── incidents/      → safety incident reports
+│   ├── locations/      → GPS telemetry
+│   └── me/             → authenticated user profile
+├── services/           → email.service.ts (cross-cutting)
+├── sockets/            → socketHandler.ts (Socket.IO)
+└── jobs/               → complianceJobs.ts (node-cron)
+
+backend/prisma/
+├── schema.prisma       → SINGLE SOURCE OF TRUTH (13 models, all enums, all indexes)
+├── seed.ts             → Demo data (4 users: manager, dispatcher, safety, finance)
+└── migrations/         → Prisma migration history
+
+frontend/src/
+├── pages/              → 25+ route-level page components (CommandCenter, VehicleRegistry, etc.)
+├── components/         → ui/ primitives + forms/ + navigation/ + feedback/
+├── context/            → AuthContext, ThemeContext, SocketContext
+├── api/client.ts       → Axios instance + JWT interceptors
+├── hooks/              → useAuth.ts, useSocket.ts
+├── validators/         → Zod schemas for forms
+└── routes/index.tsx    → React Router v7 route tree
+
+.github/agents/         → AI agent configurations + FLEETFLOW_ARCHITECTURE.md
+docs/                   → FLEETFLOW_MASTER_PLAN.md + PHASE_EXECUTION_PLAN.md
 ```
 
 ---
@@ -106,13 +130,14 @@ docs/                     → All project documentation
 ### Verify API Docs (Swagger)
 
 ```bash
-curl -s http://localhost:5000/api-docs | head -20
+curl -s http://localhost:5000/api/docs | head -20
+# Or open in browser: http://localhost:5000/api/docs
 ```
 
 ### Check Backend JSDoc/TSDoc Comments
 
 ```bash
-grep -rn '/\*\*' backend/src/routes/ backend/src/services/
+grep -rn '/\*\*' backend/src/modules/
 ```
 
 ### Check Frontend JSDoc Comments
@@ -121,10 +146,29 @@ grep -rn '/\*\*' backend/src/routes/ backend/src/services/
 grep -rn '/\*\*' frontend/src/
 ```
 
-### Validate Markdown Links
+### Validate Root README Links
 
 ```bash
-npx markdown-link-check README.md GIT_WORKFLOW.md
+npx markdown-link-check README.md
+```
+
+### Check All Module Files Exist
+
+```bash
+ls backend/src/modules/
+# Should show: auth fleet dispatch hr finance analytics incidents locations me
+```
+
+### Check Prisma Schema (Source of Truth)
+
+```bash
+cat backend/prisma/schema.prisma | grep '^model'
+```
+
+### View Current Migration State
+
+```bash
+cd backend && npx prisma migrate status
 ```
 
 ---

@@ -1,10 +1,12 @@
 import { motion } from "framer-motion";
 import { ArrowLeft, Home, Search, AlertCircle } from "lucide-react";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Link, useNavigate } from "react-router-dom";
 import { NotFoundIllustration } from "../components/feedback/NotFoundIllustration";
 
 export default function NotFound() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -38,15 +40,15 @@ export default function NotFound() {
         >
           {/* Brand/Logo (Optional context) */}
           <div className="flex items-center justify-center lg:justify-start gap-2 mb-6 opacity-60">
-             <span className="text-sm font-semibold tracking-wider uppercase text-slate-500">404 Error</span>
+             <span className="text-sm font-semibold tracking-wider uppercase text-slate-500">{t("notFound.errorLabel")}</span>
           </div>
 
           <div className="space-y-4">
             <h1 className="text-5xl lg:text-7xl font-bold text-slate-900 tracking-tight leading-tight">
-              Page <span className="text-indigo-600 inline-block transform hover:rotate-12 transition-transform duration-300 cursor-default">+</span> not found
+              {t("notFound.title")} <span className="text-indigo-600 inline-block transform hover:rotate-12 transition-transform duration-300 cursor-default">{t("notFound.titleHighlight")}</span> {t("notFound.titleEnd")}
             </h1>
             <p className="text-lg text-slate-600 max-w-md mx-auto lg:mx-0 leading-relaxed">
-              Oops! The page you're looking for seems to have wandered off. It might have been removed, renamed, or didn't exist in the first place.
+              {t("notFound.description")}
             </p>
           </div>
 
@@ -59,7 +61,7 @@ export default function NotFound() {
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search for pages..."
+              placeholder={t("notFound.searchPlaceholder")}
               className="block w-full pl-11 pr-4 py-3.5 bg-white border border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all shadow-sm group-hover:shadow-md"
             />
           </form>
@@ -71,7 +73,7 @@ export default function NotFound() {
               className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3.5 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-xl transition-all shadow-indigo-200 hover:shadow-indigo-300 shadow-lg hover:-translate-y-0.5 active:translate-y-0"
             >
               <Home className="w-4 h-4" />
-              Go Home
+              {t("notFound.goHome")}
             </Link>
             
             <button 
@@ -79,7 +81,7 @@ export default function NotFound() {
               className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3.5 bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 font-medium rounded-xl transition-all hover:border-slate-300 shadow-sm hover:shadow-md active:bg-slate-100"
             >
               <ArrowLeft className="w-4 h-4" />
-              Go Back
+              {t("notFound.goBack")}
             </button>
             
             <a 
@@ -88,13 +90,13 @@ export default function NotFound() {
               className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3.5 text-slate-600 hover:text-indigo-600 font-medium transition-colors"
             >
               <AlertCircle className="w-4 h-4" />
-              Help Center
+              {t("notFound.helpCenter")}
             </a>
           </div>
           
           {/* Footer / Copyright */}
           <div className="pt-12 text-sm text-slate-400">
-            © 2026 FleetFlow. All rights reserved.
+            {t("notFound.copyright")}
           </div>
         </motion.div>
 

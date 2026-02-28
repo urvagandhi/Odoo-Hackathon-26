@@ -43,6 +43,9 @@ authRouter.post('/reset-password', authController.resetPassword.bind(authControl
 // GET /api/v1/auth/me
 authRouter.get('/me', authenticate, authController.getMe.bind(authController));
 
+// PATCH /api/v1/auth/me — update own profile (fullName, email)
+authRouter.patch('/me', authenticate, authController.updateProfile.bind(authController));
+
 // PUT /api/v1/auth/change-password
 authRouter.put('/change-password', authenticate, authController.changePassword.bind(authController));
 

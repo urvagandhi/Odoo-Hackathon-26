@@ -7,6 +7,7 @@ description: Testing & Quality Assurance specialist ensuring robust validation, 
 
 <!--
 HACKATHON_TOPIC: FleetFlow – Modular Fleet & Logistics Management System
+REFERENCE: Always read .github/agents/FLEETFLOW_ARCHITECTURE.md for actual routes and enums.
 
 CRITICAL REQUIREMENT: The app MUST NOT CRASH during the demo.
 -->
@@ -79,18 +80,23 @@ You produce **reliable, fast, maintainable, and security-conscious** tests that 
 
 ### Folder Responsibilities
 
+> ⚠️ CRITICAL: Backend uses MODULE-BASED architecture. Test files map to module paths.
+
 ```
 backend/tests/
-├── setup.ts              → Jest setup (test DB, Prisma reset)
+├── setup.ts              → Jest setup (test DB, Prisma reset, seed minimal data)
 ├── helpers/              → Test utilities, factories, fixtures
-├── items.test.ts         → Item CRUD endpoint tests
-├── auth.test.ts          → Auth flow tests (login, register, JWT)
-├── security.test.ts      → Security-specific test cases
-└── performance.test.ts   → Performance and pagination tests
+├── auth.test.ts          → Login / register / JWT / forgot-password flows
+├── fleet.test.ts         → Vehicle CRUD + status machine (AVAILABLE → ON_TRIP etc.)
+├── dispatch.test.ts      → Trip lifecycle (create → dispatch → complete/cancel)
+├── hr.test.ts            → Driver CRUD + duty status toggling
+├── finance.test.ts       → Fuel logs + expenses (odometer monotonicity)
+├── security.test.ts      → SQL injection, JWT forgery, RBAC enforcement
+└── performance.test.ts   → Pagination, large datasets, response time
 
 frontend/src/
 ├── **/*.test.tsx         → Component and hook tests
-└── **/*.test.ts          → Utility, validator, and UX flow tests
+└── **/*.test.ts          → Validator and utility tests
 ```
 
 ---
@@ -241,25 +247,28 @@ describe("Email validation", () => {
 | Concurrent access | Duplicate record prevention under race condition |
 
 ```typescript
-// ✅ Good: Integration test for auth flow using Supertest
+// ✅ Good: Integration test for FleetFlow auth flow using Supertest
 import request from "supertest";
-import { app } from "../src/index";
+import { app } from "../src/app";
 
 describe("Auth Flow", () => {
   it("registers and logs in successfully", async () => {
-    // Register
     const reg = await request(app)
       .post("/api/v1/auth/register")
-      .send({ email: "test@example.com", password: "SecurePass123!" });
+      .send({
+        email: "test@fleetflow.com",
+        password: "SecurePass123!",
+        fullName: "Test User",
+        role: "DISPATCHER",
+      });
     expect(reg.status).toBe(201);
 
-    // Login
     const login = await request(app)
       .post("/api/v1/auth/login")
-      .send({ email: "test@example.com", password: "SecurePass123!" });
+      .send({ email: "test@fleetflow.com", password: "SecurePass123!" });
     expect(login.status).toBe(200);
-    expect(login.body.data).toHaveProperty("accessToken");
-    expect(login.body.data).toHaveProperty("refreshToken");
+    expect(login.body.data).toHaveProperty("token");
+    expect(login.body.data).toHaveProperty("user");
   });
 
   it("returns 401 for nonexistent email", async () => {
@@ -271,8 +280,28 @@ describe("Auth Flow", () => {
   });
 
   it("returns 401 for protected route without token", async () => {
-    const res = await request(app).get("/api/v1/users/me");
+    const res = await request(app).get("/api/v1/me");
     expect(res.status).toBe(401);
+  });
+
+  it("returns 403 for DISPATCHER accessing MANAGER-only route", async () => {
+    const loginRes = await request(app)
+      .post("/api/v1/auth/login")
+      .send({ email: "dispatcher@fleetflow.com", password: "Dispatcher@123" });
+    const token = loginRes.body.data.token;
+
+    const res = await request(app)
+      .post("/api/v1/vehicles")
+      .set("Authorization", `Bearer ${token}`)
+      .send({
+        registrationNumber: "MH01AB1234",
+        make: "Tata",
+        model: "Ace",
+        year: 2022,
+        typeId: 1,
+        capacityWeight: 1000,
+      });
+    expect(res.status).toBe(403);
   });
 });
 ```

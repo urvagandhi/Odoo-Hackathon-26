@@ -15,9 +15,11 @@ export class AnalyticsService {
     //  Dashboard KPIs
     // ─────────────────────────────────────────────────────────────
 
-    async getDashboardKPIs() {
+    async getDashboardKPIs(region?: string) {
         const now = new Date();
         const thirtyDaysAhead = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
+
+        const vehicleBaseWhere = { isDeleted: false, ...(region ? { region } : {}) };
 
         const [
             totalVehicles,
@@ -34,11 +36,11 @@ export class AnalyticsService {
             expiringLicenses,
         ] = await Promise.all([
             // Fleet counts
-            prisma.vehicle.count({ where: { isDeleted: false } }),
-            prisma.vehicle.count({ where: { isDeleted: false, status: VehicleStatus.AVAILABLE } }),
-            prisma.vehicle.count({ where: { isDeleted: false, status: VehicleStatus.ON_TRIP } }),
-            prisma.vehicle.count({ where: { isDeleted: false, status: VehicleStatus.IN_SHOP } }),
-            prisma.vehicle.count({ where: { isDeleted: false, status: VehicleStatus.RETIRED } }),
+            prisma.vehicle.count({ where: vehicleBaseWhere }),
+            prisma.vehicle.count({ where: { ...vehicleBaseWhere, status: VehicleStatus.AVAILABLE } }),
+            prisma.vehicle.count({ where: { ...vehicleBaseWhere, status: VehicleStatus.ON_TRIP } }),
+            prisma.vehicle.count({ where: { ...vehicleBaseWhere, status: VehicleStatus.IN_SHOP } }),
+            prisma.vehicle.count({ where: { ...vehicleBaseWhere, status: VehicleStatus.RETIRED } }),
             // Driver counts
             prisma.driver.count({ where: { isDeleted: false } }),
             prisma.driver.count({ where: { isDeleted: false, status: DriverStatus.ON_DUTY } }),
@@ -180,6 +182,7 @@ export class AnalyticsService {
                 licensePlate: true,
                 make: true,
                 model: true,
+                acquisitionCost: true,
                 trips: {
                     where: {
                         status: TripStatus.COMPLETED,
@@ -199,20 +202,27 @@ export class AnalyticsService {
                     where: dateFilter ? { dateLogged: dateFilter } : {},
                     select: { amount: true },
                 },
-            },
+            } as any,
             orderBy: { licensePlate: 'asc' },
         });
 
-        return vehicles.map((v) => {
-            const revenue = v.trips.reduce((sum, t) => sum + Number(t.revenue ?? 0), 0);
-            const fuelCost = v.fuelLogs.reduce((sum, f) => sum + Number(f.totalCost), 0);
-            const maintenanceCost = v.maintenanceLogs.reduce((sum, m) => sum + Number(m.cost), 0);
-            const expenseCost = v.expenses.reduce((sum, e) => sum + Number(e.amount), 0);
+        return (vehicles as any[]).map((v) => {
+            const revenue = (v.trips as any[]).reduce((sum, t) => sum + Number(t.revenue ?? 0), 0);
+            const fuelCost = (v.fuelLogs as any[]).reduce((sum, f) => sum + Number(f.totalCost), 0);
+            const maintenanceCost = (v.maintenanceLogs as any[]).reduce((sum, m) => sum + Number(m.cost), 0);
+            const expenseCost = (v.expenses as any[]).reduce((sum, e) => sum + Number(e.amount), 0);
             const totalCost = fuelCost + maintenanceCost + expenseCost;
             const profit = revenue - totalCost;
-            const profitMargin = revenue > 0
-                ? parseFloat(((profit / revenue) * 100).toFixed(2))
-                : null;
+            
+            // ROI calculation: (Profit / Acquisition Cost) * 100
+            const acqCost = Number(v.acquisitionCost ?? 0);
+            let roi = null;
+            if (acqCost > 0) {
+                roi = parseFloat(((profit / acqCost) * 100).toFixed(2));
+            } else if (revenue > 0) {
+                // Fallback to profit margin if no acquisition cost
+                roi = parseFloat(((profit / revenue) * 100).toFixed(2));
+            }
 
             return {
                 vehicleId: v.id.toString(),
@@ -225,7 +235,7 @@ export class AnalyticsService {
                 expenseCost: parseFloat(expenseCost.toFixed(2)),
                 totalCost: parseFloat(totalCost.toFixed(2)),
                 profit: parseFloat(profit.toFixed(2)),
-                profitMargin: profitMargin !== null ? `${profitMargin}%` : 'N/A',
+                roi: roi !== null ? `${roi}%` : 'N/A',
             };
         });
     }
@@ -478,6 +488,85 @@ export class AnalyticsService {
                 },
             };
         });
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    //  Fleet & HR CSV Exports
+    // ─────────────────────────────────────────────────────────────
+
+    async exportVehiclesCSV(): Promise<string> {
+        const vehicles = await prisma.vehicle.findMany({
+            where: { isDeleted: false },
+            include: { vehicleType: true },
+            orderBy: { licensePlate: 'asc' },
+        });
+
+        const headers = [
+            'ID', 'License Plate', 'Make', 'Model', 'Year', 'Status',
+            'Odometer', 'Weight Cap (kg)', 'Volume Cap (m3)', 'Type', 'Region', 'Created At'
+        ];
+
+        const escape = (v: unknown): string => {
+            if (v === null || v === undefined) return '';
+            const s = String(v);
+            if (s.includes(',') || s.includes('"') || s.includes('\n')) {
+                return `"${s.replace(/"/g, '""')}"`;
+            }
+            return s;
+        };
+
+        const rows = (vehicles as any[]).map((v) => [
+            v.id.toString(),
+            v.licensePlate,
+            v.make,
+            v.model,
+            v.year.toString(),
+            v.status,
+            v.currentOdometer.toString(),
+            v.capacityWeight?.toString() ?? '',
+            v.capacityVolume?.toString() ?? '',
+            v.vehicleType?.name ?? '',
+            v.region ?? '',
+            v.createdAt.toISOString(),
+        ].map(escape).join(','));
+
+        return [headers.join(','), ...rows].join('\n');
+    }
+
+    async exportDriversCSV(): Promise<string> {
+        const drivers = await prisma.driver.findMany({
+            where: { isDeleted: false },
+            orderBy: { fullName: 'asc' },
+        });
+
+        const headers = [
+            'ID', 'Full Name', 'License Number', 'License Class',
+            'Phone', 'Email', 'Status', 'Safety Score', 'License Expiry', 'Created At'
+        ];
+
+        const escape = (v: unknown): string => {
+            if (v === null || v === undefined) return '';
+            const s = String(v);
+            if (s.includes(',') || s.includes('"') || s.includes('\n')) {
+                return `"${s.replace(/"/g, '""')}"`;
+            }
+            return s;
+        };
+
+        const rows = drivers.map((d) => [
+            d.id.toString(),
+            d.fullName,
+            d.licenseNumber,
+            d.licenseClass ?? '',
+            d.phone ?? '',
+            d.email ?? '',
+            d.status,
+            d.safetyScore.toString(),
+            d.licenseExpiryDate.toISOString().split('T')[0],
+            d.createdAt.toISOString(),
+        ].map(escape).join(','));
+
+        return [headers.join(','), ...rows].join('\n');
     }
 }
 

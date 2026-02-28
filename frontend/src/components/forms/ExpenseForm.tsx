@@ -2,6 +2,7 @@
  * ExpenseForm — slide-over with two tabs: Fuel Log and Misc Expense.
  */
 import { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Fuel, Receipt, Save, Loader2 } from "lucide-react";
 import { useTheme } from "../../context/ThemeContext";
@@ -12,7 +13,6 @@ import {
   type CreateFuelLogFormData,
   type CreateExpenseFormData,
 } from "../../validators/finance";
-import type { ZodError } from "zod";
 
 interface Vehicle {
   id: string;
@@ -45,15 +45,11 @@ const EXPENSE_INITIAL: CreateExpenseFormData = {
   description: "",
 };
 
-const CATEGORIES = [
-  { value: "TOLL", label: "Toll" },
-  { value: "LODGING", label: "Lodging" },
-  { value: "MAINTENANCE_EN_ROUTE", label: "Maintenance (En Route)" },
-  { value: "MISC", label: "Miscellaneous" },
-];
+const CATEGORY_VALUES = ["TOLL", "LODGING", "MAINTENANCE_EN_ROUTE", "MISC"] as const;
 
 export function ExpenseForm({ open, onClose, onSuccess, defaultTab = "fuel" }: ExpenseFormProps) {
   const { isDark } = useTheme();
+  const { t } = useTranslation();
   const [tab, setTab] = useState<"fuel" | "expense">(defaultTab);
   const [fuelForm, setFuelForm] = useState<CreateFuelLogFormData>(FUEL_INITIAL);
   const [expForm, setExpForm] = useState<CreateExpenseFormData>(EXPENSE_INITIAL);
@@ -74,13 +70,7 @@ export function ExpenseForm({ open, onClose, onSuccess, defaultTab = "fuel" }: E
     fleetApi
       .listVehicles({ limit: 500 })
       .then((res) => {
-        const body = res.data?.data ?? res.data;
-        const list = (body?.vehicles ?? body ?? []) as Vehicle[];
-        setVehicles(
-          list
-            .filter((v: Record<string, unknown>) => v.status !== "RETIRED")
-            .map((v: Record<string, unknown>) => ({ ...v, id: String(v.id) })) as Vehicle[]
-        );
+        setVehicles(res.data.filter((v) => v.status !== "RETIRED").map((v) => ({ ...v, id: String(v.id) })));
       })
       .catch(() => {})
       .finally(() => setLoadingVehicles(false));
@@ -107,7 +97,7 @@ export function ExpenseForm({ open, onClose, onSuccess, defaultTab = "fuel" }: E
       const result = createFuelLogSchema.safeParse(fuelForm);
       if (!result.success) {
         const fieldErrors: Record<string, string> = {};
-        (result.error as ZodError).errors.forEach((err) => {
+        result.error.issues.forEach((err) => {
           const key = err.path[0] as string;
           if (!fieldErrors[key]) fieldErrors[key] = err.message;
         });
@@ -117,8 +107,8 @@ export function ExpenseForm({ open, onClose, onSuccess, defaultTab = "fuel" }: E
       setSubmitting(true);
       try {
         await financeApi.createFuelLog({
-          vehicleId: Number(result.data.vehicleId),
-          tripId: result.data.tripId ? Number(result.data.tripId) : undefined,
+          vehicleId: result.data.vehicleId,
+          tripId: result.data.tripId || undefined,
           liters: result.data.liters,
           costPerLiter: result.data.costPerLiter,
           odometerAtFill: result.data.odometerAtFill,
@@ -136,7 +126,7 @@ export function ExpenseForm({ open, onClose, onSuccess, defaultTab = "fuel" }: E
       const result = createExpenseSchema.safeParse(expForm);
       if (!result.success) {
         const fieldErrors: Record<string, string> = {};
-        (result.error as ZodError).errors.forEach((err) => {
+        result.error.issues.forEach((err) => {
           const key = err.path[0] as string;
           if (!fieldErrors[key]) fieldErrors[key] = err.message;
         });
@@ -146,8 +136,8 @@ export function ExpenseForm({ open, onClose, onSuccess, defaultTab = "fuel" }: E
       setSubmitting(true);
       try {
         await financeApi.createExpense({
-          vehicleId: Number(result.data.vehicleId),
-          tripId: result.data.tripId ? Number(result.data.tripId) : undefined,
+          vehicleId: result.data.vehicleId,
+          tripId: result.data.tripId || undefined,
           amount: result.data.amount,
           category: result.data.category,
           description: result.data.description || undefined,
@@ -211,10 +201,10 @@ export function ExpenseForm({ open, onClose, onSuccess, defaultTab = "fuel" }: E
                 </div>
                 <div>
                   <h2 className={`text-base font-bold ${isDark ? "text-white" : "text-slate-900"}`}>
-                    {tab === "fuel" ? "New Fuel Log" : "New Expense"}
+                    {tab === "fuel" ? t("forms.expense.fuelTitle") : t("forms.expense.expenseTitle")}
                   </h2>
                   <p className={`text-xs ${isDark ? "text-neutral-400" : "text-slate-500"}`}>
-                    {tab === "fuel" ? "Record a fueling event" : "Log a trip expense"}
+                    {tab === "fuel" ? t("forms.expense.fuelSubtitle") : t("forms.expense.expenseSubtitle")}
                   </p>
                 </div>
               </div>
@@ -226,10 +216,10 @@ export function ExpenseForm({ open, onClose, onSuccess, defaultTab = "fuel" }: E
             {/* Tabs */}
             <div className={`flex px-6 pt-3 border-b ${isDark ? "border-neutral-700" : "border-slate-100"}`}>
               <button className={tabCls(tab === "fuel")} onClick={() => { setTab("fuel"); setErrors({}); setServerError(""); }}>
-                <Fuel className="w-3.5 h-3.5 inline mr-1.5" /> Fuel Log
+                <Fuel className="w-3.5 h-3.5 inline mr-1.5" /> {t("forms.expense.fuelTab")}
               </button>
               <button className={tabCls(tab === "expense")} onClick={() => { setTab("expense"); setErrors({}); setServerError(""); }}>
-                <Receipt className="w-3.5 h-3.5 inline mr-1.5" /> Expense
+                <Receipt className="w-3.5 h-3.5 inline mr-1.5" /> {t("forms.expense.expenseTab")}
               </button>
             </div>
 
@@ -243,79 +233,79 @@ export function ExpenseForm({ open, onClose, onSuccess, defaultTab = "fuel" }: E
 
               {loadingVehicles ? (
                 <div className={`py-8 text-center text-sm ${isDark ? "text-neutral-400" : "text-slate-500"}`}>
-                  <Loader2 className="w-5 h-5 mx-auto mb-2 animate-spin" />Loading vehicles...
+                  <Loader2 className="w-5 h-5 mx-auto mb-2 animate-spin" />{t("forms.expense.loadingVehicles")}
                 </div>
               ) : tab === "fuel" ? (
                 /* ── FUEL LOG ── */
                 <>
                   <div>
-                    <label className={labelCls}>Vehicle *</label>
+                    <label className={labelCls}>{t("forms.expense.vehicle")}</label>
                     <select className={`${inputCls} ${errors.vehicleId ? "border-red-400" : ""}`} value={fuelForm.vehicleId} onChange={(e) => handleFuelChange("vehicleId", e.target.value)}>
-                      <option value="">Select a vehicle...</option>
+                      <option value="">{t("forms.expense.selectVehicle")}</option>
                       {vehicles.map((v) => <option key={v.id} value={v.id}>{v.licensePlate} — {v.make} {v.model}</option>)}
                     </select>
                     {errors.vehicleId && <p className={errCls}>{errors.vehicleId}</p>}
                   </div>
                   <div>
-                    <label className={labelCls}>Trip ID (optional)</label>
-                    <input className={inputCls} placeholder="e.g. 42" value={fuelForm.tripId ?? ""} onChange={(e) => handleFuelChange("tripId", e.target.value)} />
+                    <label className={labelCls}>{t("forms.expense.tripId")}</label>
+                    <input className={inputCls} placeholder={t("forms.expense.tripIdPlaceholder")} value={fuelForm.tripId ?? ""} onChange={(e) => handleFuelChange("tripId", e.target.value)} />
                   </div>
                   <div className="grid grid-cols-2 gap-3">
                     <div>
-                      <label className={labelCls}>Liters *</label>
+                      <label className={labelCls}>{t("forms.expense.liters")}</label>
                       <input type="number" step="0.01" className={`${inputCls} ${errors.liters ? "border-red-400" : ""}`} value={fuelForm.liters || ""} onChange={(e) => handleFuelChange("liters", e.target.value)} />
                       {errors.liters && <p className={errCls}>{errors.liters}</p>}
                     </div>
                     <div>
-                      <label className={labelCls}>₹/Liter *</label>
+                      <label className={labelCls}>{t("forms.expense.costPerLiter")}</label>
                       <input type="number" step="0.01" className={`${inputCls} ${errors.costPerLiter ? "border-red-400" : ""}`} value={fuelForm.costPerLiter || ""} onChange={(e) => handleFuelChange("costPerLiter", e.target.value)} />
                       {errors.costPerLiter && <p className={errCls}>{errors.costPerLiter}</p>}
                     </div>
                   </div>
                   {/* Live total */}
                   <div className={`p-3 rounded-lg text-center text-lg font-bold ${isDark ? "bg-neutral-700 text-emerald-400" : "bg-emerald-50 text-emerald-700"}`}>
-                    Total: ₹{totalCost.toFixed(2)}
+                    {t("forms.expense.totalLabel", { amount: totalCost.toFixed(2) })}
                   </div>
                   <div>
-                    <label className={labelCls}>Odometer at Fill *</label>
+                    <label className={labelCls}>{t("forms.expense.odometerAtFill")}</label>
                     <input type="number" className={`${inputCls} ${errors.odometerAtFill ? "border-red-400" : ""}`} value={fuelForm.odometerAtFill || ""} onChange={(e) => handleFuelChange("odometerAtFill", e.target.value)} />
                     {errors.odometerAtFill && <p className={errCls}>{errors.odometerAtFill}</p>}
                   </div>
                   <div>
-                    <label className={labelCls}>Fuel Station</label>
-                    <input className={inputCls} placeholder="Shell, HP, Indian Oil..." value={fuelForm.fuelStation ?? ""} onChange={(e) => handleFuelChange("fuelStation", e.target.value)} />
+                    <label className={labelCls}>{t("forms.expense.fuelStation")}</label>
+                    <input className={inputCls} placeholder={t("forms.expense.fuelStationPlaceholder")} value={fuelForm.fuelStation ?? ""} onChange={(e) => handleFuelChange("fuelStation", e.target.value)} />
                   </div>
                 </>
               ) : (
                 /* ── EXPENSE ── */
                 <>
                   <div>
-                    <label className={labelCls}>Vehicle *</label>
+                    <label className={labelCls}>{t("forms.expense.vehicle")}</label>
                     <select className={`${inputCls} ${errors.vehicleId ? "border-red-400" : ""}`} value={expForm.vehicleId} onChange={(e) => handleExpChange("vehicleId", e.target.value)}>
-                      <option value="">Select a vehicle...</option>
+                      <option value="">{t("forms.expense.selectVehicle")}</option>
                       {vehicles.map((v) => <option key={v.id} value={v.id}>{v.licensePlate} — {v.make} {v.model}</option>)}
                     </select>
                     {errors.vehicleId && <p className={errCls}>{errors.vehicleId}</p>}
                   </div>
                   <div>
-                    <label className={labelCls}>Trip ID (optional)</label>
-                    <input className={inputCls} placeholder="e.g. 42" value={expForm.tripId ?? ""} onChange={(e) => handleExpChange("tripId", e.target.value)} />
+                    <label className={labelCls}>{t("forms.expense.tripId")}</label>
+                    <input className={inputCls} placeholder={t("forms.expense.tripIdPlaceholder")} value={expForm.tripId ?? ""} onChange={(e) => handleExpChange("tripId", e.target.value)} />
                   </div>
                   <div>
-                    <label className={labelCls}>Category *</label>
+                    <label className={labelCls}>{t("forms.expense.category")}</label>
                     <select className={`${inputCls} ${errors.category ? "border-red-400" : ""}`} value={expForm.category} onChange={(e) => handleExpChange("category", e.target.value)}>
-                      {CATEGORIES.map((c) => <option key={c.value} value={c.value}>{c.label}</option>)}
+                      {CATEGORY_VALUES.map((c) => <option key={c} value={c}>{t(`forms.expense.categories.${c}`)}</option>)}
                     </select>
                     {errors.category && <p className={errCls}>{errors.category}</p>}
                   </div>
                   <div>
-                    <label className={labelCls}>Amount (₹) *</label>
+                    <label className={labelCls}>{t("forms.expense.amount")}</label>
                     <input type="number" step="0.01" className={`${inputCls} ${errors.amount ? "border-red-400" : ""}`} value={expForm.amount || ""} onChange={(e) => handleExpChange("amount", e.target.value)} />
                     {errors.amount && <p className={errCls}>{errors.amount}</p>}
                   </div>
                   <div>
-                    <label className={labelCls}>Description</label>
-                    <textarea className={inputCls} rows={2} placeholder="Toll at Mumbai expressway..." value={expForm.description ?? ""} onChange={(e) => handleExpChange("description", e.target.value)} />
+                    <label className={labelCls}>{t("forms.expense.description")}</label>
+                    <textarea className={inputCls} rows={2} placeholder={t("forms.expense.descriptionPlaceholder")} value={expForm.description ?? ""} onChange={(e) => handleExpChange("description", e.target.value)} />
                   </div>
                 </>
               )}
@@ -324,11 +314,11 @@ export function ExpenseForm({ open, onClose, onSuccess, defaultTab = "fuel" }: E
             {/* Footer */}
             <div className={`px-6 py-4 border-t shrink-0 flex items-center justify-end gap-3 ${isDark ? "border-neutral-700" : "border-slate-100"}`}>
               <button type="button" onClick={onClose} className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${isDark ? "text-neutral-300 hover:bg-neutral-700" : "text-slate-600 hover:bg-slate-100"}`}>
-                Cancel
+                {t("common.cancel")}
               </button>
               <button onClick={handleSubmit} disabled={submitting || loadingVehicles} className="inline-flex items-center gap-2 px-5 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-medium transition-colors disabled:opacity-50">
                 {submitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-                {tab === "fuel" ? "Create Fuel Log" : "Create Expense"}
+                {tab === "fuel" ? t("forms.expense.createFuelLog") : t("forms.expense.createExpense")}
               </button>
             </div>
           </motion.div>

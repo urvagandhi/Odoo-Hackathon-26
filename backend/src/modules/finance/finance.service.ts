@@ -129,6 +129,8 @@ export class FinanceService {
         });
     }
 
+    // ── Maintenance Logs ───────────────────────────────────────────
+
     async listMaintenanceLogs(vehicleId?: bigint) {
         return prisma.maintenanceLog.findMany({
             where: {
@@ -140,8 +142,6 @@ export class FinanceService {
             orderBy: { serviceDate: 'desc' },
         });
     }
-
-    // ── Maintenance Logs ───────────────────────────────────────────
 
     async createMaintenanceLog(input: CreateMaintenanceLogInput, actorId: bigint) {
         const vehicle = await prisma.vehicle.findFirst({

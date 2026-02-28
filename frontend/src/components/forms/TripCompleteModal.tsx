@@ -2,12 +2,12 @@
  * TripCompleteModal — modal for completing a trip with actual distance input.
  */
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { motion, AnimatePresence } from "framer-motion";
 import { Loader2, CheckCircle2 } from "lucide-react";
 import { useTheme } from "../../context/ThemeContext";
-import { tripsApi } from "../../api/client";
+import { dispatchApi } from "../../api/client";
 import { completeTripSchema } from "../../validators/trip";
-import type { ZodError } from "zod";
 
 interface TripCompleteModalProps {
   open: boolean;
@@ -18,6 +18,7 @@ interface TripCompleteModalProps {
 
 export function TripCompleteModal({ open, tripId, onClose, onSuccess }: TripCompleteModalProps) {
   const { isDark } = useTheme();
+  const { t } = useTranslation();
   const [distanceActual, setDistanceActual] = useState("");
   const [odometerEnd, setOdometerEnd] = useState("");
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -34,7 +35,7 @@ export function TripCompleteModal({ open, tripId, onClose, onSuccess }: TripComp
     const result = completeTripSchema.safeParse({ distanceActual, odometerEnd: odometerEnd || undefined });
     if (!result.success) {
       const fieldErrors: Record<string, string> = {};
-      (result.error as ZodError).errors.forEach((err) => {
+      result.error.issues.forEach((err) => {
         const key = err.path[0] as string;
         if (!fieldErrors[key]) fieldErrors[key] = err.message;
       });
@@ -45,15 +46,15 @@ export function TripCompleteModal({ open, tripId, onClose, onSuccess }: TripComp
     if (!tripId) return;
     setSubmitting(true);
     try {
-      const payload: Record<string, unknown> = {
+      const payload: { status: "COMPLETED"; distanceActual: number; odometerEnd?: number } = {
         status: "COMPLETED",
         distanceActual: result.data.distanceActual,
       };
-      if (result.data.odometerEnd && result.data.odometerEnd !== "") {
+      if (result.data.odometerEnd != null && result.data.odometerEnd !== 0) {
         payload.odometerEnd = Number(result.data.odometerEnd);
       }
 
-      await tripsApi.transitionTrip(tripId, payload);
+      await dispatchApi.transitionStatus(tripId, payload);
       onSuccess();
       onClose();
       setDistanceActual("");
@@ -95,11 +96,11 @@ export function TripCompleteModal({ open, tripId, onClose, onSuccess }: TripComp
           >
             <div className="flex items-center gap-2 mb-4">
               <CheckCircle2 className="w-5 h-5 text-emerald-500" />
-              <h3 className={`text-base font-bold ${textPrimary}`}>Complete Trip</h3>
+              <h3 className={`text-base font-bold ${textPrimary}`}>{t("forms.tripComplete.title")}</h3>
             </div>
 
             <p className={`text-sm mb-4 ${textSecondary}`}>
-              Enter the actual distance traveled to complete this trip. Vehicle and driver will be released.
+              {t("forms.tripComplete.description")}
             </p>
 
             {serverError && (
@@ -110,11 +111,11 @@ export function TripCompleteModal({ open, tripId, onClose, onSuccess }: TripComp
 
             <div className="space-y-3 mb-4">
               <div>
-                <label className={labelCls}>Actual Distance (km) *</label>
+                <label className={labelCls}>{t("forms.tripComplete.actualDistance")}</label>
                 <input
                   type="number"
                   className={`${inputCls} ${errors.distanceActual ? "border-red-400" : ""}`}
-                  placeholder="e.g. 1450"
+                  placeholder={t("forms.tripComplete.distancePlaceholder")}
                   value={distanceActual}
                   onChange={(e) => setDistanceActual(e.target.value)}
                 />
@@ -122,11 +123,11 @@ export function TripCompleteModal({ open, tripId, onClose, onSuccess }: TripComp
               </div>
 
               <div>
-                <label className={labelCls}>Odometer End (optional)</label>
+                <label className={labelCls}>{t("forms.tripComplete.odometerEnd")}</label>
                 <input
                   type="number"
                   className={inputCls}
-                  placeholder="Current odometer reading"
+                  placeholder={t("forms.tripComplete.odometerPlaceholder")}
                   value={odometerEnd}
                   onChange={(e) => setOdometerEnd(e.target.value)}
                 />
@@ -138,7 +139,7 @@ export function TripCompleteModal({ open, tripId, onClose, onSuccess }: TripComp
                 onClick={onClose}
                 className={`px-4 py-2 rounded-lg text-sm font-medium ${isDark ? "text-neutral-300 hover:bg-neutral-700" : "text-slate-600 hover:bg-slate-100"}`}
               >
-                Cancel
+                {t("common.cancel")}
               </button>
               <button
                 onClick={handleSubmit}
@@ -146,7 +147,7 @@ export function TripCompleteModal({ open, tripId, onClose, onSuccess }: TripComp
                 className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-medium disabled:opacity-50"
               >
                 {submitting && <Loader2 className="w-4 h-4 animate-spin" />}
-                Complete Trip
+                {t("forms.tripComplete.confirm")}
               </button>
             </div>
           </motion.div>

@@ -7,6 +7,7 @@ import {
     ForgotPasswordSchema,
     ResetPasswordSchema,
     AdminResetPasswordSchema,
+    UpdateProfileSchema,
 } from './auth.validator';
 
 export class AuthController {
@@ -33,6 +34,21 @@ export class AuthController {
             const userId = BigInt(req.user!.sub);
             const user = await authService.getMe(userId);
             res.status(200).json({ success: true, data: user });
+        } catch (err) {
+            next(err);
+        }
+    }
+
+    /**
+     * Authenticated user updates their own profile.
+     * PATCH /api/v1/auth/me
+     */
+    async updateProfile(req: Request, res: Response, next: NextFunction): Promise<void> {
+        try {
+            const input = UpdateProfileSchema.parse(req.body);
+            const userId = BigInt(req.user!.sub);
+            const result = await authService.updateProfile(userId, input);
+            res.status(200).json({ success: true, data: result });
         } catch (err) {
             next(err);
         }

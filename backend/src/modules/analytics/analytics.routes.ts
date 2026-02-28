@@ -51,3 +51,17 @@ analyticsRouter.get(
     authorize(analyticsRoles),
     analyticsController.exportCSV.bind(analyticsController),
 );
+
+// GET /api/v1/analytics/export/vehicles
+analyticsRouter.get(
+    '/export/vehicles',
+    authorize([UserRole.MANAGER]),
+    analyticsController.exportVehicles.bind(analyticsController),
+);
+
+// GET /api/v1/analytics/export/drivers
+analyticsRouter.get(
+    '/export/drivers',
+    authorize([UserRole.MANAGER]),
+    analyticsController.exportDrivers.bind(analyticsController),
+);

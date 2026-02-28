@@ -84,7 +84,7 @@ Obtain a token via \`POST /api/v1/auth/login\`.
 
 | Role | Scope |
 |------|-------|
-| \`SUPER_ADMIN\` | Full access to all endpoints |
+| \`\` | Full access to all endpoints |
 | \`MANAGER\` | Fleet, dispatch, analytics, finance read/write |
 | \`DISPATCHER\` | Create and manage trips |
 | \`SAFETY_OFFICER\` | Driver credentials, vehicle inspections |
@@ -169,7 +169,7 @@ All errors return a consistent JSON body with a machine-readable \`error_code\`:
                     fullName: { type: 'string', minLength: 2, example: 'Priya Sharma' },
                     role: {
                         type: 'string',
-                        enum: ['SUPER_ADMIN', 'MANAGER', 'DISPATCHER', 'SAFETY_OFFICER', 'FINANCE_ANALYST'],
+                        enum: ['', 'MANAGER', 'DISPATCHER', 'SAFETY_OFFICER', 'FINANCE_ANALYST'],
                         default: 'DISPATCHER',
                     },
                 },
@@ -180,7 +180,7 @@ All errors return a consistent JSON body with a machine-readable \`error_code\`:
                     id: { type: 'string', example: '1' },
                     email: { type: 'string', example: 'arjun@fleetflow.in' },
                     fullName: { type: 'string', example: 'Arjun Mehta' },
-                    role: { type: 'string', enum: ['SUPER_ADMIN', 'MANAGER', 'DISPATCHER', 'SAFETY_OFFICER', 'FINANCE_ANALYST'] },
+                    role: { type: 'string', enum: ['', 'MANAGER', 'DISPATCHER', 'SAFETY_OFFICER', 'FINANCE_ANALYST'] },
                     isActive: { type: 'boolean', example: true },
                     createdAt: { type: 'string', format: 'date-time' },
                     updatedAt: { type: 'string', format: 'date-time' },
@@ -571,7 +571,7 @@ All errors return a consistent JSON body with a machine-readable \`error_code\`:
             post: {
                 tags: ['Auth'],
                 summary: 'Register a new user',
-                description: 'Creates a new system user. Default role is `DISPATCHER`. Only `SUPER_ADMIN` should create privileged roles.',
+                description: 'Creates a new system user. Default role is `DISPATCHER`. Only `` should create privileged roles.',
                 operationId: 'authRegister',
                 security: [],
                 requestBody: { required: true, content: { 'application/json': { schema: { $ref: '#/components/schemas/RegisterRequest' } } } },
@@ -649,7 +649,7 @@ All errors return a consistent JSON body with a machine-readable \`error_code\`:
             post: {
                 tags: ['Fleet'],
                 summary: 'Create a vehicle',
-                description: 'Registers a new fleet vehicle. Requires `MANAGER` or `SUPER_ADMIN` role.',
+                description: 'Registers a new fleet vehicle. Requires `MANAGER` or `` role.',
                 operationId: 'fleetCreateVehicle',
                 security: bearerSecurity,
                 requestBody: { required: true, content: { 'application/json': { schema: { $ref: '#/components/schemas/CreateVehicleRequest' } } } },
@@ -676,7 +676,7 @@ All errors return a consistent JSON body with a machine-readable \`error_code\`:
             patch: {
                 tags: ['Fleet'],
                 summary: 'Update vehicle details',
-                description: 'Partially updates vehicle metadata (make, model, color, capacity). Requires `MANAGER` or `SUPER_ADMIN`.',
+                description: 'Partially updates vehicle metadata (make, model, color, capacity). Requires `MANAGER` or ``.',
                 operationId: 'fleetUpdateVehicle',
                 security: bearerSecurity,
                 parameters: [idParam('id')],
@@ -691,13 +691,13 @@ All errors return a consistent JSON body with a machine-readable \`error_code\`:
             delete: {
                 tags: ['Fleet'],
                 summary: 'Soft-delete a vehicle',
-                description: 'Marks the vehicle as deleted (sets `is_deleted = true`). Historical trips and logs are preserved. **SUPER_ADMIN only.**',
+                description: 'Marks the vehicle as deleted (sets `is_deleted = true`). Historical trips and logs are preserved. ** only.**',
                 operationId: 'fleetDeleteVehicle',
                 security: bearerSecurity,
                 parameters: [idParam('id')],
                 responses: {
                     200: { description: 'Vehicle soft-deleted' },
-                    403: errorResponse('SUPER_ADMIN role required'),
+                    403: errorResponse(' role required'),
                     404: errorResponse('Vehicle not found'),
                     409: errorResponse('Cannot delete vehicle with active trips (CONFLICT)'),
                 },
@@ -758,7 +758,7 @@ All errors return a consistent JSON body with a machine-readable \`error_code\`:
             post: {
                 tags: ['Trips'],
                 summary: 'Create a trip (DRAFT)',
-                description: 'Creates a new trip in DRAFT status. Vehicle must be AVAILABLE. Driver must be ON_DUTY. Requires `DISPATCHER`, `MANAGER`, or `SUPER_ADMIN`.',
+                description: 'Creates a new trip in DRAFT status. Vehicle must be AVAILABLE. Driver must be ON_DUTY. Requires `DISPATCHER`, `MANAGER`, or ``.',
                 operationId: 'tripsCreate',
                 security: bearerSecurity,
                 requestBody: { required: true, content: { 'application/json': { schema: { $ref: '#/components/schemas/CreateTripRequest' } } } },
@@ -824,7 +824,7 @@ All errors return a consistent JSON body with a machine-readable \`error_code\`:
             get: {
                 tags: ['Trips'],
                 summary: 'Get trip financial ledger',
-                description: 'Returns the full financial breakdown for a trip: fuel logs, expenses, revenue, and calculated net profit. Restricted to `FINANCE_ANALYST`, `MANAGER`, `SUPER_ADMIN`.',
+                description: 'Returns the full financial breakdown for a trip: fuel logs, expenses, revenue, and calculated net profit. Restricted to `FINANCE_ANALYST`, `MANAGER`, ``.',
                 operationId: 'tripsGetLedger',
                 security: bearerSecurity,
                 parameters: [idParam('id')],
@@ -857,7 +857,7 @@ All errors return a consistent JSON body with a machine-readable \`error_code\`:
             post: {
                 tags: ['Drivers'],
                 summary: 'Register a driver',
-                description: 'Adds a new driver to the system. Requires `MANAGER`, `SAFETY_OFFICER`, or `SUPER_ADMIN`.',
+                description: 'Adds a new driver to the system. Requires `MANAGER`, `SAFETY_OFFICER`, or ``.',
                 operationId: 'driversCreate',
                 security: bearerSecurity,
                 requestBody: { required: true, content: { 'application/json': { schema: { $ref: '#/components/schemas/CreateDriverRequest' } } } },
@@ -873,7 +873,7 @@ All errors return a consistent JSON body with a machine-readable \`error_code\`:
             get: {
                 tags: ['Drivers'],
                 summary: 'Get drivers with expiring licenses',
-                description: 'Returns drivers whose license expires within the next 30 days. Used for compliance dashboard alerts. Restricted to `SAFETY_OFFICER`, `MANAGER`, `SUPER_ADMIN`.',
+                description: 'Returns drivers whose license expires within the next 30 days. Used for compliance dashboard alerts. Restricted to `SAFETY_OFFICER`, `MANAGER`, ``.',
                 operationId: 'driversExpiring',
                 security: bearerSecurity,
                 parameters: [
@@ -900,7 +900,7 @@ All errors return a consistent JSON body with a machine-readable \`error_code\`:
             patch: {
                 tags: ['Drivers'],
                 summary: 'Update driver details',
-                description: 'Partially updates driver contact info and license details. Requires `SAFETY_OFFICER`, `MANAGER`, or `SUPER_ADMIN`.',
+                description: 'Partially updates driver contact info and license details. Requires `SAFETY_OFFICER`, `MANAGER`, or ``.',
                 operationId: 'driversUpdate',
                 security: bearerSecurity,
                 parameters: [idParam('id')],
@@ -915,13 +915,13 @@ All errors return a consistent JSON body with a machine-readable \`error_code\`:
             delete: {
                 tags: ['Drivers'],
                 summary: 'Soft-delete a driver',
-                description: 'Marks the driver as deleted. Historical trips preserved. **SUPER_ADMIN only.**',
+                description: 'Marks the driver as deleted. Historical trips preserved. ** only.**',
                 operationId: 'driversDelete',
                 security: bearerSecurity,
                 parameters: [idParam('id')],
                 responses: {
                     200: { description: 'Driver soft-deleted' },
-                    403: errorResponse('SUPER_ADMIN role required'),
+                    403: errorResponse(' role required'),
                     404: errorResponse('Driver not found'),
                     409: errorResponse('Cannot delete driver with active trips'),
                 },
@@ -948,7 +948,7 @@ All errors return a consistent JSON body with a machine-readable \`error_code\`:
             patch: {
                 tags: ['Drivers'],
                 summary: 'Adjust driver safety score',
-                description: 'Applies a positive or negative delta to the driver\'s safety score (clamped to 0–100). **SAFETY_OFFICER or SUPER_ADMIN only.** Every adjustment requires a reason for audit trail.',
+                description: 'Applies a positive or negative delta to the driver\'s safety score (clamped to 0–100). **SAFETY_OFFICER or  only.** Every adjustment requires a reason for audit trail.',
                 operationId: 'driversAdjustSafetyScore',
                 security: bearerSecurity,
                 parameters: [idParam('id')],
@@ -1031,7 +1031,7 @@ All errors return a consistent JSON body with a machine-readable \`error_code\`:
             post: {
                 tags: ['Finance'],
                 summary: 'Log a maintenance event',
-                description: 'Creates a maintenance log and transitions the vehicle to `IN_SHOP` status automatically. Requires `SAFETY_OFFICER`, `MANAGER`, or `SUPER_ADMIN`.',
+                description: 'Creates a maintenance log and transitions the vehicle to `IN_SHOP` status automatically. Requires `SAFETY_OFFICER`, `MANAGER`, or ``.',
                 operationId: 'financeCreateMaintenance',
                 security: bearerSecurity,
                 requestBody: { required: true, content: { 'application/json': { schema: { $ref: '#/components/schemas/CreateMaintenanceLogRequest' } } } },
@@ -1048,7 +1048,7 @@ All errors return a consistent JSON body with a machine-readable \`error_code\`:
             patch: {
                 tags: ['Finance'],
                 summary: 'Close a maintenance log',
-                description: 'Marks the maintenance as complete and transitions the vehicle from `IN_SHOP` → `AVAILABLE`. Requires `SAFETY_OFFICER`, `MANAGER`, or `SUPER_ADMIN`.',
+                description: 'Marks the maintenance as complete and transitions the vehicle from `IN_SHOP` → `AVAILABLE`. Requires `SAFETY_OFFICER`, `MANAGER`, or ``.',
                 operationId: 'financeCloseMaintenance',
                 security: bearerSecurity,
                 parameters: [idParam('id')],

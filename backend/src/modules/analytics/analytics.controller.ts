@@ -3,8 +3,8 @@ import { analyticsService } from './analytics.service';
 import { z } from 'zod';
 
 const DateRangeSchema = z.object({
-    startDate: z.string().datetime().optional(),
-    endDate: z.string().datetime().optional(),
+    startDate: z.string().optional(),
+    endDate: z.string().optional(),
 });
 
 const YearSchema = z.object({
@@ -12,14 +12,19 @@ const YearSchema = z.object({
 });
 
 const CSVExportSchema = z.object({
-    startDate: z.string().datetime(),
-    endDate: z.string().datetime(),
+    startDate: z.string(),
+    endDate: z.string(),
+});
+
+const DashboardKPISchema = z.object({
+    region: z.string().trim().optional(),
 });
 
 export class AnalyticsController {
     async getDashboardKPIs(req: Request, res: Response, next: NextFunction): Promise<void> {
         try {
-            const kpis = await analyticsService.getDashboardKPIs();
+            const { region } = DashboardKPISchema.parse(req.query);
+            const kpis = await analyticsService.getDashboardKPIs(region);
             res.json({ success: true, data: kpis });
         } catch (err) { next(err); }
     }
@@ -76,6 +81,24 @@ export class AnalyticsController {
             const filename = `fleetflow-trips-${startDate.split('T')[0]}-to-${endDate.split('T')[0]}.csv`;
             res.setHeader('Content-Type', 'text/csv');
             res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+            res.send(csv);
+        } catch (err) { next(err); }
+    }
+
+    async exportVehicles(req: Request, res: Response, next: NextFunction): Promise<void> {
+        try {
+            const csv = await analyticsService.exportVehiclesCSV();
+            res.setHeader('Content-Type', 'text/csv');
+            res.setHeader('Content-Disposition', 'attachment; filename="fleetflow-vehicles.csv"');
+            res.send(csv);
+        } catch (err) { next(err); }
+    }
+
+    async exportDrivers(req: Request, res: Response, next: NextFunction): Promise<void> {
+        try {
+            const csv = await analyticsService.exportDriversCSV();
+            res.setHeader('Content-Type', 'text/csv');
+            res.setHeader('Content-Disposition', 'attachment; filename="fleetflow-drivers.csv"');
             res.send(csv);
         } catch (err) { next(err); }
     }

@@ -268,7 +268,24 @@ async function main() {
             },
         }),
     ]);
-    console.log('  ✅  6 vehicles seeded.\n');
+
+    // RETIRED Vehicle — old Mahindra Bolero, decommissioned
+    const retiredVehicle = await prisma.vehicle.create({
+        data: {
+            licensePlate: 'MH-12-ZZ-0001',
+            make: 'Mahindra',
+            model: 'Bolero Pickup',
+            year: 2015,
+            color: 'Dusty Silver',
+            vehicleTypeId: vanType.id,
+            status: VehicleStatus.RETIRED,
+            currentOdometer: 185_000,
+            capacityWeight: 1_200,
+            capacityVolume: 3.5,
+        },
+    });
+
+    console.log('  ✅  7 vehicles seeded (incl. 1 retired).\n');
 
     // ──────────────────────────────────────────────────────────────
     //  Step 4: Drivers — Indian names, varied states
@@ -346,7 +363,23 @@ async function main() {
             },
         }),
     ]);
-    console.log('  ✅  5 drivers seeded.\n');
+
+    // Additional driver with license expiring in 5 days — urgent notification
+    await prisma.driver.create({
+        data: {
+            licenseNumber: 'TN-CDL-A-012345',
+            fullName: 'Arjun Reddy',
+            phone: '+91-98206-66006',
+            email: 'arjun.reddy@fleetflow.io',
+            dateOfBirth: new Date('1990-04-18'),
+            licenseExpiryDate: daysFromNow(5),   // 🔴 Expiring in 5 days — critical alert
+            licenseClass: 'CDL-A',
+            status: DriverStatus.ON_DUTY,
+            safetyScore: 88,
+        },
+    });
+
+    console.log('  ✅  6 drivers seeded (2 with expiring licenses).\n');
 
     // ──────────────────────────────────────────────────────────────
     //  Step 5: Trips — 8 trips covering all status transitions

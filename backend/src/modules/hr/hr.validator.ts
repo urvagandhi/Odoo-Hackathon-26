@@ -1,14 +1,20 @@
 import { z } from 'zod';
 
+// Accept both "YYYY-MM-DD" and full ISO datetime strings
+const dateStr = z.string().refine(
+    (v) => !isNaN(Date.parse(v)),
+    { message: 'Invalid date format' },
+);
+
 export const CreateDriverSchema = z.object({
     licenseNumber: z.string().min(3).max(30),
     fullName: z.string().min(2).max(100),
     phone: z.string().max(20).optional(),
     email: z.string().email().optional(),
-    dateOfBirth: z.string().datetime().optional(),
-    licenseExpiryDate: z.string().datetime('Invalid date format (ISO 8601 required)'),
+    dateOfBirth: dateStr.optional(),
+    licenseExpiryDate: dateStr,
     licenseClass: z.string().max(10).optional(),
-    safetyScore: z.number().min(0).max(100).default(100),
+    safetyScore: z.coerce.number().min(0).max(100).default(100),
 });
 
 export const UpdateDriverSchema = CreateDriverSchema.partial();

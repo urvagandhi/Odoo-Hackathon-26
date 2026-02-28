@@ -56,6 +56,7 @@ import {
 } from "react";
 import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
+import { useTranslation } from "react-i18next";
 import { useTheme } from "../../context/ThemeContext";
 
 // ── Context ────────────────────────────────────────────────────
@@ -249,6 +250,7 @@ export function AlertDialogCancel({
 }: ButtonHTMLAttributes<HTMLButtonElement>) {
   const { setOpen } = useAlertDialog();
   const { isDark } = useTheme();
+  const { t } = useTranslation();
   return (
     <button
       type="button"
@@ -264,7 +266,7 @@ export function AlertDialogCancel({
       `}
       {...props}
     >
-      {children ?? "Cancel"}
+      {children ?? t("common.cancel")}
     </button>
   );
 }
@@ -279,6 +281,7 @@ export function AlertDialogAction({
   ...props
 }: ButtonHTMLAttributes<HTMLButtonElement> & { variant?: "default" | "destructive" }) {
   const { setOpen } = useAlertDialog();
+  const { t } = useTranslation();
 
   const colourClass =
     variant === "destructive"
@@ -300,7 +303,7 @@ export function AlertDialogAction({
       `}
       {...props}
     >
-      {children ?? "Continue"}
+      {children ?? t("common.continue")}
     </button>
   );
 }

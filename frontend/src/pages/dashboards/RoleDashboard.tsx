@@ -12,7 +12,6 @@ export default function RoleDashboard() {
   const { user } = useAuth();
 
   switch (user?.role) {
-    case "SUPER_ADMIN":
     case "MANAGER":
       return <CommandCenter />;
     case "DISPATCHER":

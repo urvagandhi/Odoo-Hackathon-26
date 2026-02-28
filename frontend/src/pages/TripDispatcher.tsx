@@ -15,6 +15,7 @@
  * - Pagination, dark mode, role-based access
  */
 import { useState, useEffect, useCallback } from "react";
+import { useTranslation } from "react-i18next";
 import {
   Plus,
   Search,
@@ -31,14 +32,15 @@ import {
 } from "lucide-react";
 import { useTheme } from "../context/ThemeContext";
 import { useAuth } from "../hooks/useAuth";
-import { tripsApi } from "../api/client";
+import { dispatchApi } from "../api/client";
+import { useToast } from "../hooks/useToast";
 import { StatusPill } from "../components/ui/StatusPill";
 import { DataTable } from "../components/ui/DataTable";
 import { TripForm } from "../components/forms/TripForm";
 import { TripCompleteModal } from "../components/forms/TripCompleteModal";
 import { TripCancelDialog } from "../components/forms/TripCancelDialog";
 import { TripLedgerDrawer } from "../components/forms/TripLedgerDrawer";
-import { AlertDialog } from "../components/ui/AlertDialog";
+import { AnimatePresence, motion } from "framer-motion";
 
 /* ─── Types ─── */
 interface Trip {
@@ -96,12 +98,15 @@ const STATUS_COLORS: Record<TripStatus, { bg: string; text: string; icon: React.
 /* ─── Component ─── */
 export default function TripDispatcher() {
   const { isDark } = useTheme();
-  const { role } = useAuth();
+  const { user } = useAuth();
+  const toast = useToast();
+  const { t } = useTranslation();
+  const role = user?.role ?? "";
 
   // Permissions
-  const canCreate = ["SUPER_ADMIN", "MANAGER", "DISPATCHER"].includes(role);
-  const canDispatch = ["SUPER_ADMIN", "MANAGER", "DISPATCHER"].includes(role);
-  const canViewLedger = ["SUPER_ADMIN", "MANAGER", "FINANCE_ANALYST"].includes(role);
+  const canCreate = ["MANAGER", "DISPATCHER"].includes(role);
+  const canDispatch = ["MANAGER", "DISPATCHER"].includes(role);
+  const canViewLedger = ["MANAGER", "FINANCE_ANALYST"].includes(role);
 
   // Data
   const [trips, setTrips] = useState<Trip[]>([]);
@@ -140,11 +145,10 @@ export default function TripDispatcher() {
       const params: Record<string, string | number> = { page, limit: 10 };
       if (statusFilter) params.status = statusFilter;
 
-      const res = await tripsApi.listTrips(params);
-      const body = res.data?.data ?? res.data;
-      const list = (body?.trips ?? body ?? []) as Trip[];
+      const res = await dispatchApi.listTrips(params);
+      const list = (res.data ?? []) as unknown as Record<string, unknown>[];
 
-      const normalised = list.map((t: Record<string, unknown>) => ({
+      const normalised = list.map((t) => ({
         ...t,
         id: String(t.id),
         distanceEstimated: Number(t.distanceEstimated),
@@ -160,13 +164,12 @@ export default function TripDispatcher() {
       })) as Trip[];
 
       setTrips(normalised);
-      setTotalPages(body?.totalPages ?? 1);
+      setTotalPages(res.totalPages ?? 1);
 
       // Aggregate counts from all trips (fetch without pagination for counts)
       if (page === 1) {
-        const allRes = await tripsApi.listTrips({ limit: 10000 });
-        const allBody = allRes.data?.data ?? allRes.data;
-        const all = (allBody?.trips ?? allBody ?? []) as Trip[];
+        const allRes = await dispatchApi.listTrips({ limit: 10000 });
+        const all = (allRes.data ?? []) as unknown as Trip[];
         const c = { DRAFT: 0, DISPATCHED: 0, COMPLETED: 0, CANCELLED: 0 };
         all.forEach((t) => {
           if (t.status in c) c[t.status as TripStatus]++;
@@ -188,12 +191,13 @@ export default function TripDispatcher() {
   const handleDispatch = async (trip: Trip) => {
     setDispatching(true);
     try {
-      await tripsApi.transitionTrip(trip.id, { status: "DISPATCHED" });
+      await dispatchApi.transitionStatus(trip.id, { status: "DISPATCHED" });
       setDispatchDialog({ open: false, trip: null });
+      toast.success(t("tripDispatcher.toast.dispatched"), { title: t("tripDispatcher.toast.dispatchedTitle") });
       fetchTrips();
     } catch (err: unknown) {
       const axiosErr = err as { response?: { data?: { message?: string } } };
-      alert(axiosErr.response?.data?.message ?? "Failed to dispatch trip");
+      toast.error(axiosErr.response?.data?.message ?? t("tripDispatcher.toast.dispatchFailed"), { title: t("tripDispatcher.toast.errorTitle") });
     } finally {
       setDispatching(false);
     }
@@ -218,9 +222,12 @@ export default function TripDispatcher() {
     {
       key: "id" as const,
       header: "#",
-      render: (_: unknown, idx: number) => (
-        <span className={`text-xs tabular-nums ${textSecondary}`}>{(page - 1) * 10 + idx + 1}</span>
-      ),
+      render: (row: Trip) => {
+        const idx = filtered.indexOf(row);
+        return (
+          <span className={`text-xs tabular-nums ${textSecondary}`}>{(page - 1) * 10 + idx + 1}</span>
+        );
+      },
     },
     {
       key: "vehicle" as const,
@@ -283,7 +290,7 @@ export default function TripDispatcher() {
     {
       key: "status" as const,
       header: "Status",
-      render: (row: Trip) => <StatusPill value={row.status} type="trip" />,
+      render: (row: Trip) => <StatusPill status={row.status} type="trip" />,
     },
     {
       key: "actions" as const,
@@ -299,7 +306,7 @@ export default function TripDispatcher() {
                   onClick={() => setDispatchDialog({ open: true, trip: row })}
                   className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-blue-600 hover:bg-blue-500 text-white text-xs font-medium transition-colors"
                 >
-                  <Send className="w-3 h-3" /> Dispatch
+                  <Send className="w-3 h-3" /> {t("tripDispatcher.actions.dispatch")}
                 </button>
                 <button
                   onClick={() => setCancelTrip(row.id)}
@@ -307,7 +314,7 @@ export default function TripDispatcher() {
                     isDark ? "text-red-400 hover:bg-neutral-700" : "text-red-600 hover:bg-red-50"
                   }`}
                 >
-                  Cancel
+                  {t("tripDispatcher.actions.cancel")}
                 </button>
               </>
             )}
@@ -319,7 +326,7 @@ export default function TripDispatcher() {
                   onClick={() => setCompleteTrip(row.id)}
                   className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-medium transition-colors"
                 >
-                  <CheckCircle2 className="w-3 h-3" /> Complete
+                  <CheckCircle2 className="w-3 h-3" /> {t("tripDispatcher.actions.complete")}
                 </button>
                 <button
                   onClick={() => setCancelTrip(row.id)}
@@ -327,7 +334,7 @@ export default function TripDispatcher() {
                     isDark ? "text-red-400 hover:bg-neutral-700" : "text-red-600 hover:bg-red-50"
                   }`}
                 >
-                  Cancel
+                  {t("tripDispatcher.actions.cancel")}
                 </button>
               </>
             )}
@@ -340,7 +347,7 @@ export default function TripDispatcher() {
                   isDark ? "text-violet-400 hover:bg-neutral-700" : "text-violet-600 hover:bg-violet-50"
                 }`}
               >
-                <BarChart3 className="w-3 h-3" /> Ledger
+                <BarChart3 className="w-3 h-3" /> {t("tripDispatcher.actions.ledger")}
               </button>
             )}
 
@@ -363,8 +370,8 @@ export default function TripDispatcher() {
         {/* ── Header ── */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className={`text-2xl font-bold tracking-tight ${textPrimary}`}>Trip Dispatcher</h1>
-            <p className={`text-sm mt-0.5 ${textSecondary}`}>Plan, dispatch, and track fleet trips</p>
+            <h1 className={`text-2xl font-bold tracking-tight ${textPrimary}`}>{t("tripDispatcher.title")}</h1>
+            <p className={`text-sm mt-0.5 ${textSecondary}`}>{t("tripDispatcher.subtitle")}</p>
           </div>
           {canCreate && (
             <button
@@ -372,7 +379,7 @@ export default function TripDispatcher() {
               className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-violet-600 hover:bg-violet-500 text-white text-sm font-semibold shadow-lg shadow-violet-600/20 transition-all"
             >
               <Plus className="w-4 h-4" />
-              New Trip
+              {t("tripDispatcher.newTrip")}
             </button>
           )}
         </div>
@@ -416,7 +423,7 @@ export default function TripDispatcher() {
             <Search className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 ${textSecondary}`} />
             <input
               type="text"
-              placeholder="Search trips (route, vehicle, driver, client)..."
+              placeholder={t("tripDispatcher.searchPlaceholder")}
               className={`w-full pl-10 pr-4 py-2 rounded-lg border text-sm ${
                 isDark
                   ? "bg-neutral-700 border-neutral-600 text-white placeholder-neutral-400"
@@ -453,18 +460,18 @@ export default function TripDispatcher() {
           {loading ? (
             <div className="py-20 text-center">
               <Loader2 className={`w-6 h-6 mx-auto animate-spin ${textSecondary}`} />
-              <p className={`text-sm mt-2 ${textSecondary}`}>Loading trips...</p>
+              <p className={`text-sm mt-2 ${textSecondary}`}>{t("tripDispatcher.loading")}</p>
             </div>
           ) : filtered.length === 0 ? (
             <div className="py-16 text-center">
               <Navigation className={`w-10 h-10 mx-auto mb-3 ${isDark ? "text-neutral-600" : "text-slate-300"}`} />
-              <p className={`text-sm font-medium ${textPrimary}`}>No trips found</p>
+              <p className={`text-sm font-medium ${textPrimary}`}>{t("tripDispatcher.noTrips")}</p>
               <p className={`text-xs mt-1 ${textSecondary}`}>
-                {searchQuery || statusFilter ? "Try adjusting your filters" : "Create your first trip to get started"}
+                {searchQuery || statusFilter ? t("tripDispatcher.adjustFilters") : t("tripDispatcher.addFirstTrip")}
               </p>
             </div>
           ) : (
-            <DataTable data={filtered} columns={columns} />
+            <DataTable rows={filtered} columns={columns} rowKey={(r) => r.id} />
           )}
         </div>
 
@@ -472,7 +479,7 @@ export default function TripDispatcher() {
         {totalPages > 1 && (
           <div className="flex items-center justify-between">
             <p className={`text-xs ${textSecondary}`}>
-              Page {page} of {totalPages}
+              {t("common.page")} {page} {t("common.of")} {totalPages}
             </p>
             <div className="flex items-center gap-2">
               <button
@@ -482,7 +489,7 @@ export default function TripDispatcher() {
                   isDark ? "border-neutral-600 text-neutral-300 hover:bg-neutral-700" : "border-slate-200 text-slate-600 hover:bg-slate-50"
                 }`}
               >
-                <ChevronLeft className="w-3.5 h-3.5" /> Prev
+                <ChevronLeft className="w-3.5 h-3.5" /> {t("common.prev")}
               </button>
               <button
                 disabled={page >= totalPages}
@@ -491,7 +498,7 @@ export default function TripDispatcher() {
                   isDark ? "border-neutral-600 text-neutral-300 hover:bg-neutral-700" : "border-slate-200 text-slate-600 hover:bg-slate-50"
                 }`}
               >
-                Next <ChevronRight className="w-3.5 h-3.5" />
+                {t("common.next")} <ChevronRight className="w-3.5 h-3.5" />
               </button>
             </div>
           </div>
@@ -522,22 +529,54 @@ export default function TripDispatcher() {
       />
 
       {/* Dispatch confirmation dialog */}
-      <AlertDialog
-        open={dispatchDialog.open}
-        onClose={() => setDispatchDialog({ open: false, trip: null })}
-        title="Dispatch Trip?"
-        description={
-          dispatchDialog.trip
-            ? `Dispatch ${dispatchDialog.trip.origin} → ${dispatchDialog.trip.destination}? Vehicle will be marked ON_TRIP and driver will be assigned.`
-            : ""
-        }
-        confirmLabel={dispatching ? "Dispatching..." : "Dispatch Now"}
-        confirmVariant="primary"
-        icon={<AlertTriangle className="w-5 h-5 text-blue-500" />}
-        onConfirm={() => {
-          if (dispatchDialog.trip) handleDispatch(dispatchDialog.trip);
-        }}
-      />
+      <AnimatePresence>
+        {dispatchDialog.open && (
+          <>
+            <motion.div
+              key="backdrop"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 z-[9990] bg-black/40"
+              onClick={() => setDispatchDialog({ open: false, trip: null })}
+            />
+            <motion.div
+              key="modal"
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className={`fixed z-[9991] top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-md rounded-xl shadow-2xl p-6 ${
+                isDark ? "bg-neutral-800 border border-neutral-700" : "bg-white border border-slate-200"
+              }`}
+            >
+              <div className="flex items-center gap-3 mb-3">
+                <AlertTriangle className="w-5 h-5 text-blue-500" />
+                <h3 className={`text-base font-bold ${textPrimary}`}>{t("tripDispatcher.dispatchDialog.title")}</h3>
+              </div>
+              <p className={`text-sm mb-5 ${textSecondary}`}>
+                {dispatchDialog.trip
+                  ? t("tripDispatcher.dispatchDialog.description", { origin: dispatchDialog.trip.origin, destination: dispatchDialog.trip.destination })
+                  : ""}
+              </p>
+              <div className="flex justify-end gap-2">
+                <button
+                  onClick={() => setDispatchDialog({ open: false, trip: null })}
+                  className={`px-4 py-2 rounded-lg text-sm font-medium ${isDark ? "text-neutral-300 hover:bg-neutral-700" : "text-slate-600 hover:bg-slate-100"}`}
+                >
+                  {t("common.cancel")}
+                </button>
+                <button
+                  onClick={() => { if (dispatchDialog.trip) handleDispatch(dispatchDialog.trip); }}
+                  disabled={dispatching}
+                  className="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-sm font-medium disabled:opacity-50"
+                >
+                  {dispatching ? t("tripDispatcher.dispatchDialog.dispatching") : t("tripDispatcher.dispatchDialog.confirm")}
+                </button>
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

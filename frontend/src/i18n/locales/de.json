@@ -1,0 +1,1303 @@
+{
+  "common": {
+    "appName": "FleetFlow",
+    "save": "Speichern",
+    "cancel": "Abbrechen",
+    "delete": "Löschen",
+    "create": "Erstellen",
+    "update": "Aktualisieren",
+    "edit": "Bearbeiten",
+    "add": "Hinzufügen",
+    "close": "Schließen",
+    "search": "Suchen",
+    "loading": "Wird geladen…",
+    "saving": "Wird gespeichert...",
+    "updating": "Wird aktualisiert...",
+    "back": "Zurück",
+    "next": "Weiter",
+    "yes": "Ja",
+    "no": "Nein",
+    "all": "Alle",
+    "export": "Exportieren",
+    "refresh": "Aktualisieren",
+    "logout": "Abmelden",
+    "actions": "Aktionen",
+    "noData": "Keine Daten verfügbar",
+    "page": "Seite",
+    "of": "von",
+    "records": "Datensatz/Datensätze",
+    "total": "Gesamt"
+  },
+  "roles": {
+    "MANAGER": "Flottenmanager",
+    "DISPATCHER": "Fahrtendisponent",
+    "SAFETY_OFFICER": "Sicherheitsbeauftragter",
+    "FINANCE_ANALYST": "Finanzanalyst",
+    "DRIVER": "Fahrer"
+  },
+  "roleLabelsShort": {
+    "MANAGER": "Manager",
+    "DISPATCHER": "Disponent",
+    "SAFETY_OFFICER": "Sicherheitsbeauftragter",
+    "FINANCE_ANALYST": "Finanzanalyst",
+    "DRIVER": "Fahrer"
+  },
+  "nav": {
+    "sections": {
+      "mainMenu": "HAUPTMENÜ",
+      "general": "ALLGEMEIN",
+      "others": "SONSTIGES",
+      "fleet": "FLOTTE",
+      "safety": "SICHERHEIT",
+      "maintenance": "WARTUNG",
+      "finance": "FINANZEN",
+      "reports": "BERICHTE"
+    },
+    "items": {
+      "fleetHub": "Flottenzentrale",
+      "vehicleRegistry": "Fahrzeugregister",
+      "dispatchControl": "Dispositionssteuerung",
+      "communications": "Kommunikation",
+      "operationalFeed": "Betriebsfeed",
+      "financialReports": "Finanzberichte",
+      "helpCenter": "Hilfecenter",
+      "myIdentity": "Mein Profil",
+      "settings": "Einstellungen",
+      "tripLedger": "Fahrtenjournal",
+      "initiateTrip": "Fahrt anlegen",
+      "fleetCatalog": "Flottenkatalog",
+      "crewRecords": "Personalakten",
+      "alertCenter": "Warnzentrale",
+      "safetyLog": "Sicherheitsprotokoll",
+      "crewScores": "Personalbewertungen",
+      "serviceLogs": "Wartungsprotokolle",
+      "incidentIntel": "Vorfallsanalyse",
+      "revenueStream": "Einnahmenübersicht",
+      "fuelIntel": "Kraftstoffanalyse",
+      "profitLoss": "Gewinn & Verlust",
+      "costIntel": "Kostenanalyse",
+      "operationsIntel": "Betriebsanalyse",
+      "crewGateway": "Personalportal"
+    }
+  },
+  "topBar": {
+    "pageTitles": {
+      "MANAGER": "Flottenmanagement",
+      "DISPATCHER": "Fahrtendisposition",
+      "SAFETY_OFFICER": "Sicherheitszentrale",
+      "FINANCE_ANALYST": "Finanzberichte"
+    },
+    "myProfile": "Mein Profil"
+  },
+  "auth": {
+    "login": {
+      "pageTitle": "FleetFlow | Anmelden",
+      "heroTitle": "Flottenmanagement",
+      "heroSubtitle": "Intelligent gemacht",
+      "heroDescription": "Echtzeit-Tracking, Dispositionsoptimierung und umfassende Flottenanalyse — alles in einer Plattform.",
+      "featureAnalytics": "Analytik",
+      "featureSecure": "Sicher",
+      "featureRealtime": "Echtzeit",
+      "statVehicles": "Fahrzeuge",
+      "statCountries": "Länder",
+      "statUptime": "Verfügbarkeit",
+      "welcomeBack": "Willkommen zurück",
+      "signInSubtitle": "Melden Sie sich bei Ihrem FleetFlow-Konto an",
+      "emailLabel": "E-Mail",
+      "emailPlaceholder": "your@email.com",
+      "passwordLabel": "Passwort",
+      "passwordPlaceholder": "Passwort eingeben",
+      "forgotPassword": "Passwort vergessen?",
+      "signIn": "Anmelden",
+      "quickAccess": "Schnellzugriff (Testmodus)",
+      "quickLoginFailed": "Schnellanmeldung fehlgeschlagen.",
+      "noAccount": "Kein Konto? Wenden Sie sich an Ihren Administrator.",
+      "switchToLight": "Zum hellen Modus wechseln",
+      "switchToDark": "Zum dunklen Modus wechseln"
+    },
+    "forgotPassword": {
+      "title": "Passwort vergessen?",
+      "description": "Geben Sie Ihre E-Mail-Adresse ein und wir senden Ihnen einen Link zum Zurücksetzen Ihres Passworts.",
+      "emailLabel": "E-Mail-Adresse",
+      "emailPlaceholder": "your@email.com",
+      "submit": "Link zum Zurücksetzen senden",
+      "successMessage": "Falls ein Konto mit dieser E-Mail existiert, wurde ein Link zum Zurücksetzen des Passworts gesendet.",
+      "devModeLabel": "ENTWICKLERMODUS — Link zum Zurücksetzen:",
+      "backToLogin": "Zurück zur Anmeldung"
+    },
+    "resetPassword": {
+      "title": "Passwort zurücksetzen",
+      "description": "Geben Sie unten Ihr neues Passwort ein.",
+      "newPasswordLabel": "Neues Passwort",
+      "newPasswordPlaceholder": "Mind. 8 Zeichen, 1 Großbuchstabe, 1 Zahl",
+      "confirmPasswordLabel": "Neues Passwort bestätigen",
+      "confirmPasswordPlaceholder": "Neues Passwort erneut eingeben",
+      "submit": "Passwort zurücksetzen",
+      "missingToken": "Fehlender Zurücksetzungs-Token. Bitte verwenden Sie den Link aus Ihrer E-Mail.",
+      "successTitle": "Passwort zurückgesetzt!",
+      "successMessage": "Sie werden in 3 Sekunden zur Anmeldung weitergeleitet…",
+      "backToLogin": "Zurück zur Anmeldung"
+    },
+    "validation": {
+      "minChars": "Das Passwort muss mindestens 8 Zeichen lang sein",
+      "uppercase": "Muss mindestens einen Großbuchstaben enthalten",
+      "number": "Muss mindestens eine Zahl enthalten",
+      "mismatch": "Passwörter stimmen nicht überein"
+    }
+  },
+  "settings": {
+    "title": "Einstellungen",
+    "subtitle": "Verwalten Sie Ihre Präferenzen und Ihr Konto",
+    "tabs": {
+      "account": "Konto",
+      "security": "Sicherheit",
+      "notifications": "Benachrichtigungen",
+      "appearance": "Erscheinungsbild"
+    },
+    "account": {
+      "profileInfo": "Profilinformationen",
+      "profileInfoDesc": "Aktualisieren Sie Ihre persönlichen Daten",
+      "firstName": "Vorname",
+      "lastName": "Nachname",
+      "email": "E-Mail-Adresse",
+      "phone": "Telefon",
+      "location": "Standort",
+      "bio": "Biografie",
+      "dangerZone": "Gefahrenbereich",
+      "dangerZoneDesc": "Unwiderrufliche Aktionen",
+      "deleteAccount": "Konto löschen",
+      "deleteAccountDesc": "Löschen Sie Ihr Konto und alle zugehörigen Daten dauerhaft.",
+      "deleteRestricted": "Das Löschen des Kontos ist eingeschränkt. Wenden Sie sich an Ihren Flottenmanager.",
+      "actionRestricted": "Aktion eingeschränkt",
+      "profileSaved": "Profil gespeichert",
+      "profileSavedMsg": "Profil erfolgreich aktualisiert.",
+      "updateFailed": "Aktualisierung fehlgeschlagen",
+      "updateFailedMsg": "Profil konnte nicht aktualisiert werden.",
+      "validationError": "Validierungsfehler",
+      "fullNameMin": "Der vollständige Name muss mindestens 2 Zeichen lang sein.",
+      "invalidEmail": "Bitte geben Sie eine gültige E-Mail-Adresse ein."
+    },
+    "security": {
+      "changePassword": "Passwort ändern",
+      "changePasswordDesc": "Aktualisieren Sie Ihr Passwort regelmäßig für mehr Sicherheit",
+      "currentPassword": "Aktuelles Passwort",
+      "newPassword": "Neues Passwort",
+      "confirmNewPassword": "Neues Passwort bestätigen",
+      "passwordPlaceholder": "••••••••",
+      "passwordUpdated": "Passwort aktualisiert",
+      "passwordUpdatedMsg": "Passwort erfolgreich geändert.",
+      "fillBothFields": "Bitte füllen Sie beide Passwortfelder aus.",
+      "passwordsMismatch": "Neue Passwörter stimmen nicht überein.",
+      "minChars": "Das neue Passwort muss mindestens 8 Zeichen lang sein.",
+      "needUppercase": "Muss mindestens einen Großbuchstaben enthalten.",
+      "needNumber": "Muss mindestens eine Zahl enthalten.",
+      "reqMinChars": "Mindestens 8 Zeichen",
+      "reqUppercase": "Ein Großbuchstabe",
+      "reqNumber": "Eine Zahl",
+      "twoFactorAuth": "Zwei-Faktor-Authentifizierung",
+      "twoFactorAuthDesc": "Fügen Sie eine zusätzliche Sicherheitsebene hinzu",
+      "authenticatorApp": "Authentifizierungs-App",
+      "authenticatorAppDesc": "Verwenden Sie eine Authentifizierungs-App zur Code-Generierung",
+      "activeSessions": "Aktive Sitzungen",
+      "activeSessionsDesc": "Benachrichtigungen bei neuen Anmeldungen erhalten"
+    },
+    "notifications": {
+      "title": "Benachrichtigungseinstellungen",
+      "titleDesc": "Wählen Sie, welche Benachrichtigungen Sie erhalten möchten",
+      "emailNotifications": "E-Mail-Benachrichtigungen",
+      "emailNotificationsDesc": "Erhalten Sie E-Mail-Updates über Ihre Aktivitäten",
+      "pushNotifications": "Push-Benachrichtigungen",
+      "pushNotificationsDesc": "Erhalten Sie Push-Benachrichtigungen auf Ihren Geräten",
+      "weeklyDigest": "Wöchentliche Zusammenfassung",
+      "weeklyDigestDesc": "Erhalten Sie jede Woche eine Zusammenfassung Ihrer Aktivitäten",
+      "marketingEmails": "Marketing-E-Mails",
+      "marketingEmailsDesc": "Erhalten Sie Neuigkeiten, Updates und Angebote",
+      "securityAlerts": "Sicherheitswarnungen",
+      "securityAlertsDesc": "Wichtige Warnungen zur Sicherheit Ihres Kontos",
+      "teamUpdates": "Team-Updates",
+      "teamUpdatesDesc": "Updates von Ihren Teammitgliedern und Projekten",
+      "preferencesSaved": "Einstellungen gespeichert",
+      "preferencesSavedMsg": "Benachrichtigungseinstellungen gespeichert."
+    },
+    "appearance": {
+      "theme": "Design",
+      "themeDesc": "Wählen Sie Ihr bevorzugtes Design",
+      "light": "Hell",
+      "lightDesc": "Standard helles Design",
+      "dark": "Dunkel",
+      "darkDesc": "Augenschonend",
+      "system": "System",
+      "systemDesc": "Betriebssystem-Einstellung übernehmen",
+      "active": "Aktiv",
+      "languageDisplay": "Sprache & Anzeige",
+      "languageDisplayDesc": "Sprach- und Anzeigeeinstellungen",
+      "language": "Sprache",
+      "compactMode": "Kompaktmodus",
+      "compactModeDesc": "Abstände und Polsterung für dichtere Layouts reduzieren",
+      "preferencesSaved": "Einstellungen gespeichert",
+      "preferencesSavedMsg": "Erscheinungsbild-Einstellungen gespeichert."
+    }
+  },
+  "profile": {
+    "accountDetails": "Kontodetails",
+    "fullName": "Vollständiger Name",
+    "email": "E-Mail",
+    "role": "Rolle",
+    "userId": "Benutzer-ID",
+    "yourCapabilities": "Ihre Berechtigungen",
+    "online": "Online",
+    "kpi": {
+      "totalVehicles": "Fahrzeuge gesamt",
+      "activeTrips": "Aktive Fahrten",
+      "fleetUtilization": "Flottenauslastung",
+      "alerts": "Warnungen"
+    },
+    "capabilities": {
+      "MANAGER": [
+        "Vollständige Flottenübersicht & Fahrzeugverwaltung",
+        "Benutzerverwaltung (erstellen, deaktivieren)",
+        "Alle Analysen & Finanzberichte einsehen",
+        "Dispositions- & Wartungsmaßnahmen genehmigen",
+        "Zugriff auf alle Module ohne Einschränkung"
+      ],
+      "DISPATCHER": [
+        "Fahrten & Zuweisungen erstellen und verwalten",
+        "Fahrzeugverfügbarkeit & Fahrerpool einsehen",
+        "Fahrtstatus ändern (Entwurf → Disponiert → Abgeschlossen)",
+        "Wegpunkte hinzufügen und Routen verfolgen"
+      ],
+      "SAFETY_OFFICER": [
+        "Fahrerqualifikationen & Lizenzverwaltung",
+        "Fahrzeuginspektionen & Wartungsprotokollierung",
+        "Vorfallsberichte erstellen & untersuchen",
+        "Sicherheitsbewertungen anpassen",
+        "Fahrerstatus verwalten (sperren/reaktivieren)"
+      ],
+      "FINANCE_ANALYST": [
+        "Kraftstoffeinträge & Ausgabenverfolgung",
+        "Einnahmen-, Ausgaben- & Gewinnberichte einsehen",
+        "Monatliche Finanzberichte erstellen",
+        "Fahrzeug-ROI & Kraftstoffeffizienzanalyse",
+        "Fahrtdaten als CSV exportieren"
+      ]
+    }
+  },
+  "fleet": {
+    "title": "Fahrzeugregister",
+    "vehiclesInFleet": "{{count}} Fahrzeuge in der Flotte",
+    "addVehicle": "Fahrzeug hinzufügen",
+    "searchPlaceholder": "Kennzeichen, Marke, Modell suchen…",
+    "status": {
+      "AVAILABLE": "Verfügbar",
+      "ON_TRIP": "Unterwegs",
+      "IN_SHOP": "In der Werkstatt",
+      "RETIRED": "Ausgemustert"
+    },
+    "columns": {
+      "vehicle": "Fahrzeug",
+      "type": "Typ",
+      "licensePlate": "Kennzeichen",
+      "capacity": "Kapazität",
+      "odometer": "Kilometerstand",
+      "status": "Status",
+      "actions": "Aktionen"
+    },
+    "noVehicles": "Keine Fahrzeuge gefunden",
+    "editVehicle": "Fahrzeug bearbeiten",
+    "addNewVehicle": "Neues Fahrzeug hinzufügen",
+    "form": {
+      "make": "Marke",
+      "model": "Modell",
+      "year": "Baujahr",
+      "color": "Farbe",
+      "licensePlate": "Kennzeichen",
+      "vin": "FIN",
+      "vehicleType": "Fahrzeugtyp",
+      "capacity": "Kapazität (kg)",
+      "odometer": "Aktueller Kilometerstand (km)",
+      "selectType": "Typ auswählen",
+      "makePlaceholder": "Toyota",
+      "modelPlaceholder": "Land Cruiser",
+      "colorPlaceholder": "Weiß",
+      "platePlaceholder": "MH01AB1234",
+      "vinPlaceholder": "Optional"
+    },
+    "createVehicle": "Fahrzeug anlegen",
+    "updateVehicle": "Fahrzeug aktualisieren",
+    "retireVehicle": "Fahrzeug ausmustern?",
+    "retireVehicleDesc": "Dadurch wird {{plate}} als ausgemustert markiert. Es steht nicht mehr für die Disposition zur Verfügung.",
+    "toast": {
+      "updated": "Fahrzeugdaten erfolgreich aktualisiert.",
+      "updatedTitle": "Erfolg",
+      "created": "Neues Fahrzeug zur Flotte hinzugefügt.",
+      "createdTitle": "Fahrzeug registriert",
+      "retired": "Fahrzeug wurde aus der aktiven Flotte ausgemustert.",
+      "retireFailed": "Fahrzeug konnte nicht ausgemustert werden.",
+      "statusUpdated": "Status aktualisiert",
+      "statusFailed": "Fahrzeugstatus konnte nicht aktualisiert werden."
+    }
+  },
+  "dispatch": {
+    "title": "Dispositionssteuerung",
+    "tripsTotal": "{{count}} Fahrten gesamt",
+    "newTrip": "Neue Fahrt",
+    "searchPlaceholder": "Fahrten suchen…",
+    "status": {
+      "DRAFT": "Entwurf",
+      "DISPATCHED": "Disponiert",
+      "COMPLETED": "Abgeschlossen",
+      "CANCELLED": "Storniert"
+    },
+    "noTrips": "Keine Fahrten gefunden",
+    "detail": {
+      "vehicle": "Fahrzeug",
+      "driver": "Fahrer",
+      "cargo": "Ladung",
+      "distance": "Entfernung (gesch.)",
+      "revenue": "Einnahmen",
+      "dispatched": "Disponiert",
+      "client": "Kunde"
+    },
+    "actions": {
+      "dispatch": "Disponieren",
+      "complete": "Abschließen",
+      "cancel": "Stornieren"
+    },
+    "dispatchTrip": "Fahrt disponieren?",
+    "dispatchTripDesc": "Dadurch wird der Fahrer benachrichtigt und das Fahrzeug als unterwegs markiert.",
+    "createTrip": "Neue Fahrt anlegen",
+    "form": {
+      "vehicle": "Fahrzeug",
+      "driver": "Fahrer",
+      "origin": "Abfahrtsort",
+      "destination": "Zielort",
+      "distance": "Entfernung (km)",
+      "cargoWeight": "Ladungsgewicht (kg)",
+      "revenue": "Einnahmen (₹)",
+      "cargoDescription": "Ladungsbeschreibung",
+      "clientName": "Kundenname",
+      "selectVehicle": "Verfügbares Fahrzeug auswählen",
+      "selectDriver": "Diensthabenden Fahrer auswählen",
+      "originPlaceholder": "Mumbai, Maharashtra",
+      "destinationPlaceholder": "Pune, Maharashtra"
+    },
+    "map": {
+      "calculatingRoute": "Kürzeste Route wird berechnet…",
+      "selectTrip": "Fahrt auswählen",
+      "selectTripDesc": "Klicken Sie auf eine Fahrt, um ihre Route auf der Karte anzuzeigen"
+    },
+    "toast": {
+      "created": "Neue Fahrt wurde als Entwurf hinzugefügt.",
+      "transitioned": "Fahrt erfolgreich in den Status {{status}} verschoben.",
+      "transitionFailed": "Fahrtstatus konnte nicht geändert werden."
+    }
+  },
+  "drivers": {
+    "title": "Personalakten",
+    "stats": "{{total}} Fahrer · {{onDuty}} im Dienst · {{onTrip}} unterwegs",
+    "exportCSV": "CSV exportieren",
+    "addDriver": "Fahrer hinzufügen",
+    "kpi": {
+      "totalDrivers": "Fahrer gesamt",
+      "onDuty": "Im Dienst",
+      "onTrip": "Unterwegs",
+      "suspended": "Gesperrt",
+      "avgSafetyScore": "Durchschn. Sicherheitsbewertung"
+    },
+    "expiringLicenses": "{{count}} Lizenz(en) laufen innerhalb von 30 Tagen ab",
+    "searchPlaceholder": "Name, Lizenz, E-Mail suchen…",
+    "status": {
+      "ON_DUTY": "Im Dienst",
+      "OFF_DUTY": "Dienstfrei",
+      "ON_TRIP": "Unterwegs",
+      "SUSPENDED": "Gesperrt"
+    },
+    "columns": {
+      "driver": "Fahrer",
+      "license": "Lizenz",
+      "safety": "Sicherheit",
+      "licenseExpiry": "Lizenzablauf",
+      "status": "Status",
+      "actions": "Aktionen"
+    },
+    "noDrivers": "Keine Fahrer gefunden",
+    "selectDriver": "Fahrer auswählen",
+    "selectDriverDesc": "Klicken Sie auf eine Zeile, um Details anzuzeigen",
+    "detail": {
+      "license": "Führerschein",
+      "class": "Klasse",
+      "phone": "Telefon",
+      "email": "E-Mail",
+      "dob": "Geburtsdatum",
+      "licenseExpiry": "Führerscheinablauf",
+      "safetyScore": "Sicherheitsbewertung"
+    },
+    "form": {
+      "fullName": "Vollständiger Name",
+      "licenseNumber": "Lizenznummer",
+      "phone": "Telefon",
+      "email": "E-Mail",
+      "dateOfBirth": "Geburtsdatum",
+      "licenseExpiry": "Lizenzablauf",
+      "licenseClass": "Lizenzklasse",
+      "safetyScore": "Sicherheitsbewertung",
+      "fullNamePlaceholder": "Ramesh Kumar",
+      "licensePlaceholder": "MH-CDL-A-001234",
+      "phonePlaceholder": "+91-98201-12345",
+      "emailPlaceholder": "driver@email.com",
+      "licenseClassPlaceholder": "CDL-A, CDL-B, B"
+    },
+    "updateDriver": "Fahrer aktualisieren",
+    "removeDriver": "Fahrer entfernen?",
+    "removeDriverDesc": "Dadurch wird {{name}} dauerhaft aus dem Register entfernt.",
+    "map": {
+      "title": "Standorte der Flottenfahrzeuge",
+      "speed": "Geschwindigkeit: {{speed}} km/h"
+    },
+    "toast": {
+      "deleted": "Fahrerprofil wurde gelöscht.",
+      "deleteFailed": "Fahrer konnte nicht entfernt werden.",
+      "statusUpdated": "Status von {{name}} ist jetzt {{status}}.",
+      "statusFailed": "Status konnte nicht aktualisiert werden",
+      "deletedTitle": "Fahrer entfernt",
+      "deleteFailedTitle": "Fehler",
+      "statusUpdatedTitle": "Status aktualisiert",
+      "statusUpdateFailed": "Fahrerstatus konnte nicht aktualisiert werden.",
+      "statusUpdateFailedTitle": "Aktualisierung fehlgeschlagen",
+      "saveFailed": "Fahrer konnte nicht gespeichert werden.",
+      "exported": "Fahrer als CSV exportiert.",
+      "exportedTitle": "Export abgeschlossen",
+      "exportFailed": "Fahrer konnten nicht exportiert werden.",
+      "exportFailedTitle": "Export fehlgeschlagen"
+    }
+  },
+  "analytics": {
+    "title": "Betriebsanalyse",
+    "subtitle": "Finanzleistung & betriebliche Einblicke — {{year}}",
+    "exportPDF": "PDF exportieren",
+    "exportCSV": "CSV exportieren",
+    "tabs": {
+      "overview": "Übersicht",
+      "fuelEfficiency": "Kraftstoffeffizienz",
+      "vehicleROI": "Fahrzeug-ROI"
+    },
+    "kpi": {
+      "totalRevenue": "Gesamteinnahmen",
+      "totalExpenses": "Gesamtausgaben",
+      "netProfit": "Nettogewinn",
+      "avgFuelEfficiency": "Durchschn. Kraftstoffeffizienz"
+    },
+    "charts": {
+      "revenueCostTrend": "Einnahmen- vs. Kostenentwicklung",
+      "revenue": "Einnahmen",
+      "cost": "Kosten",
+      "profit": "Gewinn",
+      "expenseBreakdown": "Ausgabenaufschlüsselung"
+    },
+    "monthly": {
+      "title": "Flottenleistung",
+      "month": "Monat",
+      "trips": "Fahrten",
+      "distance": "Entfernung (km)",
+      "revenue": "Einnahmen",
+      "fuel": "Kraftstoff",
+      "maintenance": "Wartung",
+      "other": "Sonstiges",
+      "totalCost": "Gesamtkosten",
+      "profit": "Gewinn"
+    },
+    "fuelTable": {
+      "title": "Kraftstoffeffizienz nach Fahrzeug (km/L)",
+      "vehicle": "Fahrzeug",
+      "totalDistance": "Gesamtstrecke",
+      "totalLiters": "Gesamtliter",
+      "fuelCost": "Kraftstoffkosten",
+      "kmPerL": "km/L",
+      "costPerKm": "₹/km"
+    },
+    "roiTable": {
+      "title": "Fahrzeug-ROI — Gewinn pro Fahrzeug",
+      "formula": "ROI = (Einnahmen − (Wartung + Kraftstoff + Ausgaben)) / Einnahmen",
+      "vehicle": "Fahrzeug",
+      "revenue": "Einnahmen",
+      "fuelCost": "Kraftstoffkosten",
+      "maintenance": "Wartung",
+      "expenses": "Ausgaben",
+      "totalCost": "Gesamtkosten",
+      "profit": "Gewinn",
+      "roi": "ROI"
+    },
+    "noData": {
+      "monthly": "Keine Monatsdaten",
+      "expenses": "Keine Ausgabendaten",
+      "fuel": "Keine Kraftstoffeffizienzdaten",
+      "roi": "Keine ROI-Daten"
+    },
+    "toast": {
+      "exportingPDF": "PDF wird erstellt",
+      "pdfSuccess": "Analysebericht wurde heruntergeladen.",
+      "pdfSuccessTitle": "Export erfolgreich",
+      "exportFailed": "Export fehlgeschlagen",
+      "csvFailed": "CSV-Export konnte nicht erstellt werden.",
+      "exportingPDFMessage": "Bitte warten Sie, während wir Diagramme und Daten erfassen...",
+      "pdfErrorTitle": "Fehler bei PDF-Erstellung",
+      "pdfExportFailed": "Export fehlgeschlagen: {{message}}",
+      "chartWarningTitle": "Diagramm-Erfassungswarnung",
+      "chartWarningMessage": "Umsatzdiagramm konnte nicht in PDF aufgenommen werden, aber Daten werden weiterverarbeitet...",
+      "csvSuccess": "Fahrt- und Zusammenfassungsdaten als CSV exportiert."
+    }
+  },
+  "expenses": {
+    "title": "Finanzen & Ausgaben",
+    "subtitle": "Kraftstoffverbrauch und Fahrtkosten verfolgen",
+    "addRecord": "Eintrag hinzufügen",
+    "summary": {
+      "fuelLogs": "Kraftstoffeinträge",
+      "expenses": "Ausgaben",
+      "combined": "Kombiniert",
+      "total": "{{amount}} gesamt"
+    },
+    "tabs": {
+      "fuel": "Kraftstoffeinträge ({{count}})",
+      "expenses": "Ausgaben ({{count}})"
+    },
+    "pagination": "Seite {{page}} von {{totalPages}} · {{count}} Datensatz/Datensätze",
+    "fuelColumns": {
+      "vehicle": "Fahrzeug",
+      "trip": "Fahrt",
+      "liters": "Liter",
+      "costPerLiter": "₹/L",
+      "total": "Gesamt",
+      "odometer": "Kilometerstand",
+      "date": "Datum"
+    },
+    "expenseColumns": {
+      "vehicle": "Fahrzeug",
+      "trip": "Fahrt",
+      "category": "Kategorie",
+      "amount": "Betrag",
+      "description": "Beschreibung",
+      "date": "Datum"
+    },
+    "empty": {
+      "fuel": "Noch keine Kraftstoffeinträge",
+      "fuelDesc": "Erfassen Sie Ihren ersten Tankstopp, um loszulegen.",
+      "expenses": "Noch keine Ausgaben",
+      "expensesDesc": "Erfassen Sie Ihre erste Fahrtausgabe."
+    }
+  },
+  "maintenance": {
+    "title": "Wartungsprotokolle",
+    "subtitle": "Servicehistorie pro Fahrzeug",
+    "logService": "Service erfassen",
+    "selectVehicle": "Fahrzeug auswählen",
+    "allVehicles": "— Alle Fahrzeuge / eines auswählen —",
+    "serviceCount": "{{count}} Servicedatensätze · Gesamtkosten: ₹{{total}}",
+    "selectVehiclePrompt": "Wählen Sie ein Fahrzeug, um seine Servicehistorie anzuzeigen",
+    "noRecords": "Keine Wartungsdatensätze",
+    "columns": {
+      "date": "Datum",
+      "serviceType": "Serviceart",
+      "description": "Beschreibung",
+      "cost": "Kosten",
+      "odometer": "Kilometerstand",
+      "shop": "Werkstatt / Techniker",
+      "nextDue": "Nächster Termin"
+    },
+    "form": {
+      "title": "Wartungsereignis erfassen",
+      "vehicle": "Fahrzeug",
+      "serviceType": "Serviceart",
+      "cost": "Kosten (₹)",
+      "description": "Beschreibung",
+      "odometer": "Kilometerstand (km)",
+      "serviceDate": "Servicedatum",
+      "shopName": "Werkstattname",
+      "technician": "Techniker",
+      "nextServiceDue": "Nächster Service fällig",
+      "serviceTypePlaceholder": "Ölwechsel, Reifenrotation…",
+      "descriptionPlaceholder": "Details des durchgeführten Service",
+      "shopPlaceholder": "AutoCare Service",
+      "technicianPlaceholder": "Ravi Kumar"
+    }
+  },
+  "landing": {
+    "features": "Funktionen",
+    "howItWorks": "So funktioniert es",
+    "signIn": "Anmelden",
+    "heroTag": "Logistikplattform der nächsten Generation",
+    "heroTitle": "Intelligenteres Flottenmanagement. Maximale Effizienz.",
+    "heroDescription": "Transformieren Sie Ihren Logistikbetrieb mit KI-gesteuerter Routenplanung, vorausschauender Wartung und Echtzeit-Analysen. Entwickelt für moderne Flotten.",
+    "getStarted": "Jetzt starten",
+    "exploreFeatures": "Funktionen entdecken",
+    "featuresList": {
+      "dispatch": "Echtzeit-Disposition",
+      "dispatchDesc": "KI-gesteuerte Routenplanung und Live-Tracking für optimale Flotteneffizienz.",
+      "maintenance": "Vorausschauende Wartung",
+      "maintenanceDesc": "Reduzieren Sie Ausfallzeiten durch intelligente Wartungsplanung und Warnmeldungen.",
+      "analytics": "Erweiterte Analysen",
+      "analyticsDesc": "Umfassende Einblicke in Kraftstoffverbrauch, Fahrerleistung und Kosten.",
+      "safety": "Sicherheit & Compliance",
+      "safetyDesc": "Überwachen Sie das Fahrerverhalten und stellen Sie die kontinuierliche Einhaltung von Vorschriften sicher.",
+      "drivers": "Fahrerverwaltung",
+      "driversDesc": "Vollständige Fahrerprofile, Schichtverfolgung und Leistungsbewertung.",
+      "odoo": "Odoo-Integration",
+      "odooDesc": "Nahtlose Synchronisation mit Odoo ERP für einheitlichen Logistikbetrieb."
+    },
+    "everythingYouNeed": "Alles, was Sie für Ihren Flottenbetrieb brauchen",
+    "everythingYouNeedDesc": "Integrierte Werkzeuge für Disponenten, Manager und Sicherheitsbeauftragte zur nahtlosen Echtzeit-Zusammenarbeit.",
+    "designedForScale": "Für Skalierbarkeit entwickelt. Für Leistung gebaut.",
+    "benefits": {
+      "zeroDowntime": "Bereitstellung ohne Ausfallzeit",
+      "zeroDowntimeDesc": "SaaS-Architektur, die sofort skaliert.",
+      "security": "Sicherheit auf Enterprise-Niveau",
+      "securityDesc": "Sichere Datenpipelines und SOC2-Konformität.",
+      "realtime": "Echtzeit-Tracking",
+      "realtimeDesc": "WebSockets für Live-Kartenaktualisierungen ohne Verzögerung."
+    },
+    "readyToTransform": "Bereit, Ihre Flotte zu transformieren?",
+    "readyToTransformDesc": "Schließen Sie sich zukunftsorientierten Unternehmen an, die ihre Logistik optimieren und Kosten mit FleetFlow senken.",
+    "goToDashboard": "Zum Dashboard",
+    "contactSales": "Vertrieb kontaktieren",
+    "footer": {
+      "product": "Produkt",
+      "features": "Funktionen",
+      "pricing": "Preise",
+      "company": "Unternehmen"
+    },
+    "copyright": "© {{year}} FleetFlow. Odoo Hackathon 2026. Datenvisualisierung durch Recharts.",
+    "privacyPolicy": "Datenschutzrichtlinie",
+    "termsOfService": "Nutzungsbedingungen"
+  },
+  "notFound": {
+    "errorLabel": "404-Fehler",
+    "title": "Seite",
+    "titleHighlight": "+",
+    "titleEnd": "nicht gefunden",
+    "description": "Hoppla! Die gesuchte Seite scheint sich verlaufen zu haben. Sie wurde möglicherweise entfernt, umbenannt oder existierte gar nicht.",
+    "searchPlaceholder": "Seiten suchen...",
+    "goHome": "Zur Startseite",
+    "goBack": "Zurück",
+    "helpCenter": "Hilfecenter",
+    "copyright": "© 2026 FleetFlow. Alle Rechte vorbehalten."
+  },
+  "comingSoon": {
+    "description": "Dieser Bereich befindet sich derzeit im Aufbau. Wir arbeiten an etwas Großartigem — schauen Sie bald wieder vorbei!",
+    "backToDashboard": "Zurück zum Dashboard"
+  },
+  "layout": {
+    "fleetOverview": "Flottenübersicht",
+    "onTrip": "Unterwegs",
+    "available": "Verfügbar",
+    "inShop": "In der Werkstatt",
+    "utilization": "Auslastung",
+    "vehiclesInShop": "{{count}} Fahrzeuge in der Werkstatt",
+    "licensesExpiring": "{{count}} Lizenzen laufen ab",
+    "intelligenceInMotion": "Intelligenz in Bewegung",
+    "notifications": "Benachrichtigungen",
+    "notifNew": "{{count}} Neu",
+    "maintenanceAlert": "Wartungshinweis",
+    "maintenanceAlertMsg": "{{count}} Fahrzeug(e) befinden sich derzeit in der Werkstatt und erfordern Aufmerksamkeit",
+    "highPriority": "Hohe Priorität",
+    "licenseExpiryWarning": "Warnung: Lizenzablauf",
+    "licenseExpiryMsg": "{{count}} Führerschein(e) laufen innerhalb von 30 Tagen ab",
+    "urgent": "Dringend",
+    "suspendedDrivers": "Gesperrte Fahrer",
+    "suspendedDriversMsg": "{{count}} Fahrer sind derzeit vom Dienst gesperrt",
+    "actionRequired": "Handlungsbedarf",
+    "retiredVehicles": "Ausgemusterte Fahrzeuge",
+    "retiredVehiclesMsg": "{{count}} Fahrzeug(e) wurden aus der Flotte ausgemustert",
+    "informational": "Informativ",
+    "allClear": "Alles in Ordnung — keine Warnungen",
+    "systemConfig": "Systemkonfiguration"
+  },
+  "fuelExpenses": {
+    "title": "Kraftstoff & Ausgaben",
+    "subtitle": "Alle Betriebskosten verfolgen",
+    "addEntry": "Eintrag hinzufügen",
+    "totalFuelCost": "Gesamte Kraftstoffkosten",
+    "totalExpenses": "Gesamtausgaben",
+    "fillUps": "{{count}} Tankvorgänge",
+    "entries": "{{count}} Einträge",
+    "fuelLogs": "Kraftstoffeinträge",
+    "expensesTab": "Ausgaben",
+    "allVehicles": "Alle Fahrzeuge",
+    "noFuelLogs": "Keine Kraftstoffeinträge",
+    "noExpenses": "Keine Ausgaben",
+    "fuelColumns": {
+      "date": "Datum",
+      "vehicle": "Fahrzeug",
+      "liters": "Liter",
+      "costPerLiter": "₹/Liter",
+      "total": "Gesamt",
+      "odometer": "Kilometerstand",
+      "station": "Tankstelle"
+    },
+    "expenseColumns": {
+      "date": "Datum",
+      "vehicle": "Fahrzeug",
+      "category": "Kategorie",
+      "amount": "Betrag",
+      "description": "Beschreibung"
+    },
+    "form": {
+      "fuelTab": "Kraftstoff",
+      "expenseTab": "Ausgabe",
+      "vehicle": "Fahrzeug *",
+      "selectVehicle": "Fahrzeug auswählen",
+      "liters": "Liter *",
+      "costPerLiter": "₹/Liter *",
+      "odometer": "Kilometerstand *",
+      "totalLabel": "Gesamt: ₹{{amount}}",
+      "station": "Tankstelle",
+      "stationPlaceholder": "IOCL Pump",
+      "date": "Datum",
+      "category": "Kategorie *",
+      "amount": "Betrag (₹) *",
+      "description": "Beschreibung",
+      "descriptionPlaceholder": "Autobahnmaut…",
+      "logFuel": "Kraftstoff erfassen",
+      "logExpense": "Ausgabe erfassen"
+    }
+  },
+  "incidents": {
+    "title": "Vorfallsberichte",
+    "subtitle": "Sicherheitsvorfälle verfolgen und verwalten",
+    "reportIncident": "Vorfall melden",
+    "summary": {
+      "total": "Gesamt",
+      "open": "Offen",
+      "investigating": "In Untersuchung",
+      "damageEst": "Schadensschätzung"
+    },
+    "searchPlaceholder": "Vorfälle suchen...",
+    "allStatuses": "Alle Status",
+    "noIncidents": "Keine Vorfälle gefunden",
+    "noIncidentsDesc": "Es wurden noch keine Sicherheitsvorfälle gemeldet.",
+    "injuries": "VERLETZUNGEN",
+    "columns": {
+      "incident": "Vorfall",
+      "type": "Typ",
+      "status": "Status",
+      "vehicle": "Fahrzeug",
+      "driver": "Fahrer",
+      "damageEst": "Schadensschätzung",
+      "date": "Datum"
+    },
+    "closeButton": "Schließen",
+    "closeModal": {
+      "title": "Vorfall schließen",
+      "closing": "Wird geschlossen:",
+      "placeholder": "Zusammenfassung der Lösung (mind. 10 Zeichen)...",
+      "confirm": "Vorfall schließen"
+    },
+    "createModal": {
+      "title": "Neuen Vorfall melden",
+      "titleField": "Titel *",
+      "titlePlaceholder": "Kurzer Vorfallstitel",
+      "type": "Typ *",
+      "date": "Datum *",
+      "description": "Beschreibung *",
+      "descriptionPlaceholder": "Ausführliche Beschreibung (mind. 10 Zeichen)",
+      "location": "Ort",
+      "locationPlaceholder": "Wo ist es passiert?",
+      "damageEstimate": "Schadensschätzung (₹)",
+      "injuriesReported": "Verletzungen gemeldet",
+      "submitReport": "Bericht einreichen"
+    }
+  },
+  "driverManagement": {
+    "title": "Fahrerleistung & Sicherheit",
+    "subtitle": "Flottenfahrer überwachen und verwalten",
+    "addDriver": "Fahrer hinzufügen",
+    "licensesExpiringSoon": "Lizenzen laufen bald ab ({{count}})",
+    "daysLeft": "{{days}}T verbleibend",
+    "statusCards": {
+      "onDuty": "Im Dienst",
+      "onTrip": "Unterwegs",
+      "offDuty": "Dienstfrei",
+      "suspended": "Gesperrt"
+    },
+    "search": "Name, Lizenz, E-Mail suchen...",
+    "allStatuses": "Alle Status",
+    "allLicenses": "Alle Lizenzen",
+    "expiringSoon": "Läuft bald ab (< 30T)",
+    "expired": "Abgelaufen",
+    "columns": {
+      "number": "#",
+      "name": "Name",
+      "license": "Lizenz-Nr.",
+      "expiry": "Ablauf",
+      "safetyScore": "Sicherheitsbewertung",
+      "status": "Status",
+      "actions": "Aktionen"
+    },
+    "noDrivers": "Keine Fahrer gefunden",
+    "adjustFilters": "Versuchen Sie, Ihre Filter anzupassen",
+    "addFirstDriver": "Fügen Sie Ihren ersten Fahrer hinzu, um loszulegen",
+    "editTooltip": "Bearbeiten",
+    "clockIn": "Dienst beginnen",
+    "clockOut": "Dienst beenden",
+    "onTripLabel": "Unterwegs",
+    "suspendTooltip": "Sperren",
+    "suspendDialog": {
+      "title": "Fahrer sperren?",
+      "description": "Die Sperrung von <strong>{{name}}</strong> blockiert alle Dispositionsvorgänge für diesen Fahrer.",
+      "placeholder": "Grund der Sperrung (erforderlich)...",
+      "confirm": "Fahrer sperren"
+    },
+    "adjustScoreTooltip": "Sicherheitsbewertung anpassen",
+    "deleteTooltip": "Löschen",
+    "deleteDialog": {
+      "title": "Fahrer löschen?",
+      "description": "Dadurch wird <strong>{{name}}</strong> vorläufig gelöscht. Historische Fahrtdaten bleiben erhalten.",
+      "confirm": "Löschen"
+    },
+    "scoreModal": {
+      "title": "Sicherheitsbewertung anpassen",
+      "adjustment": "Anpassung:",
+      "reason": "Grund *",
+      "placeholder": "Grund der Anpassung (mind. 5 Zeichen)..."
+    },
+    "pagination": {
+      "total": "{{count}} Fahrer gesamt"
+    }
+  },
+  "driverPerformance": {
+    "title": "Fahrerleistung",
+    "subtitle": "Sicherheitsbewertungen und Fahrtkennzahlen pro Fahrer",
+    "stats": {
+      "drivers": "Fahrer",
+      "avgSafetyScore": "Durchschn. Sicherheitsbewertung",
+      "totalTrips": "Fahrten gesamt",
+      "totalIncidents": "Vorfälle gesamt"
+    },
+    "searchPlaceholder": "Fahrer suchen...",
+    "noData": "Noch keine Fahrerleistungsdaten vorhanden.",
+    "trips": "Fahrten",
+    "completed": "Abgeschlossen",
+    "incidentsLabel": "Vorfälle"
+  },
+  "driverDashboard": {
+    "welcome": "Willkommen, {{name}}",
+    "onDuty": "Im Dienst",
+    "offDuty": "Dienstfrei",
+    "goOffDuty": "Dienst beenden",
+    "goOnDuty": "Dienst beginnen",
+    "statusUpdated": "Status aktualisiert",
+    "statusUpdateFailed": "Dienststatus konnte nicht aktualisiert werden.",
+    "updateFailed": "Aktualisierung fehlgeschlagen",
+    "gpsTracker": "Live-GPS-Tracker",
+    "broadcasting": "Standort wird übertragen...",
+    "trackerPaused": "Tracker angehalten. Starten, um Standort zu teilen.",
+    "stopTracker": "Tracker stoppen",
+    "startTracker": "Tracker starten",
+    "lastPing": "Letzter Ping:",
+    "currentAssignment": "Aktuelle Zuweisung",
+    "dispatched": "Disponiert",
+    "vehicleLabel": "Fahrzeug:",
+    "origin": "Abfahrtsort",
+    "destination": "Zielort",
+    "cargoWeight": "Ladungsgewicht",
+    "cargoDescription": "Beschreibung",
+    "noActiveTrips": "Keine aktiven Fahrten",
+    "noActiveTripsDesc": "Ihnen sind derzeit keine Fahrten zugewiesen.",
+    "recentHistory": "Letzte Aktivitäten",
+    "accountUnlinked": "Konto nicht verknüpft",
+    "accountUnlinkedDesc": "Ihr Benutzerkonto ({{email}}) ist nicht mit einem Fahrerprofil verknüpft. Bitte wenden Sie sich an einen Manager oder Disponenten, um Ihr Konto zu konfigurieren."
+  },
+  "fleetDashboard": {
+    "title": "Kommandozentrale",
+    "liveOverview": "Live-Flottenübersicht — {{date}}",
+    "kpi": {
+      "activeFleet": "Aktive Flotte",
+      "ofTotal": "von {{total}} gesamt",
+      "maintenanceAlerts": "Wartungswarnungen",
+      "vehiclesInShop": "Fahrzeuge in der Werkstatt",
+      "utilizationRate": "Auslastungsrate",
+      "fleetAssignedVsIdle": "zugewiesene vs. inaktive Flotte",
+      "pendingCargo": "Ausstehende Ladung",
+      "tripsInDraft": "Fahrten im ENTWURF",
+      "activeTrips": "Aktive Fahrten",
+      "currentlyDispatched": "derzeit disponiert",
+      "driversOnDuty": "Fahrer im Dienst",
+      "ofDrivers": "von {{total}} Fahrern",
+      "completedToday": "Heute abgeschlossen",
+      "tripsFinishedToday": "heute abgeschlossene Fahrten",
+      "expiringLicenses": "Ablaufende Lizenzen",
+      "within30Days": "innerhalb von 30 Tagen"
+    },
+    "liveFleetMap": "Live-Flottenkarte",
+    "vehiclesTracked": "{{count}} Fahrzeug(e) werden verfolgt",
+    "noLiveData": "Keine Live-Daten",
+    "vehicleNumber": "Fahrzeug #{{id}}",
+    "inTransit": "In Transit — {{origin}} → {{destination}}",
+    "revenueCostYear": "Einnahmen vs. Kosten — {{year}}",
+    "monthly": "Monatlich",
+    "loadingChart": "Diagramm wird geladen...",
+    "noTripData": "Noch keine Fahrtdaten",
+    "fleetStatus": "Flottenstatus",
+    "noVehicles": "Keine Fahrzeuge",
+    "monthlyPerformance": "Monatliche Leistungsübersicht",
+    "tableHeaders": {
+      "month": "Monat",
+      "trips": "Fahrten",
+      "distance": "Entfernung (km)",
+      "revenue": "Einnahmen",
+      "fuelCost": "Kraftstoffkosten",
+      "maintenance": "Wartung",
+      "profit": "Gewinn"
+    }
+  },
+  "commandCenter": {
+    "greeting": {
+      "morning": "Guten Morgen",
+      "afternoon": "Guten Nachmittag",
+      "evening": "Guten Abend",
+      "fallback": "Hallo"
+    },
+    "subtitle": "Hier ist, was heute in Ihrer Flotte passiert.",
+    "loadError": "Dashboard-Daten konnten nicht geladen werden. Läuft das Backend?",
+    "noDataAvailable": "Keine Daten verfügbar.",
+    "filtering": "Wird gefiltert...",
+    "matchCount": "{{count}} Fahrzeug(e) gefunden",
+    "filter": {
+      "vehicleType": "Fahrzeugtyp",
+      "status": "Status",
+      "region": "Region"
+    },
+    "regions": {
+      "north": "Norden",
+      "south": "Süden",
+      "east": "Osten",
+      "west": "Westen",
+      "central": "Zentral"
+    },
+    "kpi": {
+      "activeFleet": "Aktive Flotte",
+      "available": "verfügbar",
+      "maintenanceAlerts": "Wartungswarnungen",
+      "vehiclesInShop": "Fahrzeuge in der Werkstatt",
+      "allOperational": "Alle Fahrzeuge betriebsbereit",
+      "utilizationRate": "Auslastungsrate",
+      "onTrip": "unterwegs",
+      "pendingCargo": "Ausstehende Ladung",
+      "activeSuffix": "aktiv",
+      "doneToday": "heute erledigt"
+    },
+    "fleetDistribution": "Flottenverteilung",
+    "attentionRequired": "Aufmerksamkeit erforderlich",
+    "noActiveAlerts": "Keine aktiven Warnungen",
+    "driverSummary": "Fahrerübersicht",
+    "driverStats": {
+      "totalDrivers": "Fahrer gesamt",
+      "onDuty": "Im Dienst",
+      "suspended": "Gesperrt",
+      "expiringLicenses": "Ablaufende Lizenzen"
+    },
+    "quickActions": "Schnellaktionen",
+    "actions": {
+      "vehicleRegistry": "Fahrzeugregister",
+      "driverManagement": "Fahrerverwaltung",
+      "tripDispatcher": "Fahrtendisposition",
+      "maintenance": "Wartung",
+      "analytics": "Analysen"
+    }
+  },
+  "vehicleRegistry": {
+    "title": "Fahrzeugregister",
+    "subtitle": "Flottenfahrzeuge verwalten",
+    "exportCSV": "CSV exportieren",
+    "newVehicle": "Neues Fahrzeug",
+    "columns": {
+      "number": "#",
+      "plate": "Kennzeichen",
+      "makeModel": "Marke / Modell",
+      "type": "Typ",
+      "capacity": "Kapazität",
+      "odometer": "Kilometerstand",
+      "status": "Status",
+      "actions": "Aktionen"
+    },
+    "noVehicles": "Keine Fahrzeuge gefunden",
+    "adjustFilters": "Versuchen Sie, Ihre Filter anzupassen",
+    "addFirstVehicle": "Registrieren Sie Ihr erstes Fahrzeug, um loszulegen",
+    "editTooltip": "Bearbeiten",
+    "retireTooltip": "Ausmustern",
+    "retireDialog": {
+      "title": "Fahrzeug ausmustern?",
+      "description": "Dadurch wird <strong>{{plate}}</strong> dauerhaft stillgelegt. Ausgemusterte Fahrzeuge können nicht disponiert werden.",
+      "confirm": "Fahrzeug ausmustern"
+    },
+    "deleteTooltip": "Löschen",
+    "deleteDialog": {
+      "title": "Fahrzeug löschen?",
+      "description": "Dadurch wird <strong>{{plate}}</strong> vorläufig gelöscht. Diese Aktion erfordert Super-Admin-Zugriff.",
+      "confirm": "Löschen"
+    },
+    "pagination": {
+      "total": "{{count}} Fahrzeug(e) gesamt"
+    },
+    "toast": {
+      "exportSuccess": "Fahrzeugregister wurde als CSV exportiert.",
+      "exportSuccessTitle": "Export erfolgreich",
+      "exportFailed": "Fahrzeugexport konnte nicht erstellt werden.",
+      "exportFailedTitle": "Export fehlgeschlagen"
+    }
+  },
+  "tripDispatcher": {
+    "title": "Fahrtendisposition",
+    "subtitle": "Flottenfahrten planen, disponieren und verfolgen",
+    "newTrip": "Neue Fahrt",
+    "searchPlaceholder": "Fahrten suchen (Route, Fahrzeug, Fahrer, Kunde)...",
+    "allStatuses": "Alle Status",
+    "columns": {
+      "number": "#",
+      "vehicle": "Fahrzeug",
+      "driver": "Fahrer",
+      "route": "Route",
+      "cargo": "Ladung",
+      "distance": "Entfernung",
+      "status": "Status",
+      "actions": "Aktionen"
+    },
+    "actions": {
+      "dispatch": "Disponieren",
+      "cancel": "Stornieren",
+      "complete": "Abschließen",
+      "ledger": "Journal"
+    },
+    "loading": "Fahrten werden geladen...",
+    "noTrips": "Keine Fahrten gefunden",
+    "adjustFilters": "Versuchen Sie, Ihre Filter anzupassen",
+    "addFirstTrip": "Erstellen Sie Ihre erste Fahrt, um loszulegen",
+    "dispatchDialog": {
+      "title": "Fahrt disponieren?",
+      "description": "{{origin}} → {{destination}} disponieren? Das Fahrzeug wird als UNTERWEGS markiert und der Fahrer wird zugewiesen.",
+      "confirm": "Jetzt disponieren",
+      "dispatching": "Wird disponiert..."
+    },
+    "toast": {
+      "dispatched": "Fahrt wurde erfolgreich disponiert.",
+      "dispatchedTitle": "Disponiert",
+      "dispatchFailed": "Fahrt konnte nicht disponiert werden",
+      "errorTitle": "Fehler"
+    }
+  },
+  "financialReports": {
+    "title": "Finanzberichte",
+    "subtitle": "Einnahmen, Kosten, Kraftstoffeffizienz & Fahrzeug-ROI",
+    "exportCSV": "CSV exportieren",
+    "summary": {
+      "totalRevenue": "Gesamteinnahmen",
+      "totalCosts": "Gesamtkosten",
+      "netProfit": "Nettogewinn"
+    },
+    "tabs": {
+      "pnl": "GuV monatlich",
+      "fuelEfficiency": "Kraftstoffeffizienz",
+      "roi": "Fahrzeug-ROI"
+    },
+    "pnlColumns": {
+      "month": "Monat",
+      "revenue": "Einnahmen",
+      "fuel": "Kraftstoff",
+      "maintenance": "Wartung",
+      "other": "Sonstiges",
+      "profit": "Gewinn",
+      "trips": "Fahrten"
+    },
+    "noDataForYear": "Keine Daten für {{year}}",
+    "fuelEfficiency": {
+      "noData": "Keine Kraftstoffeffizienzdaten.",
+      "kmPerL": "km/L",
+      "totalFuel": "Kraftstoff gesamt",
+      "fuelCost": "Kraftstoffkosten"
+    },
+    "roiColumns": {
+      "vehicle": "Fahrzeug",
+      "revenue": "Einnahmen",
+      "cost": "Kosten",
+      "roi": "ROI %"
+    },
+    "noRoiData": "Keine ROI-Daten."
+  },
+  "forms": {
+    "driver": {
+      "editTitle": "Fahrer bearbeiten",
+      "newTitle": "Neuer Fahrer",
+      "editSubtitle": "Fahrerdaten aktualisieren",
+      "newSubtitle": "Neuen Fahrer registrieren",
+      "fullName": "Vollständiger Name *",
+      "fullNamePlaceholder": "Max Mustermann",
+      "licenseNumber": "Lizenznummer *",
+      "licensePlaceholder": "DL-1234567890",
+      "licenseClass": "Lizenzklasse",
+      "licenseClassPlaceholder": "CDL-A",
+      "licenseExpiry": "Lizenzablaufdatum *",
+      "phone": "Telefon",
+      "phonePlaceholder": "+91 98765 43210",
+      "email": "E-Mail",
+      "emailPlaceholder": "driver@fleetflow.io",
+      "dateOfBirth": "Geburtsdatum",
+      "updateDriver": "Fahrer aktualisieren",
+      "createDriver": "Fahrer anlegen"
+    },
+    "vehicle": {
+      "editTitle": "Fahrzeug bearbeiten",
+      "newTitle": "Neues Fahrzeug",
+      "editSubtitle": "Fahrzeugdaten aktualisieren",
+      "newSubtitle": "Neues Flottenfahrzeug registrieren",
+      "licensePlate": "Kennzeichen *",
+      "licensePlatePlaceholder": "MH-12-AB-1234",
+      "make": "Marke *",
+      "makePlaceholder": "Tata",
+      "model": "Modell *",
+      "modelPlaceholder": "Prima",
+      "year": "Baujahr *",
+      "color": "Farbe",
+      "colorPlaceholder": "Weiß",
+      "vin": "VIN",
+      "vinPlaceholder": "17-stellige VIN (optional)",
+      "vehicleType": "Fahrzeugtyp *",
+      "selectType": "Typ auswählen...",
+      "maxCapacity": "Max. Kapazität (kg) *",
+      "capacityPlaceholder": "5000",
+      "volume": "Volumen (m³)",
+      "region": "Region",
+      "regionPlaceholder": "z. B. Nordamerika",
+      "acquisitionCost": "Anschaffungskosten ($)",
+      "initialOdometer": "Anfangskilometerstand (km)",
+      "updateVehicle": "Fahrzeug aktualisieren",
+      "createVehicle": "Fahrzeug anlegen"
+    },
+    "expense": {
+      "fuelTitle": "Neuer Kraftstoffeintrag",
+      "expenseTitle": "Neue Ausgabe",
+      "fuelSubtitle": "Tankvorgang erfassen",
+      "expenseSubtitle": "Fahrtausgabe erfassen",
+      "fuelTab": "Kraftstoffeintrag",
+      "expenseTab": "Ausgabe",
+      "loadingVehicles": "Fahrzeuge werden geladen...",
+      "vehicle": "Fahrzeug *",
+      "selectVehicle": "Fahrzeug auswählen...",
+      "tripId": "Fahrt-ID (optional)",
+      "tripIdPlaceholder": "z. B. 42",
+      "liters": "Liter *",
+      "costPerLiter": "₹/Liter *",
+      "totalLabel": "Gesamt: ₹{{amount}}",
+      "odometerAtFill": "Kilometerstand bei Betankung *",
+      "fuelStation": "Tankstelle",
+      "fuelStationPlaceholder": "Shell, HP, Indian Oil...",
+      "category": "Kategorie *",
+      "amount": "Betrag (₹) *",
+      "description": "Beschreibung",
+      "descriptionPlaceholder": "Maut an der Mumbai-Autobahn...",
+      "createFuelLog": "Kraftstoffeintrag anlegen",
+      "createExpense": "Ausgabe anlegen",
+      "categories": {
+        "TOLL": "Maut",
+        "LODGING": "Unterkunft",
+        "MAINTENANCE_EN_ROUTE": "Wartung (unterwegs)",
+        "MISC": "Sonstiges"
+      }
+    },
+    "maintenance": {
+      "title": "Neues Serviceprotokoll",
+      "subtitle": "Wartungsereignis erfassen",
+      "warning": "Das Erstellen dieses Protokolls setzt das Fahrzeug auf <strong>IN_SHOP</strong> und entfernt es aus dem verfügbaren Dispositionspool.",
+      "loadingVehicles": "Fahrzeuge werden geladen...",
+      "vehicle": "Fahrzeug *",
+      "selectVehicle": "Fahrzeug auswählen...",
+      "serviceType": "Serviceart *",
+      "selectType": "Typ auswählen...",
+      "description": "Beschreibung",
+      "descriptionPlaceholder": "Details des Service...",
+      "cost": "Kosten (₹) *",
+      "odometerAtService": "Kilometerstand bei Service *",
+      "technicianName": "Technikername",
+      "technicianPlaceholder": "Max Mustermann",
+      "shopName": "Werkstattname",
+      "shopPlaceholder": "AutoCare",
+      "serviceDate": "Servicedatum *",
+      "nextServiceDue": "Nächster Service fällig",
+      "createServiceLog": "Serviceprotokoll anlegen"
+    },
+    "trip": {
+      "title": "Neue Fahrt",
+      "subtitle": "Neue Dispositionsfahrt planen",
+      "loadingVehiclesDrivers": "Fahrzeuge und Fahrer werden geladen...",
+      "vehicleLabel": "Fahrzeug (nur verfügbare) *",
+      "selectVehicle": "Fahrzeug auswählen...",
+      "noAvailableVehicles": "Keine verfügbaren Fahrzeuge",
+      "driverLabel": "Fahrer (im Dienst, gültige Lizenz) *",
+      "selectDriver": "Fahrer auswählen...",
+      "noEligibleDrivers": "Keine berechtigten Fahrer",
+      "origin": "Abfahrtsort *",
+      "destination": "Zielort *",
+      "locationPlaceholder": "Eingabe beginnen...",
+      "cargoWeight": "Ladungsgewicht (kg) *",
+      "estDistance": "Gesch. Entfernung (km) *",
+      "cargoExceedsCapacity": "Ladung überschreitet Fahrzeugkapazität",
+      "cargoDescription": "Ladungsbeschreibung",
+      "cargoDescPlaceholder": "z. B. Elektronik, verderbliche Waren...",
+      "clientName": "Kundenname",
+      "clientPlaceholder": "Acme Corp",
+      "revenue": "Einnahmen (₹)",
+      "createTripDraft": "Fahrt anlegen (Entwurf)"
+    },
+    "tripComplete": {
+      "title": "Fahrt abschließen",
+      "description": "Geben Sie die tatsächlich gefahrene Strecke ein, um diese Fahrt abzuschließen. Fahrzeug und Fahrer werden freigegeben.",
+      "actualDistance": "Tatsächliche Entfernung (km) *",
+      "distancePlaceholder": "z. B. 1450",
+      "odometerEnd": "Endkilometerstand (optional)",
+      "odometerPlaceholder": "Aktueller Kilometerstand",
+      "confirm": "Fahrt abschließen"
+    },
+    "tripCancel": {
+      "title": "Fahrt stornieren",
+      "description": "Diese Aktion storniert die Fahrt. Wenn die Fahrt disponiert war, werden Fahrzeug und Fahrer freigegeben.",
+      "reasonLabel": "Stornierungsgrund *",
+      "reasonPlaceholder": "Bitte erklären Sie, warum diese Fahrt storniert wird (mind. 5 Zeichen)...",
+      "minLength": "Mindestens 5 Zeichen erforderlich",
+      "keepTrip": "Fahrt beibehalten",
+      "confirm": "Fahrt stornieren"
+    },
+    "tripLedger": {
+      "title": "Fahrtenjournal",
+      "subtitle": "Finanzübersicht für Fahrt #{{id}}",
+      "revenue": "Einnahmen",
+      "totalCost": "Gesamtkosten",
+      "profit": "Gewinn",
+      "roi": "ROI",
+      "costBreakdown": "Kostenaufschlüsselung",
+      "fuel": "Kraftstoff",
+      "expenses": "Ausgaben",
+      "fuelLogs": "Kraftstoffeinträge ({{count}})",
+      "expensesList": "Ausgaben ({{count}})",
+      "noRecords": "Für diese Fahrt wurden noch keine Kraftstoffeinträge oder Ausgaben erfasst."
+    }
+  },
+  "ui": {
+    "capacityBar": {
+      "cargo": "Ladung:",
+      "capacity": "{{value}} kg Kapazität",
+      "exceedsCapacity": "{{pct}}% — KAPAZITÄT ÜBERSCHRITTEN",
+      "utilized": "{{pct}}% ausgelastet — OK"
+    },
+    "licenseExpiry": {
+      "expired": "ABGELAUFEN",
+      "expiresIn": "Läuft in {{days}}T ab!",
+      "expiringIn": "Läuft in {{days}}T ab"
+    },
+    "navbar": {
+      "searchPlaceholder": "Hier suchen...",
+      "clearSearch": "Suche leeren",
+      "notifications": "Benachrichtigungen",
+      "toggleDarkMode": "Dunkelmodus umschalten",
+      "userMenu": "Benutzermenü",
+      "fallbackName": "FleetFlow-Benutzer"
+    }
+  }
+}

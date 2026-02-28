@@ -5,8 +5,8 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
+import { useTranslation } from "react-i18next";
 import {
-  Truck,
   Mail,
   ArrowLeft,
   Loader2,
@@ -15,11 +15,13 @@ import {
   Sun,
   Moon,
 } from "lucide-react";
+import { LogoIcon } from "../components/Branding/Logo";
 import { useTheme } from "../context/ThemeContext";
 import { authApi } from "../api/client";
 
 export default function ForgotPassword() {
   const { isDark, toggleTheme } = useTheme();
+  const { t } = useTranslation();
   const [email, setEmail] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [emailError, setEmailError] = useState<string | null>(null);
@@ -33,11 +35,11 @@ export default function ForgotPassword() {
     setEmailError(null);
 
     if (!email.trim()) {
-      setEmailError("Email is required");
+      setEmailError(t("auth.forgotPassword.emailRequired"));
       return;
     }
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      setEmailError("Enter a valid email address");
+      setEmailError(t("auth.forgotPassword.invalidEmail"));
       return;
     }
 
@@ -53,7 +55,7 @@ export default function ForgotPassword() {
       const message =
         (err as { response?: { data?: { message?: string } } })?.response?.data
           ?.message ||
-        (err instanceof Error ? err.message : "Something went wrong. Try again.");
+        (err instanceof Error ? err.message : t("common.error"));
       setError(message);
     } finally {
       setLoading(false);
@@ -74,7 +76,7 @@ export default function ForgotPassword() {
             ? "bg-neutral-800 text-neutral-300 hover:bg-neutral-700"
             : "bg-white border border-neutral-200 text-neutral-600 hover:bg-neutral-50"
         }`}
-        title={isDark ? "Switch to light mode" : "Switch to dark mode"}
+        title={isDark ? t("common.switchToLight") : t("common.switchToDark")}
       >
         {isDark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
       </button>
@@ -87,8 +89,8 @@ export default function ForgotPassword() {
       >
         {/* Logo */}
         <div className="flex items-center gap-3 mb-10">
-          <div className="w-10 h-10 rounded-xl bg-emerald-500 flex items-center justify-center">
-            <Truck className="w-5 h-5 text-white" />
+          <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center overflow-hidden">
+            <LogoIcon className="w-6 h-6" />
           </div>
           <span
             className={`text-xl font-bold tracking-tight ${
@@ -105,7 +107,7 @@ export default function ForgotPassword() {
           className="inline-flex items-center gap-1.5 text-sm text-emerald-500 hover:text-emerald-400 transition-colors mb-6"
         >
           <ArrowLeft className="w-4 h-4" />
-          Back to login
+          {t("auth.forgotPassword.backToLogin")}
         </Link>
 
         {!success ? (
@@ -116,15 +118,14 @@ export default function ForgotPassword() {
                   isDark ? "text-white" : "text-neutral-900"
                 }`}
               >
-                Forgot your password?
+                {t("auth.forgotPassword.title")}
               </h2>
               <p
                 className={`text-sm ${
                   isDark ? "text-neutral-500" : "text-neutral-500"
                 }`}
               >
-                Enter your email and we'll send you a link to reset your
-                password.
+                {t("auth.forgotPassword.description")}
               </p>
             </div>
 
@@ -160,7 +161,7 @@ export default function ForgotPassword() {
                     isDark ? "text-neutral-400" : "text-neutral-700"
                   }`}
                 >
-                  Email address
+                  {t("auth.forgotPassword.emailLabel")}
                 </label>
                 <div className="relative">
                   <Mail
@@ -175,7 +176,7 @@ export default function ForgotPassword() {
                       setEmail(e.target.value);
                       if (emailError) setEmailError(null);
                     }}
-                    placeholder="your@email.com"
+                    placeholder={t("auth.forgotPassword.emailPlaceholder")}
                     className={`w-full pl-11 pr-4 py-3 rounded-xl text-sm focus:outline-none focus:ring-2 transition-all ${
                       isDark
                         ? `bg-neutral-900 border text-white placeholder:text-neutral-600 ${
@@ -204,7 +205,7 @@ export default function ForgotPassword() {
                 {loading ? (
                   <Loader2 className="w-4 h-4 animate-spin" />
                 ) : (
-                  "Send reset link"
+                  t("auth.forgotPassword.submit")
                 )}
               </button>
             </form>
@@ -233,8 +234,7 @@ export default function ForgotPassword() {
                   isDark ? "text-emerald-300" : "text-emerald-700"
                 }`}
               >
-                If an account with that email exists, a password reset link has
-                been sent.
+                {t("auth.forgotPassword.successMessage")}
               </p>
             </div>
 
@@ -252,7 +252,7 @@ export default function ForgotPassword() {
                     isDark ? "text-amber-400" : "text-amber-700"
                   }`}
                 >
-                  🛠 DEV MODE — Reset link:
+                  {t("auth.forgotPassword.devModeLabel")}
                 </p>
                 <Link
                   to={`/reset-password?token=${resetToken}`}
@@ -267,7 +267,7 @@ export default function ForgotPassword() {
               to="/login"
               className="block text-center text-sm text-emerald-500 hover:text-emerald-400 transition-colors mt-4"
             >
-              ← Back to login
+              ← {t("auth.forgotPassword.backToLogin")}
             </Link>
           </motion.div>
         )}

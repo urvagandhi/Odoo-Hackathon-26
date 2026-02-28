@@ -3,12 +3,12 @@
  * ⚠️ Warning banner: "Creating this log will set the vehicle to IN_SHOP."
  */
 import { useState, useEffect } from "react";
+import { useTranslation, Trans } from "react-i18next";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Wrench, Save, Loader2, AlertTriangle } from "lucide-react";
 import { useTheme } from "../../context/ThemeContext";
-import { fleetApi, financeApi } from "../../api/client";
+import { fleetApi } from "../../api/client";
 import { createMaintenanceSchema, type CreateMaintenanceFormData } from "../../validators/finance";
-import type { ZodError } from "zod";
 
 interface Vehicle {
   id: string;
@@ -50,6 +50,7 @@ const INITIAL: CreateMaintenanceFormData = {
 
 export function MaintenanceForm({ open, onClose, onSuccess }: MaintenanceFormProps) {
   const { isDark } = useTheme();
+  const { t } = useTranslation();
   const [form, setForm] = useState<CreateMaintenanceFormData>(INITIAL);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [serverError, setServerError] = useState("");
@@ -66,16 +67,14 @@ export function MaintenanceForm({ open, onClose, onSuccess }: MaintenanceFormPro
     // Load non-retired vehicles
     fleetApi.listVehicles({ limit: 500 })
       .then((res) => {
-        const body = res.data?.data ?? res.data;
-        const list = (body?.vehicles ?? body ?? []) as Vehicle[];
         setVehicles(
-          list
-            .filter((v: Record<string, unknown>) => v.status !== "RETIRED")
-            .map((v: Record<string, unknown>) => ({
+          res.data
+            .filter((v) => v.status !== "RETIRED")
+            .map((v) => ({
               ...v,
               id: String(v.id),
               currentOdometer: Number(v.currentOdometer),
-            })) as Vehicle[]
+            }))
         );
       })
       .catch(() => {})
@@ -95,7 +94,7 @@ export function MaintenanceForm({ open, onClose, onSuccess }: MaintenanceFormPro
     const result = createMaintenanceSchema.safeParse(form);
     if (!result.success) {
       const fieldErrors: Record<string, string> = {};
-      (result.error as ZodError).errors.forEach((err) => {
+      result.error.issues.forEach((err) => {
         const key = err.path[0] as string;
         if (!fieldErrors[key]) fieldErrors[key] = err.message;
       });
@@ -105,8 +104,7 @@ export function MaintenanceForm({ open, onClose, onSuccess }: MaintenanceFormPro
 
     setSubmitting(true);
     try {
-      await financeApi.createMaintenanceLog({
-        vehicleId: Number(result.data.vehicleId),
+      await fleetApi.addMaintenanceLog(result.data.vehicleId, {
         serviceType: result.data.serviceType,
         description: result.data.description || undefined,
         cost: result.data.cost,
@@ -167,8 +165,8 @@ export function MaintenanceForm({ open, onClose, onSuccess }: MaintenanceFormPro
                   <Wrench className="w-4.5 h-4.5 text-white" />
                 </div>
                 <div>
-                  <h2 className={`text-base font-bold ${isDark ? "text-white" : "text-slate-900"}`}>New Service Log</h2>
-                  <p className={`text-xs ${isDark ? "text-neutral-400" : "text-slate-500"}`}>Log a maintenance event</p>
+                  <h2 className={`text-base font-bold ${isDark ? "text-white" : "text-slate-900"}`}>{t("forms.maintenance.title")}</h2>
+                  <p className={`text-xs ${isDark ? "text-neutral-400" : "text-slate-500"}`}>{t("forms.maintenance.subtitle")}</p>
                 </div>
               </div>
               <button onClick={onClose} className={`p-2 rounded-lg transition-colors ${isDark ? "hover:bg-neutral-700 text-neutral-400" : "hover:bg-slate-100 text-slate-400"}`}>
@@ -184,7 +182,7 @@ export function MaintenanceForm({ open, onClose, onSuccess }: MaintenanceFormPro
               }`}>
                 <AlertTriangle className="w-5 h-5 shrink-0 mt-0.5" />
                 <p className="text-sm">
-                  Creating this log will set the vehicle to <strong>IN_SHOP</strong> and remove it from the dispatcher's available pool.
+                  <Trans i18nKey="forms.maintenance.warning" components={{ strong: <strong /> }} />
                 </p>
               </div>
 
@@ -197,15 +195,15 @@ export function MaintenanceForm({ open, onClose, onSuccess }: MaintenanceFormPro
               {loadingVehicles ? (
                 <div className={`py-8 text-center text-sm ${isDark ? "text-neutral-400" : "text-slate-500"}`}>
                   <Loader2 className="w-5 h-5 mx-auto mb-2 animate-spin" />
-                  Loading vehicles...
+                  {t("forms.maintenance.loadingVehicles")}
                 </div>
               ) : (
                 <>
                   {/* Vehicle */}
                   <div>
-                    <label className={labelCls}>Vehicle *</label>
+                    <label className={labelCls}>{t("forms.maintenance.vehicle")}</label>
                     <select className={`${inputCls} ${errors.vehicleId ? "border-red-400" : ""}`} value={form.vehicleId} onChange={(e) => handleChange("vehicleId", e.target.value)}>
-                      <option value="">Select a vehicle...</option>
+                      <option value="">{t("forms.maintenance.selectVehicle")}</option>
                       {vehicles.map((v) => (
                         <option key={v.id} value={v.id}>
                           {v.licensePlate} — {v.make} {v.model} ({v.status})
@@ -217,9 +215,9 @@ export function MaintenanceForm({ open, onClose, onSuccess }: MaintenanceFormPro
 
                   {/* Service Type */}
                   <div>
-                    <label className={labelCls}>Service Type *</label>
+                    <label className={labelCls}>{t("forms.maintenance.serviceType")}</label>
                     <select className={`${inputCls} ${errors.serviceType ? "border-red-400" : ""}`} value={form.serviceType} onChange={(e) => handleChange("serviceType", e.target.value)}>
-                      <option value="">Select type...</option>
+                      <option value="">{t("forms.maintenance.selectType")}</option>
                       {SERVICE_TYPES.map((t) => (
                         <option key={t} value={t}>{t.replace(/_/g, " ")}</option>
                       ))}
@@ -229,19 +227,19 @@ export function MaintenanceForm({ open, onClose, onSuccess }: MaintenanceFormPro
 
                   {/* Description */}
                   <div>
-                    <label className={labelCls}>Description</label>
-                    <textarea className={inputCls} rows={2} placeholder="Details of the service..." value={form.description ?? ""} onChange={(e) => handleChange("description", e.target.value)} />
+                    <label className={labelCls}>{t("forms.maintenance.description")}</label>
+                    <textarea className={inputCls} rows={2} placeholder={t("forms.maintenance.descriptionPlaceholder")} value={form.description ?? ""} onChange={(e) => handleChange("description", e.target.value)} />
                   </div>
 
                   {/* Cost + Odometer */}
                   <div className="grid grid-cols-2 gap-3">
                     <div>
-                      <label className={labelCls}>Cost (₹) *</label>
+                      <label className={labelCls}>{t("forms.maintenance.cost")}</label>
                       <input type="number" className={`${inputCls} ${errors.cost ? "border-red-400" : ""}`} value={form.cost || ""} onChange={(e) => handleChange("cost", e.target.value)} />
                       {errors.cost && <p className={errCls}>{errors.cost}</p>}
                     </div>
                     <div>
-                      <label className={labelCls}>Odometer at Service *</label>
+                      <label className={labelCls}>{t("forms.maintenance.odometerAtService")}</label>
                       <input type="number" className={`${inputCls} ${errors.odometerAtService ? "border-red-400" : ""}`} value={form.odometerAtService || ""} onChange={(e) => handleChange("odometerAtService", e.target.value)} />
                       {errors.odometerAtService && <p className={errCls}>{errors.odometerAtService}</p>}
                     </div>
@@ -250,24 +248,24 @@ export function MaintenanceForm({ open, onClose, onSuccess }: MaintenanceFormPro
                   {/* Technician + Shop */}
                   <div className="grid grid-cols-2 gap-3">
                     <div>
-                      <label className={labelCls}>Technician Name</label>
-                      <input className={inputCls} placeholder="John Doe" value={form.technicianName ?? ""} onChange={(e) => handleChange("technicianName", e.target.value)} />
+                      <label className={labelCls}>{t("forms.maintenance.technicianName")}</label>
+                      <input className={inputCls} placeholder={t("forms.maintenance.technicianPlaceholder")} value={form.technicianName ?? ""} onChange={(e) => handleChange("technicianName", e.target.value)} />
                     </div>
                     <div>
-                      <label className={labelCls}>Shop Name</label>
-                      <input className={inputCls} placeholder="AutoCare" value={form.shopName ?? ""} onChange={(e) => handleChange("shopName", e.target.value)} />
+                      <label className={labelCls}>{t("forms.maintenance.shopName")}</label>
+                      <input className={inputCls} placeholder={t("forms.maintenance.shopPlaceholder")} value={form.shopName ?? ""} onChange={(e) => handleChange("shopName", e.target.value)} />
                     </div>
                   </div>
 
                   {/* Dates */}
                   <div className="grid grid-cols-2 gap-3">
                     <div>
-                      <label className={labelCls}>Service Date *</label>
+                      <label className={labelCls}>{t("forms.maintenance.serviceDate")}</label>
                       <input type="date" className={`${inputCls} ${errors.serviceDate ? "border-red-400" : ""}`} value={form.serviceDate} onChange={(e) => handleChange("serviceDate", e.target.value)} />
                       {errors.serviceDate && <p className={errCls}>{errors.serviceDate}</p>}
                     </div>
                     <div>
-                      <label className={labelCls}>Next Service Due</label>
+                      <label className={labelCls}>{t("forms.maintenance.nextServiceDue")}</label>
                       <input type="date" className={inputCls} value={form.nextServiceDue ?? ""} onChange={(e) => handleChange("nextServiceDue", e.target.value)} />
                     </div>
                   </div>
@@ -278,11 +276,11 @@ export function MaintenanceForm({ open, onClose, onSuccess }: MaintenanceFormPro
             {/* Footer */}
             <div className={`px-6 py-4 border-t shrink-0 flex items-center justify-end gap-3 ${isDark ? "border-neutral-700" : "border-slate-100"}`}>
               <button type="button" onClick={onClose} className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${isDark ? "text-neutral-300 hover:bg-neutral-700" : "text-slate-600 hover:bg-slate-100"}`}>
-                Cancel
+                {t("common.cancel")}
               </button>
               <button onClick={handleSubmit} disabled={submitting || loadingVehicles} className="inline-flex items-center gap-2 px-5 py-2 rounded-lg bg-amber-600 hover:bg-amber-500 text-white text-sm font-medium transition-colors disabled:opacity-50">
                 {submitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-                Create Service Log
+                {t("forms.maintenance.createServiceLog")}
               </button>
             </div>
           </motion.div>

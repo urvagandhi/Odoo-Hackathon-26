@@ -2,10 +2,11 @@
  * TripCancelDialog — AlertDialog with reason textarea for cancelling trips.
  */
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { motion, AnimatePresence } from "framer-motion";
 import { Loader2, XCircle } from "lucide-react";
 import { useTheme } from "../../context/ThemeContext";
-import { tripsApi } from "../../api/client";
+import { dispatchApi } from "../../api/client";
 
 interface TripCancelDialogProps {
   open: boolean;
@@ -16,6 +17,7 @@ interface TripCancelDialogProps {
 
 export function TripCancelDialog({ open, tripId, onClose, onSuccess }: TripCancelDialogProps) {
   const { isDark } = useTheme();
+  const { t } = useTranslation();
   const [reason, setReason] = useState("");
   const [serverError, setServerError] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -29,7 +31,7 @@ export function TripCancelDialog({ open, tripId, onClose, onSuccess }: TripCance
     setServerError("");
     setSubmitting(true);
     try {
-      await tripsApi.transitionTrip(tripId, { status: "CANCELLED", cancelledReason: reason });
+      await dispatchApi.transitionStatus(tripId, { status: "CANCELLED", cancelledReason: reason });
       onSuccess();
       onClose();
       setReason("");
@@ -64,11 +66,11 @@ export function TripCancelDialog({ open, tripId, onClose, onSuccess }: TripCance
           >
             <div className="flex items-center gap-2 mb-4">
               <XCircle className="w-5 h-5 text-red-500" />
-              <h3 className={`text-base font-bold ${textPrimary}`}>Cancel Trip</h3>
+              <h3 className={`text-base font-bold ${textPrimary}`}>{t("forms.tripCancel.title")}</h3>
             </div>
 
             <p className={`text-sm mb-4 ${textSecondary}`}>
-              This action will cancel the trip. If the trip was dispatched, the vehicle and driver will be released.
+              {t("forms.tripCancel.description")}
             </p>
 
             {serverError && (
@@ -79,19 +81,19 @@ export function TripCancelDialog({ open, tripId, onClose, onSuccess }: TripCance
 
             <div className="mb-4">
               <label className={`block text-xs font-semibold mb-1 ${isDark ? "text-neutral-300" : "text-slate-600"}`}>
-                Reason for Cancellation *
+                {t("forms.tripCancel.reasonLabel")}
               </label>
               <textarea
                 className={`w-full px-3 py-2 rounded-lg border text-sm ${
                   isDark ? "bg-neutral-700 border-neutral-600 text-white" : "bg-white border-slate-200 text-slate-900"
                 }`}
-                placeholder="Please explain why this trip is being cancelled (min 5 chars)..."
+                placeholder={t("forms.tripCancel.reasonPlaceholder")}
                 rows={3}
                 value={reason}
                 onChange={(e) => setReason(e.target.value)}
               />
               {reason.length > 0 && reason.length < 5 && (
-                <p className="text-xs text-red-500 mt-0.5">Minimum 5 characters required</p>
+                <p className="text-xs text-red-500 mt-0.5">{t("forms.tripCancel.minLength")}</p>
               )}
             </div>
 
@@ -100,7 +102,7 @@ export function TripCancelDialog({ open, tripId, onClose, onSuccess }: TripCance
                 onClick={() => { onClose(); setReason(""); }}
                 className={`px-4 py-2 rounded-lg text-sm font-medium ${isDark ? "text-neutral-300 hover:bg-neutral-700" : "text-slate-600 hover:bg-slate-100"}`}
               >
-                Keep Trip
+                {t("forms.tripCancel.keepTrip")}
               </button>
               <button
                 onClick={handleSubmit}
@@ -108,7 +110,7 @@ export function TripCancelDialog({ open, tripId, onClose, onSuccess }: TripCance
                 className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-red-600 hover:bg-red-500 text-white text-sm font-medium disabled:opacity-50"
               >
                 {submitting && <Loader2 className="w-4 h-4 animate-spin" />}
-                Cancel Trip
+                {t("forms.tripCancel.confirm")}
               </button>
             </div>
           </motion.div>

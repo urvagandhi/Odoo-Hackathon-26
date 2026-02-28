@@ -3,6 +3,7 @@
  * Backend: GET /api/v1/analytics/driver-performance (MANAGER, SAFETY_OFFICER)
  */
 import { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { motion } from "framer-motion";
 import { BarChart3, Search, TrendingUp, AlertTriangle, Truck } from "lucide-react";
 import { useTheme } from "../context/ThemeContext";
@@ -21,6 +22,7 @@ interface DriverPerf {
 }
 
 export default function DriverPerformance() {
+  const { t } = useTranslation();
   const { isDark } = useTheme();
   const [drivers, setDrivers] = useState<DriverPerf[]>([]);
   const [loading, setLoading] = useState(true);
@@ -31,10 +33,9 @@ export default function DriverPerformance() {
       setLoading(true);
       try {
         const res = await analyticsApi.getDriverPerformance();
-        const body = res.data?.data ?? res.data;
-        const list = Array.isArray(body) ? body : body?.drivers ?? [];
+        const list = (Array.isArray(res) ? res : []) as Record<string, unknown>[];
         setDrivers(
-          list.map((d: Record<string, unknown>) => ({
+          list.map((d) => ({
             ...d,
             driverId: String(d.driverId ?? d.id),
           })) as DriverPerf[]
@@ -86,10 +87,10 @@ export default function DriverPerformance() {
         </div>
         <div>
           <h1 className={`text-xl font-bold ${isDark ? "text-white" : "text-slate-900"}`}>
-            Driver Performance
+            {t("driverPerformance.title")}
           </h1>
           <p className={`text-sm ${isDark ? "text-neutral-400" : "text-slate-500"}`}>
-            Safety scores and trip metrics per driver
+            {t("driverPerformance.subtitle")}
           </p>
         </div>
       </div>
@@ -97,10 +98,10 @@ export default function DriverPerformance() {
       {/* Stats */}
       <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 mb-6">
         {[
-          { label: "Drivers", value: drivers.length, icon: Truck, color: "bg-violet-600" },
-          { label: "Avg Safety Score", value: avgScore, icon: TrendingUp, color: "bg-emerald-600" },
-          { label: "Total Trips", value: totalTrips, icon: BarChart3, color: "bg-blue-600" },
-          { label: "Total Incidents", value: totalIncidents, icon: AlertTriangle, color: "bg-red-600" },
+          { label: t("driverPerformance.stats.drivers"), value: drivers.length, icon: Truck, color: "bg-violet-600" },
+          { label: t("driverPerformance.stats.avgSafetyScore"), value: avgScore, icon: TrendingUp, color: "bg-emerald-600" },
+          { label: t("driverPerformance.stats.totalTrips"), value: totalTrips, icon: BarChart3, color: "bg-blue-600" },
+          { label: t("driverPerformance.stats.totalIncidents"), value: totalIncidents, icon: AlertTriangle, color: "bg-red-600" },
         ].map((s) => (
           <motion.div
             key={s.label}
@@ -125,7 +126,7 @@ export default function DriverPerformance() {
           <Search className={`w-4 h-4 ${isDark ? "text-neutral-400" : "text-slate-400"}`} />
           <input
             className="bg-transparent outline-none w-full placeholder-current opacity-60"
-            placeholder="Search drivers..."
+            placeholder={t("driverPerformance.searchPlaceholder")}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
@@ -140,7 +141,7 @@ export default function DriverPerformance() {
       ) : filtered.length === 0 ? (
         <div className="text-center py-16">
           <BarChart3 className={`w-12 h-12 mx-auto mb-3 ${isDark ? "text-neutral-600" : "text-slate-300"}`} />
-          <p className={`text-sm ${isDark ? "text-neutral-400" : "text-slate-500"}`}>No driver performance data yet.</p>
+          <p className={`text-sm ${isDark ? "text-neutral-400" : "text-slate-500"}`}>{t("driverPerformance.noData")}</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -171,17 +172,17 @@ export default function DriverPerformance() {
                 <div className="grid grid-cols-3 gap-2 text-center">
                   <div>
                     <p className={`text-lg font-bold ${isDark ? "text-white" : "text-slate-900"}`}>{d.totalTrips}</p>
-                    <p className={`text-[10px] ${isDark ? "text-neutral-500" : "text-slate-400"}`}>Trips</p>
+                    <p className={`text-[10px] ${isDark ? "text-neutral-500" : "text-slate-400"}`}>{t("driverPerformance.trips")}</p>
                   </div>
                   <div>
                     <p className={`text-lg font-bold ${isDark ? "text-white" : "text-slate-900"}`}>{d.completedTrips}</p>
-                    <p className={`text-[10px] ${isDark ? "text-neutral-500" : "text-slate-400"}`}>Completed</p>
+                    <p className={`text-[10px] ${isDark ? "text-neutral-500" : "text-slate-400"}`}>{t("driverPerformance.completed")}</p>
                   </div>
                   <div>
                     <p className={`text-lg font-bold ${d.incidentCount > 0 ? "text-red-500" : isDark ? "text-white" : "text-slate-900"}`}>
                       {d.incidentCount}
                     </p>
-                    <p className={`text-[10px] ${isDark ? "text-neutral-500" : "text-slate-400"}`}>Incidents</p>
+                    <p className={`text-[10px] ${isDark ? "text-neutral-500" : "text-slate-400"}`}>{t("driverPerformance.incidentsLabel")}</p>
                   </div>
                 </div>
               </motion.div>

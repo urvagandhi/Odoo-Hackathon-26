@@ -3,6 +3,7 @@
  * Backend: /api/v1/incidents (MANAGER, SAFETY_OFFICER)
  */
 import { useState, useEffect, useCallback } from "react";
+import { useTranslation } from "react-i18next";
 import { motion } from "framer-motion";
 import {
   AlertTriangle,
@@ -59,6 +60,7 @@ const statusColor: Record<string, string> = {
 };
 
 export default function Incidents() {
+  const { t } = useTranslation();
   const { isDark } = useTheme();
   const { user } = useAuth();
 
@@ -76,8 +78,7 @@ export default function Incidents() {
   const canCreate = user?.role === "SAFETY_OFFICER";
   const canClose =
     user?.role === "MANAGER" ||
-    user?.role === "SAFETY_OFFICER" ||
-    user?.role === "SUPER_ADMIN";
+    user?.role === "SAFETY_OFFICER";
 
   /* ── Fetch ────────────────────────────────────────── */
   const fetchIncidents = useCallback(async () => {
@@ -86,10 +87,11 @@ export default function Incidents() {
       const params: Record<string, unknown> = { page, limit };
       if (statusFilter) params.status = statusFilter;
       const res = await incidentsApi.listIncidents(params);
-      const body = res.data?.data ?? res.data;
-      const list = (body?.incidents ?? []) as Incident[];
+      const body = res as Record<string, unknown>;
+      const rawList = Array.isArray(body?.incidents) ? body.incidents : Array.isArray(res) ? res : [];
+      const list = rawList as Record<string, unknown>[];
       setIncidents(
-        list.map((i: Record<string, unknown>) => ({
+        list.map((i) => ({
           ...i,
           id: String(i.id),
           vehicleId: i.vehicleId ? String(i.vehicleId) : undefined,
@@ -113,7 +115,7 @@ export default function Incidents() {
   const handleClose = async () => {
     if (!closeModal || resolution.length < 10) return;
     try {
-      await incidentsApi.closeIncident(closeModal.id, { resolution });
+      await incidentsApi.closeIncident(closeModal.id, resolution);
       setCloseModal(null);
       setResolution("");
       fetchIncidents();
@@ -143,13 +145,13 @@ export default function Incidents() {
   const columns: Column<Incident>[] = [
     {
       key: "title",
-      header: "Incident",
+      header: t("incidents.columns.incident"),
       render: (i) => (
         <div>
           <span className="font-medium">{i.title}</span>
           {i.injuriesReported && (
             <span className="ml-2 text-[10px] font-bold px-1.5 py-0.5 rounded bg-red-600 text-white">
-              INJURIES
+              {t("incidents.injuries")}
             </span>
           )}
         </div>
@@ -157,7 +159,7 @@ export default function Incidents() {
     },
     {
       key: "type",
-      header: "Type",
+      header: t("incidents.columns.type"),
       render: (i) => (
         <span
           className={`text-xs font-semibold px-2 py-0.5 rounded-full ${
@@ -170,7 +172,7 @@ export default function Incidents() {
     },
     {
       key: "status",
-      header: "Status",
+      header: t("incidents.columns.status"),
       render: (i) => (
         <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${statusColor[i.status] || ""}`}>
           {i.status}
@@ -179,17 +181,17 @@ export default function Incidents() {
     },
     {
       key: "vehicle",
-      header: "Vehicle",
+      header: t("incidents.columns.vehicle"),
       render: (i) => i.vehicle?.licensePlate ?? "—",
     },
     {
       key: "driver",
-      header: "Driver",
+      header: t("incidents.columns.driver"),
       render: (i) => i.driver?.fullName ?? "—",
     },
     {
       key: "damage",
-      header: "Damage Est.",
+      header: t("incidents.columns.damageEst"),
       render: (i) =>
         i.damageEstimate ? (
           <span className="font-mono">₹{Number(i.damageEstimate).toLocaleString()}</span>
@@ -199,7 +201,7 @@ export default function Incidents() {
     },
     {
       key: "date",
-      header: "Date",
+      header: t("incidents.columns.date"),
       render: (i) => new Date(i.incidentDate).toLocaleDateString(),
     },
     {
@@ -211,7 +213,7 @@ export default function Incidents() {
             onClick={() => setCloseModal(i)}
             className="text-xs px-2 py-1 rounded bg-emerald-600 text-white hover:bg-emerald-500 transition-colors"
           >
-            Close
+            {t("incidents.closeButton")}
           </button>
         ) : null,
     },
@@ -227,10 +229,10 @@ export default function Incidents() {
           </div>
           <div>
             <h1 className={`text-xl font-bold ${isDark ? "text-white" : "text-slate-900"}`}>
-              Incident Reports
+              {t("incidents.title")}
             </h1>
             <p className={`text-sm ${isDark ? "text-neutral-400" : "text-slate-500"}`}>
-              Track and manage safety incidents
+              {t("incidents.subtitle")}
             </p>
           </div>
         </div>
@@ -240,7 +242,7 @@ export default function Incidents() {
             className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-red-600 hover:bg-red-500 text-white text-sm font-medium transition-colors"
           >
             <Plus className="w-4 h-4" />
-            Report Incident
+            {t("incidents.reportIncident")}
           </button>
         )}
       </div>
@@ -248,10 +250,10 @@ export default function Incidents() {
       {/* Summary */}
       <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 mb-6">
         {[
-          { label: "Total", value: incidents.length, color: "bg-violet-600" },
-          { label: "Open", value: openCount, color: "bg-red-600" },
-          { label: "Investigating", value: investigatingCount, color: "bg-amber-600" },
-          { label: "Damage Est.", value: `₹${totalDamage.toLocaleString()}`, color: "bg-emerald-600" },
+          { label: t("incidents.summary.total"), value: incidents.length, color: "bg-violet-600" },
+          { label: t("incidents.summary.open"), value: openCount, color: "bg-red-600" },
+          { label: t("incidents.summary.investigating"), value: investigatingCount, color: "bg-amber-600" },
+          { label: t("incidents.summary.damageEst"), value: `₹${totalDamage.toLocaleString()}`, color: "bg-emerald-600" },
         ].map((s) => (
           <motion.div
             key={s.label}
@@ -276,7 +278,7 @@ export default function Incidents() {
           <Search className={`w-4 h-4 ${isDark ? "text-neutral-400" : "text-slate-400"}`} />
           <input
             className="bg-transparent outline-none w-full placeholder-current opacity-60"
-            placeholder="Search incidents..."
+            placeholder={t("incidents.searchPlaceholder")}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
@@ -288,7 +290,7 @@ export default function Incidents() {
             isDark ? "bg-neutral-800 border-neutral-700 text-white" : "bg-white border-slate-200 text-slate-900"
           }`}
         >
-          <option value="">All Statuses</option>
+          <option value="">{t("incidents.allStatuses")}</option>
           {STATUS_OPTIONS.map((s) => (
             <option key={s} value={s}>{s}</option>
           ))}
@@ -301,15 +303,15 @@ export default function Incidents() {
         rows={filtered}
         rowKey={(i) => i.id}
         loading={loading}
-        emptyTitle="No incidents found"
-        emptyMessage="No safety incidents have been reported yet."
+        emptyTitle={t("incidents.noIncidents")}
+        emptyMessage={t("incidents.noIncidentsDesc")}
       />
 
       {/* Pagination */}
       {totalPages > 1 && (
         <div className="flex items-center justify-between mt-4">
           <p className={`text-xs ${isDark ? "text-neutral-500" : "text-slate-400"}`}>
-            Page {page} of {totalPages}
+            {t("common.page")} {page} {t("common.of")} {totalPages}
           </p>
           <div className="flex items-center gap-1">
             <button
@@ -340,18 +342,18 @@ export default function Incidents() {
           >
             <div className="flex items-center justify-between mb-4">
               <h3 className={`text-lg font-bold ${isDark ? "text-white" : "text-slate-900"}`}>
-                Close Incident
+                {t("incidents.closeModal.title")}
               </h3>
               <button onClick={() => setCloseModal(null)}>
                 <X className={`w-5 h-5 ${isDark ? "text-neutral-400" : "text-slate-400"}`} />
               </button>
             </div>
             <p className={`text-sm mb-3 ${isDark ? "text-neutral-400" : "text-slate-500"}`}>
-              Closing: <strong>{closeModal.title}</strong>
+              {t("incidents.closeModal.closing")} <strong>{closeModal.title}</strong>
             </p>
             <textarea
               rows={4}
-              placeholder="Resolution summary (min 10 characters)..."
+              placeholder={t("incidents.closeModal.placeholder")}
               value={resolution}
               onChange={(e) => setResolution(e.target.value)}
               className={`w-full px-3 py-2 rounded-lg border text-sm resize-none ${
@@ -363,7 +365,7 @@ export default function Incidents() {
                 onClick={() => setCloseModal(null)}
                 className={`px-4 py-2 rounded-lg text-sm ${isDark ? "text-neutral-400 hover:bg-neutral-700" : "text-slate-500 hover:bg-slate-100"}`}
               >
-                Cancel
+                {t("common.cancel")}
               </button>
               <button
                 disabled={resolution.length < 10}
@@ -371,7 +373,7 @@ export default function Incidents() {
                 className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-medium disabled:opacity-40 transition-colors"
               >
                 <CheckCircle2 className="w-4 h-4" />
-                Close Incident
+                {t("incidents.closeModal.confirm")}
               </button>
             </div>
           </motion.div>
@@ -403,6 +405,7 @@ function IncidentFormModal({
   onClose: () => void;
   onSuccess: () => void;
 }) {
+  const { t } = useTranslation();
   const [form, setForm] = useState({
     title: "",
     description: "",
@@ -447,7 +450,7 @@ function IncidentFormModal({
       >
         <div className="flex items-center justify-between mb-5">
           <h3 className={`text-lg font-bold ${isDark ? "text-white" : "text-slate-900"}`}>
-            Report New Incident
+            {t("incidents.createModal.title")}
           </h3>
           <button onClick={onClose}>
             <X className={`w-5 h-5 ${isDark ? "text-neutral-400" : "text-slate-400"}`} />
@@ -458,16 +461,16 @@ function IncidentFormModal({
           {/* Title */}
           <div>
             <label className={`text-xs font-medium mb-1 block ${isDark ? "text-neutral-300" : "text-slate-600"}`}>
-              Title *
+              {t("incidents.createModal.titleField")}
             </label>
-            <input className={inputCls} value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} placeholder="Brief incident title" />
+            <input className={inputCls} value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} placeholder={t("incidents.createModal.titlePlaceholder")} />
           </div>
 
           {/* Type + Date row */}
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className={`text-xs font-medium mb-1 block ${isDark ? "text-neutral-300" : "text-slate-600"}`}>
-                Type *
+                {t("incidents.createModal.type")}
               </label>
               <select className={inputCls} value={form.incidentType} onChange={(e) => setForm({ ...form, incidentType: e.target.value })}>
                 {INCIDENT_TYPES.map((t) => (
@@ -477,7 +480,7 @@ function IncidentFormModal({
             </div>
             <div>
               <label className={`text-xs font-medium mb-1 block ${isDark ? "text-neutral-300" : "text-slate-600"}`}>
-                Date *
+                {t("incidents.createModal.date")}
               </label>
               <input type="datetime-local" className={inputCls} value={form.incidentDate} onChange={(e) => setForm({ ...form, incidentDate: e.target.value })} />
             </div>
@@ -486,22 +489,22 @@ function IncidentFormModal({
           {/* Description */}
           <div>
             <label className={`text-xs font-medium mb-1 block ${isDark ? "text-neutral-300" : "text-slate-600"}`}>
-              Description *
+              {t("incidents.createModal.description")}
             </label>
-            <textarea rows={3} className={`${inputCls} resize-none`} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} placeholder="Detailed description (min 10 chars)" />
+            <textarea rows={3} className={`${inputCls} resize-none`} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} placeholder={t("incidents.createModal.descriptionPlaceholder")} />
           </div>
 
           {/* Location + Damage row */}
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className={`text-xs font-medium mb-1 block ${isDark ? "text-neutral-300" : "text-slate-600"}`}>
-                Location
+                {t("incidents.createModal.location")}
               </label>
-              <input className={inputCls} value={form.location} onChange={(e) => setForm({ ...form, location: e.target.value })} placeholder="Where did it happen?" />
+              <input className={inputCls} value={form.location} onChange={(e) => setForm({ ...form, location: e.target.value })} placeholder={t("incidents.createModal.locationPlaceholder")} />
             </div>
             <div>
               <label className={`text-xs font-medium mb-1 block ${isDark ? "text-neutral-300" : "text-slate-600"}`}>
-                Damage Estimate (₹)
+                {t("incidents.createModal.damageEstimate")}
               </label>
               <input type="number" min="0" className={inputCls} value={form.damageEstimate} onChange={(e) => setForm({ ...form, damageEstimate: e.target.value })} />
             </div>
@@ -511,21 +514,21 @@ function IncidentFormModal({
           <label className="flex items-center gap-2 cursor-pointer">
             <input type="checkbox" checked={form.injuriesReported} onChange={(e) => setForm({ ...form, injuriesReported: e.target.checked })} className="rounded" />
             <span className={`text-sm ${isDark ? "text-neutral-300" : "text-slate-700"}`}>
-              Injuries reported
+              {t("incidents.createModal.injuriesReported")}
             </span>
           </label>
         </div>
 
         <div className="flex justify-end gap-2 mt-6">
           <button onClick={onClose} className={`px-4 py-2 rounded-lg text-sm ${isDark ? "text-neutral-400 hover:bg-neutral-700" : "text-slate-500 hover:bg-slate-100"}`}>
-            Cancel
+            {t("common.cancel")}
           </button>
           <button
             disabled={submitting || form.title.length < 3 || form.description.length < 10}
             onClick={handleSubmit}
             className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-red-600 hover:bg-red-500 text-white text-sm font-medium disabled:opacity-40 transition-colors"
           >
-            {submitting ? "Saving..." : "Submit Report"}
+            {submitting ? t("common.saving") : t("incidents.createModal.submitReport")}
           </button>
         </div>
       </motion.div>

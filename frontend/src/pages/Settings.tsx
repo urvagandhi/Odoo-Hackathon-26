@@ -1,11 +1,9 @@
 /**
- * Settings page — multi-tab settings with real API integration.
- * - Account: Pre-filled from auth context
- * - Security: Wired to authApi.changePassword()
- * - Appearance: Connected to ThemeContext
- * - Notifications: Decorative with dark mode
+ * Settings page — multi-tab settings using SettingsLayout.
+ * Account wired to updateProfile API. Security wired to change-password API.
+ * Appearance persists compact mode + language (i18next) to localStorage.
  */
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import {
   User,
   Shield,
@@ -18,17 +16,18 @@ import {
   Monitor,
   Moon,
   Sun,
-  CheckCircle,
-  AlertCircle,
+  Loader2,
 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { SettingsLayout, type SettingsTab } from "../layouts/SettingsLayout";
 import { SectionCard } from "../components/ui/SectionCard";
 import { useAuth } from "../context/AuthContext";
 import { useTheme } from "../context/ThemeContext";
+import { useToast } from "../hooks/useToast";
 import { authApi } from "../api/client";
 
 /* ────────────────────────────────────────────────────────
-   Toggle switch (dark mode aware)
+   Toggle switch (dark-mode aware)
    ──────────────────────────────────────────────────────── */
 
 function Toggle({
@@ -40,7 +39,6 @@ function Toggle({
   onChange: (v: boolean) => void;
   id: string;
 }) {
-  const { isDark } = useTheme();
   return (
     <button
       id={id}
@@ -52,7 +50,7 @@ function Toggle({
         relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full
         border-2 border-transparent transition-colors duration-200 ease-in-out
         focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2
-        ${checked ? "bg-indigo-600" : isDark ? "bg-neutral-600" : "bg-slate-200"}
+        ${checked ? "bg-indigo-600" : "bg-slate-200 dark:bg-neutral-600"}
       `}
     >
       <span
@@ -67,139 +65,115 @@ function Toggle({
 }
 
 /* ────────────────────────────────────────────────────────
-   Common input styling (dark mode aware)
+   Common dark-mode-aware styling
    ──────────────────────────────────────────────────────── */
 
-function useInputStyles() {
-  const { isDark } = useTheme();
-  return {
-    inputCls: `w-full px-3.5 py-2.5 rounded-lg border text-sm placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-shadow duration-150 ${
-      isDark
-        ? "border-neutral-600 bg-neutral-700 text-neutral-200 placeholder:text-neutral-500"
-        : "border-slate-200 bg-white text-slate-800"
-    }`,
-    labelCls: `block text-sm font-medium mb-1.5 ${isDark ? "text-neutral-300" : "text-slate-700"}`,
-    btnPrimaryCls:
-      "inline-flex items-center gap-2 px-4 py-2.5 rounded-lg bg-indigo-600 text-white text-sm font-medium hover:bg-indigo-700 transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed",
-  };
-}
+const inputCls =
+  "w-full px-3.5 py-2.5 rounded-lg border text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-shadow duration-150 border-slate-200 bg-white text-slate-800 placeholder:text-slate-400 dark:border-neutral-600 dark:bg-neutral-700 dark:text-white dark:placeholder:text-neutral-400";
+
+const btnPrimaryCls =
+  "inline-flex items-center gap-2 px-4 py-2.5 rounded-lg bg-indigo-600 text-white text-sm font-medium hover:bg-indigo-700 transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed";
+
+const labelCls = "block text-sm font-medium text-slate-700 dark:text-neutral-300 mb-1.5";
 
 /* ────────────────────────────────────────────────────────
-   Account Tab
+   Account Tab — wired to PATCH /api/v1/auth/me
    ──────────────────────────────────────────────────────── */
 
 function AccountTab() {
   const { user } = useAuth();
-  const { isDark } = useTheme();
-  const { inputCls, labelCls, btnPrimaryCls } = useInputStyles();
-
+  const toast = useToast();
+  const { t } = useTranslation();
   const nameParts = (user?.fullName ?? "").split(" ");
   const [form, setForm] = useState({
-    firstName: nameParts[0] || "",
-    lastName: nameParts.slice(1).join(" ") || "",
+    firstName: nameParts[0] ?? "",
+    lastName: nameParts.slice(1).join(" ") ?? "",
     email: user?.email ?? "",
-    role: user?.role ?? "",
+    bio: "",
+    phone: "",
+    location: "",
   });
+  const [saving, setSaving] = useState(false);
 
   const set = (k: keyof typeof form) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
     setForm((p) => ({ ...p, [k]: e.target.value }));
 
-  const roleLabel: Record<string, string> = {
-    MANAGER: "Fleet Manager",
-    DISPATCHER: "Dispatcher",
-    SAFETY_OFFICER: "Safety Officer",
-    FINANCE_ANALYST: "Finance Analyst",
-    SUPER_ADMIN: "Super Administrator",
+  const handleSave = async () => {
+    const fullName = `${form.firstName.trim()} ${form.lastName.trim()}`.trim();
+    if (!fullName || fullName.length < 2) {
+      toast.error(t("settings.account.fullNameMin"), { title: t("settings.account.validationError") });
+      return;
+    }
+    if (!form.email.trim() || !/\S+@\S+\.\S+/.test(form.email)) {
+      toast.error(t("settings.account.invalidEmail"), { title: t("settings.account.validationError") });
+      return;
+    }
+    setSaving(true);
+    try {
+      await authApi.updateProfile({ fullName, email: form.email.trim() });
+      toast.success(t("settings.account.profileSavedMsg"), { title: t("settings.account.profileSaved") });
+    } catch (err: unknown) {
+      const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message ?? t("settings.account.updateFailedMsg");
+      toast.error(msg, { title: t("settings.account.updateFailed") });
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
     <div className="space-y-5">
       <SectionCard
-        title="Profile Information"
-        description="Your account details"
+        title={t("settings.account.profileInfo")}
+        description={t("settings.account.profileInfoDesc")}
         action={
-          <button className={btnPrimaryCls} disabled>
-            <Save className="w-4 h-4" />
-            Save
+          <button className={btnPrimaryCls} onClick={handleSave} disabled={saving}>
+            {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+            {saving ? t("common.saving") : t("common.save")}
           </button>
         }
       >
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
           <div>
-            <label htmlFor="firstName" className={labelCls}>
-              First Name
-            </label>
-            <input
-              id="firstName"
-              className={inputCls}
-              value={form.firstName}
-              onChange={set("firstName")}
-              readOnly
-            />
+            <label htmlFor="firstName" className={labelCls}>{t("settings.account.firstName")}</label>
+            <input id="firstName" className={inputCls} value={form.firstName} onChange={set("firstName")} />
           </div>
           <div>
-            <label htmlFor="lastName" className={labelCls}>
-              Last Name
-            </label>
-            <input
-              id="lastName"
-              className={inputCls}
-              value={form.lastName}
-              onChange={set("lastName")}
-              readOnly
-            />
+            <label htmlFor="lastName" className={labelCls}>{t("settings.account.lastName")}</label>
+            <input id="lastName" className={inputCls} value={form.lastName} onChange={set("lastName")} />
+          </div>
+          <div className="sm:col-span-2">
+            <label htmlFor="email" className={labelCls}>{t("settings.account.email")}</label>
+            <input id="email" type="email" className={inputCls} value={form.email} onChange={set("email")} />
           </div>
           <div>
-            <label htmlFor="email" className={labelCls}>
-              Email Address
-            </label>
-            <input
-              id="email"
-              type="email"
-              className={inputCls}
-              value={form.email}
-              readOnly
-            />
+            <label htmlFor="phone" className={labelCls}>{t("settings.account.phone")}</label>
+            <input id="phone" className={inputCls} value={form.phone} onChange={set("phone")} />
           </div>
           <div>
-            <label htmlFor="role" className={labelCls}>
-              Role
-            </label>
-            <input
-              id="role"
-              className={inputCls}
-              value={roleLabel[form.role] ?? form.role}
-              readOnly
-            />
+            <label htmlFor="location" className={labelCls}>{t("settings.account.location")}</label>
+            <input id="location" className={inputCls} value={form.location} onChange={set("location")} />
+          </div>
+          <div className="sm:col-span-2">
+            <label htmlFor="bio" className={labelCls}>{t("settings.account.bio")}</label>
+            <textarea id="bio" rows={3} className={`${inputCls} resize-none`} value={form.bio} onChange={set("bio")} />
           </div>
         </div>
       </SectionCard>
 
       {/* Danger zone */}
-      <SectionCard title="Danger Zone" description="Irreversible actions">
-        <div
-          className={`flex items-center justify-between p-4 rounded-lg border ${
-            isDark
-              ? "border-red-800 bg-red-900/20"
-              : "border-red-200 bg-red-50/50"
-          }`}
-        >
+      <SectionCard title={t("settings.account.dangerZone")} description={t("settings.account.dangerZoneDesc")}>
+        <div className="flex items-center justify-between p-4 rounded-lg border border-red-200 bg-red-50/50 dark:border-red-800 dark:bg-red-900/20">
           <div>
-            <p className={`text-sm font-medium ${isDark ? "text-red-400" : "text-red-700"}`}>
-              Delete Account
-            </p>
-            <p className={`text-xs mt-0.5 ${isDark ? "text-red-500" : "text-red-500"}`}>
-              Permanently delete your account and all associated data.
+            <p className="text-sm font-medium text-red-700 dark:text-red-400">{t("settings.account.deleteAccount")}</p>
+            <p className="text-xs text-red-500 dark:text-red-500/80 mt-0.5">
+              {t("settings.account.deleteAccountDesc")}
             </p>
           </div>
           <button
-            className={`px-4 py-2 rounded-lg border text-sm font-medium transition-colors ${
-              isDark
-                ? "border-red-700 bg-neutral-800 text-red-400 hover:bg-red-900/30"
-                : "border-red-300 bg-white text-red-600 hover:bg-red-50"
-            }`}
+            onClick={() => toast.warning(t("settings.account.deleteRestricted"), { title: t("settings.account.actionRestricted") })}
+            className="px-4 py-2 rounded-lg border border-red-300 bg-white text-sm font-medium text-red-600 hover:bg-red-50 transition-colors dark:bg-transparent dark:border-red-700 dark:text-red-400 dark:hover:bg-red-900/30"
           >
-            Delete
+            {t("common.delete")}
           </button>
         </div>
       </SectionCard>
@@ -208,180 +182,135 @@ function AccountTab() {
 }
 
 /* ────────────────────────────────────────────────────────
-   Security Tab — wired to authApi.changePassword()
+   Security Tab — password validation matches backend rules
    ──────────────────────────────────────────────────────── */
 
 function SecurityTab() {
-  const { isDark } = useTheme();
-  const { inputCls, labelCls, btnPrimaryCls } = useInputStyles();
+  const toast = useToast();
+  const { t } = useTranslation();
   const [show, setShow] = useState({ current: false, new: false, confirm: false });
   const [passwords, setPasswords] = useState({ current: "", new: "", confirm: "" });
+  const [saving, setSaving] = useState(false);
   const [twoFA, setTwoFA] = useState(false);
   const [sessions, setSessions] = useState(true);
-  const [status, setStatus] = useState<{ type: "success" | "error"; msg: string } | null>(null);
-  const [loading, setLoading] = useState(false);
 
-  const toggleShow = (k: keyof typeof show) => () => setShow((p) => ({ ...p, [k]: !p[k] }));
-  const setPwd = (k: keyof typeof passwords) => (e: React.ChangeEvent<HTMLInputElement>) =>
-    setPasswords((p) => ({ ...p, [k]: e.target.value }));
+  const toggle = (k: keyof typeof show) => () => setShow((p) => ({ ...p, [k]: !p[k] }));
 
   const handleChangePassword = async () => {
-    setStatus(null);
-
-    if (!passwords.current || !passwords.new || !passwords.confirm) {
-      setStatus({ type: "error", msg: "All password fields are required." });
-      return;
-    }
-    if (passwords.new.length < 6) {
-      setStatus({ type: "error", msg: "New password must be at least 6 characters." });
+    if (!passwords.current || !passwords.new) {
+      toast.error(t("settings.security.fillBothFields"), { title: t("settings.account.validationError") });
       return;
     }
     if (passwords.new !== passwords.confirm) {
-      setStatus({ type: "error", msg: "New passwords do not match." });
+      toast.error(t("settings.security.passwordsMismatch"), { title: t("settings.account.validationError") });
       return;
     }
-
-    setLoading(true);
+    if (passwords.new.length < 8) {
+      toast.error(t("settings.security.minChars"), { title: t("settings.account.validationError") });
+      return;
+    }
+    if (!/[A-Z]/.test(passwords.new)) {
+      toast.error(t("settings.security.needUppercase"), { title: t("settings.account.validationError") });
+      return;
+    }
+    if (!/[0-9]/.test(passwords.new)) {
+      toast.error(t("settings.security.needNumber"), { title: t("settings.account.validationError") });
+      return;
+    }
+    setSaving(true);
     try {
-      await authApi.changePassword({
-        currentPassword: passwords.current,
-        newPassword: passwords.new,
-      });
-      setStatus({ type: "success", msg: "Password changed successfully!" });
+      await authApi.changePassword({ currentPassword: passwords.current, newPassword: passwords.new });
+      toast.success(t("settings.security.passwordUpdatedMsg"), { title: t("settings.security.passwordUpdated") });
       setPasswords({ current: "", new: "", confirm: "" });
     } catch (err: unknown) {
-      const msg =
-        (err as { response?: { data?: { message?: string } } })?.response?.data?.message ??
-        "Failed to change password. Check your current password.";
-      setStatus({ type: "error", msg });
+      const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message ?? t("settings.account.updateFailedMsg");
+      toast.error(msg, { title: t("settings.account.updateFailed") });
     } finally {
-      setLoading(false);
+      setSaving(false);
     }
   };
+
+  const PWD_FIELDS: [keyof typeof passwords, string][] = [
+    ["current", t("settings.security.currentPassword")],
+    ["new", t("settings.security.newPassword")],
+    ["confirm", t("settings.security.confirmNewPassword")],
+  ];
 
   return (
     <div className="space-y-5">
       <SectionCard
-        title="Change Password"
-        description="Update your password regularly for better security"
+        title={t("settings.security.changePassword")}
+        description={t("settings.security.changePasswordDesc")}
         action={
-          <button className={btnPrimaryCls} onClick={handleChangePassword} disabled={loading}>
-            <Save className="w-4 h-4" />
-            {loading ? "Updating..." : "Update"}
+          <button className={btnPrimaryCls} onClick={handleChangePassword} disabled={saving}>
+            {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+            {saving ? t("common.updating") : t("common.update")}
           </button>
         }
       >
-        {status && (
-          <div
-            className={`flex items-center gap-2 p-3 rounded-lg mb-4 text-sm font-medium ${
-              status.type === "success"
-                ? isDark
-                  ? "bg-emerald-900/30 text-emerald-400"
-                  : "bg-emerald-50 text-emerald-700"
-                : isDark
-                ? "bg-red-900/30 text-red-400"
-                : "bg-red-50 text-red-700"
-            }`}
-          >
-            {status.type === "success" ? (
-              <CheckCircle className="w-4 h-4 shrink-0" />
-            ) : (
-              <AlertCircle className="w-4 h-4 shrink-0" />
-            )}
-            {status.msg}
-          </div>
-        )}
         <div className="space-y-4 max-w-md">
-          {(
-            [
-              ["current", "Current Password"],
-              ["new", "New Password"],
-              ["confirm", "Confirm New Password"],
-            ] as const
-          ).map(([key, label]) => (
+          {PWD_FIELDS.map(([key, label]) => (
             <div key={key}>
-              <label htmlFor={`pwd-${key}`} className={labelCls}>
-                {label}
-              </label>
+              <label htmlFor={`pwd-${key}`} className={labelCls}>{label}</label>
               <div className="relative">
                 <input
                   id={`pwd-${key}`}
                   type={show[key] ? "text" : "password"}
-                  placeholder="••••••••"
-                  className={`${inputCls} pr-10`}
+                  placeholder={t("settings.security.passwordPlaceholder")}
                   value={passwords[key]}
-                  onChange={setPwd(key)}
+                  onChange={(e) => setPasswords((p) => ({ ...p, [key]: e.target.value }))}
+                  className={`${inputCls} pr-10`}
                 />
                 <button
                   type="button"
-                  className={`absolute right-3 top-1/2 -translate-y-1/2 transition-colors ${
-                    isDark ? "text-neutral-400 hover:text-neutral-200" : "text-slate-400 hover:text-slate-600"
-                  }`}
-                  onClick={toggleShow(key)}
-                  aria-label={show[key] ? "Hide password" : "Show password"}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:text-neutral-500 dark:hover:text-neutral-300 transition-colors"
+                  onClick={toggle(key)}
                 >
-                  {show[key] ? (
-                    <EyeOff className="w-4 h-4" />
-                  ) : (
-                    <Eye className="w-4 h-4" />
-                  )}
+                  {show[key] ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
               </div>
             </div>
           ))}
+          {/* Password requirements hint */}
+          {passwords.new.length > 0 && (
+            <div className="text-xs space-y-1 text-slate-500 dark:text-neutral-400">
+              <p className={passwords.new.length >= 8 ? "text-emerald-600 dark:text-emerald-400" : ""}>
+                {passwords.new.length >= 8 ? "\u2713" : "\u2022"} {t("settings.security.reqMinChars")}
+              </p>
+              <p className={/[A-Z]/.test(passwords.new) ? "text-emerald-600 dark:text-emerald-400" : ""}>
+                {/[A-Z]/.test(passwords.new) ? "\u2713" : "\u2022"} {t("settings.security.reqUppercase")}
+              </p>
+              <p className={/[0-9]/.test(passwords.new) ? "text-emerald-600 dark:text-emerald-400" : ""}>
+                {/[0-9]/.test(passwords.new) ? "\u2713" : "\u2022"} {t("settings.security.reqNumber")}
+              </p>
+            </div>
+          )}
         </div>
       </SectionCard>
 
-      <SectionCard
-        title="Two-Factor Authentication"
-        description="Add an extra layer of security"
-      >
+      <SectionCard title={t("settings.security.twoFactorAuth")} description={t("settings.security.twoFactorAuthDesc")}>
         <div className="space-y-4">
-          <div
-            className={`flex items-center justify-between p-4 rounded-lg ${
-              isDark ? "bg-neutral-700/50" : "bg-slate-50"
-            }`}
-          >
+          <div className="flex items-center justify-between p-4 rounded-lg bg-slate-50 dark:bg-neutral-700/50">
             <div className="flex items-center gap-3">
-              <div
-                className={`w-10 h-10 rounded-lg flex items-center justify-center ${
-                  isDark ? "bg-indigo-900/40" : "bg-indigo-100"
-                }`}
-              >
-                <Smartphone className={`w-5 h-5 ${isDark ? "text-indigo-400" : "text-indigo-600"}`} />
+              <div className="w-10 h-10 rounded-lg bg-indigo-100 dark:bg-indigo-900/40 flex items-center justify-center">
+                <Smartphone className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
               </div>
               <div>
-                <p className={`text-sm font-medium ${isDark ? "text-neutral-200" : "text-slate-800"}`}>
-                  Authenticator App
-                </p>
-                <p className={`text-xs mt-0.5 ${isDark ? "text-neutral-400" : "text-slate-500"}`}>
-                  Use an authenticator app to generate codes
-                </p>
+                <p className="text-sm font-medium text-slate-800 dark:text-white">{t("settings.security.authenticatorApp")}</p>
+                <p className="text-xs text-slate-500 dark:text-neutral-400 mt-0.5">{t("settings.security.authenticatorAppDesc")}</p>
               </div>
             </div>
             <Toggle id="toggle-2fa" checked={twoFA} onChange={setTwoFA} />
           </div>
 
-          <div
-            className={`flex items-center justify-between p-4 rounded-lg ${
-              isDark ? "bg-neutral-700/50" : "bg-slate-50"
-            }`}
-          >
+          <div className="flex items-center justify-between p-4 rounded-lg bg-slate-50 dark:bg-neutral-700/50">
             <div className="flex items-center gap-3">
-              <div
-                className={`w-10 h-10 rounded-lg flex items-center justify-center ${
-                  isDark ? "bg-emerald-900/40" : "bg-emerald-100"
-                }`}
-              >
-                <Monitor className={`w-5 h-5 ${isDark ? "text-emerald-400" : "text-emerald-600"}`} />
+              <div className="w-10 h-10 rounded-lg bg-emerald-100 dark:bg-emerald-900/40 flex items-center justify-center">
+                <Monitor className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
               </div>
               <div>
-                <p className={`text-sm font-medium ${isDark ? "text-neutral-200" : "text-slate-800"}`}>
-                  Active Sessions
-                </p>
-                <p className={`text-xs mt-0.5 ${isDark ? "text-neutral-400" : "text-slate-500"}`}>
-                  Get alerts for new sign-ins
-                </p>
+                <p className="text-sm font-medium text-slate-800 dark:text-white">{t("settings.security.activeSessions")}</p>
+                <p className="text-xs text-slate-500 dark:text-neutral-400 mt-0.5">{t("settings.security.activeSessionsDesc")}</p>
               </div>
             </div>
             <Toggle id="toggle-sessions" checked={sessions} onChange={setSessions} />
@@ -393,87 +322,65 @@ function SecurityTab() {
 }
 
 /* ────────────────────────────────────────────────────────
-   Notifications Tab (dark mode)
+   Notifications Tab — persisted to localStorage
    ──────────────────────────────────────────────────────── */
 
+const NOTIF_STORAGE_KEY = "fleetflow_notification_prefs";
+
 function NotificationsTab() {
-  const { isDark } = useTheme();
-  const { btnPrimaryCls } = useInputStyles();
-  const [prefs, setPrefs] = useState({
-    emailNotifications: true,
-    pushNotifications: true,
-    weeklyDigest: false,
-    marketingEmails: false,
-    securityAlerts: true,
-    teamUpdates: true,
+  const toast = useToast();
+  const { t } = useTranslation();
+  const [prefs, setPrefs] = useState(() => {
+    try {
+      const stored = localStorage.getItem(NOTIF_STORAGE_KEY);
+      if (stored) return JSON.parse(stored);
+    } catch { /* ignore */ }
+    return {
+      emailNotifications: true,
+      pushNotifications: true,
+      weeklyDigest: false,
+      marketingEmails: false,
+      securityAlerts: true,
+      teamUpdates: true,
+    };
   });
 
   const toggle = (k: keyof typeof prefs) => () =>
-    setPrefs((p) => ({ ...p, [k]: !p[k] }));
+    setPrefs((p: typeof prefs) => ({ ...p, [k]: !p[k] }));
 
-  const ITEMS: { key: keyof typeof prefs; title: string; desc: string }[] = [
-    {
-      key: "emailNotifications",
-      title: "Email Notifications",
-      desc: "Receive email updates about fleet activity",
-    },
-    {
-      key: "pushNotifications",
-      title: "Push Notifications",
-      desc: "Get push notifications on your devices",
-    },
-    {
-      key: "weeklyDigest",
-      title: "Weekly Digest",
-      desc: "Get a summary of fleet activity every week",
-    },
-    {
-      key: "marketingEmails",
-      title: "Marketing Emails",
-      desc: "Receive news, updates, and promotions",
-    },
-    {
-      key: "securityAlerts",
-      title: "Security Alerts",
-      desc: "Important alerts about your account security",
-    },
-    {
-      key: "teamUpdates",
-      title: "Team Updates",
-      desc: "Updates from your team members and operations",
-    },
+  const handleSave = () => {
+    localStorage.setItem(NOTIF_STORAGE_KEY, JSON.stringify(prefs));
+    toast.success(t("settings.notifications.preferencesSavedMsg"), { title: t("settings.notifications.preferencesSaved") });
+  };
+
+  const ITEMS: { key: keyof typeof prefs; titleKey: string; descKey: string }[] = [
+    { key: "emailNotifications", titleKey: "settings.notifications.emailNotifications", descKey: "settings.notifications.emailNotificationsDesc" },
+    { key: "pushNotifications", titleKey: "settings.notifications.pushNotifications", descKey: "settings.notifications.pushNotificationsDesc" },
+    { key: "weeklyDigest", titleKey: "settings.notifications.weeklyDigest", descKey: "settings.notifications.weeklyDigestDesc" },
+    { key: "marketingEmails", titleKey: "settings.notifications.marketingEmails", descKey: "settings.notifications.marketingEmailsDesc" },
+    { key: "securityAlerts", titleKey: "settings.notifications.securityAlerts", descKey: "settings.notifications.securityAlertsDesc" },
+    { key: "teamUpdates", titleKey: "settings.notifications.teamUpdates", descKey: "settings.notifications.teamUpdatesDesc" },
   ];
 
   return (
     <SectionCard
-      title="Notification Preferences"
-      description="Choose what notifications you want to receive"
+      title={t("settings.notifications.title")}
+      description={t("settings.notifications.titleDesc")}
       action={
-        <button className={btnPrimaryCls}>
+        <button className={btnPrimaryCls} onClick={handleSave}>
           <Save className="w-4 h-4" />
-          Save
+          {t("common.save")}
         </button>
       }
     >
-      <div className={`divide-y ${isDark ? "divide-neutral-700" : "divide-slate-100"}`}>
+      <div className="divide-y divide-slate-100 dark:divide-neutral-700">
         {ITEMS.map((item) => (
-          <div
-            key={item.key}
-            className="flex items-center justify-between py-4 first:pt-0 last:pb-0"
-          >
+          <div key={String(item.key)} className="flex items-center justify-between py-4 first:pt-0 last:pb-0">
             <div>
-              <p className={`text-sm font-medium ${isDark ? "text-neutral-200" : "text-slate-800"}`}>
-                {item.title}
-              </p>
-              <p className={`text-xs mt-0.5 ${isDark ? "text-neutral-400" : "text-slate-500"}`}>
-                {item.desc}
-              </p>
+              <p className="text-sm font-medium text-slate-800 dark:text-white">{t(item.titleKey)}</p>
+              <p className="text-xs text-slate-500 dark:text-neutral-400 mt-0.5">{t(item.descKey)}</p>
             </div>
-            <Toggle
-              id={`toggle-${item.key}`}
-              checked={prefs[item.key]}
-              onChange={toggle(item.key)}
-            />
+            <Toggle id={`toggle-${String(item.key)}`} checked={prefs[item.key]} onChange={toggle(item.key)} />
           </div>
         ))}
       </div>
@@ -482,95 +389,90 @@ function NotificationsTab() {
 }
 
 /* ────────────────────────────────────────────────────────
-   Appearance Tab — connected to ThemeContext
+   Appearance Tab — theme, compact mode, language (i18next)
    ──────────────────────────────────────────────────────── */
 
 function AppearanceTab() {
-  const { theme, setTheme, isDark } = useTheme();
-  const { inputCls, labelCls, btnPrimaryCls } = useInputStyles();
-  const [language, setLanguage] = useState("en");
-  const [compactMode, setCompactMode] = useState(false);
+  const toast = useToast();
+  const { t, i18n } = useTranslation();
+  const { theme: currentTheme, setTheme: applyTheme } = useTheme();
+  const [selection, setSelection] = useState<"light" | "dark" | "system">(() => {
+    const stored = localStorage.getItem("fleetflow_theme_mode");
+    if (stored === "system" || stored === "light" || stored === "dark") return stored;
+    const osPref = window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+    return currentTheme === osPref ? "system" : currentTheme;
+  });
+  const [compactMode, setCompactMode] = useState(() => localStorage.getItem("fleetflow_compact") === "true");
 
-  // Map theme context's "light" | "dark" to our display
-  const currentTheme = theme;
+  const handleThemeChange = (id: "light" | "dark" | "system") => {
+    setSelection(id);
+    localStorage.setItem("fleetflow_theme_mode", id);
+    if (id === "system") {
+      const osPref = window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+      applyTheme(osPref);
+    } else {
+      applyTheme(id);
+    }
+  };
 
-  const themes: {
-    id: "light" | "dark";
-    label: string;
-    icon: React.FC<{ className?: string }>;
-    desc: string;
-  }[] = [
-    { id: "light", label: "Light", icon: Sun, desc: "Default light theme" },
-    { id: "dark", label: "Dark", icon: Moon, desc: "Easy on the eyes" },
+  const handleLanguageChange = (lang: string) => {
+    i18n.changeLanguage(lang);
+  };
+
+  // Apply compact mode to document
+  const applyCompact = useCallback((enabled: boolean) => {
+    document.documentElement.classList.toggle("compact", enabled);
+    localStorage.setItem("fleetflow_compact", String(enabled));
+  }, []);
+
+  useEffect(() => {
+    applyCompact(compactMode);
+  }, [compactMode, applyCompact]);
+
+  const handleCompactChange = (v: boolean) => {
+    setCompactMode(v);
+    applyCompact(v);
+  };
+
+  const handleSave = () => {
+    localStorage.setItem("fleetflow_compact", String(compactMode));
+    localStorage.setItem("fleetflow_theme_mode", selection);
+    toast.success(t("settings.appearance.preferencesSavedMsg"), { title: t("settings.appearance.preferencesSaved") });
+  };
+
+  const themes: { id: "light" | "dark" | "system"; labelKey: string; icon: React.FC<{ className?: string }>; descKey: string }[] = [
+    { id: "light", labelKey: "settings.appearance.light", icon: Sun, descKey: "settings.appearance.lightDesc" },
+    { id: "dark", labelKey: "settings.appearance.dark", icon: Moon, descKey: "settings.appearance.darkDesc" },
+    { id: "system", labelKey: "settings.appearance.system", icon: Monitor, descKey: "settings.appearance.systemDesc" },
   ];
 
   return (
     <div className="space-y-5">
-      <SectionCard title="Theme" description="Select your preferred theme">
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          {themes.map((t) => {
-            const active = currentTheme === t.id;
+      <SectionCard title={t("settings.appearance.theme")} description={t("settings.appearance.themeDesc")}>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          {themes.map((tm) => {
+            const active = selection === tm.id;
             return (
               <button
-                key={t.id}
-                onClick={() => setTheme(t.id)}
+                key={tm.id}
+                onClick={() => handleThemeChange(tm.id)}
                 className={`
                   flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all duration-200
-                  ${
-                    active
-                      ? "border-indigo-500 shadow-sm " + (isDark ? "bg-indigo-900/20" : "bg-indigo-50")
-                      : isDark
-                      ? "border-neutral-600 bg-neutral-700 hover:border-neutral-500"
-                      : "border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50"
-                  }
+                  ${active
+                    ? "border-indigo-500 bg-indigo-50 dark:bg-indigo-900/30 shadow-sm"
+                    : "border-slate-200 dark:border-neutral-600 bg-white dark:bg-neutral-700/50 hover:border-slate-300 dark:hover:border-neutral-500 hover:bg-slate-50 dark:hover:bg-neutral-700"}
                 `}
               >
-                <div
-                  className={`w-10 h-10 rounded-lg flex items-center justify-center ${
-                    active
-                      ? isDark
-                        ? "bg-indigo-800/50"
-                        : "bg-indigo-100"
-                      : isDark
-                      ? "bg-neutral-600"
-                      : "bg-slate-100"
-                  }`}
-                >
-                  <t.icon
-                    className={`w-5 h-5 ${
-                      active
-                        ? isDark
-                          ? "text-indigo-400"
-                          : "text-indigo-600"
-                        : isDark
-                        ? "text-neutral-400"
-                        : "text-slate-400"
-                    }`}
-                  />
+                <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${active ? "bg-indigo-100 dark:bg-indigo-900/50" : "bg-slate-100 dark:bg-neutral-600"}`}>
+                  <tm.icon className={`w-5 h-5 ${active ? "text-indigo-600 dark:text-indigo-400" : "text-slate-400 dark:text-neutral-400"}`} />
                 </div>
                 <div className="text-center">
-                  <p
-                    className={`text-sm font-semibold ${
-                      active
-                        ? isDark
-                          ? "text-indigo-300"
-                          : "text-indigo-700"
-                        : isDark
-                        ? "text-neutral-200"
-                        : "text-slate-800"
-                    }`}
-                  >
-                    {t.label}
+                  <p className={`text-sm font-semibold ${active ? "text-indigo-700 dark:text-indigo-300" : "text-slate-800 dark:text-white"}`}>
+                    {t(tm.labelKey)}
                   </p>
-                  <p className={`text-xs mt-0.5 ${isDark ? "text-neutral-400" : "text-slate-500"}`}>
-                    {t.desc}
-                  </p>
+                  <p className="text-xs text-slate-500 dark:text-neutral-400 mt-0.5">{t(tm.descKey)}</p>
                 </div>
-                {active && (
-                  <span className={`text-xs font-medium ${isDark ? "text-indigo-400" : "text-indigo-600"}`}>
-                    Active
-                  </span>
-                )}
+                {active && <span className="text-xs font-medium text-indigo-600 dark:text-indigo-400">{t("settings.appearance.active")}</span>}
               </button>
             );
           })}
@@ -578,54 +480,42 @@ function AppearanceTab() {
       </SectionCard>
 
       <SectionCard
-        title="Language & Display"
-        description="Local and display preferences"
+        title={t("settings.appearance.languageDisplay")}
+        description={t("settings.appearance.languageDisplayDesc")}
         action={
-          <button className={btnPrimaryCls}>
+          <button className={btnPrimaryCls} onClick={handleSave}>
             <Save className="w-4 h-4" />
-            Save
+            {t("common.save")}
           </button>
         }
       >
         <div className="space-y-5 max-w-md">
           <div>
-            <label htmlFor="language" className={labelCls}>
-              Language
-            </label>
+            <label htmlFor="language" className={labelCls}>{t("settings.appearance.language")}</label>
             <select
               id="language"
-              value={language}
-              onChange={(e) => setLanguage(e.target.value)}
+              value={i18n.language}
+              onChange={(e) => handleLanguageChange(e.target.value)}
               className={inputCls}
             >
               <option value="en">English</option>
-              <option value="hi">Hindi</option>
-              <option value="gu">Gujarati</option>
-              <option value="es">Spanish</option>
-              <option value="fr">French</option>
-              <option value="de">German</option>
-              <option value="ja">Japanese</option>
+              <option value="hi">Hindi (हिन्दी)</option>
+              <option value="gu">Gujarati (ગુજરાતી)</option>
+              <option value="es">Spanish (Español)</option>
+              <option value="fr">French (Français)</option>
+              <option value="de">German (Deutsch)</option>
+              <option value="ja">Japanese (日本語)</option>
             </select>
           </div>
 
-          <div
-            className={`flex items-center justify-between p-4 rounded-lg ${
-              isDark ? "bg-neutral-700/50" : "bg-slate-50"
-            }`}
-          >
+          <div className="flex items-center justify-between p-4 rounded-lg bg-slate-50 dark:bg-neutral-700/50">
             <div>
-              <p className={`text-sm font-medium ${isDark ? "text-neutral-200" : "text-slate-800"}`}>
-                Compact Mode
-              </p>
-              <p className={`text-xs mt-0.5 ${isDark ? "text-neutral-400" : "text-slate-500"}`}>
-                Reduce spacing and padding for denser layouts
+              <p className="text-sm font-medium text-slate-800 dark:text-white">{t("settings.appearance.compactMode")}</p>
+              <p className="text-xs text-slate-500 dark:text-neutral-400 mt-0.5">
+                {t("settings.appearance.compactModeDesc")}
               </p>
             </div>
-            <Toggle
-              id="toggle-compact"
-              checked={compactMode}
-              onChange={setCompactMode}
-            />
+            <Toggle id="toggle-compact" checked={compactMode} onChange={handleCompactChange} />
           </div>
         </div>
       </SectionCard>
@@ -638,37 +528,20 @@ function AppearanceTab() {
    ──────────────────────────────────────────────────────── */
 
 export default function Settings() {
+  const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState("account");
 
   const tabs: SettingsTab[] = [
-    {
-      id: "account",
-      label: "Account",
-      icon: User,
-      content: <AccountTab />,
-    },
-    {
-      id: "security",
-      label: "Security",
-      icon: Shield,
-      content: <SecurityTab />,
-    },
-    {
-      id: "notifications",
-      label: "Notifications",
-      icon: Bell,
-      content: <NotificationsTab />,
-    },
-    {
-      id: "appearance",
-      label: "Appearance",
-      icon: Palette,
-      content: <AppearanceTab />,
-    },
+    { id: "account", label: t("settings.tabs.account"), icon: User, content: <AccountTab /> },
+    { id: "security", label: t("settings.tabs.security"), icon: Shield, content: <SecurityTab /> },
+    { id: "notifications", label: t("settings.tabs.notifications"), icon: Bell, content: <NotificationsTab /> },
+    { id: "appearance", label: t("settings.tabs.appearance"), icon: Palette, content: <AppearanceTab /> },
   ];
 
   return (
     <SettingsLayout
+      title={t("settings.title")}
+      subtitle={t("settings.subtitle")}
       tabs={tabs}
       activeTab={activeTab}
       onTabChange={setActiveTab}

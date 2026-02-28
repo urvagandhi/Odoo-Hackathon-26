@@ -2,12 +2,12 @@
  * VehicleForm — slide-over modal for creating/editing vehicles.
  */
 import { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Truck, Save, Loader2 } from "lucide-react";
 import { useTheme } from "../../context/ThemeContext";
 import { fleetApi } from "../../api/client";
 import { createVehicleSchema, type CreateVehicleFormData } from "../../validators/vehicle";
-import type { ZodError } from "zod";
 
 interface VehicleType {
   id: string;
@@ -32,6 +32,8 @@ interface VehicleFormProps {
     capacityWeight: number;
     capacityVolume?: number;
     currentOdometer?: number;
+    region?: string;
+    acquisitionCost?: number;
   } | null;
 }
 
@@ -45,11 +47,14 @@ const INITIAL_FORM: CreateVehicleFormData = {
   vehicleTypeId: "",
   capacityWeight: 0,
   capacityVolume: "",
-  currentOdometer: 0,
+  currentOdometer: "",
+  region: "",
+  acquisitionCost: "",
 };
 
 export function VehicleForm({ open, onClose, onSuccess, editData }: VehicleFormProps) {
   const { isDark } = useTheme();
+  const { t } = useTranslation();
   const isEditing = !!editData;
 
   const [form, setForm] = useState<CreateVehicleFormData>(INITIAL_FORM);
@@ -62,8 +67,7 @@ export function VehicleForm({ open, onClose, onSuccess, editData }: VehicleFormP
   useEffect(() => {
     if (!open) return;
     fleetApi.listVehicleTypes().then((res) => {
-      const types = (res.data?.data ?? res.data ?? []) as VehicleType[];
-      setVehicleTypes(types);
+      setVehicleTypes(res);
     }).catch(() => {});
   }, [open]);
 
@@ -80,7 +84,9 @@ export function VehicleForm({ open, onClose, onSuccess, editData }: VehicleFormP
         vehicleTypeId: editData.vehicleTypeId,
         capacityWeight: editData.capacityWeight,
         capacityVolume: editData.capacityVolume ?? "",
-        currentOdometer: editData.currentOdometer ?? 0,
+        currentOdometer: editData.currentOdometer ?? "",
+        region: editData.region ?? "",
+        acquisitionCost: editData.acquisitionCost ?? "",
       });
     } else {
       setForm(INITIAL_FORM);
@@ -103,7 +109,7 @@ export function VehicleForm({ open, onClose, onSuccess, editData }: VehicleFormP
     const result = createVehicleSchema.safeParse(form);
     if (!result.success) {
       const fieldErrors: Record<string, string> = {};
-      (result.error as ZodError).errors.forEach((err) => {
+      result.error.issues.forEach((err) => {
         const key = err.path[0] as string;
         if (!fieldErrors[key]) fieldErrors[key] = err.message;
       });
@@ -124,15 +130,19 @@ export function VehicleForm({ open, onClose, onSuccess, editData }: VehicleFormP
 
       if (result.data.color) payload.color = result.data.color;
       if (result.data.vin) payload.vin = result.data.vin;
-      if (result.data.capacityVolume && result.data.capacityVolume !== "") {
+      if (result.data.capacityVolume) {
         payload.capacityVolume = Number(result.data.capacityVolume);
+      }
+      if (result.data.region) payload.region = result.data.region;
+      if (result.data.acquisitionCost) {
+        payload.acquisitionCost = Number(result.data.acquisitionCost);
       }
 
       if (isEditing && editData) {
-        await fleetApi.updateVehicle(editData.id, payload);
+        await fleetApi.updateVehicle(editData.id, payload as Parameters<typeof fleetApi.updateVehicle>[1]);
       } else {
         if (result.data.currentOdometer) payload.currentOdometer = result.data.currentOdometer;
-        await fleetApi.createVehicle(payload);
+        await fleetApi.createVehicle(payload as Parameters<typeof fleetApi.createVehicle>[0]);
       }
 
       onSuccess();
@@ -189,10 +199,10 @@ export function VehicleForm({ open, onClose, onSuccess, editData }: VehicleFormP
                 </div>
                 <div>
                   <h2 className={`text-base font-bold ${isDark ? "text-white" : "text-slate-900"}`}>
-                    {isEditing ? "Edit Vehicle" : "New Vehicle"}
+                    {isEditing ? t("forms.vehicle.editTitle") : t("forms.vehicle.newTitle")}
                   </h2>
                   <p className={`text-xs ${isDark ? "text-neutral-400" : "text-slate-500"}`}>
-                    {isEditing ? "Update vehicle details" : "Register a new fleet asset"}
+                    {isEditing ? t("forms.vehicle.editSubtitle") : t("forms.vehicle.newSubtitle")}
                   </p>
                 </div>
               </div>
@@ -216,10 +226,10 @@ export function VehicleForm({ open, onClose, onSuccess, editData }: VehicleFormP
 
               {/* Registration Plate */}
               <div>
-                <label className={labelCls}>Registration Plate *</label>
+                <label className={labelCls}>{t("forms.vehicle.licensePlate")}</label>
                 <input
                   className={`${inputCls} ${errors.licensePlate ? "border-red-400" : ""}`}
-                  placeholder="MH-12-AB-1234"
+                  placeholder={t("forms.vehicle.licensePlatePlaceholder")}
                   value={form.licensePlate}
                   onChange={(e) => handleChange("licensePlate", e.target.value)}
                 />
@@ -229,20 +239,20 @@ export function VehicleForm({ open, onClose, onSuccess, editData }: VehicleFormP
               {/* Make + Model row */}
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className={labelCls}>Make *</label>
+                  <label className={labelCls}>{t("forms.vehicle.make")}</label>
                   <input
                     className={`${inputCls} ${errors.make ? "border-red-400" : ""}`}
-                    placeholder="Tata"
+                    placeholder={t("forms.vehicle.makePlaceholder")}
                     value={form.make}
                     onChange={(e) => handleChange("make", e.target.value)}
                   />
                   {errors.make && <p className={errCls}>{errors.make}</p>}
                 </div>
                 <div>
-                  <label className={labelCls}>Model *</label>
+                  <label className={labelCls}>{t("forms.vehicle.model")}</label>
                   <input
                     className={`${inputCls} ${errors.model ? "border-red-400" : ""}`}
-                    placeholder="Prima"
+                    placeholder={t("forms.vehicle.modelPlaceholder")}
                     value={form.model}
                     onChange={(e) => handleChange("model", e.target.value)}
                   />
@@ -253,7 +263,7 @@ export function VehicleForm({ open, onClose, onSuccess, editData }: VehicleFormP
               {/* Year + Color */}
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className={labelCls}>Year *</label>
+                  <label className={labelCls}>{t("forms.vehicle.year")}</label>
                   <input
                     type="number"
                     className={`${inputCls} ${errors.year ? "border-red-400" : ""}`}
@@ -263,10 +273,10 @@ export function VehicleForm({ open, onClose, onSuccess, editData }: VehicleFormP
                   {errors.year && <p className={errCls}>{errors.year}</p>}
                 </div>
                 <div>
-                  <label className={labelCls}>Color</label>
+                  <label className={labelCls}>{t("forms.vehicle.color")}</label>
                   <input
                     className={inputCls}
-                    placeholder="White"
+                    placeholder={t("forms.vehicle.colorPlaceholder")}
                     value={form.color ?? ""}
                     onChange={(e) => handleChange("color", e.target.value)}
                   />
@@ -275,10 +285,10 @@ export function VehicleForm({ open, onClose, onSuccess, editData }: VehicleFormP
 
               {/* VIN */}
               <div>
-                <label className={labelCls}>VIN</label>
+                <label className={labelCls}>{t("forms.vehicle.vin")}</label>
                 <input
                   className={inputCls}
-                  placeholder="17-character VIN (optional)"
+                  placeholder={t("forms.vehicle.vinPlaceholder")}
                   maxLength={17}
                   value={form.vin ?? ""}
                   onChange={(e) => handleChange("vin", e.target.value)}
@@ -288,13 +298,13 @@ export function VehicleForm({ open, onClose, onSuccess, editData }: VehicleFormP
 
               {/* Vehicle Type */}
               <div>
-                <label className={labelCls}>Vehicle Type *</label>
+                <label className={labelCls}>{t("forms.vehicle.vehicleType")}</label>
                 <select
                   className={`${inputCls} ${errors.vehicleTypeId ? "border-red-400" : ""}`}
                   value={form.vehicleTypeId}
                   onChange={(e) => handleChange("vehicleTypeId", e.target.value)}
                 >
-                  <option value="">Select type...</option>
+                  <option value="">{t("forms.vehicle.selectType")}</option>
                   {vehicleTypes.map((vt) => (
                     <option key={vt.id} value={vt.id}>
                       {vt.name}
@@ -307,37 +317,63 @@ export function VehicleForm({ open, onClose, onSuccess, editData }: VehicleFormP
               {/* Capacity Weight + Volume */}
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className={labelCls}>Max Capacity (kg) *</label>
+                  <label className={labelCls}>{t("forms.vehicle.maxCapacity")}</label>
                   <input
                     type="number"
                     className={`${inputCls} ${errors.capacityWeight ? "border-red-400" : ""}`}
-                    placeholder="5000"
+                    placeholder={t("forms.vehicle.capacityPlaceholder")}
                     value={form.capacityWeight || ""}
                     onChange={(e) => handleChange("capacityWeight", e.target.value)}
                   />
                   {errors.capacityWeight && <p className={errCls}>{errors.capacityWeight}</p>}
                 </div>
                 <div>
-                  <label className={labelCls}>Volume (m³)</label>
+                  <label className={labelCls}>{t("forms.vehicle.volume")}</label>
                   <input
                     type="number"
                     className={inputCls}
-                    placeholder="Optional"
+                    placeholder={t("common.optional")}
                     value={form.capacityVolume ?? ""}
                     onChange={(e) => handleChange("capacityVolume", e.target.value)}
                   />
                 </div>
               </div>
 
+              {/* Region + Acquisition Cost */}
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className={labelCls}>{t("forms.vehicle.region")}</label>
+                  <input
+                    className={`${inputCls} ${errors.region ? "border-red-400" : ""}`}
+                    placeholder={t("forms.vehicle.regionPlaceholder")}
+                    value={form.region ?? ""}
+                    onChange={(e) => handleChange("region", e.target.value)}
+                  />
+                  {errors.region && <p className={errCls}>{errors.region}</p>}
+                </div>
+                <div>
+                  <label className={labelCls}>{t("forms.vehicle.acquisitionCost")}</label>
+                  <input
+                    type="number"
+                    className={`${inputCls} ${errors.acquisitionCost ? "border-red-400" : ""}`}
+                    placeholder={t("common.optional")}
+                    value={form.acquisitionCost ?? ""}
+                    onChange={(e) => handleChange("acquisitionCost", e.target.value)}
+                  />
+                  {errors.acquisitionCost && <p className={errCls}>{errors.acquisitionCost}</p>}
+                </div>
+              </div>
+
               {/* Odometer (create only) */}
               {!isEditing && (
                 <div>
-                  <label className={labelCls}>Initial Odometer (km)</label>
+                  <label className={labelCls}>{t("forms.vehicle.initialOdometer")}</label>
                   <input
                     type="number"
+                    min="0"
                     className={inputCls}
                     placeholder="0"
-                    value={form.currentOdometer ?? 0}
+                    value={form.currentOdometer}
                     onChange={(e) => handleChange("currentOdometer", e.target.value)}
                   />
                 </div>
@@ -355,7 +391,7 @@ export function VehicleForm({ open, onClose, onSuccess, editData }: VehicleFormP
                   isDark ? "text-neutral-300 hover:bg-neutral-700" : "text-slate-600 hover:bg-slate-100"
                 }`}
               >
-                Cancel
+                {t("common.cancel")}
               </button>
               <button
                 onClick={handleSubmit}
@@ -367,7 +403,7 @@ export function VehicleForm({ open, onClose, onSuccess, editData }: VehicleFormP
                 ) : (
                   <Save className="w-4 h-4" />
                 )}
-                {isEditing ? "Update Vehicle" : "Create Vehicle"}
+                {isEditing ? t("forms.vehicle.updateVehicle") : t("forms.vehicle.createVehicle")}
               </button>
             </div>
           </motion.div>

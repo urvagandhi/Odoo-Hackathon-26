@@ -1,10 +1,10 @@
 /**
- * Sidebar — Drivergo-inspired clean white sidebar with section labels
- * and a violet active state indicator.
- * Receives live KPI data from Layout for the mini fleet overview panel.
+ * Sidebar — clean white sidebar with section labels and active indicator.
+ * Supports dark mode and i18n.
  */
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
+import { useTranslation } from "react-i18next";
 import {
   LayoutDashboard,
   Truck,
@@ -17,23 +17,28 @@ import {
   Settings,
   LogOut,
   BarChart3,
+  Bell,
+  MessageSquare,
+  Activity,
+  HelpCircle,
+  User,
   AlertTriangle,
-  Shield,
   type LucideIcon,
 } from "lucide-react";
-import { useAuth } from "../../context/AuthContext";
+import { useAuth } from "../../hooks/useAuth";
 import { useTheme } from "../../context/ThemeContext";
-import type { DashboardKPIs } from "../../api/client";
+import Logo from "../Branding/Logo";
 
 /* ── Types ──────────────────────────────────────────────── */
 interface NavItem {
-  label: string;
+  labelKey: string;
   icon: LucideIcon;
   path: string;
+  badge?: number;
 }
 
 interface NavSection {
-  title?: string;
+  titleKey?: string;
   items: NavItem[];
 }
 
@@ -41,181 +46,160 @@ interface NavSection {
 const NAV_SECTIONS: Record<string, NavSection[]> = {
   MANAGER: [
     {
-      title: "MAIN MENU",
+      titleKey: "nav.sections.mainMenu",
       items: [
-        { label: "Dashboard",     icon: LayoutDashboard, path: "/dashboard" },
-        { label: "Fleet",         icon: Truck,           path: "/fleet" },
-        { label: "Dispatch",      icon: Route,           path: "/dispatch" },
-        { label: "Drivers",       icon: Users,           path: "/drivers" },
+        { labelKey: "nav.items.fleetHub", icon: LayoutDashboard, path: "/dashboard" },
+        { labelKey: "nav.items.vehicleRegistry", icon: Truck, path: "/fleet/vehicles" },
+        { labelKey: "nav.items.dispatchControl", icon: Route, path: "/dispatch/trips" },
+        { labelKey: "nav.items.communications", icon: MessageSquare, path: "/messages", badge: 6 },
+        { labelKey: "nav.items.operationalFeed", icon: Activity, path: "/activity" },
       ],
     },
     {
-      title: "OPERATIONS",
+      titleKey: "nav.sections.general",
       items: [
-        { label: "Maintenance",   icon: Wrench,          path: "/maintenance" },
-        { label: "Fuel & Expenses", icon: Fuel,          path: "/fuel-expenses" },
-        { label: "Analytics",     icon: BarChart3,       path: "/analytics" },
+        { labelKey: "nav.items.financialReports", icon: FileText, path: "/finance/reports" },
+        { labelKey: "nav.items.helpCenter", icon: HelpCircle, path: "/support" },
+        { labelKey: "nav.items.myIdentity", icon: User, path: "/settings" },
       ],
     },
     {
-      title: "ACCOUNT",
+      titleKey: "nav.sections.others",
       items: [
-        { label: "Settings",      icon: Settings,        path: "/settings" },
+        { labelKey: "nav.items.settings", icon: Settings, path: "/settings/general" },
       ],
     },
   ],
   DISPATCHER: [
     {
-      title: "MAIN MENU",
+      titleKey: "nav.sections.mainMenu",
       items: [
-        { label: "Dashboard",     icon: LayoutDashboard, path: "/dashboard" },
-        { label: "Dispatch",      icon: Route,           path: "/dispatch" },
+        { labelKey: "nav.items.fleetHub", icon: LayoutDashboard, path: "/dashboard" },
+        { labelKey: "nav.items.tripLedger", icon: Route, path: "/dispatch/trips" },
+        { labelKey: "nav.items.initiateTrip", icon: Route, path: "/dispatch/new" },
       ],
     },
     {
-      title: "FLEET",
+      titleKey: "nav.sections.fleet",
       items: [
-        { label: "Vehicles",      icon: Truck,           path: "/fleet" },
-        { label: "Drivers",       icon: Users,           path: "/drivers" },
+        { labelKey: "nav.items.fleetCatalog", icon: Truck, path: "/fleet/vehicles" },
+        { labelKey: "nav.items.crewRecords", icon: Users, path: "/hr/drivers" },
       ],
     },
     {
-      title: "OTHERS",
+      titleKey: "nav.sections.others",
       items: [
-        { label: "Settings",      icon: Settings,        path: "/settings" },
+        { labelKey: "nav.items.alertCenter", icon: Bell, path: "/notifications" },
+        { labelKey: "nav.items.settings", icon: Settings, path: "/settings" },
       ],
     },
   ],
   SAFETY_OFFICER: [
     {
-      title: "MAIN MENU",
+      titleKey: "nav.sections.mainMenu",
       items: [
-        { label: "Dashboard",     icon: LayoutDashboard, path: "/dashboard" },
-        { label: "Drivers",       icon: Users,           path: "/drivers" },
+        { labelKey: "nav.items.fleetHub", icon: LayoutDashboard, path: "/dashboard" },
       ],
     },
     {
-      title: "MAINTENANCE",
+      titleKey: "nav.sections.safety",
       items: [
-        { label: "Service Logs",  icon: Wrench,          path: "/maintenance" },
-        { label: "Vehicles",      icon: Truck,           path: "/fleet" },
+        { labelKey: "nav.items.safetyLog", icon: AlertTriangle, path: "/safety/incidents" },
+        { labelKey: "nav.items.crewRecords", icon: Users, path: "/hr/drivers" },
+        { labelKey: "nav.items.crewScores", icon: BarChart3, path: "/hr/performance" },
       ],
     },
     {
-      title: "OTHERS",
+      titleKey: "nav.sections.maintenance",
       items: [
-        { label: "Reports",       icon: FileText,        path: "/analytics" },
-        { label: "Settings",      icon: Settings,        path: "/settings" },
+        { labelKey: "nav.items.serviceLogs", icon: Wrench, path: "/fleet/maintenance" },
+        { labelKey: "nav.items.fleetCatalog", icon: Truck, path: "/fleet/vehicles" },
+      ],
+    },
+    {
+      titleKey: "nav.sections.others",
+      items: [
+        { labelKey: "nav.items.incidentIntel", icon: FileText, path: "/safety/reports" },
+        { labelKey: "nav.items.settings", icon: Settings, path: "/settings" },
       ],
     },
   ],
   FINANCE_ANALYST: [
     {
-      title: "MAIN MENU",
+      titleKey: "nav.sections.mainMenu",
       items: [
-        { label: "Dashboard",     icon: LayoutDashboard, path: "/dashboard" },
+        { labelKey: "nav.items.fleetHub", icon: LayoutDashboard, path: "/dashboard" },
       ],
     },
     {
-      title: "FINANCE",
+      titleKey: "nav.sections.finance",
       items: [
-        { label: "Fuel & Expenses", icon: Fuel,          path: "/fuel-expenses" },
-        { label: "Analytics",     icon: BarChart3,       path: "/analytics" },
-        { label: "Revenue",       icon: DollarSign,      path: "/analytics" },
+        { labelKey: "nav.items.revenueStream", icon: DollarSign, path: "/finance/ledger" },
+        { labelKey: "nav.items.fuelIntel", icon: Fuel, path: "/finance/fuel" },
+        { labelKey: "nav.items.profitLoss", icon: DollarSign, path: "/finance/pnl" },
       ],
     },
     {
-      title: "OTHERS",
+      titleKey: "nav.sections.reports",
       items: [
-        { label: "Settings",      icon: Settings,        path: "/settings" },
+        { labelKey: "nav.items.financialReports", icon: FileText, path: "/finance/reports" },
+        { labelKey: "nav.items.costIntel", icon: BarChart3, path: "/finance/cost-analysis" },
+      ],
+    },
+    {
+      titleKey: "nav.sections.others",
+      items: [
+        { labelKey: "nav.items.operationsIntel", icon: BarChart3, path: "/analytics" },
+        { labelKey: "nav.items.settings", icon: Settings, path: "/settings" },
+      ],
+    },
+  ],
+  DRIVER: [
+    {
+      titleKey: "nav.sections.mainMenu",
+      items: [
+        { labelKey: "nav.items.crewGateway", icon: LayoutDashboard, path: "/driver" },
+      ],
+    },
+    {
+      titleKey: "nav.sections.general",
+      items: [
+        { labelKey: "nav.items.helpCenter", icon: HelpCircle, path: "/support" },
+        { labelKey: "nav.items.myIdentity", icon: User, path: "/settings" },
       ],
     },
   ],
 };
 
-interface SidebarProps {
-  kpis?: DashboardKPIs | null;
-}
-
-export default function Sidebar({ kpis }: SidebarProps) {
+export default function Sidebar() {
   const { user, logout } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
   const { isDark } = useTheme();
+  const { t } = useTranslation();
 
   const role = user?.role ?? "MANAGER";
   const sections = NAV_SECTIONS[role] ?? NAV_SECTIONS["MANAGER"];
 
-  const isActive = (path: string) =>
-    path === "/dashboard"
-      ? location.pathname === "/dashboard"
-      : location.pathname.startsWith(path);
+  const isActive = (path: string) => location.pathname === path;
 
   return (
-    <aside className={`w-[230px] flex flex-col h-screen shrink-0 border-r ${isDark ? "bg-neutral-900 border-neutral-800" : "bg-white border-slate-100"}`}>
-
+    <aside className={`w-[230px] flex flex-col h-screen shrink-0 border-r ${isDark ? 'bg-neutral-900 border-neutral-800' : 'bg-white border-slate-100'}`}>
       {/* ── Logo ─────────────────────────────────────── */}
-      <div className={`flex items-center gap-3 px-5 h-16 shrink-0 border-b ${isDark ? "border-neutral-800" : "border-slate-100"}`}>
-        <div className="w-8 h-8 rounded-lg bg-violet-600 flex items-center justify-center shrink-0 shadow-lg shadow-violet-500/20">
-          <Truck className="w-4 h-4 text-white" />
-        </div>
-        <span className={`text-[15px] font-bold tracking-tight whitespace-nowrap ${isDark ? "text-white" : "text-slate-900"}`}>
+      <div className={`flex items-center gap-3 px-5 h-16 shrink-0 border-b ${isDark ? 'border-neutral-800' : 'border-slate-100'}`}>
+        <Logo size="sm" className="bg-white" />
+        <span className={`text-[15px] font-bold tracking-tight whitespace-nowrap ${isDark ? 'text-white' : 'text-slate-900'}`}>
           FleetFlow
         </span>
       </div>
 
-      {/* ── Live Fleet Overview ───────────────────────── */}
-      {kpis && (
-        <div className={`mx-3 mt-3 p-3 rounded-xl border ${isDark ? "bg-neutral-800 border-neutral-700" : "bg-slate-50 border-slate-100"}`}>
-          <p className={`text-[10px] font-semibold uppercase tracking-wider mb-2 ${isDark ? "text-violet-400" : "text-violet-600"}`}>
-            Fleet Overview
-          </p>
-          <div className="grid grid-cols-2 gap-2">
-            <div className="text-center">
-              <p className={`text-lg font-bold ${isDark ? "text-white" : "text-slate-900"}`}>{kpis.fleet.onTrip}</p>
-              <p className={`text-[10px] ${isDark ? "text-neutral-500" : "text-slate-400"}`}>On Trip</p>
-            </div>
-            <div className="text-center">
-              <p className="text-lg font-bold text-emerald-500">{kpis.fleet.available}</p>
-              <p className={`text-[10px] ${isDark ? "text-neutral-500" : "text-slate-400"}`}>Available</p>
-            </div>
-            <div className="text-center">
-              <p className="text-lg font-bold text-amber-500">{kpis.fleet.inShop}</p>
-              <p className={`text-[10px] ${isDark ? "text-neutral-500" : "text-slate-400"}`}>In Shop</p>
-            </div>
-            <div className="text-center">
-              <p className={`text-lg font-bold ${isDark ? "text-white" : "text-slate-900"}`}>{kpis.fleet.utilizationRate}</p>
-              <p className={`text-[10px] ${isDark ? "text-neutral-500" : "text-slate-400"}`}>Utilization</p>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* ── Alerts banner ────────────────────────────── */}
-      {kpis && (kpis.alerts.maintenanceAlerts > 0 || kpis.alerts.expiringLicenses > 0) && (
-        <div className="mx-3 mt-2 p-2.5 rounded-xl bg-amber-50 border border-amber-200">
-          {kpis.alerts.maintenanceAlerts > 0 && (
-            <div className="flex items-center gap-2 text-amber-700 text-xs mb-1">
-              <AlertTriangle className="w-3.5 h-3.5 shrink-0" />
-              <span>{kpis.alerts.maintenanceAlerts} vehicle{kpis.alerts.maintenanceAlerts > 1 ? "s" : ""} in shop</span>
-            </div>
-          )}
-          {kpis.alerts.expiringLicenses > 0 && (
-            <div className="flex items-center gap-2 text-amber-700 text-xs">
-              <Shield className="w-3.5 h-3.5 shrink-0" />
-              <span>{kpis.alerts.expiringLicenses} license{kpis.alerts.expiringLicenses > 1 ? "s" : ""} expiring</span>
-            </div>
-          )}
-        </div>
-      )}
-
       {/* ── Navigation ───────────────────────────────── */}
-      <nav className="flex-1 overflow-y-auto py-4 px-3 space-y-5">
+      <nav className="flex-1 overflow-y-auto py-4 px-3 space-y-6">
         {sections.map((section, sIdx) => (
           <div key={sIdx}>
-            {section.title && (
-              <p className={`px-3 mb-2 text-[10px] font-semibold uppercase tracking-[0.12em] ${isDark ? "text-neutral-600" : "text-slate-400"}`}>
-                {section.title}
+            {section.titleKey && (
+              <p className={`px-3 mb-2 text-[10px] font-semibold uppercase tracking-[0.12em] ${isDark ? 'text-neutral-600' : 'text-slate-400'}`}>
+                {t(section.titleKey)}
               </p>
             )}
             <div className="space-y-0.5">
@@ -224,7 +208,7 @@ export default function Sidebar({ kpis }: SidebarProps) {
                 const active = isActive(item.path);
                 return (
                   <Link
-                    key={`${item.path}-${item.label}`}
+                    key={item.path}
                     to={item.path}
                     className={`
                       relative flex items-center gap-3 px-3 py-2.5 rounded-lg text-[13px] font-medium transition-all duration-150
@@ -245,7 +229,14 @@ export default function Sidebar({ kpis }: SidebarProps) {
                       />
                     )}
                     <Icon className={`w-[18px] h-[18px] shrink-0 ${active ? "text-white" : ""}`} />
-                    <span className="flex-1 text-left whitespace-nowrap">{item.label}</span>
+                    <span className="flex-1 text-left whitespace-nowrap">{t(item.labelKey)}</span>
+                    {item.badge && (
+                      <span className={`min-w-[20px] h-5 px-1.5 rounded-full text-[11px] font-bold flex items-center justify-center ${
+                        active ? "bg-white/20 text-white" : "bg-violet-100 text-violet-600"
+                      }`}>
+                        {item.badge}
+                      </span>
+                    )}
                   </Link>
                 );
               })}
@@ -254,25 +245,15 @@ export default function Sidebar({ kpis }: SidebarProps) {
         ))}
       </nav>
 
-      {/* ── User + Logout ─────────────────────────────── */}
-      <div className={`p-3 shrink-0 border-t ${isDark ? "border-neutral-800" : "border-slate-100"}`}>
-        {/* User info */}
-        <div className={`flex items-center gap-2.5 px-3 py-2 mb-1 rounded-lg ${isDark ? "bg-neutral-800" : "bg-slate-50"}`}>
-          <div className="w-7 h-7 rounded-full bg-violet-600 flex items-center justify-center text-white text-[11px] font-bold shrink-0">
-            {user?.fullName?.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2) ?? "??"}
-          </div>
-          <div className="min-w-0">
-            <p className={`text-[12px] font-semibold truncate ${isDark ? "text-white" : "text-slate-800"}`}>{user?.fullName}</p>
-            <p className={`text-[10px] truncate ${isDark ? "text-neutral-500" : "text-slate-400"}`}>{user?.role}</p>
-          </div>
-        </div>
+      {/* ── Bottom section ────────────────────────────── */}
+      <div className={`p-3 space-y-1 shrink-0 border-t ${isDark ? 'border-neutral-800' : 'border-slate-100'}`}>
         {/* Logout */}
         <button
           onClick={() => { logout(); navigate("/login"); }}
-          className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors text-sm ${isDark ? "text-neutral-500 hover:text-red-400 hover:bg-red-900/20" : "text-slate-400 hover:text-red-500 hover:bg-red-50"}`}
+          className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors text-sm ${isDark ? 'text-neutral-500 hover:text-red-400 hover:bg-red-900/20' : 'text-slate-400 hover:text-red-500 hover:bg-red-50'}`}
         >
           <LogOut className="w-4 h-4 shrink-0" />
-          <span>Log out</span>
+          <span>{t("common.logout")}</span>
         </button>
       </div>
     </aside>

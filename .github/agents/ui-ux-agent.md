@@ -7,6 +7,7 @@ description: Senior UI/UX Engineering Agent responsible for clean & responsive U
 
 <!--
 HACKATHON_TOPIC: FleetFlow – Modular Fleet & Logistics Management System
+REFERENCE: Always read .github/agents/FLEETFLOW_ARCHITECTURE.md for the frontend page list and route map.
 
 CRITICAL: This agent handles ONLY frontend UI/UX. It does NOT touch backend logic, database schemas, or API contracts.
 -->
@@ -50,9 +51,12 @@ You produce **psychologically responsive, visually disciplined, production-polis
 - `frontend/src/hooks/**/*.ts`
 - `frontend/src/validators/**/*.ts`
 - `frontend/src/api/client.ts`
+- `frontend/src/context/AuthContext.tsx`
+- `frontend/src/context/ThemeContext.tsx`
 - `frontend/src/index.css`
-- `frontend/src/routes/router.tsx`
+- `frontend/src/routes/index.tsx`
 - `frontend/vite.config.ts`
+- `.github/agents/FLEETFLOW_ARCHITECTURE.md` (for page list, role model, API routes)
 
 ### Files You WRITE
 
@@ -92,17 +96,21 @@ You produce **psychologically responsive, visually disciplined, production-polis
 
 ```
 frontend/src/
-+-- pages/             -> Route-level page components
-+-- components/        -> Reusable UI components
-|   +-- ui/            -> Atomic primitives (Button, Card, Skeleton, ProgressBar)
-|   +-- layout/        -> Structural (Navbar, Layout, Sidebar)
-|   +-- feedback/      -> Loading, Error, Empty, Toast states
-+-- api/               -> Axios client and typed API functions
-+-- hooks/             -> Custom React hooks (data fetching, UI state)
-+-- validators/        -> Zod validation schemas
-+-- routes/            -> React Router configuration
-+-- index.css          -> Tailwind import + design tokens + keyframes
-+-- main.tsx           -> App entry point
++-- pages/             → 25+ route-level pages (CommandCenter, VehicleRegistry, Drivers,
+|                            TripDispatcher, Maintenance, Expenses, Analytics, etc.)
++-- components/        → Reusable UI components
+|   +-- ui/            → Atomic primitives (Button, Card, Skeleton, Table, StatCard, Badge)
+|   +-- forms/         → Domain forms (VehicleForm, DriverForm, TripForm, FuelLogForm)
+|   +-- navigation/   → Sidebar, Navbar
+|   +-- feedback/      → LoadingSpinner, ErrorBoundary, Toast, EmptyState
++-- context/           → AuthContext (session), ThemeContext (dark/light), SocketContext
++-- api/               → Axios client.ts (JWT interceptors + typed API functions)
++-- hooks/             → useAuth.ts, useSocket.ts, custom data hooks
++-- validators/        → Zod validation schemas (vehicle.ts, driver.ts, trip.ts, etc.)
++-- routes/            → React Router v7 route tree (routes/index.tsx)
++-- layouts/           → DashboardLayout, AuthLayout, PrintLayout
++-- index.css          → Tailwind import + CSS custom properties + keyframes
++-- main.tsx           → App entry + Router + context providers
 ```
 
 ### Spacing Scale (8px Grid)
@@ -730,12 +738,26 @@ export function RevealOnScroll({ children, delay = 0 }: RevealOnScrollProps) {
 
 ```tsx
 import { Link, useLocation } from "react-router-dom";
-import { LayoutDashboard, Package, PlusCircle } from "lucide-react";
+import {
+  LayoutDashboard,
+  Truck,
+  Navigation,
+  Users,
+  Wrench,
+  Receipt,
+  BarChart2,
+  AlertTriangle,
+} from "lucide-react";
 
 const navLinks = [
-  { to: "/", label: "Dashboard", icon: LayoutDashboard },
-  { to: "/items", label: "Items", icon: Package },
-  { to: "/items/new", label: "Create", icon: PlusCircle },
+  { to: "/", label: "Command Center", icon: LayoutDashboard },
+  { to: "/fleet", label: "Fleet", icon: Truck },
+  { to: "/trips", label: "Dispatch", icon: Navigation },
+  { to: "/drivers", label: "Drivers", icon: Users },
+  { to: "/maintenance", label: "Maintenance", icon: Wrench },
+  { to: "/expenses", label: "Expenses", icon: Receipt },
+  { to: "/incidents", label: "Incidents", icon: AlertTriangle },
+  { to: "/analytics", label: "Analytics", icon: BarChart2 },
 ];
 
 export function Navbar() {
@@ -749,8 +771,8 @@ export function Navbar() {
             to="/"
             className="flex items-center gap-2 font-bold text-lg text-indigo-600 hover:text-indigo-700 transition-colors duration-150"
           >
-            <Package className="h-5 w-5" />
-            <span>HackStack</span>
+            <Truck className="h-5 w-5" />
+            <span>FleetFlow</span>
           </Link>
 
           <div className="flex items-center gap-1">

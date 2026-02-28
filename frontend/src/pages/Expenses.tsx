@@ -3,6 +3,7 @@
  * Each tab has its own DataTable with pagination.
  */
 import { useState, useEffect, useCallback } from "react";
+import { useTranslation } from "react-i18next";
 import { motion } from "framer-motion";
 import {
   Fuel,
@@ -50,6 +51,7 @@ type Tab = "fuel" | "expenses";
 export default function Expenses() {
   const { isDark } = useTheme();
   const { user } = useAuth();
+  const { t } = useTranslation();
 
   const [tab, setTab] = useState<Tab>("fuel");
   const [fuelLogs, setFuelLogs] = useState<FuelLog[]>([]);
@@ -63,7 +65,6 @@ export default function Expenses() {
   const limit = 10;
 
   const canMutate =
-    user?.role === "SUPER_ADMIN" ||
     user?.role === "MANAGER" ||
     user?.role === "FINANCE_ANALYST";
 
@@ -72,10 +73,9 @@ export default function Expenses() {
     setLoadingFuel(true);
     try {
       const res = await financeApi.listFuelLogs();
-      const body = res.data?.data ?? res.data;
-      const list = (body?.fuelLogs ?? body ?? []) as FuelLog[];
+      const list = (Array.isArray(res) ? res : []) as unknown as Record<string, unknown>[];
       setFuelLogs(
-        list.map((l: Record<string, unknown>) => ({
+        list.map((l) => ({
           ...l,
           id: String(l.id),
           vehicleId: String(l.vehicleId),
@@ -94,10 +94,9 @@ export default function Expenses() {
     setLoadingExp(true);
     try {
       const res = await financeApi.listExpenses();
-      const body = res.data?.data ?? res.data;
-      const list = (body?.expenses ?? body ?? []) as Expense[];
+      const list = (Array.isArray(res) ? res : []) as unknown as Record<string, unknown>[];
       setExpenses(
-        list.map((l: Record<string, unknown>) => ({
+        list.map((l) => ({
           ...l,
           id: String(l.id),
           vehicleId: String(l.vehicleId),
@@ -157,37 +156,37 @@ export default function Expenses() {
   const fuelCols: Column<FuelLog>[] = [
     {
       key: "vehicle",
-      header: "Vehicle",
+      header: t("expenses.fuelColumns.vehicle"),
       render: (l) => <span className="font-medium">{l.vehicle?.licensePlate ?? `#${l.vehicleId}`}</span>,
     },
     {
       key: "trip",
-      header: "Trip",
+      header: t("expenses.fuelColumns.trip"),
       render: (l) => (l.tripId ? `#${l.tripId}` : "—"),
     },
     {
       key: "liters",
-      header: "Liters",
+      header: t("expenses.fuelColumns.liters"),
       render: (l) => `${Number(l.liters).toFixed(1)} L`,
     },
     {
       key: "rate",
-      header: "₹/L",
+      header: t("expenses.fuelColumns.costPerLiter"),
       render: (l) => `₹${Number(l.costPerLiter).toFixed(2)}`,
     },
     {
       key: "total",
-      header: "Total",
+      header: t("expenses.fuelColumns.total"),
       render: (l) => <span className="font-mono font-semibold">₹{Number(l.totalCost).toLocaleString()}</span>,
     },
     {
       key: "odometer",
-      header: "Odometer",
+      header: t("expenses.fuelColumns.odometer"),
       render: (l) => `${Number(l.odometerAtFill).toLocaleString()} km`,
     },
     {
       key: "date",
-      header: "Date",
+      header: t("expenses.fuelColumns.date"),
       render: (l) => new Date(l.createdAt).toLocaleDateString(),
     },
   ];
@@ -196,17 +195,17 @@ export default function Expenses() {
   const expCols: Column<Expense>[] = [
     {
       key: "vehicle",
-      header: "Vehicle",
+      header: t("expenses.expenseColumns.vehicle"),
       render: (e) => <span className="font-medium">{e.vehicle?.licensePlate ?? `#${e.vehicleId}`}</span>,
     },
     {
       key: "trip",
-      header: "Trip",
+      header: t("expenses.expenseColumns.trip"),
       render: (e) => (e.tripId ? `#${e.tripId}` : "—"),
     },
     {
       key: "category",
-      header: "Category",
+      header: t("expenses.expenseColumns.category"),
       render: (e) => (
         <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${isDark ? "bg-violet-500/20 text-violet-300" : "bg-violet-100 text-violet-700"}`}>
           {e.category.replace(/_/g, " ")}
@@ -215,17 +214,17 @@ export default function Expenses() {
     },
     {
       key: "amount",
-      header: "Amount",
+      header: t("expenses.expenseColumns.amount"),
       render: (e) => <span className="font-mono font-semibold">₹{Number(e.amount).toLocaleString()}</span>,
     },
     {
       key: "description",
-      header: "Description",
+      header: t("expenses.expenseColumns.description"),
       render: (e) => <span className="truncate max-w-[200px] block">{e.description || "—"}</span>,
     },
     {
       key: "date",
-      header: "Date",
+      header: t("expenses.expenseColumns.date"),
       render: (e) => new Date(e.createdAt).toLocaleDateString(),
     },
   ];
@@ -239,9 +238,9 @@ export default function Expenses() {
             <Receipt className="w-5 h-5 text-white" />
           </div>
           <div>
-            <h1 className={`text-xl font-bold ${isDark ? "text-white" : "text-slate-900"}`}>Finance & Expenses</h1>
+            <h1 className={`text-xl font-bold ${isDark ? "text-white" : "text-slate-900"}`}>{t("expenses.title")}</h1>
             <p className={`text-sm ${isDark ? "text-neutral-400" : "text-slate-500"}`}>
-              Track fuel consumption and trip expenses
+              {t("expenses.subtitle")}
             </p>
           </div>
         </div>
@@ -251,7 +250,7 @@ export default function Expenses() {
             className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-medium transition-colors"
           >
             <Plus className="w-4 h-4" />
-            Add Record
+            {t("expenses.addRecord")}
           </button>
         )}
       </div>
@@ -259,9 +258,9 @@ export default function Expenses() {
       {/* Summary cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
         {[
-          { label: "Fuel Logs", value: fuelLogs.length, sub: `₹${totalFuelCost.toLocaleString()} total`, color: "bg-amber-600" },
-          { label: "Expenses", value: expenses.length, sub: `₹${totalExpAmount.toLocaleString()} total`, color: "bg-violet-600" },
-          { label: "Combined", value: fuelLogs.length + expenses.length, sub: `₹${(totalFuelCost + totalExpAmount).toLocaleString()}`, color: "bg-emerald-600" },
+          { label: t("expenses.summary.fuelLogs"), value: fuelLogs.length, sub: t("expenses.summary.total", { amount: "₹" + totalFuelCost.toLocaleString() }), color: "bg-amber-600" },
+          { label: t("expenses.summary.expenses"), value: expenses.length, sub: t("expenses.summary.total", { amount: "₹" + totalExpAmount.toLocaleString() }), color: "bg-violet-600" },
+          { label: t("expenses.summary.combined"), value: fuelLogs.length + expenses.length, sub: `₹${(totalFuelCost + totalExpAmount).toLocaleString()}`, color: "bg-emerald-600" },
         ].map((s) => (
           <motion.div
             key={s.label}
@@ -281,10 +280,10 @@ export default function Expenses() {
       <div className="flex flex-wrap items-end justify-between gap-3 mb-4">
         <div className="flex">
           <button className={tabCls(tab === "fuel")} onClick={() => { setTab("fuel"); setSearch(""); }}>
-            <Fuel className="w-4 h-4" /> Fuel Logs ({fuelLogs.length})
+            <Fuel className="w-4 h-4" /> {t("expenses.tabs.fuel", { count: fuelLogs.length })}
           </button>
           <button className={tabCls(tab === "expenses")} onClick={() => { setTab("expenses"); setSearch(""); }}>
-            <Receipt className="w-4 h-4" /> Expenses ({expenses.length})
+            <Receipt className="w-4 h-4" /> {t("expenses.tabs.expenses", { count: expenses.length })}
           </button>
         </div>
         <div className={`flex items-center gap-2 px-3 py-2 rounded-lg border text-sm w-64 ${
@@ -293,7 +292,7 @@ export default function Expenses() {
           <Search className={`w-4 h-4 ${isDark ? "text-neutral-400" : "text-slate-400"}`} />
           <input
             className="bg-transparent outline-none w-full placeholder-current opacity-60"
-            placeholder="Search..."
+            placeholder={t("common.search")}
             value={search}
             onChange={(e) => { setSearch(e.target.value); tab === "fuel" ? setFuelPage(1) : setExpPage(1); }}
           />
@@ -308,13 +307,13 @@ export default function Expenses() {
             rows={paginatedFuel}
             rowKey={(l) => l.id}
             loading={loadingFuel}
-            emptyTitle="No fuel logs yet"
-            emptyMessage="Record your first fuel stop to get started."
+            emptyTitle={t("expenses.empty.fuel")}
+            emptyMessage={t("expenses.empty.fuelDesc")}
           />
           {fuelTotalPages > 1 && (
             <div className="flex items-center justify-between mt-4">
               <p className={`text-xs ${isDark ? "text-neutral-500" : "text-slate-400"}`}>
-                Page {fuelPage} of {fuelTotalPages} · {filteredFuel.length} record{filteredFuel.length !== 1 ? "s" : ""}
+                {t("expenses.pagination", { page: fuelPage, totalPages: fuelTotalPages, count: filteredFuel.length })}
               </p>
               <div className="flex items-center gap-1">
                 <button disabled={fuelPage <= 1} onClick={() => setFuelPage((p) => p - 1)} className={`p-1.5 rounded-lg transition-colors disabled:opacity-30 ${isDark ? "hover:bg-neutral-700 text-neutral-400" : "hover:bg-slate-100 text-slate-500"}`}>
@@ -334,13 +333,13 @@ export default function Expenses() {
             rows={paginatedExp}
             rowKey={(e) => e.id}
             loading={loadingExp}
-            emptyTitle="No expenses yet"
-            emptyMessage="Log your first trip expense."
+            emptyTitle={t("expenses.empty.expenses")}
+            emptyMessage={t("expenses.empty.expensesDesc")}
           />
           {expTotalPages > 1 && (
             <div className="flex items-center justify-between mt-4">
               <p className={`text-xs ${isDark ? "text-neutral-500" : "text-slate-400"}`}>
-                Page {expPage} of {expTotalPages} · {filteredExp.length} record{filteredExp.length !== 1 ? "s" : ""}
+                {t("expenses.pagination", { page: expPage, totalPages: expTotalPages, count: filteredExp.length })}
               </p>
               <div className="flex items-center gap-1">
                 <button disabled={expPage <= 1} onClick={() => setExpPage((p) => p - 1)} className={`p-1.5 rounded-lg transition-colors disabled:opacity-30 ${isDark ? "hover:bg-neutral-700 text-neutral-400" : "hover:bg-slate-100 text-slate-500"}`}>

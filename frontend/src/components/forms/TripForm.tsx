@@ -4,13 +4,14 @@
  * Vehicles filtered to AVAILABLE only, drivers to ON_DUTY with valid licenses.
  */
 import { useState, useEffect, useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Navigation, Save, Loader2 } from "lucide-react";
 import { useTheme } from "../../context/ThemeContext";
-import { fleetApi, driversApi, tripsApi } from "../../api/client";
+import { fleetApi, hrApi, dispatchApi } from "../../api/client";
 import { createTripSchema, type CreateTripFormData } from "../../validators/trip";
 import { CapacityBar } from "../ui/CapacityBar";
-import type { ZodError } from "zod";
+import { LocationAutocomplete } from "../ui/LocationAutocomplete";
 
 interface Vehicle {
   id: string;
@@ -49,6 +50,7 @@ const INITIAL_FORM: CreateTripFormData = {
 
 export function TripForm({ open, onClose, onSuccess }: TripFormProps) {
   const { isDark } = useTheme();
+  const { t } = useTranslation();
 
   const [form, setForm] = useState<CreateTripFormData>(INITIAL_FORM);
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -70,24 +72,20 @@ export function TripForm({ open, onClose, onSuccess }: TripFormProps) {
 
     Promise.all([
       fleetApi.listVehicles({ status: "AVAILABLE", limit: 100 }),
-      driversApi.listDrivers({ status: "ON_DUTY", limit: 100 }),
+      hrApi.listDrivers({ status: "ON_DUTY", limit: 100 }),
     ])
       .then(([vRes, dRes]) => {
-        const vBody = vRes.data?.data ?? vRes.data;
-        const vList = (vBody?.vehicles ?? vBody ?? []) as Vehicle[];
-        setVehicles(vList.map((v: Record<string, unknown>) => ({
+        setVehicles(vRes.data.map((v) => ({
           ...v,
           id: String(v.id),
           capacityWeight: Number(v.capacityWeight),
-        })) as Vehicle[]);
+        })));
 
-        const dBody = dRes.data?.data ?? dRes.data;
-        const dList = (dBody?.drivers ?? dBody ?? []) as Driver[];
         // Filter out expired licenses client-side
         const now = new Date();
         setDrivers(
-          dList
-            .map((d: Record<string, unknown>) => ({ ...d, id: String(d.id) }) as Driver)
+          dRes.data
+            .map((d) => ({ ...d, id: String(d.id) }))
             .filter((d) => new Date(d.licenseExpiryDate) > now)
         );
       })
@@ -118,7 +116,7 @@ export function TripForm({ open, onClose, onSuccess }: TripFormProps) {
     const result = createTripSchema.safeParse(form);
     if (!result.success) {
       const fieldErrors: Record<string, string> = {};
-      (result.error as ZodError).errors.forEach((err) => {
+      result.error.issues.forEach((err) => {
         const key = err.path[0] as string;
         if (!fieldErrors[key]) fieldErrors[key] = err.message;
       });
@@ -127,7 +125,7 @@ export function TripForm({ open, onClose, onSuccess }: TripFormProps) {
     }
 
     if (isOverCapacity) {
-      setErrors((prev) => ({ ...prev, cargoWeight: "Cargo exceeds vehicle capacity" }));
+      setErrors((prev) => ({ ...prev, cargoWeight: t("forms.trip.cargoExceedsCapacity") }));
       return;
     }
 
@@ -144,9 +142,9 @@ export function TripForm({ open, onClose, onSuccess }: TripFormProps) {
 
       if (result.data.cargoDescription) payload.cargoDescription = result.data.cargoDescription;
       if (result.data.clientName) payload.clientName = result.data.clientName;
-      if (result.data.revenue && result.data.revenue !== "") payload.revenue = Number(result.data.revenue);
+      if (result.data.revenue) payload.revenue = Number(result.data.revenue);
 
-      await tripsApi.createTrip(payload);
+      await dispatchApi.createTrip(payload as Parameters<typeof dispatchApi.createTrip>[0]);
       onSuccess();
       onClose();
     } catch (err: unknown) {
@@ -197,9 +195,9 @@ export function TripForm({ open, onClose, onSuccess }: TripFormProps) {
                   <Navigation className="w-4.5 h-4.5 text-white" />
                 </div>
                 <div>
-                  <h2 className={`text-base font-bold ${isDark ? "text-white" : "text-slate-900"}`}>New Trip</h2>
+                  <h2 className={`text-base font-bold ${isDark ? "text-white" : "text-slate-900"}`}>{t("forms.trip.title")}</h2>
                   <p className={`text-xs ${isDark ? "text-neutral-400" : "text-slate-500"}`}>
-                    Plan a new dispatch trip
+                    {t("forms.trip.subtitle")}
                   </p>
                 </div>
               </div>
@@ -224,19 +222,19 @@ export function TripForm({ open, onClose, onSuccess }: TripFormProps) {
               {loadingOptions ? (
                 <div className={`py-8 text-center text-sm ${isDark ? "text-neutral-400" : "text-slate-500"}`}>
                   <Loader2 className="w-5 h-5 mx-auto mb-2 animate-spin" />
-                  Loading vehicles and drivers...
+                  {t("forms.trip.loadingVehiclesDrivers")}
                 </div>
               ) : (
                 <>
                   {/* Vehicle Dropdown */}
                   <div>
-                    <label className={labelCls}>Vehicle (Available Only) *</label>
+                    <label className={labelCls}>{t("forms.trip.vehicleLabel")}</label>
                     <select
                       className={`${inputCls} ${errors.vehicleId ? "border-red-400" : ""}`}
                       value={form.vehicleId}
                       onChange={(e) => handleChange("vehicleId", e.target.value)}
                     >
-                      <option value="">Select a vehicle...</option>
+                      <option value="">{t("forms.trip.selectVehicle")}</option>
                       {vehicles.map((v) => (
                         <option key={v.id} value={v.id}>
                           {v.licensePlate} — {v.make} {v.model} ({v.capacityWeight.toLocaleString()} kg)
@@ -244,20 +242,20 @@ export function TripForm({ open, onClose, onSuccess }: TripFormProps) {
                       ))}
                     </select>
                     {vehicles.length === 0 && (
-                      <p className={`text-xs mt-1 ${isDark ? "text-amber-400" : "text-amber-600"}`}>No available vehicles</p>
+                      <p className={`text-xs mt-1 ${isDark ? "text-amber-400" : "text-amber-600"}`}>{t("forms.trip.noAvailableVehicles")}</p>
                     )}
                     {errors.vehicleId && <p className={errCls}>{errors.vehicleId}</p>}
                   </div>
 
                   {/* Driver Dropdown */}
                   <div>
-                    <label className={labelCls}>Driver (On Duty, Valid License) *</label>
+                    <label className={labelCls}>{t("forms.trip.driverLabel")}</label>
                     <select
                       className={`${inputCls} ${errors.driverId ? "border-red-400" : ""}`}
                       value={form.driverId}
                       onChange={(e) => handleChange("driverId", e.target.value)}
                     >
-                      <option value="">Select a driver...</option>
+                      <option value="">{t("forms.trip.selectDriver")}</option>
                       {drivers.map((d) => (
                         <option key={d.id} value={d.id}>
                           {d.fullName} — {d.licenseNumber}
@@ -265,7 +263,7 @@ export function TripForm({ open, onClose, onSuccess }: TripFormProps) {
                       ))}
                     </select>
                     {drivers.length === 0 && (
-                      <p className={`text-xs mt-1 ${isDark ? "text-amber-400" : "text-amber-600"}`}>No eligible drivers</p>
+                      <p className={`text-xs mt-1 ${isDark ? "text-amber-400" : "text-amber-600"}`}>{t("forms.trip.noEligibleDrivers")}</p>
                     )}
                     {errors.driverId && <p className={errCls}>{errors.driverId}</p>}
                   </div>
@@ -273,22 +271,22 @@ export function TripForm({ open, onClose, onSuccess }: TripFormProps) {
                   {/* Origin + Destination */}
                   <div className="grid grid-cols-2 gap-3">
                     <div>
-                      <label className={labelCls}>Origin *</label>
-                      <input
+                      <label className={labelCls}>{t("forms.trip.origin")}</label>
+                      <LocationAutocomplete
                         className={`${inputCls} ${errors.origin ? "border-red-400" : ""}`}
-                        placeholder="Mumbai"
+                        placeholder={t("forms.trip.locationPlaceholder")}
                         value={form.origin}
-                        onChange={(e) => handleChange("origin", e.target.value)}
+                        onChange={(val) => handleChange("origin", val)}
                       />
                       {errors.origin && <p className={errCls}>{errors.origin}</p>}
                     </div>
                     <div>
-                      <label className={labelCls}>Destination *</label>
-                      <input
+                      <label className={labelCls}>{t("forms.trip.destination")}</label>
+                      <LocationAutocomplete
                         className={`${inputCls} ${errors.destination ? "border-red-400" : ""}`}
-                        placeholder="Delhi"
+                        placeholder={t("forms.trip.locationPlaceholder")}
                         value={form.destination}
-                        onChange={(e) => handleChange("destination", e.target.value)}
+                        onChange={(val) => handleChange("destination", val)}
                       />
                       {errors.destination && <p className={errCls}>{errors.destination}</p>}
                     </div>
@@ -297,7 +295,7 @@ export function TripForm({ open, onClose, onSuccess }: TripFormProps) {
                   {/* Cargo Weight + Distance */}
                   <div className="grid grid-cols-2 gap-3">
                     <div>
-                      <label className={labelCls}>Cargo Weight (kg) *</label>
+                      <label className={labelCls}>{t("forms.trip.cargoWeight")}</label>
                       <input
                         type="number"
                         className={`${inputCls} ${errors.cargoWeight ? "border-red-400" : ""}`}
@@ -308,7 +306,7 @@ export function TripForm({ open, onClose, onSuccess }: TripFormProps) {
                       {errors.cargoWeight && <p className={errCls}>{errors.cargoWeight}</p>}
                     </div>
                     <div>
-                      <label className={labelCls}>Est. Distance (km) *</label>
+                      <label className={labelCls}>{t("forms.trip.estDistance")}</label>
                       <input
                         type="number"
                         className={`${inputCls} ${errors.distanceEstimated ? "border-red-400" : ""}`}
@@ -337,10 +335,10 @@ export function TripForm({ open, onClose, onSuccess }: TripFormProps) {
 
                   {/* Cargo Description */}
                   <div>
-                    <label className={labelCls}>Cargo Description</label>
+                    <label className={labelCls}>{t("forms.trip.cargoDescription")}</label>
                     <input
                       className={inputCls}
-                      placeholder="e.g. Electronics, perishables..."
+                      placeholder={t("forms.trip.cargoDescPlaceholder")}
                       value={form.cargoDescription ?? ""}
                       onChange={(e) => handleChange("cargoDescription", e.target.value)}
                     />
@@ -349,16 +347,16 @@ export function TripForm({ open, onClose, onSuccess }: TripFormProps) {
                   {/* Client + Revenue */}
                   <div className="grid grid-cols-2 gap-3">
                     <div>
-                      <label className={labelCls}>Client Name</label>
+                      <label className={labelCls}>{t("forms.trip.clientName")}</label>
                       <input
                         className={inputCls}
-                        placeholder="Acme Corp"
+                        placeholder={t("forms.trip.clientPlaceholder")}
                         value={form.clientName ?? ""}
                         onChange={(e) => handleChange("clientName", e.target.value)}
                       />
                     </div>
                     <div>
-                      <label className={labelCls}>Revenue (₹)</label>
+                      <label className={labelCls}>{t("forms.trip.revenue")}</label>
                       <input
                         type="number"
                         className={inputCls}
@@ -383,7 +381,7 @@ export function TripForm({ open, onClose, onSuccess }: TripFormProps) {
                   isDark ? "text-neutral-300 hover:bg-neutral-700" : "text-slate-600 hover:bg-slate-100"
                 }`}
               >
-                Cancel
+                {t("common.cancel")}
               </button>
               <button
                 onClick={handleSubmit}
@@ -395,7 +393,7 @@ export function TripForm({ open, onClose, onSuccess }: TripFormProps) {
                 ) : (
                   <Save className="w-4 h-4" />
                 )}
-                Create Trip (Draft)
+                {t("forms.trip.createTripDraft")}
               </button>
             </div>
           </motion.div>

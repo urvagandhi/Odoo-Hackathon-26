@@ -1,0 +1,1325 @@
+{
+  "common": {
+    "appName": "FleetFlow",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "create": "Create",
+    "update": "Update",
+    "edit": "Edit",
+    "add": "Add",
+    "close": "Close",
+    "search": "Search",
+    "loading": "Loading…",
+    "saving": "Saving...",
+    "updating": "Updating...",
+    "back": "Back",
+    "next": "Next",
+    "yes": "Yes",
+    "no": "No",
+    "all": "All",
+    "export": "Export",
+    "refresh": "Refresh",
+    "logout": "Log out",
+    "actions": "Actions",
+    "noData": "No data available",
+    "page": "Page",
+    "of": "of",
+    "records": "record(s)",
+    "total": "total",
+    "profile": "Profile",
+    "settings": "Settings",
+    "apply": "Apply",
+    "retry": "Retry",
+    "clear": "Clear",
+    "filter": "Filter",
+    "active": "Active",
+    "expired": "EXPIRED",
+    "more": "+{{count}} more",
+    "prev": "Prev",
+    "switchToLight": "Switch to light mode",
+    "switchToDark": "Switch to dark mode",
+    "noDataYet": "No data yet",
+    "createFirstRecord": "Create your first record to get started.",
+    "continue": "Continue",
+    "submit": "Submit",
+    "optional": "Optional",
+    "error": "Error",
+    "viewDashboard": "View Dashboard →",
+    "new": "New"
+  },
+  "roles": {
+    "MANAGER": "Fleet Manager",
+    "DISPATCHER": "Trip Dispatcher",
+    "SAFETY_OFFICER": "Safety Officer",
+    "FINANCE_ANALYST": "Finance Analyst",
+    "DRIVER": "Driver"
+  },
+  "roleLabelsShort": {
+    "MANAGER": "Manager",
+    "DISPATCHER": "Dispatcher",
+    "SAFETY_OFFICER": "Safety Officer",
+    "FINANCE_ANALYST": "Finance Analyst",
+    "DRIVER": "Driver"
+  },
+  "nav": {
+    "sections": {
+      "mainMenu": "MAIN MENU",
+      "general": "GENERAL",
+      "others": "OTHERS",
+      "fleet": "FLEET",
+      "safety": "SAFETY",
+      "maintenance": "MAINTENANCE",
+      "finance": "FINANCE",
+      "reports": "REPORTS"
+    },
+    "items": {
+      "fleetHub": "Fleet Hub",
+      "vehicleRegistry": "Vehicle Registry",
+      "dispatchControl": "Dispatch Control",
+      "communications": "Communications",
+      "operationalFeed": "Operational Feed",
+      "financialReports": "Financial Reports",
+      "helpCenter": "Help Center",
+      "myIdentity": "My Identity",
+      "settings": "Settings",
+      "tripLedger": "Trip Ledger",
+      "initiateTrip": "Initiate Trip",
+      "fleetCatalog": "Fleet Catalog",
+      "crewRecords": "Crew Records",
+      "alertCenter": "Alert Center",
+      "safetyLog": "Safety Log",
+      "crewScores": "Crew Scores",
+      "serviceLogs": "Service Logs",
+      "incidentIntel": "Incident Intel",
+      "revenueStream": "Revenue Stream",
+      "fuelIntel": "Fuel Intel",
+      "profitLoss": "Profit & Loss",
+      "costIntel": "Cost Intel",
+      "operationsIntel": "Operations Intel",
+      "crewGateway": "Crew Gateway"
+    }
+  },
+  "topBar": {
+    "pageTitles": {
+      "MANAGER": "Fleet Management",
+      "DISPATCHER": "Trip Dispatch",
+      "SAFETY_OFFICER": "Safety Center",
+      "FINANCE_ANALYST": "Financial Reports"
+    },
+    "myProfile": "My Profile"
+  },
+  "auth": {
+    "login": {
+      "pageTitle": "FleetFlow | Sign In",
+      "heroTitle": "Fleet Management",
+      "heroSubtitle": "Made Intelligent",
+      "heroDescription": "Real-time tracking, dispatch optimization, and comprehensive fleet analytics — all in one platform.",
+      "featureAnalytics": "Analytics",
+      "featureSecure": "Secure",
+      "featureRealtime": "Real-time",
+      "statVehicles": "Vehicles",
+      "statCountries": "Countries",
+      "statUptime": "Uptime",
+      "welcomeBack": "Welcome back",
+      "signInSubtitle": "Sign in to your FleetFlow account",
+      "emailLabel": "Email",
+      "emailPlaceholder": "your@email.com",
+      "passwordLabel": "Password",
+      "passwordPlaceholder": "Enter password",
+      "forgotPassword": "Forgot password?",
+      "signIn": "Sign in",
+      "quickAccess": "Quick Access (Testing)",
+      "quickLoginFailed": "Quick login failed.",
+      "noAccount": "Don't have an account? Contact your administrator.",
+      "switchToLight": "Switch to light mode",
+      "switchToDark": "Switch to dark mode"
+    },
+    "forgotPassword": {
+      "title": "Forgot your password?",
+      "description": "Enter your email and we'll send you a link to reset your password.",
+      "emailLabel": "Email address",
+      "emailPlaceholder": "your@email.com",
+      "submit": "Send reset link",
+      "successMessage": "If an account with that email exists, a password reset link has been sent.",
+      "devModeLabel": "DEV MODE — Reset link:",
+      "backToLogin": "Back to login",
+      "emailRequired": "Email is required",
+      "invalidEmail": "Enter a valid email address"
+    },
+    "resetPassword": {
+      "title": "Reset your password",
+      "description": "Enter your new password below.",
+      "newPasswordLabel": "New password",
+      "newPasswordPlaceholder": "Min 8 chars, 1 uppercase, 1 number",
+      "confirmPasswordLabel": "Confirm new password",
+      "confirmPasswordPlaceholder": "Re-enter new password",
+      "submit": "Reset password",
+      "missingToken": "Missing reset token. Please use the link from your email.",
+      "successTitle": "Password reset!",
+      "successMessage": "Redirecting you to login in 3 seconds…",
+      "backToLogin": "Back to login"
+    },
+    "validation": {
+      "minChars": "Password must be at least 8 characters",
+      "uppercase": "Must contain at least one uppercase letter",
+      "number": "Must contain at least one number",
+      "mismatch": "Passwords do not match"
+    }
+  },
+  "settings": {
+    "title": "Settings",
+    "subtitle": "Manage your preferences and account",
+    "tabs": {
+      "account": "Account",
+      "security": "Security",
+      "notifications": "Notifications",
+      "appearance": "Appearance"
+    },
+    "account": {
+      "profileInfo": "Profile Information",
+      "profileInfoDesc": "Update your personal information",
+      "firstName": "First Name",
+      "lastName": "Last Name",
+      "email": "Email Address",
+      "phone": "Phone",
+      "location": "Location",
+      "bio": "Bio",
+      "dangerZone": "Danger Zone",
+      "dangerZoneDesc": "Irreversible actions",
+      "deleteAccount": "Delete Account",
+      "deleteAccountDesc": "Permanently delete your account and all associated data.",
+      "deleteRestricted": "Account deletion is restricted. Contact your fleet manager.",
+      "actionRestricted": "Action Restricted",
+      "profileSaved": "Profile Saved",
+      "profileSavedMsg": "Profile updated successfully.",
+      "updateFailed": "Update Failed",
+      "updateFailedMsg": "Failed to update profile.",
+      "validationError": "Validation Error",
+      "fullNameMin": "Full name must be at least 2 characters.",
+      "invalidEmail": "Please enter a valid email address."
+    },
+    "security": {
+      "changePassword": "Change Password",
+      "changePasswordDesc": "Update your password regularly for better security",
+      "currentPassword": "Current Password",
+      "newPassword": "New Password",
+      "confirmNewPassword": "Confirm New Password",
+      "passwordPlaceholder": "••••••••",
+      "passwordUpdated": "Password Updated",
+      "passwordUpdatedMsg": "Password changed successfully.",
+      "fillBothFields": "Please fill in both password fields.",
+      "passwordsMismatch": "New passwords do not match.",
+      "minChars": "New password must be at least 8 characters.",
+      "needUppercase": "Must contain at least one uppercase letter.",
+      "needNumber": "Must contain at least one number.",
+      "reqMinChars": "At least 8 characters",
+      "reqUppercase": "One uppercase letter",
+      "reqNumber": "One number",
+      "twoFactorAuth": "Two-Factor Authentication",
+      "twoFactorAuthDesc": "Add an extra layer of security",
+      "authenticatorApp": "Authenticator App",
+      "authenticatorAppDesc": "Use an authenticator app to generate codes",
+      "activeSessions": "Active Sessions",
+      "activeSessionsDesc": "Get alerts for new sign-ins"
+    },
+    "notifications": {
+      "title": "Notification Preferences",
+      "titleDesc": "Choose what notifications you want to receive",
+      "emailNotifications": "Email Notifications",
+      "emailNotificationsDesc": "Receive email updates about your activity",
+      "pushNotifications": "Push Notifications",
+      "pushNotificationsDesc": "Get push notifications on your devices",
+      "weeklyDigest": "Weekly Digest",
+      "weeklyDigestDesc": "Get a summary of activity every week",
+      "marketingEmails": "Marketing Emails",
+      "marketingEmailsDesc": "Receive news, updates, and promotions",
+      "securityAlerts": "Security Alerts",
+      "securityAlertsDesc": "Important alerts about your account security",
+      "teamUpdates": "Team Updates",
+      "teamUpdatesDesc": "Updates from your team members and projects",
+      "preferencesSaved": "Preferences Saved",
+      "preferencesSavedMsg": "Notification preferences saved."
+    },
+    "appearance": {
+      "theme": "Theme",
+      "themeDesc": "Select your preferred theme",
+      "light": "Light",
+      "lightDesc": "Default light theme",
+      "dark": "Dark",
+      "darkDesc": "Easy on the eyes",
+      "system": "System",
+      "systemDesc": "Follow OS preference",
+      "active": "Active",
+      "languageDisplay": "Language & Display",
+      "languageDisplayDesc": "Locale and display preferences",
+      "language": "Language",
+      "compactMode": "Compact Mode",
+      "compactModeDesc": "Reduce spacing and padding for denser layouts",
+      "preferencesSaved": "Preferences Saved",
+      "preferencesSavedMsg": "Appearance preferences saved."
+    }
+  },
+  "profile": {
+    "accountDetails": "Account Details",
+    "fullName": "Full Name",
+    "email": "Email",
+    "role": "Role",
+    "userId": "User ID",
+    "yourCapabilities": "Your Capabilities",
+    "online": "Online",
+    "kpi": {
+      "totalVehicles": "Total Vehicles",
+      "activeTrips": "Active Trips",
+      "fleetUtilization": "Fleet Utilization",
+      "alerts": "Alerts"
+    },
+    "capabilities": {
+      "MANAGER": [
+        "Full fleet oversight & vehicle management",
+        "User administration (create, deactivate)",
+        "View all analytics & financial reports",
+        "Approve dispatch & maintenance actions",
+        "Access all modules without restriction"
+      ],
+      "DISPATCHER": [
+        "Create & manage trips and assignments",
+        "View vehicle availability & driver pool",
+        "Transition trip statuses (Draft → Dispatched → Completed)",
+        "Add waypoints and track routes"
+      ],
+      "SAFETY_OFFICER": [
+        "Driver credential & license management",
+        "Vehicle inspection & maintenance logging",
+        "Incident report creation & investigation",
+        "Safety score adjustments",
+        "Driver status management (suspend/reactivate)"
+      ],
+      "FINANCE_ANALYST": [
+        "Fuel log entry & expense tracking",
+        "View revenue, expenses & profit reports",
+        "Monthly financial report generation",
+        "Vehicle ROI & fuel efficiency analysis",
+        "Export trip data to CSV"
+      ]
+    }
+  },
+  "fleet": {
+    "title": "Vehicle Registry",
+    "vehiclesInFleet": "{{count}} vehicles in fleet",
+    "addVehicle": "Add Vehicle",
+    "searchPlaceholder": "Search plate, make, model…",
+    "status": {
+      "AVAILABLE": "Available",
+      "ON_TRIP": "On Trip",
+      "IN_SHOP": "In Shop",
+      "RETIRED": "Retired"
+    },
+    "columns": {
+      "vehicle": "Vehicle",
+      "type": "Type",
+      "licensePlate": "License Plate",
+      "capacity": "Capacity",
+      "odometer": "Odometer",
+      "status": "Status",
+      "actions": "Actions"
+    },
+    "noVehicles": "No vehicles found",
+    "editVehicle": "Edit Vehicle",
+    "addNewVehicle": "Add New Vehicle",
+    "form": {
+      "make": "Make",
+      "model": "Model",
+      "year": "Year",
+      "color": "Color",
+      "licensePlate": "License Plate",
+      "vin": "VIN",
+      "vehicleType": "Vehicle Type",
+      "capacity": "Capacity (kg)",
+      "odometer": "Current Odometer (km)",
+      "selectType": "Select type",
+      "makePlaceholder": "Toyota",
+      "modelPlaceholder": "Land Cruiser",
+      "colorPlaceholder": "White",
+      "platePlaceholder": "MH01AB1234",
+      "vinPlaceholder": "Optional"
+    },
+    "createVehicle": "Create Vehicle",
+    "updateVehicle": "Update Vehicle",
+    "retireVehicle": "Retire Vehicle?",
+    "retireVehicleDesc": "This will mark {{plate}} as retired. It will no longer be available for dispatch.",
+    "toast": {
+      "updated": "Vehicle details updated successfully.",
+      "updatedTitle": "Success",
+      "created": "New vehicle added to the fleet.",
+      "createdTitle": "Vehicle Registered",
+      "retired": "Vehicle has been retired from the active fleet.",
+      "retireFailed": "Could not retire vehicle.",
+      "statusUpdated": "Status updated",
+      "statusFailed": "Failed to update vehicle status."
+    }
+  },
+  "dispatch": {
+    "title": "Dispatch Control",
+    "tripsTotal": "{{count}} trips total",
+    "newTrip": "New Trip",
+    "searchPlaceholder": "Search trips…",
+    "status": {
+      "DRAFT": "Draft",
+      "DISPATCHED": "Dispatched",
+      "COMPLETED": "Completed",
+      "CANCELLED": "Cancelled"
+    },
+    "noTrips": "No trips found",
+    "detail": {
+      "vehicle": "Vehicle",
+      "driver": "Driver",
+      "cargo": "Cargo",
+      "distance": "Distance (est.)",
+      "revenue": "Revenue",
+      "dispatched": "Dispatched",
+      "client": "Client"
+    },
+    "actions": {
+      "dispatch": "Dispatch",
+      "complete": "Complete",
+      "cancel": "Cancel"
+    },
+    "dispatchTrip": "Dispatch Trip?",
+    "dispatchTripDesc": "This will notify the driver and mark the vehicle as on-trip.",
+    "createTrip": "Create New Trip",
+    "form": {
+      "vehicle": "Vehicle",
+      "driver": "Driver",
+      "origin": "Origin",
+      "destination": "Destination",
+      "distance": "Distance (km)",
+      "cargoWeight": "Cargo Weight (kg)",
+      "revenue": "Revenue (₹)",
+      "cargoDescription": "Cargo Description",
+      "clientName": "Client Name",
+      "selectVehicle": "Select available vehicle",
+      "selectDriver": "Select on-duty driver",
+      "originPlaceholder": "Mumbai, Maharashtra",
+      "destinationPlaceholder": "Pune, Maharashtra"
+    },
+    "map": {
+      "calculatingRoute": "Calculating shortest route…",
+      "selectTrip": "Select a trip",
+      "selectTripDesc": "Click any trip to view its route on the map"
+    },
+    "toast": {
+      "created": "New trip has been added to draft.",
+      "transitioned": "Trip successfully moved to {{status}} status.",
+      "transitionFailed": "Failed to transition trip status."
+    }
+  },
+  "drivers": {
+    "title": "Crew Records",
+    "stats": "{{total}} drivers · {{onDuty}} on duty · {{onTrip}} on trip",
+    "exportCSV": "Export CSV",
+    "addDriver": "Add Driver",
+    "kpi": {
+      "totalDrivers": "Total Drivers",
+      "onDuty": "On Duty",
+      "onTrip": "On Trip",
+      "suspended": "Suspended",
+      "avgSafetyScore": "Avg Safety Score"
+    },
+    "expiringLicenses": "{{count}} license(s) expiring within 30 days",
+    "searchPlaceholder": "Search name, license, email…",
+    "status": {
+      "ON_DUTY": "On Duty",
+      "OFF_DUTY": "Off Duty",
+      "ON_TRIP": "On Trip",
+      "SUSPENDED": "Suspended"
+    },
+    "columns": {
+      "driver": "Driver",
+      "license": "License",
+      "safety": "Safety",
+      "licenseExpiry": "License Expiry",
+      "status": "Status",
+      "actions": "Actions"
+    },
+    "noDrivers": "No drivers found",
+    "selectDriver": "Select a driver",
+    "selectDriverDesc": "Click on a row to view details",
+    "detail": {
+      "license": "License",
+      "class": "Class",
+      "phone": "Phone",
+      "email": "Email",
+      "dob": "Date of Birth",
+      "licenseExpiry": "License Expiry",
+      "safetyScore": "Safety Score"
+    },
+    "form": {
+      "fullName": "Full Name",
+      "licenseNumber": "License Number",
+      "phone": "Phone",
+      "email": "Email",
+      "dateOfBirth": "Date of Birth",
+      "licenseExpiry": "License Expiry",
+      "licenseClass": "License Class",
+      "safetyScore": "Safety Score",
+      "fullNamePlaceholder": "Ramesh Kumar",
+      "licensePlaceholder": "MH-CDL-A-001234",
+      "phonePlaceholder": "+91-98201-12345",
+      "emailPlaceholder": "driver@email.com",
+      "licenseClassPlaceholder": "CDL-A, CDL-B, B"
+    },
+    "updateDriver": "Update Driver",
+    "removeDriver": "Remove Driver?",
+    "removeDriverDesc": "This will permanently remove {{name}} from the registry.",
+    "map": {
+      "title": "Fleet Vehicle Locations",
+      "speed": "Speed: {{speed}} km/h"
+    },
+    "toast": {
+      "deleted": "Driver profile has been deleted.",
+      "deletedTitle": "Driver Removed",
+      "deleteFailed": "Could not remove driver.",
+      "deleteFailedTitle": "Error",
+      "statusUpdated": "{{name}}'s status is now {{status}}.",
+      "statusUpdatedTitle": "Status Updated",
+      "statusUpdateFailed": "Failed to update driver status.",
+      "statusUpdateFailedTitle": "Update Failed",
+      "statusFailed": "Failed to update status",
+      "saveFailed": "Could not save driver.",
+      "exported": "Drivers exported to CSV.",
+      "exportedTitle": "Export Complete",
+      "exportFailed": "Could not export drivers.",
+      "exportFailedTitle": "Export Failed"
+    }
+  },
+  "analytics": {
+    "title": "Operations Intel",
+    "subtitle": "Financial performance & operational insights — {{year}}",
+    "exportPDF": "Export PDF",
+    "exportCSV": "Export CSV",
+    "tabs": {
+      "overview": "Overview",
+      "fuelEfficiency": "Fuel Efficiency",
+      "vehicleROI": "Vehicle ROI"
+    },
+    "kpi": {
+      "totalRevenue": "Total Revenue",
+      "totalExpenses": "Total Expenses",
+      "netProfit": "Net Profit",
+      "avgFuelEfficiency": "Avg Fuel Efficiency"
+    },
+    "charts": {
+      "revenueCostTrend": "Revenue vs Cost Trend",
+      "revenue": "Revenue",
+      "cost": "Cost",
+      "profit": "Profit",
+      "expenseBreakdown": "Expense Breakdown"
+    },
+    "monthly": {
+      "title": "Fleet Performance",
+      "month": "Month",
+      "trips": "Trips",
+      "distance": "Distance (km)",
+      "revenue": "Revenue",
+      "fuel": "Fuel",
+      "maintenance": "Maintenance",
+      "other": "Other",
+      "totalCost": "Total Cost",
+      "profit": "Profit"
+    },
+    "fuelTable": {
+      "title": "Fuel Efficiency by Vehicle (km/L)",
+      "vehicle": "Vehicle",
+      "totalDistance": "Total Distance",
+      "totalLiters": "Total Liters",
+      "fuelCost": "Fuel Cost",
+      "kmPerL": "km/L",
+      "costPerKm": "₹/km"
+    },
+    "roiTable": {
+      "title": "Vehicle ROI — Profit by Vehicle",
+      "formula": "ROI = (Revenue − (Maintenance + Fuel + Expenses)) / Revenue",
+      "vehicle": "Vehicle",
+      "revenue": "Revenue",
+      "fuelCost": "Fuel Cost",
+      "maintenance": "Maintenance",
+      "expenses": "Expenses",
+      "totalCost": "Total Cost",
+      "profit": "Profit",
+      "roi": "ROI"
+    },
+    "noData": {
+      "monthly": "No monthly data",
+      "expenses": "No expense data",
+      "fuel": "No fuel efficiency data",
+      "roi": "No ROI data"
+    },
+    "toast": {
+      "exportingPDF": "Generating PDF",
+      "exportingPDFMessage": "Please wait while we capture charts and data...",
+      "pdfSuccess": "Analytics report has been downloaded.",
+      "pdfSuccessTitle": "Export Successful",
+      "pdfErrorTitle": "Error Generating PDF",
+      "pdfExportFailed": "Export failed: {{message}}",
+      "chartWarningTitle": "Chart Capture Warning",
+      "chartWarningMessage": "Could not include Revenue chart in PDF, but continuing with data...",
+      "csvSuccess": "Trips and summary data have been exported to CSV.",
+      "exportFailed": "Export Failed",
+      "csvFailed": "Could not generate CSV export."
+    }
+  },
+  "expenses": {
+    "title": "Finance & Expenses",
+    "subtitle": "Track fuel consumption and trip expenses",
+    "addRecord": "Add Record",
+    "summary": {
+      "fuelLogs": "Fuel Logs",
+      "expenses": "Expenses",
+      "combined": "Combined",
+      "total": "{{amount}} total"
+    },
+    "tabs": {
+      "fuel": "Fuel Logs ({{count}})",
+      "expenses": "Expenses ({{count}})"
+    },
+    "pagination": "Page {{page}} of {{totalPages}} · {{count}} record(s)",
+    "fuelColumns": {
+      "vehicle": "Vehicle",
+      "trip": "Trip",
+      "liters": "Liters",
+      "costPerLiter": "₹/L",
+      "total": "Total",
+      "odometer": "Odometer",
+      "date": "Date"
+    },
+    "expenseColumns": {
+      "vehicle": "Vehicle",
+      "trip": "Trip",
+      "category": "Category",
+      "amount": "Amount",
+      "description": "Description",
+      "date": "Date"
+    },
+    "empty": {
+      "fuel": "No fuel logs yet",
+      "fuelDesc": "Record your first fuel stop to get started.",
+      "expenses": "No expenses yet",
+      "expensesDesc": "Log your first trip expense."
+    }
+  },
+  "maintenance": {
+    "title": "Maintenance Logs",
+    "subtitle": "Service history per vehicle",
+    "logService": "Log Service",
+    "selectVehicle": "Select Vehicle",
+    "allVehicles": "— All vehicles / choose one —",
+    "serviceCount": "{{count}} service records · Total cost: ₹{{total}}",
+    "selectVehiclePrompt": "Select a vehicle to view its service history",
+    "noRecords": "No maintenance records",
+    "columns": {
+      "date": "Date",
+      "serviceType": "Service Type",
+      "description": "Description",
+      "cost": "Cost",
+      "odometer": "Odometer",
+      "shop": "Shop / Technician",
+      "nextDue": "Next Due"
+    },
+    "form": {
+      "title": "Log Maintenance Event",
+      "vehicle": "Vehicle",
+      "serviceType": "Service Type",
+      "cost": "Cost (₹)",
+      "description": "Description",
+      "odometer": "Odometer (km)",
+      "serviceDate": "Service Date",
+      "shopName": "Shop Name",
+      "technician": "Technician",
+      "nextServiceDue": "Next Service Due",
+      "serviceTypePlaceholder": "Oil Change, Tyre Rotation…",
+      "descriptionPlaceholder": "Details of service performed",
+      "shopPlaceholder": "AutoCare Service",
+      "technicianPlaceholder": "Ravi Kumar"
+    }
+  },
+  "landing": {
+    "features": "Features",
+    "howItWorks": "How it Works",
+    "signIn": "Sign In",
+    "heroTag": "Next-Gen Logistics Platform",
+    "heroTitle": "Smarter Fleet Management. Maximum Efficiency.",
+    "heroDescription": "Transform your logistics operations with AI-driven routing, predictive maintenance, and real-time analytics. Built for modern fleets.",
+    "getStarted": "Get Started Now",
+    "exploreFeatures": "Explore Features",
+    "featuresList": {
+      "dispatch": "Real-time Dispatch",
+      "dispatchDesc": "AI-powered routing and live tracking for optimal fleet efficiency.",
+      "maintenance": "Predictive Maintenance",
+      "maintenanceDesc": "Reduce downtime with intelligent maintenance scheduling and alerts.",
+      "analytics": "Advanced Analytics",
+      "analyticsDesc": "Comprehensive insights into fuel consumption, driver performance, and costs.",
+      "safety": "Safety & Compliance",
+      "safetyDesc": "Monitor driver behavior and ensure continuous regulatory compliance.",
+      "drivers": "Driver Management",
+      "driversDesc": "Complete driver profiles, shift tracking, and performance scoring.",
+      "odoo": "Odoo Integration",
+      "odooDesc": "Seamless synchronization with Odoo ERP for unified logistics operations."
+    },
+    "everythingYouNeed": "Everything you need to run your fleet",
+    "everythingYouNeedDesc": "Integrated tools designed for dispatchers, managers, and safety officers to work together seamlessly in real time.",
+    "designedForScale": "Designed for scale. Built for performance.",
+    "benefits": {
+      "zeroDowntime": "Zero-downtime deployment",
+      "zeroDowntimeDesc": "SaaS architecture that scales instantly.",
+      "security": "Enterprise-grade security",
+      "securityDesc": "Secure data pipelines and SOC2 compliance.",
+      "realtime": "Real-time tracking",
+      "realtimeDesc": "WebSockets for live map updates with zero lag."
+    },
+    "readyToTransform": "Ready to transform your fleet?",
+    "readyToTransformDesc": "Join forward-thinking companies optimizing their logistics and reducing costs with FleetFlow.",
+    "goToDashboard": "Go to Dashboard",
+    "contactSales": "Contact Sales",
+    "footer": {
+      "product": "Product",
+      "features": "Features",
+      "pricing": "Pricing",
+      "company": "Company"
+    },
+    "copyright": "© {{year}} FleetFlow. Odoo Hackathon 2026. Data visualization by Recharts.",
+    "privacyPolicy": "Privacy Policy",
+    "termsOfService": "Terms of Service"
+  },
+  "notFound": {
+    "errorLabel": "404 Error",
+    "title": "Page",
+    "titleHighlight": "+",
+    "titleEnd": "not found",
+    "description": "Oops! The page you're looking for seems to have wandered off. It might have been removed, renamed, or didn't exist in the first place.",
+    "searchPlaceholder": "Search for pages...",
+    "goHome": "Go Home",
+    "goBack": "Go Back",
+    "helpCenter": "Help Center",
+    "copyright": "© 2026 FleetFlow. All rights reserved."
+  },
+  "comingSoon": {
+    "description": "This section is currently under construction. We're building something great — check back soon!",
+    "backToDashboard": "Back to Dashboard"
+  },
+  "layout": {
+    "fleetOverview": "Fleet Overview",
+    "onTrip": "On Trip",
+    "available": "Available",
+    "inShop": "In Shop",
+    "utilization": "Utilization",
+    "vehiclesInShop": "{{count}} vehicles in shop",
+    "licensesExpiring": "{{count}} licenses expiring",
+    "intelligenceInMotion": "Intelligence in Motion",
+    "notifications": "Notifications",
+    "notifNew": "{{count}} New",
+    "maintenanceAlert": "Maintenance Alert",
+    "maintenanceAlertMsg": "{{count}} vehicle(s) currently in the shop and require attention",
+    "highPriority": "High Priority",
+    "licenseExpiryWarning": "License Expiry Warning",
+    "licenseExpiryMsg": "{{count}} driver license(s) expiring within 30 days",
+    "urgent": "Urgent",
+    "suspendedDrivers": "Suspended Drivers",
+    "suspendedDriversMsg": "{{count}} driver(s) currently suspended from duty",
+    "actionRequired": "Action Required",
+    "retiredVehicles": "Retired Vehicles",
+    "retiredVehiclesMsg": "{{count}} vehicle(s) have been retired from the fleet",
+    "informational": "Informational",
+    "allClear": "All clear — no alerts",
+    "systemConfig": "System Config"
+  },
+  "fuelExpenses": {
+    "title": "Fuel & Expenses",
+    "subtitle": "Track all operational costs",
+    "addEntry": "Add Entry",
+    "totalFuelCost": "Total Fuel Cost",
+    "totalExpenses": "Total Expenses",
+    "fillUps": "{{count}} fill-ups",
+    "entries": "{{count}} entries",
+    "fuelLogs": "Fuel Logs",
+    "expensesTab": "Expenses",
+    "allVehicles": "All vehicles",
+    "noFuelLogs": "No fuel logs",
+    "noExpenses": "No expenses",
+    "fuelColumns": {
+      "date": "Date",
+      "vehicle": "Vehicle",
+      "liters": "Liters",
+      "costPerLiter": "₹/Liter",
+      "total": "Total",
+      "odometer": "Odometer",
+      "station": "Station"
+    },
+    "expenseColumns": {
+      "date": "Date",
+      "vehicle": "Vehicle",
+      "category": "Category",
+      "amount": "Amount",
+      "description": "Description"
+    },
+    "form": {
+      "fuelTab": "Fuel",
+      "expenseTab": "Expense",
+      "vehicle": "Vehicle *",
+      "selectVehicle": "Select vehicle",
+      "liters": "Liters *",
+      "costPerLiter": "₹/Liter *",
+      "odometer": "Odometer *",
+      "totalLabel": "Total: ₹{{amount}}",
+      "station": "Station",
+      "stationPlaceholder": "IOCL Pump",
+      "date": "Date",
+      "category": "Category *",
+      "amount": "Amount (₹) *",
+      "description": "Description",
+      "descriptionPlaceholder": "National highway toll…",
+      "logFuel": "Log Fuel",
+      "logExpense": "Log Expense"
+    }
+  },
+  "incidents": {
+    "title": "Incident Reports",
+    "subtitle": "Track and manage safety incidents",
+    "reportIncident": "Report Incident",
+    "summary": {
+      "total": "Total",
+      "open": "Open",
+      "investigating": "Investigating",
+      "damageEst": "Damage Est."
+    },
+    "searchPlaceholder": "Search incidents...",
+    "allStatuses": "All Statuses",
+    "noIncidents": "No incidents found",
+    "noIncidentsDesc": "No safety incidents have been reported yet.",
+    "injuries": "INJURIES",
+    "columns": {
+      "incident": "Incident",
+      "type": "Type",
+      "status": "Status",
+      "vehicle": "Vehicle",
+      "driver": "Driver",
+      "damageEst": "Damage Est.",
+      "date": "Date"
+    },
+    "closeButton": "Close",
+    "closeModal": {
+      "title": "Close Incident",
+      "closing": "Closing:",
+      "placeholder": "Resolution summary (min 10 characters)...",
+      "confirm": "Close Incident"
+    },
+    "createModal": {
+      "title": "Report New Incident",
+      "titleField": "Title *",
+      "titlePlaceholder": "Brief incident title",
+      "type": "Type *",
+      "date": "Date *",
+      "description": "Description *",
+      "descriptionPlaceholder": "Detailed description (min 10 chars)",
+      "location": "Location",
+      "locationPlaceholder": "Where did it happen?",
+      "damageEstimate": "Damage Estimate (₹)",
+      "injuriesReported": "Injuries reported",
+      "submitReport": "Submit Report"
+    }
+  },
+  "driverManagement": {
+    "title": "Driver Performance & Safety",
+    "subtitle": "Monitor and manage your fleet drivers",
+    "addDriver": "Add Driver",
+    "licensesExpiringSoon": "Licenses Expiring Soon ({{count}})",
+    "daysLeft": "{{days}}d left",
+    "statusCards": {
+      "onDuty": "On Duty",
+      "onTrip": "On Trip",
+      "offDuty": "Off Duty",
+      "suspended": "Suspended"
+    },
+    "search": "Search name, license, email...",
+    "allStatuses": "All Statuses",
+    "allLicenses": "All Licenses",
+    "expiringSoon": "Expiring Soon (< 30d)",
+    "expired": "Expired",
+    "columns": {
+      "number": "#",
+      "name": "Name",
+      "license": "License #",
+      "expiry": "Expiry",
+      "safetyScore": "Safety Score",
+      "status": "Status",
+      "actions": "Actions"
+    },
+    "noDrivers": "No drivers found",
+    "adjustFilters": "Try adjusting your filters",
+    "addFirstDriver": "Add your first driver to get started",
+    "editTooltip": "Edit",
+    "clockIn": "Clock In",
+    "clockOut": "Clock Out",
+    "onTripLabel": "On Trip",
+    "suspendTooltip": "Suspend",
+    "suspendDialog": {
+      "title": "Suspend Driver?",
+      "description": "Suspending <strong>{{name}}</strong> will block all dispatch operations for this driver.",
+      "placeholder": "Reason for suspension (required)...",
+      "confirm": "Suspend Driver"
+    },
+    "adjustScoreTooltip": "Adjust Safety Score",
+    "deleteTooltip": "Delete",
+    "deleteDialog": {
+      "title": "Delete Driver?",
+      "description": "This will soft-delete <strong>{{name}}</strong>. Historical trip data will be preserved.",
+      "confirm": "Delete"
+    },
+    "scoreModal": {
+      "title": "Adjust Safety Score",
+      "adjustment": "Adjustment:",
+      "reason": "Reason *",
+      "placeholder": "Reason for adjustment (min 5 chars)..."
+    },
+    "pagination": {
+      "total": "{{count}} driver(s) total"
+    }
+  },
+  "driverPerformance": {
+    "title": "Driver Performance",
+    "subtitle": "Safety scores and trip metrics per driver",
+    "stats": {
+      "drivers": "Drivers",
+      "avgSafetyScore": "Avg Safety Score",
+      "totalTrips": "Total Trips",
+      "totalIncidents": "Total Incidents"
+    },
+    "searchPlaceholder": "Search drivers...",
+    "noData": "No driver performance data yet.",
+    "trips": "Trips",
+    "completed": "Completed",
+    "incidentsLabel": "Incidents"
+  },
+  "driverDashboard": {
+    "welcome": "Welcome, {{name}}",
+    "onDuty": "On Duty",
+    "offDuty": "Off Duty",
+    "goOffDuty": "Go Off Duty",
+    "goOnDuty": "Go On Duty",
+    "statusUpdated": "Status Updated",
+    "statusUpdateFailed": "Failed to update your duty status.",
+    "updateFailed": "Update Failed",
+    "gpsTracker": "Live GPS Tracker",
+    "broadcasting": "Broadcasting location...",
+    "trackerPaused": "Tracker paused. Start to share location.",
+    "stopTracker": "Stop Tracker",
+    "startTracker": "Start Tracker",
+    "lastPing": "Last ping:",
+    "currentAssignment": "Current Assignment",
+    "dispatched": "Dispatched",
+    "vehicleLabel": "Vehicle:",
+    "origin": "Origin",
+    "destination": "Destination",
+    "cargoWeight": "Cargo Weight",
+    "cargoDescription": "Description",
+    "noActiveTrips": "No Active Trips",
+    "noActiveTripsDesc": "You do not have any trips currently dispatched to you.",
+    "recentHistory": "Recent History",
+    "accountUnlinked": "Account Unlinked",
+    "accountUnlinkedDesc": "Your user account ({{email}}) is not linked to a Driver profile. Please contact a Manager or Dispatcher to configure your account."
+  },
+  "fleetDashboard": {
+    "title": "Command Center",
+    "liveOverview": "Live fleet overview — {{date}}",
+    "kpi": {
+      "activeFleet": "Active Fleet",
+      "ofTotal": "of {{total}} total",
+      "maintenanceAlerts": "Maintenance Alerts",
+      "vehiclesInShop": "vehicles in shop",
+      "utilizationRate": "Utilization Rate",
+      "fleetAssignedVsIdle": "fleet assigned vs idle",
+      "pendingCargo": "Pending Cargo",
+      "tripsInDraft": "trips in DRAFT",
+      "activeTrips": "Active Trips",
+      "currentlyDispatched": "currently dispatched",
+      "driversOnDuty": "Drivers On Duty",
+      "ofDrivers": "of {{total}} drivers",
+      "completedToday": "Completed Today",
+      "tripsFinishedToday": "trips finished today",
+      "expiringLicenses": "Expiring Licenses",
+      "within30Days": "within 30 days"
+    },
+    "liveFleetMap": "Live Fleet Map",
+    "vehiclesTracked": "{{count}} vehicle(s) tracked",
+    "noLiveData": "No live data",
+    "vehicleNumber": "Vehicle #{{id}}",
+    "inTransit": "In Transit — {{origin}} → {{destination}}",
+    "revenueCostYear": "Revenue vs Cost — {{year}}",
+    "monthly": "Monthly",
+    "loadingChart": "Loading chart...",
+    "noTripData": "No trip data yet",
+    "fleetStatus": "Fleet Status",
+    "noVehicles": "No vehicles",
+    "monthlyPerformance": "Monthly Performance Summary",
+    "tableHeaders": {
+      "month": "Month",
+      "trips": "Trips",
+      "distance": "Distance (km)",
+      "revenue": "Revenue",
+      "fuelCost": "Fuel Cost",
+      "maintenance": "Maintenance",
+      "profit": "Profit"
+    }
+  },
+  "commandCenter": {
+    "greeting": {
+      "morning": "Good morning",
+      "afternoon": "Good afternoon",
+      "evening": "Good evening",
+      "fallback": "there"
+    },
+    "subtitle": "Here's what's happening with your fleet today.",
+    "loadError": "Failed to load dashboard data. Is the backend running?",
+    "noDataAvailable": "No data available.",
+    "filtering": "Filtering...",
+    "matchCount": "{{count}} vehicle(s) match",
+    "filter": {
+      "vehicleType": "Vehicle Type",
+      "status": "Status",
+      "region": "Region"
+    },
+    "regions": {
+      "north": "North",
+      "south": "South",
+      "east": "East",
+      "west": "West",
+      "central": "Central"
+    },
+    "kpi": {
+      "activeFleet": "Active Fleet",
+      "available": "available",
+      "maintenanceAlerts": "Maintenance Alerts",
+      "vehiclesInShop": "Vehicles in shop",
+      "allOperational": "All vehicles operational",
+      "utilizationRate": "Utilization Rate",
+      "onTrip": "on trip",
+      "pendingCargo": "Pending Cargo",
+      "activeSuffix": "active",
+      "doneToday": "done today"
+    },
+    "fleetDistribution": "Fleet Distribution",
+    "attentionRequired": "Attention Required",
+    "noActiveAlerts": "No active alerts",
+    "driverSummary": "Driver Summary",
+    "driverStats": {
+      "totalDrivers": "Total Drivers",
+      "onDuty": "On Duty",
+      "suspended": "Suspended",
+      "expiringLicenses": "Expiring Licenses"
+    },
+    "quickActions": "Quick Actions",
+    "actions": {
+      "vehicleRegistry": "Vehicle Registry",
+      "driverManagement": "Driver Management",
+      "tripDispatcher": "Trip Dispatcher",
+      "maintenance": "Maintenance",
+      "analytics": "Analytics"
+    }
+  },
+  "vehicleRegistry": {
+    "title": "Vehicle Registry",
+    "subtitle": "Manage your fleet assets",
+    "exportCSV": "Export CSV",
+    "newVehicle": "New Vehicle",
+    "columns": {
+      "number": "#",
+      "plate": "Plate",
+      "makeModel": "Make / Model",
+      "type": "Type",
+      "capacity": "Capacity",
+      "odometer": "Odometer",
+      "status": "Status",
+      "actions": "Actions"
+    },
+    "noVehicles": "No vehicles found",
+    "adjustFilters": "Try adjusting your filters",
+    "addFirstVehicle": "Register your first vehicle to get started",
+    "editTooltip": "Edit",
+    "retireTooltip": "Retire",
+    "retireDialog": {
+      "title": "Retire Vehicle?",
+      "description": "This will permanently decommission <strong>{{plate}}</strong>. Retired vehicles cannot be dispatched.",
+      "confirm": "Retire Vehicle"
+    },
+    "deleteTooltip": "Delete",
+    "deleteDialog": {
+      "title": "Delete Vehicle?",
+      "description": "This will soft-delete <strong>{{plate}}</strong>. This action requires Super Admin access.",
+      "confirm": "Delete"
+    },
+    "pagination": {
+      "total": "{{count}} vehicle(s) total"
+    },
+    "toast": {
+      "exportSuccess": "Vehicle registry has been exported to CSV.",
+      "exportSuccessTitle": "Export Successful",
+      "exportFailed": "Could not generate vehicle export.",
+      "exportFailedTitle": "Export Failed"
+    }
+  },
+  "tripDispatcher": {
+    "title": "Trip Dispatcher",
+    "subtitle": "Plan, dispatch, and track fleet trips",
+    "newTrip": "New Trip",
+    "searchPlaceholder": "Search trips (route, vehicle, driver, client)...",
+    "allStatuses": "All Statuses",
+    "columns": {
+      "number": "#",
+      "vehicle": "Vehicle",
+      "driver": "Driver",
+      "route": "Route",
+      "cargo": "Cargo",
+      "distance": "Distance",
+      "status": "Status",
+      "actions": "Actions"
+    },
+    "actions": {
+      "dispatch": "Dispatch",
+      "cancel": "Cancel",
+      "complete": "Complete",
+      "ledger": "Ledger"
+    },
+    "loading": "Loading trips...",
+    "noTrips": "No trips found",
+    "adjustFilters": "Try adjusting your filters",
+    "addFirstTrip": "Create your first trip to get started",
+    "dispatchDialog": {
+      "title": "Dispatch Trip?",
+      "description": "Dispatch {{origin}} → {{destination}}? Vehicle will be marked ON_TRIP and driver will be assigned.",
+      "confirm": "Dispatch Now",
+      "dispatching": "Dispatching..."
+    },
+    "toast": {
+      "dispatched": "Trip has been dispatched successfully.",
+      "dispatchedTitle": "Dispatched",
+      "dispatchFailed": "Failed to dispatch trip",
+      "errorTitle": "Error"
+    }
+  },
+  "financialReports": {
+    "title": "Financial Reports",
+    "subtitle": "Revenue, costs, fuel efficiency & vehicle ROI",
+    "exportCSV": "Export CSV",
+    "summary": {
+      "totalRevenue": "Total Revenue",
+      "totalCosts": "Total Costs",
+      "netProfit": "Net Profit"
+    },
+    "tabs": {
+      "pnl": "P&L Monthly",
+      "fuelEfficiency": "Fuel Efficiency",
+      "roi": "Vehicle ROI"
+    },
+    "pnlColumns": {
+      "month": "Month",
+      "revenue": "Revenue",
+      "fuel": "Fuel",
+      "maintenance": "Maintenance",
+      "other": "Other",
+      "profit": "Profit",
+      "trips": "Trips"
+    },
+    "noDataForYear": "No data for {{year}}",
+    "fuelEfficiency": {
+      "noData": "No fuel efficiency data.",
+      "kmPerL": "km/L",
+      "totalFuel": "Total Fuel",
+      "fuelCost": "Fuel Cost"
+    },
+    "roiColumns": {
+      "vehicle": "Vehicle",
+      "revenue": "Revenue",
+      "cost": "Cost",
+      "roi": "ROI %"
+    },
+    "noRoiData": "No ROI data."
+  },
+  "forms": {
+    "driver": {
+      "editTitle": "Edit Driver",
+      "newTitle": "New Driver",
+      "editSubtitle": "Update driver details",
+      "newSubtitle": "Register a new driver",
+      "fullName": "Full Name *",
+      "fullNamePlaceholder": "John Doe",
+      "licenseNumber": "License Number *",
+      "licensePlaceholder": "DL-1234567890",
+      "licenseClass": "License Class",
+      "licenseClassPlaceholder": "CDL-A",
+      "licenseExpiry": "License Expiry Date *",
+      "phone": "Phone",
+      "phonePlaceholder": "+91 98765 43210",
+      "email": "Email",
+      "emailPlaceholder": "driver@fleetflow.io",
+      "dateOfBirth": "Date of Birth",
+      "updateDriver": "Update Driver",
+      "createDriver": "Create Driver"
+    },
+    "vehicle": {
+      "editTitle": "Edit Vehicle",
+      "newTitle": "New Vehicle",
+      "editSubtitle": "Update vehicle details",
+      "newSubtitle": "Register a new fleet asset",
+      "licensePlate": "Registration Plate *",
+      "licensePlatePlaceholder": "MH-12-AB-1234",
+      "make": "Make *",
+      "makePlaceholder": "Tata",
+      "model": "Model *",
+      "modelPlaceholder": "Prima",
+      "year": "Year *",
+      "color": "Color",
+      "colorPlaceholder": "White",
+      "vin": "VIN",
+      "vinPlaceholder": "17-character VIN (optional)",
+      "vehicleType": "Vehicle Type *",
+      "selectType": "Select type...",
+      "maxCapacity": "Max Capacity (kg) *",
+      "capacityPlaceholder": "5000",
+      "volume": "Volume (m³)",
+      "region": "Region",
+      "regionPlaceholder": "e.g. North America",
+      "acquisitionCost": "Acquisition Cost ($)",
+      "initialOdometer": "Initial Odometer (km)",
+      "updateVehicle": "Update Vehicle",
+      "createVehicle": "Create Vehicle"
+    },
+    "expense": {
+      "fuelTitle": "New Fuel Log",
+      "expenseTitle": "New Expense",
+      "fuelSubtitle": "Record a fueling event",
+      "expenseSubtitle": "Log a trip expense",
+      "fuelTab": "Fuel Log",
+      "expenseTab": "Expense",
+      "loadingVehicles": "Loading vehicles...",
+      "vehicle": "Vehicle *",
+      "selectVehicle": "Select a vehicle...",
+      "tripId": "Trip ID (optional)",
+      "tripIdPlaceholder": "e.g. 42",
+      "liters": "Liters *",
+      "costPerLiter": "₹/Liter *",
+      "totalLabel": "Total: ₹{{amount}}",
+      "odometerAtFill": "Odometer at Fill *",
+      "fuelStation": "Fuel Station",
+      "fuelStationPlaceholder": "Shell, HP, Indian Oil...",
+      "category": "Category *",
+      "amount": "Amount (₹) *",
+      "description": "Description",
+      "descriptionPlaceholder": "Toll at Mumbai expressway...",
+      "createFuelLog": "Create Fuel Log",
+      "createExpense": "Create Expense",
+      "categories": {
+        "TOLL": "Toll",
+        "LODGING": "Lodging",
+        "MAINTENANCE_EN_ROUTE": "Maintenance (En Route)",
+        "MISC": "Miscellaneous"
+      }
+    },
+    "maintenance": {
+      "title": "New Service Log",
+      "subtitle": "Log a maintenance event",
+      "warning": "Creating this log will set the vehicle to <strong>IN_SHOP</strong> and remove it from the dispatcher's available pool.",
+      "loadingVehicles": "Loading vehicles...",
+      "vehicle": "Vehicle *",
+      "selectVehicle": "Select a vehicle...",
+      "serviceType": "Service Type *",
+      "selectType": "Select type...",
+      "description": "Description",
+      "descriptionPlaceholder": "Details of the service...",
+      "cost": "Cost (₹) *",
+      "odometerAtService": "Odometer at Service *",
+      "technicianName": "Technician Name",
+      "technicianPlaceholder": "John Doe",
+      "shopName": "Shop Name",
+      "shopPlaceholder": "AutoCare",
+      "serviceDate": "Service Date *",
+      "nextServiceDue": "Next Service Due",
+      "createServiceLog": "Create Service Log"
+    },
+    "trip": {
+      "title": "New Trip",
+      "subtitle": "Plan a new dispatch trip",
+      "loadingVehiclesDrivers": "Loading vehicles and drivers...",
+      "vehicleLabel": "Vehicle (Available Only) *",
+      "selectVehicle": "Select a vehicle...",
+      "noAvailableVehicles": "No available vehicles",
+      "driverLabel": "Driver (On Duty, Valid License) *",
+      "selectDriver": "Select a driver...",
+      "noEligibleDrivers": "No eligible drivers",
+      "origin": "Origin *",
+      "destination": "Destination *",
+      "locationPlaceholder": "Start typing...",
+      "cargoWeight": "Cargo Weight (kg) *",
+      "estDistance": "Est. Distance (km) *",
+      "cargoExceedsCapacity": "Cargo exceeds vehicle capacity",
+      "cargoDescription": "Cargo Description",
+      "cargoDescPlaceholder": "e.g. Electronics, perishables...",
+      "clientName": "Client Name",
+      "clientPlaceholder": "Acme Corp",
+      "revenue": "Revenue (₹)",
+      "createTripDraft": "Create Trip (Draft)"
+    },
+    "tripComplete": {
+      "title": "Complete Trip",
+      "description": "Enter the actual distance traveled to complete this trip. Vehicle and driver will be released.",
+      "actualDistance": "Actual Distance (km) *",
+      "distancePlaceholder": "e.g. 1450",
+      "odometerEnd": "Odometer End (optional)",
+      "odometerPlaceholder": "Current odometer reading",
+      "confirm": "Complete Trip"
+    },
+    "tripCancel": {
+      "title": "Cancel Trip",
+      "description": "This action will cancel the trip. If the trip was dispatched, the vehicle and driver will be released.",
+      "reasonLabel": "Reason for Cancellation *",
+      "reasonPlaceholder": "Please explain why this trip is being cancelled (min 5 chars)...",
+      "minLength": "Minimum 5 characters required",
+      "keepTrip": "Keep Trip",
+      "confirm": "Cancel Trip"
+    },
+    "tripLedger": {
+      "title": "Trip Ledger",
+      "subtitle": "Financial summary for trip #{{id}}",
+      "revenue": "Revenue",
+      "totalCost": "Total Cost",
+      "profit": "Profit",
+      "roi": "ROI",
+      "costBreakdown": "Cost Breakdown",
+      "fuel": "Fuel",
+      "expenses": "Expenses",
+      "fuelLogs": "Fuel Logs ({{count}})",
+      "expensesList": "Expenses ({{count}})",
+      "noRecords": "No fuel logs or expenses recorded for this trip yet."
+    }
+  },
+  "ui": {
+    "capacityBar": {
+      "cargo": "Cargo:",
+      "capacity": "{{value}} kg capacity",
+      "exceedsCapacity": "{{pct}}% — EXCEEDS CAPACITY",
+      "utilized": "{{pct}}% utilized — OK"
+    },
+    "licenseExpiry": {
+      "expired": "EXPIRED",
+      "expiresIn": "Expires in {{days}}d!",
+      "expiringIn": "Expiring in {{days}}d"
+    },
+    "navbar": {
+      "searchPlaceholder": "Search here...",
+      "clearSearch": "Clear search",
+      "notifications": "Notifications",
+      "toggleDarkMode": "Toggle dark mode",
+      "userMenu": "User menu",
+      "fallbackName": "FleetFlow User"
+    }
+  }
+}

@@ -3,11 +3,11 @@
  * Clean design with light/dark theme support.
  * Role is determined from the database, not from the login portal.
  */
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, useLocation, Link } from "react-router-dom";
 import { motion } from "framer-motion";
+import { useTranslation } from "react-i18next";
 import {
-  Truck,
   Mail,
   Lock,
   Eye,
@@ -30,6 +30,7 @@ export default function Login() {
   const location = useLocation();
   const { login } = useAuth();
   const { isDark, toggleTheme } = useTheme();
+  const { t } = useTranslation();
   const from = (location.state as { from?: { pathname: string } })?.from?.pathname || "/";
 
   const [form, setForm] = useState({ email: "", password: "" });
@@ -37,6 +38,10 @@ export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [serverError, setServerError] = useState<string | null>(null);
+
+  useEffect(() => {
+    document.title = t("auth.login.pageTitle");
+  }, []);
 
   const validateField = (field: "email" | "password", value: string) => {
     const result = loginSchema.shape[field].safeParse(value);
@@ -126,8 +131,8 @@ export default function Login() {
         <div className="relative z-10 flex flex-col justify-between w-full p-12">
           {/* Logo */}
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-emerald-500 flex items-center justify-center">
-              <Truck className="w-5 h-5 text-white" />
+            <div className="w-10 h-10 rounded-xl bg-white overflow-hidden flex items-center justify-center shadow-lg">
+              <img src="/logo-premium.png" alt="FleetFlow Logo" className="w-full h-full object-cover" />
             </div>
             <span className="text-xl font-bold text-white tracking-tight">FleetFlow</span>
           </div>
@@ -135,21 +140,20 @@ export default function Login() {
           {/* Hero text */}
           <div className="space-y-6">
             <h1 className="text-4xl font-extrabold text-white leading-tight">
-              Fleet Management
+              {t("auth.login.heroTitle")}
               <br />
-              <span className="text-neutral-400">Made Intelligent</span>
+              <span className="text-neutral-400">{t("auth.login.heroSubtitle")}</span>
             </h1>
             <p className="text-neutral-500 text-base max-w-sm leading-relaxed">
-              Real-time tracking, dispatch optimization, and comprehensive fleet
-              analytics — all in one platform.
+              {t("auth.login.heroDescription")}
             </p>
 
             {/* Feature pills */}
             <div className="flex flex-wrap gap-2">
               {[
-                { icon: BarChart3, label: "Analytics" },
-                { icon: Shield, label: "Secure" },
-                { icon: Zap, label: "Real-time" },
+                { icon: BarChart3, label: t("auth.login.featureAnalytics") },
+                { icon: Shield, label: t("auth.login.featureSecure") },
+                { icon: Zap, label: t("auth.login.featureRealtime") },
               ].map(({ icon: Icon, label }) => (
                 <div
                   key={label}
@@ -165,9 +169,9 @@ export default function Login() {
           {/* Stats */}
           <div className="grid grid-cols-3 gap-6">
             {[
-              { label: "Vehicles", value: "2,400+" },
-              { label: "Countries", value: "18" },
-              { label: "Uptime", value: "99.9%" },
+              { label: t("auth.login.statVehicles"), value: "2,400+" },
+              { label: t("auth.login.statCountries"), value: "18" },
+              { label: t("auth.login.statUptime"), value: "99.9%" },
             ].map((stat) => (
               <div key={stat.label}>
                 <p className="text-2xl font-bold text-white">{stat.value}</p>
@@ -187,7 +191,7 @@ export default function Login() {
               ? "bg-neutral-800 text-neutral-300 hover:bg-neutral-700"
               : "bg-white border border-neutral-200 text-neutral-600 hover:bg-neutral-50"
             }`}
-          title={isDark ? "Switch to light mode" : "Switch to dark mode"}
+          title={isDark ? t("auth.login.switchToLight") : t("auth.login.switchToDark")}
         >
           {isDark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
         </button>
@@ -200,8 +204,8 @@ export default function Login() {
         >
           {/* Mobile logo */}
           <div className="lg:hidden flex items-center gap-3 mb-10">
-            <div className="w-10 h-10 rounded-xl bg-emerald-500 flex items-center justify-center">
-              <Truck className="w-5 h-5 text-white" />
+            <div className="w-10 h-10 rounded-xl bg-white overflow-hidden flex items-center justify-center shadow-lg">
+              <img src="/logo-premium.png" alt="FleetFlow Logo" className="w-full h-full object-cover" />
             </div>
             <span
               className={`text-xl font-bold tracking-tight ${isDark ? "text-white" : "text-neutral-900"
@@ -217,10 +221,10 @@ export default function Login() {
               className={`text-2xl font-bold ${isDark ? "text-white" : "text-neutral-900"
                 }`}
             >
-              Welcome back
+              {t("auth.login.welcomeBack")}
             </h2>
             <p className={isDark ? "text-neutral-500 text-sm" : "text-neutral-500 text-sm"}>
-              Sign in to your FleetFlow account
+              {t("auth.login.signInSubtitle")}
             </p>
           </div>
 
@@ -254,7 +258,7 @@ export default function Login() {
                 className={`block text-sm font-medium mb-2 ${isDark ? "text-neutral-400" : "text-neutral-700"
                   }`}
               >
-                Email
+                {t("auth.login.emailLabel")}
               </label>
               <div className="relative">
                 <Mail
@@ -266,7 +270,7 @@ export default function Login() {
                   value={form.email}
                   onChange={handleChange("email")}
                   onBlur={handleBlur("email")}
-                  placeholder="your@email.com"
+                  placeholder={t("auth.login.emailPlaceholder")}
                   className={`w-full pl-11 pr-4 py-3 rounded-xl text-sm focus:outline-none focus:ring-2 transition-all ${isDark
                       ? `bg-neutral-900 border text-white placeholder:text-neutral-600 ${errors.email
                         ? "border-red-500/50 focus:ring-red-500/40"
@@ -291,13 +295,13 @@ export default function Login() {
                   className={`block text-sm font-medium ${isDark ? "text-neutral-400" : "text-neutral-700"
                     }`}
                 >
-                  Password
+                  {t("auth.login.passwordLabel")}
                 </label>
                 <Link
                   to="/forgot-password"
                   className="text-xs font-medium text-emerald-500 hover:text-emerald-400 transition-colors"
                 >
-                  Forgot password?
+                  {t("auth.login.forgotPassword")}
                 </Link>
               </div>
               <div className="relative">
@@ -310,7 +314,7 @@ export default function Login() {
                   value={form.password}
                   onChange={handleChange("password")}
                   onBlur={handleBlur("password")}
-                  placeholder="Enter password"
+                  placeholder={t("auth.login.passwordPlaceholder")}
                   className={`w-full pl-11 pr-12 py-3 rounded-xl text-sm focus:outline-none focus:ring-2 transition-all ${isDark
                       ? `bg-neutral-900 border text-white placeholder:text-neutral-600 ${errors.password
                         ? "border-red-500/50 focus:ring-red-500/40"
@@ -352,18 +356,71 @@ export default function Login() {
                 <Loader2 className="w-4 h-4 animate-spin" />
               ) : (
                 <>
-                  Sign in
+                  {t("auth.login.signIn")}
                   <ArrowRight className="w-4 h-4" />
                 </>
               )}
             </button>
           </form>
 
+          {/* Quick Access for Testing */}
+          <div className="mt-8 pt-8 border-t border-neutral-200 dark:border-neutral-800">
+            <p className={`text-center text-xs font-bold mb-4 uppercase tracking-widest ${isDark ? "text-neutral-500" : "text-neutral-400"}`}>
+              {t("auth.login.quickAccess")}
+            </p>
+            <div className="grid grid-cols-2 gap-3">
+              {[
+                { role: "Manager", email: "manager@fleetflow.io" },
+                { role: "Dispatcher", email: "dispatcher@fleetflow.io" },
+                { role: "Safety", email: "safety@fleetflow.io" },
+                { role: "Finance", email: "finance@fleetflow.io" },
+              ].map((item) => (
+                <button
+                  key={item.role}
+                  onClick={async () => {
+                    const credentials = { email: item.email, password: "FleetFlow@2025" };
+                    setForm(credentials);
+                    setLoading(true);
+                    try {
+                      await login(credentials.email, credentials.password);
+                      const roleRedirect: Record<string, string> = {
+                        MANAGER: "/dashboard",
+                        DISPATCHER: "/dispatch",
+                        SAFETY_OFFICER: "/drivers",
+                        FINANCE_ANALYST: "/analytics",
+                      };
+                      // Mocking basic role to path mapping for common name
+                      const mappedRole = item.role === "Safety" ? "SAFETY_OFFICER" : 
+                                       item.role === "Finance" ? "FINANCE_ANALYST" : 
+                                       item.role.toUpperCase();
+                      navigate(roleRedirect[mappedRole] || "/dashboard", { replace: true });
+                    } catch (err: unknown) {
+                      setServerError(t("auth.login.quickLoginFailed"));
+                      setLoading(false);
+                    }
+                  }}
+                  className={`flex flex-col items-center p-2.5 rounded-xl border transition-all ${
+                    isDark
+                      ? "bg-neutral-900 border-neutral-800 hover:border-emerald-500/50 hover:bg-neutral-800/50"
+                      : "bg-white border-neutral-200 hover:border-emerald-500 hover:bg-emerald-50/30 shadow-sm"
+                  }`}
+                >
+                  <span className={`text-[10px] font-bold uppercase tracking-wider ${isDark ? "text-neutral-500" : "text-neutral-400"}`}>
+                    {item.role}
+                  </span>
+                  <span className={`text-xs font-medium mt-0.5 ${isDark ? "text-neutral-300" : "text-neutral-600"}`}>
+                    {item.email.split('@')[0]}
+                  </span>
+                </button>
+              ))}
+            </div>
+          </div>
+
           <p
-            className={`mt-8 text-center text-xs ${isDark ? "text-neutral-600" : "text-neutral-400"
+            className={`mt-6 text-center text-xs ${isDark ? "text-neutral-600" : "text-neutral-400"
               }`}
           >
-            Don't have an account? Contact your administrator.
+            {t("auth.login.noAccount")}
           </p>
         </motion.div>
       </div>
