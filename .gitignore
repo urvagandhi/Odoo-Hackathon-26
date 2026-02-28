@@ -25,6 +25,9 @@ vite.config.*.timestamp-*
 *.cert
 *.p12
 
+# ── Claude Code ───────────────────────────────────────
+.claude/.fuse_hidden*
+
 # ── IDE ───────────────────────────────────────────────
 .vscode/
 .idea/
