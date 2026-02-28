@@ -3,8 +3,9 @@
  * Trip creation, lifecycle (DRAFT → DISPATCHED → COMPLETED/CANCELLED)
  * Embedded Leaflet map with OpenRouteService routing for shortest path
  */
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
+import { useQuery } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
 import {
     Plus, X, Route, MapPin, Truck, User, Clock, CheckCircle2,
@@ -13,9 +14,10 @@ import {
 import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
-import { fleetApi, hrApi, dispatchApi, type Trip, type Vehicle, type Driver } from "../api/client";
+import { fleetApi, hrApi, dispatchApi, type Trip } from "../api/client";
 import { useTheme } from "../context/ThemeContext";
 import { useToast } from "../hooks/useToast";
+import { Select } from "../components/ui/Select";
 import {
     AlertDialog,
     AlertDialogContent,
@@ -101,12 +103,6 @@ export default function Dispatch() {
     const { isDark } = useTheme();
     const { t } = useTranslation();
     const toast = useToast();
-    const [trips, setTrips] = useState<Trip[]>([]);
-    const [vehicles, setVehicles] = useState<Vehicle[]>([]);
-    const [drivers, setDrivers] = useState<Driver[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [statusFilter, setStatusFilter] = useState("");
-    const [search, setSearch] = useState("");
     const [showModal, setShowModal] = useState(false);
     const [selectedTrip, setSelectedTrip] = useState<Trip | null>(null);
     const [form, setForm] = useState<{
@@ -127,21 +123,35 @@ export default function Dispatch() {
     const [mapBounds, setMapBounds] = useState<[[number, number], [number, number]] | null>(null);
     const [mapLoading, setMapLoading] = useState(false);
 
-    const load = useCallback(async () => {
-        setLoading(true);
-        try {
-            const [tripsRes, vRes, dRes] = await Promise.all([
-                dispatchApi.listTrips({ limit: 100 }),
-                fleetApi.listVehicles({ status: "AVAILABLE", limit: 100 }),
-                hrApi.listDrivers({ status: "ON_DUTY", limit: 100 }),
-            ]);
-            setTrips(tripsRes.data ?? []);
-            setVehicles(vRes.data ?? []);
-            setDrivers(dRes.data ?? []);
-        } finally { setLoading(false); }
-    }, []);
+    /* ── Fetch Data using React Query ───────────────── */
+    const { data: tripsData, isLoading: loadingTrips, refetch: refetchTrips } = useQuery({
+        queryKey: ['trips'],
+        queryFn: async () => {
+            const res = await dispatchApi.listTrips({ limit: 100 });
+            return res.data ?? [];
+        }
+    });
 
-    useEffect(() => { load(); }, [load]);
+    const { data: vehiclesData, refetch: refetchVehicles } = useQuery({
+        queryKey: ['vehicles', 'available'],
+        queryFn: async () => {
+            const res = await fleetApi.listVehicles({ status: "AVAILABLE", limit: 100 });
+            return res.data ?? [];
+        }
+    });
+
+    const { data: driversData, refetch: refetchDrivers } = useQuery({
+        queryKey: ['drivers', 'on_duty'],
+        queryFn: async () => {
+            const res = await hrApi.listDrivers({ status: "ON_DUTY", limit: 100 });
+            return res.data ?? [];
+        }
+    });
+
+    const trips = tripsData ?? [];
+    const vehicles = vehiclesData ?? [];
+    const drivers = driversData ?? [];
+    const loading = loadingTrips;
 
     // Load route on trip select
     useEffect(() => {
@@ -164,6 +174,9 @@ export default function Dispatch() {
         loadRoute();
     }, [selectedTrip]);
 
+    const [search, setSearch] = useState("");
+    const [statusFilter, setStatusFilter] = useState("");
+
     const filtered = trips.filter(tr =>
         (!statusFilter || tr.status === statusFilter) &&
         (!search || tr.origin.toLowerCase().includes(search.toLowerCase()) ||
@@ -183,7 +196,10 @@ export default function Dispatch() {
             await dispatchApi.createTrip({ ...form, distanceEstimated: form.distanceEstimated });
             toast.success(t("dispatch.toast.created"));
             setShowModal(false);
-            load();
+            setForm({ vehicleId: "", driverId: "", origin: "", destination: "", distanceEstimated: 0, cargoWeight: 0, cargoDescription: "", clientName: "", revenue: 0 });
+            refetchTrips();
+            refetchVehicles();
+            refetchDrivers();
         } catch (err: unknown) {
             setFormError((err as { response?: { data?: { message?: string } } })?.response?.data?.message ?? "Failed to create trip");
         } finally { setSaving(false); }
@@ -193,7 +209,7 @@ export default function Dispatch() {
         try {
             await dispatchApi.transitionStatus(trip.id, { status });
             toast.success(t("dispatch.toast.transitioned", { status: status.toLowerCase() }));
-            load();
+            refetchTrips();
             if (selectedTrip?.id === trip.id) {
                 const updated = await dispatchApi.getTrip(trip.id);
                 setSelectedTrip(updated);
@@ -205,6 +221,8 @@ export default function Dispatch() {
     };
 
     const inputClass = `${FIELD} ${isDark ? "bg-neutral-700 border-neutral-600 text-white placeholder-neutral-400" : "bg-white border-neutral-200 text-neutral-900 placeholder-neutral-400"}`;
+
+
 
     return (
         <div className="max-w-[1600px] mx-auto h-full">
@@ -241,7 +259,31 @@ export default function Dispatch() {
                     {/* Trip list */}
                     <div className="flex-1 overflow-y-auto">
                         {loading ? (
-                            <div className="flex items-center justify-center h-32 text-neutral-400">{t("common.loading")}</div>
+                            <div className="flex flex-col">
+                                {[1, 2, 3, 4, 5].map(i => (
+                                    <div key={i} className={`w-full text-left p-4 border-b ${isDark ? "border-neutral-700" : "border-neutral-50"}`}>
+                                        <div className="flex items-start justify-between mb-2">
+                                            <div className="flex items-start gap-2 w-2/3">
+                                                <div className={`w-4 h-4 rounded-full mt-0.5 shrink-0 ${isDark ? "bg-neutral-700" : "bg-neutral-200"}`} />
+                                                <div className={`h-4 rounded overflow-hidden relative w-full ${isDark ? "bg-neutral-700" : "bg-neutral-200"}`}>
+                                                    <div className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent dark:via-white/5 via-white/20 to-transparent animate-shimmer" />
+                                                </div>
+                                            </div>
+                                            <div className={`w-16 h-4 rounded overflow-hidden relative ${isDark ? "bg-neutral-700" : "bg-neutral-200"}`}>
+                                                <div className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent dark:via-white/5 via-white/20 to-transparent animate-shimmer" />
+                                            </div>
+                                        </div>
+                                        <div className="flex items-center gap-4 mt-3">
+                                            <div className={`w-20 h-3 rounded overflow-hidden relative ${isDark ? "bg-neutral-700" : "bg-neutral-200"}`}>
+                                                <div className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent dark:via-white/5 via-white/20 to-transparent animate-shimmer" />
+                                            </div>
+                                            <div className={`w-24 h-3 rounded overflow-hidden relative ${isDark ? "bg-neutral-700" : "bg-neutral-200"}`}>
+                                                <div className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent dark:via-white/5 via-white/20 to-transparent animate-shimmer" />
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
                         ) : filtered.length === 0 ? (
                             <div className="flex flex-col items-center justify-center h-32 text-neutral-400">
                                 <Route className="w-8 h-8 mb-2 opacity-30" />
@@ -413,17 +455,17 @@ export default function Dispatch() {
                                 <div className="grid grid-cols-2 gap-4">
                                     <div>
                                         <label className={`block text-xs font-semibold mb-1.5 ${isDark ? "text-neutral-300" : "text-neutral-700"}`}>{t("dispatch.form.vehicle")}</label>
-                                        <select required value={form.vehicleId} onChange={e => setForm(f => ({ ...f, vehicleId: e.target.value }))} className={inputClass}>
+                                        <Select required value={form.vehicleId} onChange={e => setForm(f => ({ ...f, vehicleId: e.target.value }))} className={inputClass}>
                                             <option value="">{t("dispatch.form.selectVehicle")}</option>
                                             {vehicles.map(v => <option key={v.id} value={v.id}>{v.licensePlate} — {v.make} {v.model}{v.capacityWeight ? ` (${v.capacityWeight} kg max)` : ""}</option>)}
-                                        </select>
+                                        </Select>
                                     </div>
                                     <div>
                                         <label className={`block text-xs font-semibold mb-1.5 ${isDark ? "text-neutral-300" : "text-neutral-700"}`}>{t("dispatch.form.driver")}</label>
-                                        <select required value={form.driverId} onChange={e => setForm(f => ({ ...f, driverId: e.target.value }))} className={inputClass}>
+                                        <Select required value={form.driverId} onChange={e => setForm(f => ({ ...f, driverId: e.target.value }))} className={inputClass}>
                                             <option value="">{t("dispatch.form.selectDriver")}</option>
                                             {drivers.map(d => <option key={d.id} value={d.id}>{d.fullName} ({d.licenseNumber})</option>)}
-                                        </select>
+                                        </Select>
                                     </div>
                                 </div>
                                 <div className="grid grid-cols-2 gap-4">
@@ -477,7 +519,7 @@ export default function Dispatch() {
                 tripId={completeTripId}
                 onClose={() => setCompleteTripId(null)}
                 onSuccess={() => {
-                    load();
+                    refetchTrips();
                     if (selectedTrip?.id === completeTripId) {
                         dispatchApi.getTrip(completeTripId).then(setSelectedTrip);
                     }
@@ -490,7 +532,7 @@ export default function Dispatch() {
                 tripId={cancelTripId}
                 onClose={() => setCancelTripId(null)}
                 onSuccess={() => {
-                    load();
+                    refetchTrips();
                     if (selectedTrip?.id === cancelTripId) {
                         dispatchApi.getTrip(cancelTripId).then(setSelectedTrip);
                     }

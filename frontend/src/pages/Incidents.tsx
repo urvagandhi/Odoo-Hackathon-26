@@ -18,6 +18,7 @@ import { useTheme } from "../context/ThemeContext";
 import { useAuth } from "../hooks/useAuth";
 import { incidentsApi } from "../api/client";
 import { DataTable, type Column } from "../components/ui/DataTable";
+import { Select } from "../components/ui/Select";
 
 /* ── Types ──────────────────────────────────────────────── */
 interface Incident {
@@ -283,10 +284,10 @@ export default function Incidents() {
             onChange={(e) => setSearch(e.target.value)}
           />
         </div>
-        <select
+        <Select
           value={statusFilter}
           onChange={(e) => { setStatusFilter(e.target.value); setPage(1); }}
-          className={`px-3 py-2 rounded-lg border text-sm ${
+          className={`px-3 py-2 rounded-lg border text-sm transition-colors focus:outline-none focus:ring-2 focus:ring-violet-500/30 ${
             isDark ? "bg-neutral-800 border-neutral-700 text-white" : "bg-white border-slate-200 text-slate-900"
           }`}
         >
@@ -294,7 +295,7 @@ export default function Incidents() {
           {STATUS_OPTIONS.map((s) => (
             <option key={s} value={s}>{s}</option>
           ))}
-        </select>
+        </Select>
       </div>
 
       {/* Table */}

@@ -1,12 +1,11 @@
-/**
- * Maintenance — Service Logs Management
- * Log service events; auto-triggers IN_SHOP status on vehicle
- */
-import { useState, useEffect, useCallback } from "react";
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { motion, AnimatePresence } from "framer-motion";
 import { Plus, X, Wrench, AlertTriangle, Calendar } from "lucide-react";
-import { fleetApi, type Vehicle, type MaintenanceLog } from "../api/client";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { Select } from "../components/ui/Select";
+import { TableSkeleton } from "../components/ui/TableSkeleton";
+import { fleetApi } from "../api/client";
 import { useTheme } from "../context/ThemeContext";
 
 const FIELD = "block w-full rounded-xl border px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-colors";
@@ -14,12 +13,10 @@ const FIELD = "block w-full rounded-xl border px-3.5 py-2.5 text-sm focus:outlin
 export default function Maintenance() {
     const { isDark } = useTheme();
     const { t } = useTranslation();
-    const [vehicles, setVehicles] = useState<Vehicle[]>([]);
-    const [logs, setLogs] = useState<MaintenanceLog[]>([]);
+    const queryClient = useQueryClient();
+    
     const [selectedVehicle, setSelectedVehicle] = useState<string>("");
-    const [loading, setLoading] = useState(true);
     const [showModal, setShowModal] = useState(false);
-    const [saving, setSaving] = useState(false);
     const [error, setError] = useState("");
     const [form, setForm] = useState({
         serviceType: "", description: "", cost: 0, odometerAtService: 0,
@@ -27,35 +24,41 @@ export default function Maintenance() {
         nextServiceDue: "",
     });
 
-    const load = useCallback(async () => {
-        setLoading(true);
-        try {
-            const v = await fleetApi.listVehicles({ limit: 100 });
-            setVehicles(v.data ?? []);
-        } finally { setLoading(false); }
-    }, []);
+    // Queries
+    const { data: vehicles = [], isLoading: loadingVehicles } = useQuery({
+        queryKey: ["vehicles"],
+        queryFn: () => fleetApi.listVehicles({ limit: 100 }).then(res => res.data ?? []),
+    });
 
-    useEffect(() => { load(); }, [load]);
+    const { data: logs = [], isLoading: loadingLogs } = useQuery({
+        queryKey: ["maintenance-logs", selectedVehicle],
+        queryFn: () => fleetApi.getMaintenanceLogs(selectedVehicle),
+        enabled: !!selectedVehicle,
+    });
 
-    useEffect(() => {
-        if (!selectedVehicle) { setLogs([]); return; }
-        fleetApi.getMaintenanceLogs(selectedVehicle).then(setLogs).catch(() => setLogs([]));
-    }, [selectedVehicle]);
+    // Mutation
+    const addLogMutation = useMutation({
+        mutationFn: (data: any) => fleetApi.addMaintenanceLog(selectedVehicle, data),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["maintenance-logs", selectedVehicle] });
+            queryClient.invalidateQueries({ queryKey: ["vehicles"] });
+            setShowModal(false);
+            setForm({
+                serviceType: "", description: "", cost: 0, odometerAtService: 0,
+                technicianName: "", shopName: "", serviceDate: new Date().toISOString().slice(0, 10),
+                nextServiceDue: "",
+            });
+        },
+        onError: (err: any) => {
+            setError(err?.response?.data?.message ?? "Failed to save");
+        }
+    });
 
     const handleSave = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!selectedVehicle) { setError("Select a vehicle first"); return; }
-        setSaving(true); setError("");
-        try {
-            await fleetApi.addMaintenanceLog(selectedVehicle, form);
-            // reload logs + vehicle list (status may change to IN_SHOP)
-            const updated = await fleetApi.getMaintenanceLogs(selectedVehicle);
-            setLogs(updated);
-            setShowModal(false);
-            load();
-        } catch (err: unknown) {
-            setError((err as { response?: { data?: { message?: string } } })?.response?.data?.message ?? "Failed to save");
-        } finally { setSaving(false); }
+        setError("");
+        addLogMutation.mutate(form);
     };
 
     const inputClass = `${FIELD} ${isDark ? "bg-neutral-700 border-neutral-600 text-white placeholder-neutral-400" : "bg-white border-neutral-200 text-neutral-900 placeholder-neutral-400"}`;
@@ -77,7 +80,7 @@ export default function Maintenance() {
             {/* Vehicle selector */}
             <div className={`p-4 rounded-2xl border ${isDark ? "bg-neutral-800 border-neutral-700" : "bg-white border-neutral-200 shadow-sm"}`}>
                 <label className={`block text-xs font-semibold mb-2 ${isDark ? "text-neutral-300" : "text-neutral-700"}`}>{t("maintenance.selectVehicle")}</label>
-                <select value={selectedVehicle} onChange={e => setSelectedVehicle(e.target.value)} className={inputClass} style={{ maxWidth: 360 }}>
+                <Select value={selectedVehicle} onChange={e => setSelectedVehicle(e.target.value)} className={inputClass} style={{ maxWidth: 360 }}>
                     <option value="">{t("maintenance.allVehicles")}</option>
                     {vehicles.map(v => (
                         <option key={v.id} value={v.id}>
@@ -85,7 +88,7 @@ export default function Maintenance() {
                             {v.status === "IN_SHOP" ? " 🔧" : ""}
                         </option>
                     ))}
-                </select>
+                </Select>
                 {selectedVehicle && logs.length > 0 && (
                     <p className={`mt-2 text-xs ${isDark ? "text-neutral-400" : "text-neutral-500"}`}>
                         {t("maintenance.serviceCount", { count: logs.length, total: totalCost.toLocaleString() })} <span className="font-bold text-amber-500">₹{totalCost.toLocaleString()}</span>
@@ -100,8 +103,16 @@ export default function Maintenance() {
                         <Wrench className="w-10 h-10 mb-2 opacity-30" />
                         <p>{t("maintenance.selectVehiclePrompt")}</p>
                     </div>
-                ) : loading ? (
-                    <div className="flex items-center justify-center h-32 text-neutral-400">{t("common.loading")}</div>
+                ) : (loadingVehicles || loadingLogs) ? (
+                    <table className="w-full text-sm">
+                        <tbody>
+                            <tr className="border-b last:border-0">
+                                <td colSpan={7} className="p-0">
+                                    <TableSkeleton />
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
                 ) : logs.length === 0 ? (
                     <div className="flex flex-col items-center justify-center h-32 text-neutral-400">
                         <Calendar className="w-8 h-8 mb-2 opacity-30" />
@@ -162,53 +173,53 @@ export default function Maintenance() {
                             <form onSubmit={handleSave} className="space-y-4">
                                 <div>
                                     <label className={`block text-xs font-semibold mb-1.5 ${isDark ? "text-neutral-300" : "text-neutral-700"}`}>{t("maintenance.form.vehicle")} *</label>
-                                    <select required value={selectedVehicle} onChange={e => setSelectedVehicle(e.target.value)} className={inputClass}>
+                                    <Select required value={selectedVehicle} onChange={e => setSelectedVehicle(e.target.value)} className={inputClass}>
                                         <option value="">{t("maintenance.selectVehicle")}</option>
                                         {vehicles.map(v => <option key={v.id} value={v.id}>{v.licensePlate} — {v.make} {v.model}</option>)}
-                                    </select>
+                                    </Select>
                                 </div>
                                 <div className="grid grid-cols-2 gap-4">
                                     <div>
                                         <label className={`block text-xs font-semibold mb-1.5 ${isDark ? "text-neutral-300" : "text-neutral-700"}`}>{t("maintenance.form.serviceType")} *</label>
-                                        <input required value={form.serviceType} onChange={e => setForm(f => ({ ...f, serviceType: e.target.value }))} className={inputClass} placeholder={t("maintenance.form.serviceTypePlaceholder")} />
+                                        <input required value={form.serviceType} onChange={(e) => setForm(f => ({ ...f, serviceType: e.target.value }))} className={inputClass} placeholder={t("maintenance.form.serviceTypePlaceholder")} />
                                     </div>
                                     <div>
                                         <label className={`block text-xs font-semibold mb-1.5 ${isDark ? "text-neutral-300" : "text-neutral-700"}`}>{t("maintenance.form.cost")} *</label>
-                                        <input required type="number" min="0" value={form.cost || ""} onChange={e => setForm(f => ({ ...f, cost: +e.target.value }))} className={inputClass} placeholder="5000" />
+                                        <input required type="number" min="0" value={form.cost || ""} onChange={(e) => setForm(f => ({ ...f, cost: +e.target.value }))} className={inputClass} placeholder="5000" />
                                     </div>
                                 </div>
                                 <div>
                                     <label className={`block text-xs font-semibold mb-1.5 ${isDark ? "text-neutral-300" : "text-neutral-700"}`}>{t("maintenance.form.description")}</label>
-                                    <input value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} className={inputClass} placeholder={t("maintenance.form.descriptionPlaceholder")} />
+                                    <input value={form.description} onChange={(e) => setForm(f => ({ ...f, description: e.target.value }))} className={inputClass} placeholder={t("maintenance.form.descriptionPlaceholder")} />
                                 </div>
                                 <div className="grid grid-cols-2 gap-4">
                                     <div>
                                         <label className={`block text-xs font-semibold mb-1.5 ${isDark ? "text-neutral-300" : "text-neutral-700"}`}>{t("maintenance.form.odometer")} *</label>
-                                        <input required type="number" min="0" value={form.odometerAtService || ""} onChange={e => setForm(f => ({ ...f, odometerAtService: +e.target.value }))} className={inputClass} />
+                                        <input required type="number" min="0" value={form.odometerAtService || ""} onChange={(e) => setForm(f => ({ ...f, odometerAtService: +e.target.value }))} className={inputClass} />
                                     </div>
                                     <div>
                                         <label className={`block text-xs font-semibold mb-1.5 ${isDark ? "text-neutral-300" : "text-neutral-700"}`}>{t("maintenance.form.serviceDate")} *</label>
-                                        <input required type="date" value={form.serviceDate} onChange={e => setForm(f => ({ ...f, serviceDate: e.target.value }))} className={inputClass} />
+                                        <input required type="date" value={form.serviceDate} onChange={(e) => setForm(f => ({ ...f, serviceDate: e.target.value }))} className={inputClass} />
                                     </div>
                                 </div>
                                 <div className="grid grid-cols-2 gap-4">
                                     <div>
                                         <label className={`block text-xs font-semibold mb-1.5 ${isDark ? "text-neutral-300" : "text-neutral-700"}`}>{t("maintenance.form.shopName")}</label>
-                                        <input value={form.shopName} onChange={e => setForm(f => ({ ...f, shopName: e.target.value }))} className={inputClass} placeholder={t("maintenance.form.shopPlaceholder")} />
+                                        <input value={form.shopName} onChange={(e) => setForm(f => ({ ...f, shopName: e.target.value }))} className={inputClass} placeholder={t("maintenance.form.shopPlaceholder")} />
                                     </div>
                                     <div>
                                         <label className={`block text-xs font-semibold mb-1.5 ${isDark ? "text-neutral-300" : "text-neutral-700"}`}>{t("maintenance.form.technician")}</label>
-                                        <input value={form.technicianName} onChange={e => setForm(f => ({ ...f, technicianName: e.target.value }))} className={inputClass} placeholder={t("maintenance.form.technicianPlaceholder")} />
+                                        <input value={form.technicianName} onChange={(e) => setForm(f => ({ ...f, technicianName: e.target.value }))} className={inputClass} placeholder={t("maintenance.form.technicianPlaceholder")} />
                                     </div>
                                 </div>
                                 <div>
                                     <label className={`block text-xs font-semibold mb-1.5 ${isDark ? "text-neutral-300" : "text-neutral-700"}`}>{t("maintenance.form.nextServiceDue")}</label>
-                                    <input type="date" value={form.nextServiceDue} onChange={e => setForm(f => ({ ...f, nextServiceDue: e.target.value }))} className={inputClass} />
+                                    <input type="date" value={form.nextServiceDue} onChange={(e) => setForm(f => ({ ...f, nextServiceDue: e.target.value }))} className={inputClass} />
                                 </div>
                                 <div className="flex gap-3 pt-2">
                                     <button type="button" onClick={() => setShowModal(false)} className={`flex-1 py-2.5 rounded-xl text-sm font-semibold border transition-colors ${isDark ? "border-neutral-600 text-neutral-300 hover:bg-neutral-700" : "border-neutral-200 text-neutral-600 hover:bg-neutral-50"}`}>{t("common.cancel")}</button>
-                                    <button type="submit" disabled={saving} className="flex-1 py-2.5 rounded-xl text-sm font-semibold bg-amber-500 text-white hover:bg-amber-600 disabled:opacity-60 transition-colors">
-                                        {saving ? t("common.saving") : t("maintenance.logService")}
+                                    <button type="submit" disabled={addLogMutation.isPending} className="flex-1 py-2.5 rounded-xl text-sm font-semibold bg-amber-500 text-white hover:bg-amber-600 disabled:opacity-60 transition-colors">
+                                        {addLogMutation.isPending ? t("common.saving") : t("maintenance.logService")}
                                     </button>
                                 </div>
                             </form>

@@ -16,6 +16,7 @@ import {
 } from "recharts";
 import { MapContainer, TileLayer, Marker, Popup, Polyline } from "react-leaflet";
 import L from "leaflet";
+import { DashboardSkeleton } from "../components/ui/DashboardSkeleton";
 import "leaflet/dist/leaflet.css";
 import { analyticsApi, locationsApi, type DashboardKPIs, type MonthlyReport } from "../api/client";
 import { useTheme } from "../context/ThemeContext";
@@ -138,6 +139,10 @@ export default function FleetDashboard() {
         { name: "Available", value: kpis.fleet.available },
         { name: "Retired", value: kpis.fleet.retired },
     ].filter(d => d.value > 0) : [];
+
+    if (loading && !kpis) {
+        return <DashboardSkeleton />;
+    }
 
     return (
         <div className="space-y-8 max-w-[1600px] mx-auto">

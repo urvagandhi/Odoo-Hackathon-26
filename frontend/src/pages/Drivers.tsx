@@ -5,14 +5,14 @@
  * status toggle: On Duty / Off Duty / Suspended
  * Live map showing driver's last known location
  */
-import { useState, useEffect, useCallback } from "react";
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { motion, AnimatePresence } from "framer-motion";
+import { useQuery } from "@tanstack/react-query";
 import {
-    Calendar, Award, TrendingDown, Filter, Download,
-    CheckCircle2, Clock, MapPin, UserX, Plus, Users,
-    Shield, AlertTriangle, Search, Phone, Mail,
-    ChevronDown, Edit3, Trash2, X
+    AlertTriangle, Award, Calendar, CheckCircle2, ChevronDown, Clock, Download,
+    Edit3, Filter, Mail, MapPin, Phone, Plus, Search, Shield,
+    TrendingDown, Trash2, UserX, Users, X
 } from "lucide-react";
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import L from "leaflet";
@@ -30,6 +30,7 @@ import {
     AlertDialogCancel,
     AlertDialogAction,
 } from "../components/ui/AlertDialog";
+import { TableSkeleton } from "../components/ui/TableSkeleton";
 
 // Fix Leaflet default icon
 delete (L.Icon.Default.prototype as unknown as Record<string, unknown>)._getIconUrl;
@@ -75,38 +76,54 @@ export default function Drivers() {
     const { isDark } = useTheme();
     const toast = useToast();
     const { t } = useTranslation();
-    const [drivers, setDrivers] = useState<Driver[]>([]);
-    const [loading, setLoading] = useState(true);
     const [search, setSearch] = useState("");
     const [statusFilter, setStatusFilter] = useState("");
     const [showModal, setShowModal] = useState(false);
     const [editDriver, setEditDriver] = useState<Driver | null>(null);
     const [saving, setSaving] = useState(false);
-    const [error, setError] = useState("");
+    const [localError, setLocalError] = useState("");
     const [selectedDriver, setSelectedDriver] = useState<Driver | null>(null);
-    const [expiringDrivers, setExpiringDrivers] = useState<Driver[]>([]);
-    const [locations, setLocations] = useState<LocationPoint[]>([]);
     const [actionDriverId, setActionDriverId] = useState<string | null>(null);
     const [form, setForm] = useState({
         fullName: "", licenseNumber: "", phone: "", email: "",
         dateOfBirth: "", licenseExpiryDate: "", licenseClass: "", safetyScore: 100,
     });
 
-    const load = useCallback(async () => {
-        setLoading(true);
-        try {
-            const [d, exp, locs] = await Promise.all([
-                hrApi.listDrivers({ limit: 100 }),
-                hrApi.getExpiringLicenses(30).catch(() => []),
-                locationsApi.getLatestLocations().catch(() => []),
-            ]);
-            setDrivers(d.data ?? []);
-            setExpiringDrivers(exp ?? []);
-            setLocations((locs as LocationPoint[]) ?? []);
-        } finally { setLoading(false); }
-    }, []);
+    /* ── Fetch Data using React Query ───────────────── */
+    const { data: driversData, isLoading: loadingDrivers, refetch: refetchDrivers } = useQuery({
+        queryKey: ['drivers'],
+        queryFn: async () => {
+            const res = await hrApi.listDrivers({ limit: 100 });
+            return res.data ?? [];
+        }
+    });
 
-    useEffect(() => { load(); }, [load]);
+    const { data: expiringDriversData } = useQuery({
+        queryKey: ['drivers', 'expiring'],
+        queryFn: async () => {
+            try {
+                return await hrApi.getExpiringLicenses(30);
+            } catch {
+                return [];
+            }
+        }
+    });
+
+    const { data: locationsData } = useQuery({
+        queryKey: ['drivers', 'locations'],
+        queryFn: async () => {
+            try {
+                return await locationsApi.getLatestLocations();
+            } catch {
+                return [];
+            }
+        }
+    });
+
+    const drivers = driversData ?? [];
+    const expiringDrivers = expiringDriversData ?? [];
+    const locations = (locationsData as LocationPoint[]) ?? [];
+    const loading = loadingDrivers;
 
     const filtered = drivers.filter(d =>
         (!statusFilter || d.status === statusFilter) &&
@@ -118,7 +135,7 @@ export default function Drivers() {
     const openCreate = () => {
         setEditDriver(null);
         setForm({ fullName: "", licenseNumber: "", phone: "", email: "", dateOfBirth: "", licenseExpiryDate: "", licenseClass: "", safetyScore: 100 });
-        setError(""); setShowModal(true);
+        setLocalError(""); setShowModal(true);
     };
 
     const openEdit = (d: Driver) => {
@@ -130,12 +147,12 @@ export default function Drivers() {
             licenseExpiryDate: d.licenseExpiryDate.slice(0, 10),
             licenseClass: d.licenseClass ?? "", safetyScore: d.safetyScore,
         });
-        setError(""); setShowModal(true);
+        setLocalError(""); setShowModal(true);
     };
 
     const handleSave = async (e: React.FormEvent) => {
         e.preventDefault();
-        setSaving(true); setError("");
+        setSaving(true); setLocalError("");
         try {
             if (editDriver) {
                 await hrApi.updateDriver(editDriver.id, form as unknown as Partial<Driver>);
@@ -143,17 +160,22 @@ export default function Drivers() {
                 await hrApi.createDriver(form);
             }
             setShowModal(false);
-            load();
-        } catch (err: unknown) {
-            setError((err as { response?: { data?: { message?: string } } })?.response?.data?.message ?? t("drivers.toast.saveFailed"));
-        } finally { setSaving(false); }
+            refetchDrivers();
+            toast.success(t("crew.form.savedSuccess"), { title: t("crew.form.savedSuccessTitle") });
+        } catch (err: any) {
+            setLocalError(err.response?.data?.message || err.message || t("crew.form.savedFailed"));
+        } finally {
+            setSaving(false);
+        }
     };
+
+
 
     const handleStatusChange = async (d: Driver, status: string) => {
         try {
             await hrApi.updateDriverStatus(d.id, status);
             toast.success(t("drivers.toast.statusUpdated", { name: d.fullName, status: status.replace('_', ' ') }), { title: t("drivers.toast.statusUpdatedTitle") });
-            load();
+            refetchDrivers();
         } catch (err: unknown) {
             toast.error((err as { response?: { data?: { message?: string } } })?.response?.data?.message ?? t("drivers.toast.statusUpdateFailed"), { title: t("drivers.toast.statusUpdateFailedTitle") });
         }
@@ -163,7 +185,7 @@ export default function Drivers() {
         try {
             await hrApi.deleteDriver(id);
             toast.success(t("drivers.toast.deleted"), { title: t("drivers.toast.deletedTitle") });
-            load();
+            refetchDrivers();
         } catch {
             toast.error(t("drivers.toast.deleteFailed"), { title: t("drivers.toast.deleteFailedTitle") });
         }
@@ -190,7 +212,7 @@ export default function Drivers() {
         const reason = prompt(`Reason for ${adj > 0 ? "+" : ""}${adj} safety score?`);
         if (reason === null) return;
         await hrApi.adjustSafetyScore(d.id, adj, reason);
-        load();
+        refetchDrivers();
     };
 
     const inputClass = `${FIELD} ${isDark ? "bg-neutral-700 border-neutral-600 text-white placeholder-neutral-400" : "bg-white border-neutral-200 text-neutral-900 placeholder-neutral-400"}`;
@@ -277,7 +299,7 @@ export default function Drivers() {
                     {/* Table */}
                     <div className={`rounded-2xl border overflow-hidden ${isDark ? "bg-neutral-800 border-neutral-700" : "bg-white border-neutral-200 shadow-sm"}`}>
                         {loading ? (
-                            <div className="flex items-center justify-center h-40 text-neutral-400">{t("common.loading")}</div>
+                            <TableSkeleton />
                         ) : filtered.length === 0 ? (
                             <div className="flex flex-col items-center justify-center h-40 text-neutral-400">
                                 <Users className="w-10 h-10 mb-2 opacity-30" />
@@ -506,7 +528,7 @@ export default function Drivers() {
                                 </button>
                             </div>
 
-                            {error && <div className="mb-4 text-red-500 text-sm bg-red-50 border border-red-100 rounded-xl p-3 flex items-center gap-2"><AlertTriangle className="w-4 h-4" />{error}</div>}
+                            {localError && <div className="mb-4 text-red-500 text-sm bg-red-50 border border-red-100 rounded-xl p-3 flex items-center gap-2"><AlertTriangle className="w-4 h-4" />{localError}</div>}
 
                             <form onSubmit={handleSave} className="space-y-4">
                                 <div className="grid grid-cols-2 gap-4">

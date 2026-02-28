@@ -9,6 +9,7 @@ import { X, Wrench, Save, Loader2, AlertTriangle } from "lucide-react";
 import { useTheme } from "../../context/ThemeContext";
 import { fleetApi } from "../../api/client";
 import { createMaintenanceSchema, type CreateMaintenanceFormData } from "../../validators/finance";
+import { Select } from "../ui/Select";
 
 interface Vehicle {
   id: string;
@@ -202,26 +203,26 @@ export function MaintenanceForm({ open, onClose, onSuccess }: MaintenanceFormPro
                   {/* Vehicle */}
                   <div>
                     <label className={labelCls}>{t("forms.maintenance.vehicle")}</label>
-                    <select className={`${inputCls} ${errors.vehicleId ? "border-red-400" : ""}`} value={form.vehicleId} onChange={(e) => handleChange("vehicleId", e.target.value)}>
+                    <Select className={inputCls} error={!!errors.vehicleId} value={form.vehicleId} onChange={(e) => handleChange("vehicleId", e.target.value)}>
                       <option value="">{t("forms.maintenance.selectVehicle")}</option>
                       {vehicles.map((v) => (
                         <option key={v.id} value={v.id}>
                           {v.licensePlate} — {v.make} {v.model} ({v.status})
                         </option>
                       ))}
-                    </select>
+                    </Select>
                     {errors.vehicleId && <p className={errCls}>{errors.vehicleId}</p>}
                   </div>
 
                   {/* Service Type */}
                   <div>
                     <label className={labelCls}>{t("forms.maintenance.serviceType")}</label>
-                    <select className={`${inputCls} ${errors.serviceType ? "border-red-400" : ""}`} value={form.serviceType} onChange={(e) => handleChange("serviceType", e.target.value)}>
+                    <Select className={inputCls} error={!!errors.serviceType} value={form.serviceType} onChange={(e) => handleChange("serviceType", e.target.value)}>
                       <option value="">{t("forms.maintenance.selectType")}</option>
                       {SERVICE_TYPES.map((t) => (
                         <option key={t} value={t}>{t.replace(/_/g, " ")}</option>
                       ))}
-                    </select>
+                    </Select>
                     {errors.serviceType && <p className={errCls}>{errors.serviceType}</p>}
                   </div>
 

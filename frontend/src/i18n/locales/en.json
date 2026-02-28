@@ -342,7 +342,17 @@
       "modelPlaceholder": "Land Cruiser",
       "colorPlaceholder": "White",
       "platePlaceholder": "MH01AB1234",
-      "vinPlaceholder": "Optional"
+      "vinPlaceholder": "Optional",
+      "region": "Region",
+      "selectRegion": "Select Region",
+      "regions": {
+        "NORTH": "North",
+        "SOUTH": "South",
+        "EAST": "East",
+        "WEST": "West",
+        "CENTRAL": "Central",
+        "INTERNATIONAL": "International"
+      }
     },
     "createVehicle": "Create Vehicle",
     "updateVehicle": "Update Vehicle",
@@ -1187,8 +1197,17 @@
       "capacityPlaceholder": "5000",
       "volume": "Volume (m³)",
       "region": "Region",
-      "regionPlaceholder": "e.g. North America",
-      "acquisitionCost": "Acquisition Cost ($)",
+      "selectRegion": "Select Region",
+      "regions": {
+        "NORTH": "North",
+        "SOUTH": "South",
+        "EAST": "East",
+        "WEST": "West",
+        "CENTRAL": "Central",
+        "INTERNATIONAL": "International"
+      },
+      "regionPlaceholder": "Select a region",
+      "acquisitionCost": "Acquisition Cost (₹)",
       "initialOdometer": "Initial Odometer (km)",
       "updateVehicle": "Update Vehicle",
       "createVehicle": "Create Vehicle"

@@ -1,18 +1,12 @@
 /**
- * FleetFlow — Comprehensive Prisma Database Seed (Single-Organization)
+ * FleetFlow — Comprehensive Prisma Database Seed
  * ─────────────────────────────────────────────────────────────────
- * Seeds complete end-to-end data for the FleetFlow system:
- *  1. Vehicle types (TRUCK, VAN, BIKE, PLANE)
- *  2. Users — Indian names, 4 roles (MANAGER is highest authority)
- *  3. Vehicles — Indian fleet brands + registration plates
- *  4. Drivers — Indian names, varied compliance & duty states
- *  5. Trips — COMPLETED, DISPATCHED, DRAFT, CANCELLED (8 total)
- *  6. Fuel logs — fill events per vehicle / trip
- *  7. Maintenance logs — service history
- *  8. Expenses — tolls, lodging, misc per trip
- *  9. Vehicle locations — GPS telemetry for Leaflet map
+ * Seeds 12 months of realistic fleet operations data:
+ *   25 vehicles  |  20 drivers  |  ~220 trips  |  ~350 fuel logs
+ *   ~120 maintenance logs  |  ~180 expenses  |  ~30 incidents
+ *   Vehicle documents, GPS locations, trip waypoints
  *
- * Seed is fully idempotent — re-running clears and recreates all data.
+ * Fully idempotent — re-running clears and recreates all data.
  *
  * Run:         npm run prisma:seed
  * Reset+Seed:  npm run prisma:reset && npm run prisma:seed
@@ -20,50 +14,148 @@
 
 import {
     PrismaClient,
+    Prisma,
     UserRole,
     VehicleStatus,
-    DriverStatus,
     VehicleType,
+    DriverStatus,
     TripStatus,
     ExpenseCategory,
+    IncidentType,
+    IncidentStatus,
+    VehicleDocumentType,
+    AuditAction,
 } from '@prisma/client';
 import bcrypt from 'bcryptjs';
 
 const prisma = new PrismaClient();
 const SALT_ROUNDS = 12;
 
-// ── Date helpers ────────────────────────────────────────────────────
+// ── Deterministic random (seeded PRNG for reproducibility) ─────
+let _seed = 42;
+function rand(): number {
+    _seed = (_seed * 16807 + 0) % 2147483647;
+    return (_seed - 1) / 2147483646;
+}
+function randInt(min: number, max: number): number {
+    return Math.floor(rand() * (max - min + 1)) + min;
+}
+function randFloat(min: number, max: number, decimals = 2): number {
+    return parseFloat((rand() * (max - min) + min).toFixed(decimals));
+}
+function pick<T>(arr: T[]): T {
+    return arr[randInt(0, arr.length - 1)];
+}
+
+// ── Date helpers ───────────────────────────────────────────────
 const daysAgo = (n: number): Date => {
     const d = new Date();
     d.setDate(d.getDate() - n);
+    d.setHours(randInt(5, 22), randInt(0, 59), 0, 0);
     return d;
 };
-
 const daysFromNow = (n: number): Date => {
     const d = new Date();
     d.setDate(d.getDate() + n);
     return d;
 };
-
-const hoursAgo = (n: number): Date => {
-    const d = new Date();
-    d.setHours(d.getHours() - n);
-    return d;
-};
-
-// Fixed date for a specific calendar date (used for historical seeding)
 const cal = (year: number, month: number, day: number, hour = 12): Date =>
-    new Date(year, month - 1, day, hour, 0, 0);
+    new Date(year, month - 1, day, hour, randInt(0, 59), 0);
 
-// ── Main ────────────────────────────────────────────────────────────
+// ── Reference data ─────────────────────────────────────────────
+const ROUTES: { origin: string; destination: string; distKm: number; tolls: number }[] = [
+    { origin: 'Mumbai, Maharashtra', destination: 'Pune, Maharashtra', distKm: 156, tolls: 780 },
+    { origin: 'Delhi, NCT', destination: 'Agra, Uttar Pradesh', distKm: 200, tolls: 325 },
+    { origin: 'Bangalore, Karnataka', destination: 'Chennai, Tamil Nadu', distKm: 345, tolls: 1200 },
+    { origin: 'Mumbai, Maharashtra', destination: 'Hyderabad, Telangana', distKm: 710, tolls: 1240 },
+    { origin: 'Delhi, NCT', destination: 'Jaipur, Rajasthan', distKm: 270, tolls: 420 },
+    { origin: 'Pune, Maharashtra', destination: 'Nashik, Maharashtra', distKm: 215, tolls: 350 },
+    { origin: 'Bangalore, Karnataka', destination: 'Hyderabad, Telangana', distKm: 570, tolls: 980 },
+    { origin: 'Delhi, NCT', destination: 'Lucknow, Uttar Pradesh', distKm: 550, tolls: 920 },
+    { origin: 'Chennai, Tamil Nadu', destination: 'Bangalore, Karnataka', distKm: 345, tolls: 1200 },
+    { origin: 'Mumbai, Maharashtra', destination: 'Ahmedabad, Gujarat', distKm: 530, tolls: 890 },
+    { origin: 'Kolkata, West Bengal', destination: 'Patna, Bihar', distKm: 570, tolls: 750 },
+    { origin: 'Hyderabad, Telangana', destination: 'Bangalore, Karnataka', distKm: 570, tolls: 980 },
+    { origin: 'Jaipur, Rajasthan', destination: 'Udaipur, Rajasthan', distKm: 395, tolls: 520 },
+    { origin: 'Mumbai, Maharashtra', destination: 'Nagpur, Maharashtra', distKm: 840, tolls: 1450 },
+    { origin: 'Delhi, NCT', destination: 'Chandigarh, Punjab', distKm: 245, tolls: 380 },
+    { origin: 'Ahmedabad, Gujarat', destination: 'Mumbai, Maharashtra', distKm: 530, tolls: 890 },
+    { origin: 'Pune, Maharashtra', destination: 'Bangalore, Karnataka', distKm: 840, tolls: 1380 },
+    { origin: 'Chennai, Tamil Nadu', destination: 'Coimbatore, Tamil Nadu', distKm: 505, tolls: 680 },
+    { origin: 'CSIA Mumbai (BOM)', destination: 'IGI Delhi (DEL)', distKm: 1415, tolls: 0 },
+    { origin: 'IGI Delhi (DEL)', destination: 'Kempegowda Intl (BLR)', distKm: 1740, tolls: 0 },
+    { origin: 'Andheri West, Mumbai', destination: 'Bandra Kurla Complex, Mumbai', distKm: 22, tolls: 0 },
+    { origin: 'Koramangala, Bangalore', destination: 'Electronic City, Bangalore', distKm: 18, tolls: 0 },
+    { origin: 'Connaught Place, Delhi', destination: 'Gurgaon, Haryana', distKm: 32, tolls: 80 },
+    { origin: 'T. Nagar, Chennai', destination: 'Ambattur, Chennai', distKm: 15, tolls: 0 },
+];
+
+const CLIENTS = [
+    'Tata Motors Ltd.', 'Flipkart Internet Pvt. Ltd.', 'ITC Limited', 'Sun Pharmaceutical Industries Ltd.',
+    'Reliance Industries Ltd.', 'Hindustan Unilever Ltd.', 'Infosys Ltd.', 'Wipro Ltd.',
+    'Mahindra & Mahindra Ltd.', 'Larsen & Toubro Ltd.', 'Cipla Ltd.', 'Dr. Reddy\'s Laboratories Ltd.',
+    'Bajaj Auto Ltd.', 'Asian Paints Ltd.', 'JSW Steel Ltd.', 'Godrej Consumer Products Ltd.',
+    'Bosch India Ltd.', 'Samsung India Electronics Pvt. Ltd.', 'Amazon India Pvt. Ltd.',
+    'Dell Technologies India Pvt. Ltd.', 'HP India Pvt. Ltd.', 'HDFC Bank Ltd.',
+    'Apollo Pharmacy Ltd.', 'Dabur India Ltd.', 'Nestle India Ltd.', 'Britannia Industries Ltd.',
+    'Marico Ltd.', 'Titan Company Ltd.', 'Sula Vineyards Pvt. Ltd.', 'Amul (GCMMF)',
+];
+
+const CARGO_DESCRIPTIONS = [
+    'Auto components and spare parts', 'Consumer electronics — laptops and peripherals',
+    'FMCG goods — biscuits, beverages, personal care', 'Pharmaceutical API cold-chain shipment',
+    'Textile goods and garments', 'Steel coils and rods', 'Industrial machinery parts',
+    'E-commerce parcels — mixed category', 'IT hardware — servers and networking gear',
+    'Medical supplies and equipment', 'Packaged food — dairy and frozen',
+    'Construction materials — cement and fittings', 'Automotive paint drums and coating chemicals',
+    'Legal documents and corporate courier', 'Banking documents — urgent delivery',
+    'Agricultural produce — spices and grains', 'Furniture and home decor items',
+    'Chemical raw materials — safely packaged', 'Temperature-controlled pharma cargo',
+    'Premium wine cases — B2B distributor order',
+];
+
+const FUEL_STATIONS = [
+    'HP Petrol Pump, Khopoli, NH-48', 'BPCL, Navi Mumbai Depot', 'Indian Oil, Pune Bypass, NH-65',
+    'Bharat Petroleum, Mathura Road, NH-19', 'Shell, Andheri East, Mumbai',
+    'Indian Oil, Tumkur Road, Bangalore', 'BPCL, Hosur Road, Bangalore',
+    'HP Petrol Pump, NH-44, Hyderabad', 'Shell, MG Road, Pune', 'Indian Oil, GT Road, Delhi',
+    'BPCL, NH-48, Gurgaon', 'HP, Yamuna Expressway', 'Shell, ECR, Chennai',
+    'Indian Oil, Ahmedabad Highway', 'BPCL, Kolkata Bypass', 'HP, Jaipur Ring Road',
+    'CSIA Cargo Terminal Fuelling Station, Mumbai', 'IGI Cargo Fuel Station, Delhi',
+];
+
+const SERVICE_TYPES = [
+    'OIL_CHANGE', 'BRAKE_INSPECTION', 'TYRE_ROTATION', 'ENGINE_TUNING',
+    'TRANSMISSION_SERVICE', 'BATTERY_REPLACEMENT', 'AC_SERVICE', 'SUSPENSION_CHECK',
+    'GENERAL_INSPECTION', 'COOLANT_FLUSH',
+];
+
+const SHOPS = [
+    'Tata Motors Authorized Workshop, Navi Mumbai', 'Force Motors ASC, Whitefield, Bangalore',
+    'Mahindra Service Centre, Okhla, Delhi', 'MRF Tyre Service, Thane',
+    'Bosch Car Service, Koregaon Park, Pune', 'Ashok Leyland ASC, Ambattur, Chennai',
+    'Maruti Suzuki Service, Gurgaon', 'Bridgestone Tyre Centre, Connaught Place, Delhi',
+    'Toyota Service Centre, Electronic City, Bangalore', 'Apollo Tyres, Andheri, Mumbai',
+];
+
+const TECHNICIANS = [
+    'Rajesh Mistry', 'Krishnamurthy Auto Works', 'Sunil Tyre Works', 'Mohammed Irfan',
+    'Kishore Auto Works', 'Ganesh Motor Works', 'Sanjay Electricals', 'Ravi Mechanics',
+    'Prakash Auto Service', 'Vinod Kumar Motors',
+];
+
+// ── Main ───────────────────────────────────────────────────────
 async function main() {
-    console.log('🌱  Starting FleetFlow seed...\n');
+    console.log('🌱  Starting FleetFlow comprehensive seed...\n');
 
-    // ──────────────────────────────────────────────────────────────
-    //  Step 0: Clear all existing data (reverse dependency order)
-    // ──────────────────────────────────────────────────────────────
-    console.log('  🗑️   Clearing existing seed data...');
+    // ────────────────────────────────────────────────────────────
+    //  Clear all existing data (reverse dependency order)
+    // ────────────────────────────────────────────────────────────
+    console.log('  🗑️   Clearing existing data...');
     await prisma.auditLog.deleteMany({});
+    await prisma.tripWaypoint.deleteMany({});
+    await prisma.incidentReport.deleteMany({});
+    await prisma.vehicleDocument.deleteMany({});
     await prisma.vehicleLocation.deleteMany({});
     await prisma.expense.deleteMany({});
     await prisma.fuelLog.deleteMany({});
@@ -75,1427 +167,750 @@ async function main() {
     await prisma.vehicleTypeRecord.deleteMany({});
     console.log('  ✅  Cleared.\n');
 
-    // ──────────────────────────────────────────────────────────────
-    //  Step 1: Vehicle Types
-    // ──────────────────────────────────────────────────────────────
-    console.log('  → Seeding vehicle types...');
+    // ────────────────────────────────────────────────────────────
+    //  1. Vehicle Types
+    // ────────────────────────────────────────────────────────────
+    console.log('  → Vehicle types...');
     const [truckType, vanType, bikeType, planeType] = await Promise.all([
-        prisma.vehicleTypeRecord.create({
-            data: {
-                name: VehicleType.TRUCK,
-                description:
-                    'Heavy-duty long-haul trucks for bulk freight and interstate cargo logistics.',
-            },
-        }),
-        prisma.vehicleTypeRecord.create({
-            data: {
-                name: VehicleType.VAN,
-                description:
-                    'Mid-size vans for city, regional, and last-mile deliveries.',
-            },
-        }),
-        prisma.vehicleTypeRecord.create({
-            data: {
-                name: VehicleType.BIKE,
-                description:
-                    'Cargo bikes and motorcycles for ultra-fast urban micro-deliveries.',
-            },
-        }),
-        prisma.vehicleTypeRecord.create({
-            data: {
-                name: VehicleType.PLANE,
-                description:
-                    'Air freight aircraft for international and priority time-critical cargo.',
-            },
-        }),
+        prisma.vehicleTypeRecord.create({ data: { name: VehicleType.TRUCK, description: 'Heavy-duty trucks for long-haul and interstate freight.' } }),
+        prisma.vehicleTypeRecord.create({ data: { name: VehicleType.VAN, description: 'Mid-size vans for city, regional, and last-mile deliveries.' } }),
+        prisma.vehicleTypeRecord.create({ data: { name: VehicleType.BIKE, description: 'Cargo bikes for ultra-fast urban micro-deliveries.' } }),
+        prisma.vehicleTypeRecord.create({ data: { name: VehicleType.PLANE, description: 'Air freight aircraft for priority and international cargo.' } }),
     ]);
-    console.log('  ✅  4 vehicle types seeded.\n');
+    const typeMap = { TRUCK: truckType.id, VAN: vanType.id, BIKE: bikeType.id, PLANE: planeType.id };
 
-    // ──────────────────────────────────────────────────────────────
-    //  Step 2: Users — one per role, Indian names
-    // ──────────────────────────────────────────────────────────────
-    console.log('  → Seeding users...');
-    const passwordHash = await bcrypt.hash('FleetFlow@2025', SALT_ROUNDS);
+    // ────────────────────────────────────────────────────────────
+    //  2. Users (8 users across all roles)
+    // ────────────────────────────────────────────────────────────
+    console.log('  → Users...');
+    const passwordHash = await bcrypt.hash('FleetFlow@2026', SALT_ROUNDS);
+    const usersData = [
+        { email: 'manager@fleetflow.io', fullName: 'Priya Sharma', role: UserRole.MANAGER },
+        { email: 'manager2@fleetflow.io', fullName: 'Anil Kapoor', role: UserRole.MANAGER },
+        { email: 'dispatcher@fleetflow.io', fullName: 'Rahul Verma', role: UserRole.DISPATCHER },
+        { email: 'dispatcher2@fleetflow.io', fullName: 'Kavita Menon', role: UserRole.DISPATCHER },
+        { email: 'safety@fleetflow.io', fullName: 'Sneha Patel', role: UserRole.SAFETY_OFFICER },
+        { email: 'safety2@fleetflow.io', fullName: 'Ajay Thakur', role: UserRole.SAFETY_OFFICER },
+        { email: 'finance@fleetflow.io', fullName: 'Vikram Nair', role: UserRole.FINANCE_ANALYST },
+        { email: 'finance2@fleetflow.io', fullName: 'Meera Iyer', role: UserRole.FINANCE_ANALYST },
+    ];
+    const users = await Promise.all(
+        usersData.map(u => prisma.user.create({ data: { ...u, passwordHash, isActive: true } }))
+    );
+    const dispatcherUser = users[2];
+    const financeUser = users[6];
+    const safetyUser = users[4];
 
-    const [, dispatcher, , financeAnalyst] = await Promise.all([
-        // MANAGER — highest authority (no SuperAdmin in single-org system)
-        prisma.user.create({
-            data: {
-                email: 'manager@fleetflow.io',
-                passwordHash,
-                fullName: 'Priya Sharma',
-                role: UserRole.MANAGER,
-                isActive: true,
-            },
-        }),
-        // DISPATCHER
-        prisma.user.create({
-            data: {
-                email: 'dispatcher@fleetflow.io',
-                passwordHash,
-                fullName: 'Rahul Verma',
-                role: UserRole.DISPATCHER,
-                isActive: true,
-            },
-        }),
-        // SAFETY_OFFICER
-        prisma.user.create({
-            data: {
-                email: 'safety@fleetflow.io',
-                passwordHash,
-                fullName: 'Sneha Patel',
-                role: UserRole.SAFETY_OFFICER,
-                isActive: true,
-            },
-        }),
-        // FINANCE_ANALYST
-        prisma.user.create({
-            data: {
-                email: 'finance@fleetflow.io',
-                passwordHash,
-                fullName: 'Vikram Nair',
-                role: UserRole.FINANCE_ANALYST,
-                isActive: true,
-            },
-        }),
-    ]);
-    console.log('  ✅  4 users seeded.\n');
+    // ────────────────────────────────────────────────────────────
+    //  3. Vehicles (25 total)
+    // ────────────────────────────────────────────────────────────
+    console.log('  → Vehicles (25)...');
+    const vehiclesData: {
+        plate: string; make: string; model: string; year: number; color: string;
+        vin?: string; type: keyof typeof typeMap; status: VehicleStatus;
+        odometer: number; weightCap: number; volCap: number; region: string;
+        acqCost: number;
+    }[] = [
+        // ── TRUCKS (12) ──
+        { plate: 'MH-04-AB-1234', make: 'Tata', model: 'Prima 4928.S', year: 2022, color: 'Midnight Blue', vin: 'MAT450634N2CA0001', type: 'TRUCK', status: VehicleStatus.AVAILABLE, odometer: 87_200, weightCap: 20_000, volCap: 85, region: 'WEST', acqCost: 2_800_000 },
+        { plate: 'MH-04-CD-5678', make: 'Tata', model: 'Prima 5530.S', year: 2023, color: 'Flame Red', vin: 'MAT450634N3CA0002', type: 'TRUCK', status: VehicleStatus.ON_TRIP, odometer: 62_400, weightCap: 25_000, volCap: 92, region: 'WEST', acqCost: 3_200_000 },
+        { plate: 'DL-01-TR-3344', make: 'Ashok Leyland', model: 'Captain 2523', year: 2021, color: 'White', vin: 'ALD250213N1CA0003', type: 'TRUCK', status: VehicleStatus.AVAILABLE, odometer: 112_500, weightCap: 18_000, volCap: 78, region: 'NORTH', acqCost: 2_500_000 },
+        { plate: 'KA-01-TR-7788', make: 'BharatBenz', model: '2823R', year: 2022, color: 'Silver Grey', vin: 'BBZ280223N2CA0004', type: 'TRUCK', status: VehicleStatus.ON_TRIP, odometer: 78_300, weightCap: 22_000, volCap: 88, region: 'SOUTH', acqCost: 3_100_000 },
+        { plate: 'TN-01-TR-4455', make: 'Eicher', model: 'Pro 6049', year: 2023, color: 'Ocean Blue', vin: 'EIC600493N3CA0005', type: 'TRUCK', status: VehicleStatus.AVAILABLE, odometer: 45_600, weightCap: 15_000, volCap: 72, region: 'SOUTH', acqCost: 2_200_000 },
+        { plate: 'GJ-01-TR-9900', make: 'Tata', model: 'Signa 4825.TK', year: 2021, color: 'Racing Green', vin: 'MAT480251N1CA0006', type: 'TRUCK', status: VehicleStatus.IN_SHOP, odometer: 145_200, weightCap: 28_000, volCap: 95, region: 'WEST', acqCost: 3_500_000 },
+        { plate: 'RJ-14-TR-1122', make: 'Ashok Leyland', model: 'AVTR 4120', year: 2022, color: 'Charcoal', vin: 'ALD412022N2CA0007', type: 'TRUCK', status: VehicleStatus.AVAILABLE, odometer: 92_100, weightCap: 20_000, volCap: 82, region: 'NORTH', acqCost: 2_700_000 },
+        { plate: 'WB-02-TR-6677', make: 'BharatBenz', model: '1617R', year: 2020, color: 'Desert Sand', vin: 'BBZ161720N0CA0008', type: 'TRUCK', status: VehicleStatus.AVAILABLE, odometer: 168_400, weightCap: 16_000, volCap: 70, region: 'EAST', acqCost: 2_100_000 },
+        { plate: 'MH-12-TR-8899', make: 'Tata', model: 'LPT 3518', year: 2023, color: 'Pearl White', vin: 'MAT351823N3CA0009', type: 'TRUCK', status: VehicleStatus.ON_TRIP, odometer: 34_700, weightCap: 18_500, volCap: 80, region: 'WEST', acqCost: 2_600_000 },
+        { plate: 'AP-07-TR-2233', make: 'Eicher', model: 'Pro 3019', year: 2022, color: 'Forest Green', vin: 'EIC301922N2CA0010', type: 'TRUCK', status: VehicleStatus.AVAILABLE, odometer: 55_800, weightCap: 12_000, volCap: 65, region: 'SOUTH', acqCost: 1_900_000 },
+        { plate: 'UP-32-TR-5566', make: 'Ashok Leyland', model: 'Boss 1920', year: 2021, color: 'Royal Blue', vin: 'ALD192021N1CA0011', type: 'TRUCK', status: VehicleStatus.RETIRED, odometer: 248_000, weightCap: 16_000, volCap: 68, region: 'NORTH', acqCost: 1_800_000 },
+        { plate: 'MP-09-TR-7744', make: 'Tata', model: 'Ultra T.16', year: 2024, color: 'Cosmic Grey', vin: 'MAT160024N4CA0012', type: 'TRUCK', status: VehicleStatus.AVAILABLE, odometer: 12_300, weightCap: 14_000, volCap: 62, region: 'CENTRAL', acqCost: 2_400_000 },
+        // ── VANS (7) ──
+        { plate: 'DL-01-VN-9012', make: 'Mahindra', model: 'Supro Profit Truck Excel', year: 2023, color: 'Polar White', type: 'VAN', status: VehicleStatus.AVAILABLE, odometer: 28_500, weightCap: 1_200, volCap: 11, region: 'NORTH', acqCost: 850_000 },
+        { plate: 'KA-03-VN-3456', make: 'Force', model: 'Traveller Pro', year: 2021, color: 'Silver Grey', type: 'VAN', status: VehicleStatus.IN_SHOP, odometer: 72_400, weightCap: 1_500, volCap: 14, region: 'SOUTH', acqCost: 1_200_000 },
+        { plate: 'MH-01-VN-5522', make: 'Tata', model: 'Ace Gold', year: 2023, color: 'Caribbean Blue', type: 'VAN', status: VehicleStatus.AVAILABLE, odometer: 19_800, weightCap: 1_000, volCap: 8, region: 'WEST', acqCost: 650_000 },
+        { plate: 'TN-07-VN-8833', make: 'Mahindra', model: 'Bolero Pickup', year: 2022, color: 'Toreador Red', type: 'VAN', status: VehicleStatus.ON_TRIP, odometer: 48_200, weightCap: 1_200, volCap: 9, region: 'SOUTH', acqCost: 780_000 },
+        { plate: 'GJ-06-VN-1144', make: 'Tata', model: 'Intra V30', year: 2024, color: 'Ivory White', type: 'VAN', status: VehicleStatus.AVAILABLE, odometer: 8_900, weightCap: 1_100, volCap: 10, region: 'WEST', acqCost: 720_000 },
+        { plate: 'DL-08-VN-6655', make: 'Force', model: 'Trax Cruiser', year: 2020, color: 'Graphite', type: 'VAN', status: VehicleStatus.AVAILABLE, odometer: 95_200, weightCap: 1_800, volCap: 16, region: 'NORTH', acqCost: 1_100_000 },
+        { plate: 'WB-01-VN-2277', make: 'Mahindra', model: 'Jeeto Plus', year: 2022, color: 'Alpine White', type: 'VAN', status: VehicleStatus.AVAILABLE, odometer: 35_600, weightCap: 700, volCap: 6, region: 'EAST', acqCost: 520_000 },
+        // ── BIKES (4) ──
+        { plate: 'MH-02-BK-7890', make: 'Hero', model: 'Splendor+ Cargo', year: 2024, color: 'Matte Black', type: 'BIKE', status: VehicleStatus.AVAILABLE, odometer: 8_400, weightCap: 50, volCap: 0.2, region: 'WEST', acqCost: 85_000 },
+        { plate: 'DL-05-BK-4411', make: 'Bajaj', model: 'Maxima C', year: 2023, color: 'Blue', type: 'BIKE', status: VehicleStatus.ON_TRIP, odometer: 14_200, weightCap: 60, volCap: 0.3, region: 'NORTH', acqCost: 95_000 },
+        { plate: 'KA-09-BK-5533', make: 'TVS', model: 'King Deluxe', year: 2023, color: 'Green', type: 'BIKE', status: VehicleStatus.AVAILABLE, odometer: 6_800, weightCap: 40, volCap: 0.15, region: 'SOUTH', acqCost: 72_000 },
+        { plate: 'TN-04-BK-2244', make: 'Hero', model: 'HF Deluxe Cargo', year: 2024, color: 'Red', type: 'BIKE', status: VehicleStatus.AVAILABLE, odometer: 3_100, weightCap: 45, volCap: 0.18, region: 'SOUTH', acqCost: 78_000 },
+        // ── PLANES (2) ──
+        { plate: 'VT-FLW-208', make: 'Cessna', model: 'Caravan 208B', year: 2020, color: 'White & Royal Blue', vin: 'CE208B2020IND001', type: 'PLANE', status: VehicleStatus.AVAILABLE, odometer: 18_900, weightCap: 1_200, volCap: 4.8, region: 'INTERNATIONAL', acqCost: 45_000_000 },
+        { plate: 'VT-FLW-350', make: 'Beechcraft', model: 'King Air 350i', year: 2019, color: 'Silver & Navy', vin: 'BE350I2019IND002', type: 'PLANE', status: VehicleStatus.AVAILABLE, odometer: 24_500, weightCap: 1_800, volCap: 6.2, region: 'INTERNATIONAL', acqCost: 68_000_000 },
+    ];
 
-    // ──────────────────────────────────────────────────────────────
-    //  Step 3: Vehicles — Indian brands, real registration plate format
-    //
-    //  Statuses at seed time:
-    //   truck1  → AVAILABLE  (completed Trip 1, ready for Trip 4 draft)
-    //   truck2  → ON_TRIP    (currently running Trip 3: Mumbai→Hyderabad)
-    //   van1    → AVAILABLE  (completed Trip 2, drafts 4 & 7 planned)
-    //   van2    → IN_SHOP    (brake inspection in progress)
-    //   bike1   → AVAILABLE  (completed Trip 8)
-    //   plane1  → AVAILABLE  (completed Trip 6)
-    // ──────────────────────────────────────────────────────────────
-    console.log('  → Seeding vehicles...');
-    const [truck1, truck2, van1, van2, bike1, plane1] = await Promise.all([
-        // TRUCK 1 — Tata Prima, AVAILABLE, Mumbai depot
-        prisma.vehicle.create({
+    const vehicles = await Promise.all(
+        vehiclesData.map(v => prisma.vehicle.create({
             data: {
-                licensePlate: 'MH-04-AB-1234',
-                make: 'Tata',
-                model: 'Prima 4928.S',
-                year: 2022,
-                color: 'Midnight Blue',
-                vin: 'MAT450634N2CA0001',
-                vehicleTypeId: truckType.id,
-                status: VehicleStatus.AVAILABLE,
-                currentOdometer: 45_386,  // After Mumbai→Pune run (156 km from 45,230)
-                capacityWeight: 20_000,   // 20 tonnes
-                capacityVolume: 85,       // 85 m³
+                licensePlate: v.plate, make: v.make, model: v.model, year: v.year,
+                color: v.color, vin: v.vin, vehicleTypeId: typeMap[v.type],
+                status: v.status, currentOdometer: v.odometer,
+                capacityWeight: v.weightCap, capacityVolume: v.volCap,
+                region: v.region, acquisitionCost: v.acqCost,
             },
-        }),
-        // TRUCK 2 — Tata Prima (larger), ON_TRIP Mumbai→Hyderabad
-        prisma.vehicle.create({
-            data: {
-                licensePlate: 'MH-04-CD-5678',
-                make: 'Tata',
-                model: 'Prima 5530.S',
-                year: 2023,
-                color: 'Flame Red',
-                vin: 'MAT450634N3CA0002',
-                vehicleTypeId: truckType.id,
-                status: VehicleStatus.ON_TRIP,
-                currentOdometer: 38_500,  // Odometer at last dispatch
-                capacityWeight: 25_000,   // 25 tonnes
-                capacityVolume: 92,
-            },
-        }),
-        // VAN 1 — Mahindra Supro, AVAILABLE, Delhi/Bangalore depot
-        prisma.vehicle.create({
-            data: {
-                licensePlate: 'DL-01-EF-9012',
-                make: 'Mahindra',
-                model: 'Supro Profit Truck Excel',
-                year: 2023,
-                color: 'Polar White',
-                vehicleTypeId: vanType.id,
-                status: VehicleStatus.AVAILABLE,
-                currentOdometer: 12_700,  // After Delhi→Agra run (200 km from 12,500)
-                capacityWeight: 1_200,
-                capacityVolume: 11,
-            },
-        }),
-        // VAN 2 — Force Traveller, IN_SHOP (brake inspection)
-        prisma.vehicle.create({
-            data: {
-                licensePlate: 'KA-03-GH-3456',
-                make: 'Force',
-                model: 'Traveller Pro',
-                year: 2021,
-                color: 'Silver Grey',
-                vehicleTypeId: vanType.id,
-                status: VehicleStatus.IN_SHOP,
-                currentOdometer: 58_900,
-                capacityWeight: 1_500,
-                capacityVolume: 14,
-            },
-        }),
-        // BIKE 1 — Hero Splendor Cargo, AVAILABLE, Mumbai
-        prisma.vehicle.create({
-            data: {
-                licensePlate: 'MH-02-IJ-7890',
-                make: 'Hero',
-                model: 'Splendor+ Cargo',
-                year: 2024,
-                color: 'Matte Black',
-                vehicleTypeId: bikeType.id,
-                status: VehicleStatus.AVAILABLE,
-                currentOdometer: 3_225,  // After Mumbai local delivery (25 km)
-                capacityWeight: 50,
-                capacityVolume: 0.2,
-            },
-        }),
-        // PLANE 1 — Cessna Caravan, AVAILABLE, Delhi
-        prisma.vehicle.create({
-            data: {
-                licensePlate: 'VT-FLW-208',  // Indian civil aircraft registration
-                make: 'Cessna',
-                model: 'Caravan 208B',
-                year: 2020,
-                color: 'White & Royal Blue',
-                vin: 'CE208B2020IND001',
-                vehicleTypeId: planeType.id,
-                status: VehicleStatus.AVAILABLE,
-                currentOdometer: 9_580,  // Nautical miles after Mumbai→Delhi air run
-                capacityWeight: 1_200,
-                capacityVolume: 4.8,
-            },
-        }),
-    ]);
+        }))
+    );
+    console.log(`  ✅  ${vehicles.length} vehicles seeded.\n`);
 
-    // RETIRED Vehicle — old Mahindra Bolero, decommissioned
-    const retiredVehicle = await prisma.vehicle.create({
-        data: {
-            licensePlate: 'MH-12-ZZ-0001',
-            make: 'Mahindra',
-            model: 'Bolero Pickup',
-            year: 2015,
-            color: 'Dusty Silver',
-            vehicleTypeId: vanType.id,
-            status: VehicleStatus.RETIRED,
-            currentOdometer: 185_000,
-            capacityWeight: 1_200,
-            capacityVolume: 3.5,
-        },
-    });
+    // ────────────────────────────────────────────────────────────
+    //  4. Drivers (20 total)
+    // ────────────────────────────────────────────────────────────
+    console.log('  → Drivers (20)...');
+    const driversData: {
+        license: string; name: string; phone: string; email?: string;
+        dob: string; expiryDays: number; licClass: string;
+        status: DriverStatus; safety: number;
+    }[] = [
+        { license: 'MH-CDL-A-001234', name: 'Ramesh Kumar', phone: '+91-98201-11001', email: 'ramesh.kumar@fleetflow.io', dob: '1985-03-15', expiryDays: 730, licClass: 'CDL-A', status: DriverStatus.ON_DUTY, safety: 96 },
+        { license: 'MH-CDL-B-005678', name: 'Suresh Yadav', phone: '+91-98202-22002', email: 'suresh.yadav@fleetflow.io', dob: '1988-07-20', expiryDays: 365, licClass: 'CDL-B', status: DriverStatus.ON_TRIP, safety: 84 },
+        { license: 'DL-CDL-A-009012', name: 'Anjali Singh', phone: '+91-98203-33003', email: 'anjali.singh@fleetflow.io', dob: '1992-11-05', expiryDays: 548, licClass: 'CDL-A', status: DriverStatus.ON_DUTY, safety: 99 },
+        { license: 'KA-B-003456', name: 'Mohan Das', phone: '+91-98204-44004', email: 'mohan.das@fleetflow.io', dob: '1979-06-12', expiryDays: 18, licClass: 'B', status: DriverStatus.OFF_DUTY, safety: 91 },
+        { license: 'GJ-B-007890', name: 'Deepak Gupta', phone: '+91-98205-55005', dob: '1983-09-28', expiryDays: 180, licClass: 'B', status: DriverStatus.SUSPENDED, safety: 42 },
+        { license: 'TN-CDL-A-012345', name: 'Arjun Reddy', phone: '+91-98206-66006', email: 'arjun.reddy@fleetflow.io', dob: '1990-04-18', expiryDays: 5, licClass: 'CDL-A', status: DriverStatus.ON_DUTY, safety: 88 },
+        { license: 'RJ-CDL-A-034567', name: 'Vikash Meena', phone: '+91-98207-77007', email: 'vikash.meena@fleetflow.io', dob: '1987-02-25', expiryDays: 620, licClass: 'CDL-A', status: DriverStatus.ON_TRIP, safety: 93 },
+        { license: 'WB-CDL-B-045678', name: 'Biswajit Sen', phone: '+91-98208-88008', email: 'biswajit.sen@fleetflow.io', dob: '1991-08-14', expiryDays: 400, licClass: 'CDL-B', status: DriverStatus.ON_DUTY, safety: 87 },
+        { license: 'AP-CDL-A-056789', name: 'Venkat Rao', phone: '+91-98209-99009', email: 'venkat.rao@fleetflow.io', dob: '1986-12-03', expiryDays: 280, licClass: 'CDL-A', status: DriverStatus.ON_DUTY, safety: 95 },
+        { license: 'MP-B-067890', name: 'Rajendra Tiwari', phone: '+91-98210-10010', email: 'rajendra.tiwari@fleetflow.io', dob: '1984-05-22', expiryDays: 25, licClass: 'B', status: DriverStatus.ON_DUTY, safety: 79 },
+        { license: 'UP-CDL-A-078901', name: 'Arun Pandey', phone: '+91-98211-11011', email: 'arun.pandey@fleetflow.io', dob: '1993-01-10', expiryDays: 510, licClass: 'CDL-A', status: DriverStatus.ON_TRIP, safety: 90 },
+        { license: 'KA-CDL-A-089012', name: 'Naveen Gowda', phone: '+91-98212-12012', email: 'naveen.gowda@fleetflow.io', dob: '1989-09-07', expiryDays: 450, licClass: 'CDL-A', status: DriverStatus.ON_DUTY, safety: 94 },
+        { license: 'MH-CDL-B-090123', name: 'Sanjay Patil', phone: '+91-98213-13013', email: 'sanjay.patil@fleetflow.io', dob: '1982-03-30', expiryDays: 320, licClass: 'CDL-B', status: DriverStatus.OFF_DUTY, safety: 82 },
+        { license: 'DL-B-101234', name: 'Pradeep Chauhan', phone: '+91-98214-14014', email: 'pradeep.chauhan@fleetflow.io', dob: '1995-07-16', expiryDays: 700, licClass: 'B', status: DriverStatus.ON_TRIP, safety: 97 },
+        { license: 'TN-CDL-A-112345', name: 'Karthik Rajan', phone: '+91-98215-15015', email: 'karthik.rajan@fleetflow.io', dob: '1988-11-21', expiryDays: 380, licClass: 'CDL-A', status: DriverStatus.ON_DUTY, safety: 91 },
+        { license: 'GJ-CDL-A-123456', name: 'Hitesh Prajapati', phone: '+91-98216-16016', email: 'hitesh.prajapati@fleetflow.io', dob: '1990-06-09', expiryDays: 12, licClass: 'CDL-A', status: DriverStatus.ON_DUTY, safety: 86 },
+        { license: 'KA-B-134567', name: 'Lakshmi Devi', phone: '+91-98217-17017', email: 'lakshmi.devi@fleetflow.io', dob: '1994-04-01', expiryDays: 550, licClass: 'B', status: DriverStatus.ON_TRIP, safety: 92 },
+        { license: 'MH-CDL-A-145678', name: 'Ganesh Bhosle', phone: '+91-98218-18018', email: 'ganesh.bhosle@fleetflow.io', dob: '1981-10-15', expiryDays: 200, licClass: 'CDL-A', status: DriverStatus.ON_DUTY, safety: 76 },
+        { license: 'RJ-B-156789', name: 'Mukesh Saini', phone: '+91-98219-19019', dob: '1986-02-28', expiryDays: 90, licClass: 'B', status: DriverStatus.SUSPENDED, safety: 38 },
+        { license: 'WB-B-167890', name: 'Tapan Ghosh', phone: '+91-98220-20020', email: 'tapan.ghosh@fleetflow.io', dob: '1992-12-25', expiryDays: 480, licClass: 'B', status: DriverStatus.OFF_DUTY, safety: 85 },
+    ];
 
-    console.log('  ✅  7 vehicles seeded (incl. 1 retired).\n');
-
-    // ──────────────────────────────────────────────────────────────
-    //  Step 4: Drivers — Indian names, varied states
-    //
-    //  ramesh  → ON_DUTY   (reliable, safety score 98)
-    //  suresh  → ON_TRIP   (currently driving Trip 3)
-    //  anjali  → ON_DUTY   (top performer, perfect score)
-    //  mohan   → OFF_DUTY  (license expiring in 20 days — alert)
-    //  deepak  → SUSPENDED (multiple safety violations, score 45)
-    // ──────────────────────────────────────────────────────────────
-    console.log('  → Seeding drivers...');
-    const [ramesh, suresh, anjali, mohan] = await Promise.all([
-        prisma.driver.create({
+    const drivers = await Promise.all(
+        driversData.map(d => prisma.driver.create({
             data: {
-                licenseNumber: 'MH-CDL-A-001234',
-                fullName: 'Ramesh Kumar',
-                phone: '+91-98201-11001',
-                email: 'ramesh.kumar@fleetflow.io',
-                dateOfBirth: new Date('1985-03-15'),
-                licenseExpiryDate: daysFromNow(730),  // 2 years — healthy
-                licenseClass: 'CDL-A',
-                status: DriverStatus.ON_DUTY,
-                safetyScore: 98,
+                licenseNumber: d.license, fullName: d.name, phone: d.phone,
+                email: d.email, dateOfBirth: new Date(d.dob),
+                licenseExpiryDate: daysFromNow(d.expiryDays),
+                licenseClass: d.licClass, status: d.status, safetyScore: d.safety,
             },
-        }),
-        prisma.driver.create({
+        }))
+    );
+    console.log(`  ✅  ${drivers.length} drivers seeded.\n`);
+
+    // ── Indexes for easy reference ──
+    // Separate truck-capable drivers from local/van drivers
+    const truckDriverIds = [0, 1, 2, 6, 7, 8, 10, 11, 14, 17].map(i => drivers[i].id);
+    const vanDriverIds = [3, 9, 12, 15, 19].map(i => drivers[i].id);
+    const bikeDriverIds = [13, 16].map(i => drivers[i].id);
+    const planeDriverIds = [2, 5].map(i => drivers[i].id); // Anjali + Arjun
+
+    // Truck vehicle IDs (index 0-11), Van (12-18), Bike (19-22), Plane (23-24)
+    const truckVehicleIds = vehicles.slice(0, 12).filter(v => v.status !== VehicleStatus.RETIRED).map(v => v.id);
+    const vanVehicleIds = vehicles.slice(12, 19).filter(v => v.status !== VehicleStatus.RETIRED).map(v => v.id);
+    const bikeVehicleIds = vehicles.slice(19, 23).map(v => v.id);
+    const planeVehicleIds = vehicles.slice(23, 25).map(v => v.id);
+
+    // ────────────────────────────────────────────────────────────
+    //  5. Trips — 12 months of history (Mar 2025 → Feb 2026)
+    //     Pre-built in memory, then batch-created with Promise.all
+    // ────────────────────────────────────────────────────────────
+    console.log('  → Generating trips (12 months)...');
+
+    interface TripRecord {
+        id: bigint;
+        vehicleId: bigint;
+        driverId: bigint;
+        routeIdx: number;
+        distActual: number;
+        revenue: number;
+        month: number;
+        year: number;
+        completionTime: Date | null;
+        status: TripStatus;
+    }
+
+    // Pre-build all trip data in memory (consuming PRNG deterministically)
+    const tripBundles: {
+        data: Prisma.TripUncheckedCreateInput;
+        meta: Omit<TripRecord, 'id'>;
+    }[] = [];
+    let invoiceCounter = 1;
+
+    const monthConfigs: [number, number, number][] = [
+        [2025, 3, 12], [2025, 4, 13], [2025, 5, 14], [2025, 6, 15],
+        [2025, 7, 16], [2025, 8, 17], [2025, 9, 18], [2025, 10, 19],
+        [2025, 11, 20], [2025, 12, 22], [2026, 1, 22], [2026, 2, 18],
+    ];
+
+    for (const [year, month, tripCount] of monthConfigs) {
+        const isCurrentMonth = year === 2026 && month === 2;
+        const daysInMonth = new Date(year, month, 0).getDate();
+
+        for (let t = 0; t < tripCount; t++) {
+            const r = rand();
+            let vehicleId: bigint;
+            let driverId: bigint;
+            let routeIdx: number;
+
+            if (r < 0.55) {
+                vehicleId = pick(truckVehicleIds);
+                driverId = pick(truckDriverIds);
+                routeIdx = randInt(0, 17);
+            } else if (r < 0.80) {
+                vehicleId = pick(vanVehicleIds);
+                driverId = pick(vanDriverIds);
+                routeIdx = randInt(0, 17);
+            } else if (r < 0.92) {
+                vehicleId = pick(bikeVehicleIds);
+                driverId = pick(bikeDriverIds);
+                routeIdx = randInt(20, 23);
+            } else {
+                vehicleId = pick(planeVehicleIds);
+                driverId = pick(planeDriverIds);
+                routeIdx = randInt(18, 19);
+            }
+
+            const route = ROUTES[routeIdx];
+            const day = randInt(1, Math.min(daysInMonth, isCurrentMonth ? 27 : daysInMonth));
+            const dispatchHour = randInt(4, 18);
+            const dispatchTime = cal(year, month, day, dispatchHour);
+
+            const durationHours = Math.max(2, Math.round(route.distKm / (rand() > 0.5 ? 50 : 65)));
+            const completionDate = new Date(dispatchTime.getTime() + durationHours * 3_600_000);
+
+            let status: TripStatus;
+            if (isCurrentMonth && t >= tripCount - 5) {
+                if (t >= tripCount - 2) status = TripStatus.DRAFT;
+                else if (t >= tripCount - 4) status = TripStatus.DISPATCHED;
+                else status = TripStatus.CANCELLED;
+            } else {
+                status = TripStatus.COMPLETED;
+            }
+
+            const distActual = status === TripStatus.COMPLETED
+                ? route.distKm + randInt(-8, 15)
+                : 0;
+
+            const baseRevPerKm = route.distKm > 500 ? randFloat(80, 120) : randFloat(40, 90);
+            const revenue = Math.round(route.distKm * baseRevPerKm);
+
+            const cargoWeight = routeIdx >= 20
+                ? randInt(5, 50)
+                : routeIdx >= 18
+                    ? randInt(600, 1200)
+                    : randInt(500, 20_000);
+
+            const invoiceRef = status === TripStatus.COMPLETED
+                ? `INV-FF-${year}-${String(invoiceCounter++).padStart(4, '0')}`
+                : undefined;
+
+            tripBundles.push({
+                data: {
+                    vehicleId,
+                    driverId,
+                    origin: route.origin,
+                    destination: route.destination,
+                    distanceEstimated: route.distKm,
+                    distanceActual: status === TripStatus.COMPLETED ? distActual : undefined,
+                    cargoWeight,
+                    cargoDescription: pick(CARGO_DESCRIPTIONS),
+                    revenue,
+                    clientName: pick(CLIENTS),
+                    invoiceReference: invoiceRef,
+                    status,
+                    dispatchTime: status !== TripStatus.DRAFT ? dispatchTime : undefined,
+                    completionTime: status === TripStatus.COMPLETED ? completionDate : undefined,
+                    cancelledReason: status === TripStatus.CANCELLED
+                        ? pick(['Client postponed shipment', 'Vehicle breakdown before departure', 'Driver unavailable — reassigned', 'Weather conditions — heavy rainfall advisory'])
+                        : undefined,
+                    createdAt: new Date(dispatchTime.getTime() - randInt(1, 24) * 3_600_000),
+                },
+                meta: {
+                    vehicleId, driverId, routeIdx, distActual, revenue, month, year,
+                    completionTime: status === TripStatus.COMPLETED ? completionDate : null,
+                    status,
+                },
+            });
+        }
+    }
+
+    // Today trips for dashboard "Completed Today" KPI
+    const todayTrips = [
+        { vi: 0, di: 0, ri: 0 }, { vi: 2, di: 2, ri: 14 }, { vi: 4, di: 8, ri: 2 },
+        { vi: 12, di: 3, ri: 5 }, { vi: 19, di: 13, ri: 20 },
+    ];
+    for (const tt of todayTrips) {
+        const route = ROUTES[tt.ri];
+        const now = new Date();
+        const dispTime = new Date(now.getTime() - randInt(3, 10) * 3_600_000);
+        const compTime = new Date(dispTime.getTime() + randInt(2, 6) * 3_600_000);
+        const distActual = route.distKm + randInt(-5, 10);
+        const revenue = Math.round(route.distKm * randFloat(50, 100));
+
+        tripBundles.push({
             data: {
-                licenseNumber: 'MH-CDL-B-005678',
-                fullName: 'Suresh Yadav',
-                phone: '+91-98202-22002',
-                email: 'suresh.yadav@fleetflow.io',
-                dateOfBirth: new Date('1988-07-20'),
-                licenseExpiryDate: daysFromNow(365),  // 1 year — valid
-                licenseClass: 'CDL-B',
-                status: DriverStatus.ON_TRIP,          // Currently on Mumbai→Hyderabad
-                safetyScore: 85,
+                vehicleId: vehicles[tt.vi].id,
+                driverId: drivers[tt.di].id,
+                origin: route.origin,
+                destination: route.destination,
+                distanceEstimated: route.distKm,
+                distanceActual: distActual,
+                cargoWeight: randInt(200, 15_000),
+                cargoDescription: pick(CARGO_DESCRIPTIONS),
+                revenue,
+                clientName: pick(CLIENTS),
+                invoiceReference: `INV-FF-2026-${String(invoiceCounter++).padStart(4, '0')}`,
+                status: TripStatus.COMPLETED,
+                dispatchTime: dispTime,
+                completionTime: compTime,
             },
-        }),
-        prisma.driver.create({
-            data: {
-                licenseNumber: 'DL-CDL-A-009012',
-                fullName: 'Anjali Singh',
-                phone: '+91-98203-33003',
-                email: 'anjali.singh@fleetflow.io',
-                dateOfBirth: new Date('1992-11-05'),
-                licenseExpiryDate: daysFromNow(548),  // 1.5 years — healthy
-                licenseClass: 'CDL-A',
-                status: DriverStatus.ON_DUTY,
-                safetyScore: 100,                      // Perfect record
+            meta: {
+                vehicleId: vehicles[tt.vi].id, driverId: drivers[tt.di].id,
+                routeIdx: tt.ri, distActual, revenue, month: 2, year: 2026,
+                completionTime: compTime, status: TripStatus.COMPLETED,
             },
-        }),
-        prisma.driver.create({
-            data: {
-                licenseNumber: 'KA-B-003456',
-                fullName: 'Mohan Das',
-                phone: '+91-98204-44004',
-                email: 'mohan.das@fleetflow.io',
-                dateOfBirth: new Date('1979-06-12'),
-                licenseExpiryDate: daysFromNow(20),   // ⚠️ Expiring soon — dashboard alert
-                licenseClass: 'B',
-                status: DriverStatus.OFF_DUTY,
-                safetyScore: 92,
-            },
-        }),
-        prisma.driver.create({
-            data: {
-                licenseNumber: 'GJ-B-007890',
-                fullName: 'Deepak Gupta',
-                phone: '+91-98205-55005',
-                dateOfBirth: new Date('1983-09-28'),
-                licenseExpiryDate: daysFromNow(180),
-                licenseClass: 'B',
-                status: DriverStatus.SUSPENDED,        // Multiple violations
-                safetyScore: 45,                       // ⛔ Below minimum threshold
-            },
-        }),
-    ]);
+        });
+    }
 
-    // Additional driver with license expiring in 5 days — urgent notification
-    await prisma.driver.create({
-        data: {
-            licenseNumber: 'TN-CDL-A-012345',
-            fullName: 'Arjun Reddy',
-            phone: '+91-98206-66006',
-            email: 'arjun.reddy@fleetflow.io',
-            dateOfBirth: new Date('1990-04-18'),
-            licenseExpiryDate: daysFromNow(5),   // 🔴 Expiring in 5 days — critical alert
-            licenseClass: 'CDL-A',
-            status: DriverStatus.ON_DUTY,
-            safetyScore: 88,
-        },
-    });
+    // Batch-create trips (need returned IDs for FK refs in child entities)
+    const TRIP_BATCH = 25;
+    const createdTripIds: bigint[] = [];
+    for (let i = 0; i < tripBundles.length; i += TRIP_BATCH) {
+        const batch = tripBundles.slice(i, i + TRIP_BATCH);
+        const results = await Promise.all(
+            batch.map(b => prisma.trip.create({ data: b.data, select: { id: true } }))
+        );
+        createdTripIds.push(...results.map(r => r.id));
+    }
 
-    console.log('  ✅  6 drivers seeded (2 with expiring licenses).\n');
+    const allTrips: TripRecord[] = createdTripIds.map((id, i) => ({
+        id,
+        ...tripBundles[i].meta,
+    }));
+    const completedTrips = allTrips.filter(t => t.status === TripStatus.COMPLETED);
+    console.log(`  ✅  ${allTrips.length} trips seeded (${completedTrips.length} completed, 5 today).\n`);
 
-    // ──────────────────────────────────────────────────────────────
-    //  Step 5: Trips — 8 trips covering all status transitions
-    //  Routes use real Indian city pairs with approximate distances.
-    // ──────────────────────────────────────────────────────────────
-    console.log('  → Seeding trips...');
+    // ────────────────────────────────────────────────────────────
+    //  6. Fuel Logs — bulk createMany
+    // ────────────────────────────────────────────────────────────
+    console.log('  → Fuel logs...');
+    const fuelLogData: Prisma.FuelLogCreateManyInput[] = [];
 
-    // Trip 1: COMPLETED — Mumbai → Pune (Truck 1, Ramesh)
-    const trip1 = await prisma.trip.create({
-        data: {
-            vehicleId: truck1.id,
-            driverId: ramesh.id,
-            origin: 'Mumbai, Maharashtra',
-            destination: 'Pune, Maharashtra',
-            distanceEstimated: 156,
-            distanceActual: 162,       // Minor detour via Khopoli
-            cargoWeight: 12_500,
-            cargoDescription: 'Auto parts — Tata Motors Pune plant supply chain',
-            odometerStart: 45_230,
-            odometerEnd: 45_386,
-            revenue: 28_000,
-            clientName: 'Tata Motors Ltd.',
-            invoiceReference: 'INV-FF-2025-0001',
-            status: TripStatus.COMPLETED,
-            dispatchTime: daysAgo(10),
-            completionTime: daysAgo(9),
-        },
-    });
+    for (const trip of completedTrips) {
+        const route = ROUTES[trip.routeIdx];
+        const isPlane = trip.routeIdx >= 18 && trip.routeIdx <= 19;
+        const isBike = trip.routeIdx >= 20;
 
-    // Trip 2: COMPLETED — Delhi → Agra (Van 1, Anjali)
-    const trip2 = await prisma.trip.create({
-        data: {
-            vehicleId: van1.id,
-            driverId: anjali.id,
-            origin: 'Delhi, NCT',
-            destination: 'Agra, Uttar Pradesh',
-            distanceEstimated: 200,
-            distanceActual: 204,
-            cargoWeight: 800,
-            cargoDescription: 'E-commerce returns — Flipkart warehouse restocking (electronics)',
-            odometerStart: 12_500,
-            odometerEnd: 12_700,
-            revenue: 9_500,
-            clientName: 'Flipkart Internet Pvt. Ltd.',
-            invoiceReference: 'INV-FF-2025-0002',
-            status: TripStatus.COMPLETED,
-            dispatchTime: daysAgo(7),
-            completionTime: daysAgo(7),
-        },
-    });
+        const liters = isPlane
+            ? randFloat(350, 500)
+            : isBike
+                ? randFloat(2, 6)
+                : route.distKm > 400
+                    ? randFloat(80, 150)
+                    : randFloat(25, 80);
 
-    // Trip 3: DISPATCHED — Mumbai → Hyderabad (Truck 2, Suresh) — currently active
-    const trip3 = await prisma.trip.create({
-        data: {
-            vehicleId: truck2.id,
-            driverId: suresh.id,
-            origin: 'Mumbai, Maharashtra',
-            destination: 'Hyderabad, Telangana',
-            distanceEstimated: 710,
-            cargoWeight: 18_000,
-            cargoDescription: 'FMCG goods — ITC distribution consignment (biscuits, beverages)',
-            odometerStart: 38_500,
-            revenue: 75_000,
-            clientName: 'ITC Limited',
-            invoiceReference: 'INV-FF-2025-0003',
-            status: TripStatus.DISPATCHED,
-            dispatchTime: hoursAgo(6),
-        },
-    });
+        const costPerLiter = isPlane
+            ? randFloat(85, 92, 2)
+            : isBike
+                ? randFloat(102, 108, 2)
+                : randFloat(92, 98, 2);
 
-    // Trip 4: DRAFT — Bangalore → Chennai (Van 1, Anjali) — planned, not yet dispatched
-    await prisma.trip.create({
-        data: {
-            vehicleId: van1.id,
-            driverId: anjali.id,
-            origin: 'Bangalore, Karnataka',
-            destination: 'Chennai, Tamil Nadu',
-            distanceEstimated: 345,
-            cargoWeight: 600,
-            cargoDescription: 'IT hardware — Dell server racks and networking gear',
-            revenue: 22_000,
-            clientName: 'Dell Technologies India Pvt. Ltd.',
-            status: TripStatus.DRAFT,
-        },
-    });
+        fuelLogData.push({
+            vehicleId: trip.vehicleId,
+            tripId: trip.id,
+            liters,
+            costPerLiter,
+            totalCost: parseFloat((liters * costPerLiter).toFixed(2)),
+            odometerAtFill: randInt(1000, 200_000),
+            fuelStation: pick(FUEL_STATIONS),
+            loggedAt: trip.completionTime
+                ? new Date(trip.completionTime.getTime() - randInt(1, 4) * 3_600_000)
+                : daysAgo(randInt(1, 30)),
+        });
 
-    // Trip 5: CANCELLED — Jaipur local (Bike 1, Mohan) — cancelled before dispatch
-    await prisma.trip.create({
-        data: {
-            vehicleId: bike1.id,
-            driverId: mohan.id,
-            origin: 'Jaipur, Rajasthan',
-            destination: 'Jaipur City Centre Mall, Rajasthan',
-            distanceEstimated: 18,
-            cargoWeight: 25,
-            cargoDescription: 'Jewellery display samples — Tanishq retail showcase',
-            revenue: 1_500,
-            clientName: 'Tanishq (Titan Company Ltd.)',
-            status: TripStatus.CANCELLED,
-            cancelledReason: 'Client postponed pickup — rescheduled for next week due to store renovation',
-        },
-    });
+        if (route.distKm > 400 && rand() < 0.4 && !isBike) {
+            const liters2 = randFloat(40, 90);
+            fuelLogData.push({
+                vehicleId: trip.vehicleId,
+                tripId: trip.id,
+                liters: liters2,
+                costPerLiter,
+                totalCost: parseFloat((liters2 * costPerLiter).toFixed(2)),
+                odometerAtFill: randInt(1000, 200_000),
+                fuelStation: pick(FUEL_STATIONS),
+                loggedAt: trip.completionTime
+                    ? new Date(trip.completionTime.getTime() - randInt(5, 10) * 3_600_000)
+                    : daysAgo(randInt(1, 30)),
+            });
+        }
+    }
 
-    // Trip 6: COMPLETED — Mumbai → Delhi (Plane 1, Anjali) — pharmaceutical air freight
-    const trip6 = await prisma.trip.create({
-        data: {
-            vehicleId: plane1.id,
-            driverId: anjali.id,
-            origin: 'CSIA Mumbai (BOM)',
-            destination: 'IGI Delhi (DEL)',
-            distanceEstimated: 1_415,
-            distanceActual: 1_410,
-            cargoWeight: 900,
-            cargoDescription: 'Temperature-controlled pharma cargo — Sun Pharma API shipment',
-            odometerStart: 8_900,
-            odometerEnd: 9_580,
-            revenue: 185_000,
-            clientName: 'Sun Pharmaceutical Industries Ltd.',
-            invoiceReference: 'INV-FF-2025-0004',
-            status: TripStatus.COMPLETED,
-            dispatchTime: daysAgo(5),
-            completionTime: daysAgo(5),
-        },
-    });
+    await prisma.fuelLog.createMany({ data: fuelLogData });
+    console.log(`  ✅  ${fuelLogData.length} fuel logs seeded.\n`);
 
-    // Trip 7: DRAFT — Pune → Nashik (Van 1, Anjali) — planned
-    await prisma.trip.create({
-        data: {
-            vehicleId: van1.id,
-            driverId: anjali.id,
-            origin: 'Pune, Maharashtra',
-            destination: 'Nashik, Maharashtra',
-            distanceEstimated: 215,
-            cargoWeight: 400,
-            cargoDescription: 'Premium wine cases — Sula Vineyards B2B distributor order',
-            revenue: 12_000,
-            clientName: 'Sula Vineyards Pvt. Ltd.',
-            status: TripStatus.DRAFT,
-        },
-    });
+    // ────────────────────────────────────────────────────────────
+    //  7. Maintenance Logs — bulk createMany
+    // ────────────────────────────────────────────────────────────
+    console.log('  → Maintenance logs...');
+    const maintData: Prisma.MaintenanceLogCreateManyInput[] = [];
 
-    // Trip 8: COMPLETED — Mumbai local (Bike 1, Mohan) — express document courier
-    const trip8 = await prisma.trip.create({
-        data: {
-            vehicleId: bike1.id,
-            driverId: mohan.id,
-            origin: 'Andheri West, Mumbai',
-            destination: 'Bandra Kurla Complex, Mumbai',
-            distanceEstimated: 22,
-            distanceActual: 25,
-            cargoWeight: 18,
-            cargoDescription: 'Legal documents — court-filed affidavits and contracts (urgent)',
-            odometerStart: 3_200,
-            odometerEnd: 3_225,
-            revenue: 2_800,
-            clientName: 'AZB & Partners (Law Firm)',
-            invoiceReference: 'INV-FF-2025-0005',
-            status: TripStatus.COMPLETED,
-            dispatchTime: daysAgo(3),
-            completionTime: daysAgo(3),
-        },
-    });
+    for (const vehicle of vehicles) {
+        if (vehicle.status === VehicleStatus.RETIRED) continue;
 
-    console.log('  ✅  8 trips seeded.\n');
+        const numLogs = randInt(3, 8);
+        for (let m = 0; m < numLogs; m++) {
+            const monthOffset = randInt(0, 11);
+            const year = monthOffset < 10 ? 2025 : 2026;
+            const month = ((2 + monthOffset) % 12) + 1;
+            const day = randInt(1, 28);
 
-    // ──────────────────────────────────────────────────────────────
-    //  Step 6: Fuel Logs
-    // ──────────────────────────────────────────────────────────────
-    console.log('  → Seeding fuel logs...');
-    await Promise.all([
-        // Truck 1 — mid-run fill during Mumbai→Pune trip
-        prisma.fuelLog.create({
-            data: {
-                vehicleId: truck1.id,
-                tripId: trip1.id,
-                liters: 80,
-                costPerLiter: 94.52,
-                totalCost: 7_561.6,
-                odometerAtFill: 45_260,
-                fuelStation: 'HP Petrol Pump, Khopoli, NH-48',
-                loggedAt: daysAgo(10),
-            },
-        }),
-        // Truck 1 — depot refill after completing Mumbai→Pune
-        prisma.fuelLog.create({
-            data: {
-                vehicleId: truck1.id,
-                liters: 60,
-                costPerLiter: 94.52,
-                totalCost: 5_671.2,
-                odometerAtFill: 45_386,
-                fuelStation: 'BPCL, Navi Mumbai Depot',
-                loggedAt: daysAgo(2),
-            },
-        }),
-        // Truck 2 — full tank before Mumbai→Hyderabad long-haul dispatch
-        prisma.fuelLog.create({
-            data: {
-                vehicleId: truck2.id,
-                tripId: trip3.id,
-                liters: 120,
-                costPerLiter: 94.52,
-                totalCost: 11_342.4,
-                odometerAtFill: 38_510,
-                fuelStation: 'Indian Oil, Pune Bypass, NH-65',
-                loggedAt: hoursAgo(7),
-            },
-        }),
-        // Van 1 — fill during Delhi→Agra run
-        prisma.fuelLog.create({
-            data: {
-                vehicleId: van1.id,
-                tripId: trip2.id,
-                liters: 30,
-                costPerLiter: 96.72,
-                totalCost: 2_901.6,
-                odometerAtFill: 12_520,
-                fuelStation: 'Bharat Petroleum, Mathura Road, NH-19',
-                loggedAt: daysAgo(7),
-            },
-        }),
-        // Bike 1 — fill before Mumbai local delivery
-        prisma.fuelLog.create({
-            data: {
-                vehicleId: bike1.id,
-                tripId: trip8.id,
-                liters: 5,
-                costPerLiter: 105.41,
-                totalCost: 527.05,
-                odometerAtFill: 3_202,
-                fuelStation: 'Shell, Andheri East, Mumbai',
-                loggedAt: daysAgo(3),
-            },
-        }),
-        // Trip 6 (plane) — aviation fuel at CSIA Mumbai
-        prisma.fuelLog.create({
-            data: {
-                vehicleId: plane1.id,
-                tripId: trip6.id,
-                liters: 450,
-                costPerLiter: 88.20,
-                totalCost: 39_690,
-                odometerAtFill: 8_905,
-                fuelStation: 'CSIA Cargo Terminal Fuelling Station, Mumbai',
-                loggedAt: daysAgo(5),
-            },
-        }),
-    ]);
-    console.log('  ✅  6 fuel logs seeded.\n');
+            const serviceType = pick(SERVICE_TYPES);
+            const baseCost = serviceType === 'OIL_CHANGE' ? randInt(3000, 6000)
+                : serviceType === 'BRAKE_INSPECTION' ? randInt(8000, 18000)
+                : serviceType === 'TYRE_ROTATION' ? randInt(2000, 5000)
+                : serviceType === 'ENGINE_TUNING' ? randInt(5000, 12000)
+                : serviceType === 'BATTERY_REPLACEMENT' ? randInt(4000, 9000)
+                : serviceType === 'TRANSMISSION_SERVICE' ? randInt(12000, 25000)
+                : randInt(2000, 8000);
 
-    // ──────────────────────────────────────────────────────────────
-    //  Step 7: Maintenance Logs
-    // ──────────────────────────────────────────────────────────────
-    console.log('  → Seeding maintenance logs...');
-    await Promise.all([
-        // Van 2 — currently IN_SHOP for brake inspection
-        prisma.maintenanceLog.create({
-            data: {
-                vehicleId: van2.id,
-                serviceType: 'BRAKE_INSPECTION',
-                description:
-                    'Full brake system inspection and brake pad replacement on all four wheels. ABS sensor diagnostic and calibration. Expected 2 days downtime.',
-                cost: 12_500,
-                odometerAtService: 58_900,
-                technicianName: 'Rajesh Mistry',
-                shopName: 'Force Motors Authorized Service Centre, Whitefield, Bangalore',
-                serviceDate: daysAgo(1),
-                nextServiceDue: daysFromNow(180),
-            },
-        }),
-        // Truck 1 — historical oil change (completed, vehicle AVAILABLE)
-        prisma.maintenanceLog.create({
-            data: {
-                vehicleId: truck1.id,
-                serviceType: 'OIL_CHANGE',
-                description:
-                    'Engine oil change (15W-40 mineral oil, 20 litres) and oil filter replacement. Air filter cleaned.',
-                cost: 4_200,
-                odometerAtService: 44_500,
-                technicianName: 'Krishnamurthy Auto Works',
-                shopName: 'Tata Motors Authorized Workshop, Navi Mumbai',
-                serviceDate: daysAgo(30),
-                nextServiceDue: daysFromNow(150),
-            },
-        }),
-        // Truck 2 — tyre rotation (historical, pre-current trip)
-        prisma.maintenanceLog.create({
-            data: {
-                vehicleId: truck2.id,
-                serviceType: 'TYRE_ROTATION',
-                description:
-                    'Full tyre rotation and balancing (10 tyres). Front tyre tread depth check — all above minimum 3mm. Tyre pressure normalised to 120 PSI.',
-                cost: 3_500,
-                odometerAtService: 37_800,
-                technicianName: 'Sunil Tyre Works',
-                shopName: 'MRF Tyre Service, Thane',
-                serviceDate: daysAgo(20),
-                nextServiceDue: daysFromNow(90),
-            },
-        }),
-    ]);
-    console.log('  ✅  3 maintenance logs seeded.\n');
+            maintData.push({
+                vehicleId: vehicle.id,
+                serviceType,
+                description: `${serviceType.replace(/_/g, ' ').toLowerCase()} — routine scheduled service. All checks passed.`,
+                cost: baseCost,
+                odometerAtService: randInt(5000, 200_000),
+                technicianName: pick(TECHNICIANS),
+                shopName: pick(SHOPS),
+                serviceDate: cal(year, month, day),
+                nextServiceDue: rand() > 0.3
+                    ? cal(month + 6 > 12 ? year + 1 : year, ((month + 5) % 12) + 1, day > 28 ? 28 : day)
+                    : undefined,
+            });
+        }
+    }
 
-    // ──────────────────────────────────────────────────────────────
-    //  Step 8: Expenses — tolls, lodging, misc
-    // ──────────────────────────────────────────────────────────────
-    console.log('  → Seeding expenses...');
-    await Promise.all([
-        // Trip 1 — Mumbai-Pune Expressway toll (heavy vehicle)
-        prisma.expense.create({
-            data: {
-                vehicleId: truck1.id,
-                tripId: trip1.id,
-                amount: 780,
+    // In-shop vehicles get a recent maintenance log
+    for (const v of vehicles.filter(v => v.status === VehicleStatus.IN_SHOP)) {
+        maintData.push({
+            vehicleId: v.id,
+            serviceType: 'BRAKE_INSPECTION',
+            description: 'Full brake system inspection and pad replacement. ABS diagnostic pending. Expected 2 days downtime.',
+            cost: 15_000,
+            odometerAtService: Number(v.currentOdometer),
+            technicianName: pick(TECHNICIANS),
+            shopName: pick(SHOPS),
+            serviceDate: daysAgo(1),
+            nextServiceDue: daysFromNow(180),
+        });
+    }
+
+    await prisma.maintenanceLog.createMany({ data: maintData });
+    console.log(`  ✅  ${maintData.length} maintenance logs seeded.\n`);
+
+    // ────────────────────────────────────────────────────────────
+    //  8. Expenses — bulk createMany
+    // ────────────────────────────────────────────────────────────
+    console.log('  → Expenses...');
+    const expenseData: Prisma.ExpenseCreateManyInput[] = [];
+
+    for (const trip of completedTrips) {
+        const route = ROUTES[trip.routeIdx];
+
+        if (route.tolls > 0) {
+            expenseData.push({
+                vehicleId: trip.vehicleId,
+                tripId: trip.id,
+                amount: route.tolls + randInt(-50, 100),
                 category: ExpenseCategory.TOLL,
-                description: 'Mumbai-Pune Expressway toll — heavy commercial vehicle rate (entry + return)',
-                loggedByUserId: dispatcher.id,
-                dateLogged: daysAgo(9),
-            },
-        }),
-        // Trip 2 — Yamuna Expressway toll
-        prisma.expense.create({
-            data: {
-                vehicleId: van1.id,
-                tripId: trip2.id,
-                amount: 325,
-                category: ExpenseCategory.TOLL,
-                description: 'Yamuna Expressway toll (Delhi → Agra), LMV rate',
-                loggedByUserId: dispatcher.id,
-                dateLogged: daysAgo(7),
-            },
-        }),
-        // Trip 3 — Driver lodging en route (Solapur overnight)
-        prisma.expense.create({
-            data: {
-                vehicleId: truck2.id,
-                tripId: trip3.id,
-                amount: 1_800,
+                description: `Highway toll charges — ${route.origin} to ${route.destination}`,
+                loggedByUserId: dispatcherUser.id,
+                dateLogged: trip.completionTime ?? daysAgo(1),
+            });
+        }
+
+        if (route.distKm > 400 && rand() < 0.5) {
+            expenseData.push({
+                vehicleId: trip.vehicleId,
+                tripId: trip.id,
+                amount: randInt(1200, 3500),
                 category: ExpenseCategory.LODGING,
-                description: 'Driver accommodation — Hotel Sai Inn, Solapur (overnight halt en route Hyderabad)',
-                loggedByUserId: dispatcher.id,
-                dateLogged: hoursAgo(2),
-            },
-        }),
-        // Trip 3 — NH-65 toll charges
-        prisma.expense.create({
-            data: {
-                vehicleId: truck2.id,
-                tripId: trip3.id,
-                amount: 1_240,
-                category: ExpenseCategory.TOLL,
-                description: 'NH-65 toll plazas — Pune Bypass, Solapur, Bidar (heavy commercial)',
-                loggedByUserId: dispatcher.id,
-                dateLogged: hoursAgo(1),
-            },
-        }),
-        // Trip 6 — Airport cargo handling fee
-        prisma.expense.create({
-            data: {
-                vehicleId: plane1.id,
-                tripId: trip6.id,
-                amount: 8_500,
+                description: `Driver overnight stay — highway hotel en route ${route.destination}`,
+                loggedByUserId: dispatcherUser.id,
+                dateLogged: trip.completionTime ?? daysAgo(1),
+            });
+        }
+
+        if (trip.routeIdx >= 18 && trip.routeIdx <= 19) {
+            expenseData.push({
+                vehicleId: trip.vehicleId,
+                tripId: trip.id,
+                amount: randInt(6000, 12000),
                 category: ExpenseCategory.MISC,
-                description: 'CSIA cargo terminal handling fee + cold-chain temperature-controlled storage surcharge (Sun Pharma)',
-                loggedByUserId: financeAnalyst.id,
-                dateLogged: daysAgo(5),
-            },
-        }),
-        // Truck 1 — breakdown repair en route (minor, historical)
-        prisma.expense.create({
-            data: {
-                vehicleId: truck1.id,
-                amount: 2_200,
+                description: 'Airport cargo terminal handling + DGCA documentation fees',
+                loggedByUserId: financeUser.id,
+                dateLogged: trip.completionTime ?? daysAgo(1),
+            });
+        }
+
+        if (rand() < 0.05) {
+            expenseData.push({
+                vehicleId: trip.vehicleId,
+                tripId: trip.id,
+                amount: randInt(1500, 8000),
                 category: ExpenseCategory.MAINTENANCE_EN_ROUTE,
-                description: 'Emergency roadside repair — burst coolant hose, NH-48, Khopoli. Mobile mechanic call-out.',
-                loggedByUserId: dispatcher.id,
-                dateLogged: daysAgo(15),
-            },
-        }),
-    ]);
-    console.log('  ✅  6 expenses seeded.\n');
+                description: pick([
+                    'Emergency roadside repair — flat tyre replacement',
+                    'Coolant hose burst — mobile mechanic call-out',
+                    'Battery jump start — roadside assistance',
+                    'Windshield wiper replacement — heavy rain damage',
+                ]),
+                loggedByUserId: dispatcherUser.id,
+                dateLogged: trip.completionTime ?? daysAgo(1),
+            });
+        }
+    }
 
-    // ──────────────────────────────────────────────────────────────
-    //  Step 9: Vehicle Locations — GPS telemetry for Leaflet map
-    //  Uses real Indian city coordinates.
-    // ──────────────────────────────────────────────────────────────
-    console.log('  → Seeding vehicle locations...');
-    await Promise.all([
-        // Truck 1 — AVAILABLE, parked at Mumbai depot, Navi Mumbai
-        prisma.vehicleLocation.create({
-            data: {
-                vehicleId: truck1.id,
-                latitude: 19.0330,
-                longitude: 73.0297,
-                speed: 0,
-                heading: 90,
-                accuracy: 5,
-                recordedAt: hoursAgo(1),
-            },
-        }),
-        // Truck 2 — ON_TRIP, mid-route near Solapur (Mumbai→Hyderabad NH-65)
-        prisma.vehicleLocation.create({
-            data: {
-                vehicleId: truck2.id,
-                latitude: 17.6869,
-                longitude: 75.9064,
-                speed: 68.5,
-                heading: 145,  // South-East toward Hyderabad
-                accuracy: 8,
-                recordedAt: new Date(),
-            },
-        }),
-        // Van 1 — AVAILABLE, at Bangalore depot
-        prisma.vehicleLocation.create({
-            data: {
-                vehicleId: van1.id,
-                latitude: 12.9716,
-                longitude: 77.5946,
-                speed: 0,
-                heading: 0,
-                accuracy: 5,
-                recordedAt: hoursAgo(2),
-            },
-        }),
-        // Van 2 — IN_SHOP, at Force Motors service centre, Whitefield Bangalore
-        prisma.vehicleLocation.create({
-            data: {
-                vehicleId: van2.id,
-                latitude: 12.9698,
-                longitude: 77.7499,
-                speed: 0,
-                heading: 0,
-                accuracy: 10,
-                recordedAt: hoursAgo(24),
-            },
-        }),
-        // Bike 1 — AVAILABLE, Mumbai BKC (last delivery drop point)
-        prisma.vehicleLocation.create({
-            data: {
-                vehicleId: bike1.id,
-                latitude: 19.0663,
-                longitude: 72.8686,
-                speed: 0,
-                heading: 270,
-                accuracy: 10,
-                recordedAt: daysAgo(3),
-            },
-        }),
-        // Plane 1 — AVAILABLE, parked at IGI Delhi cargo apron
-        prisma.vehicleLocation.create({
-            data: {
-                vehicleId: plane1.id,
-                latitude: 28.5562,
-                longitude: 77.1000,
-                speed: 0,
-                heading: 180,
-                accuracy: 15,
-                recordedAt: daysAgo(5),
-            },
-        }),
-    ]);
-    console.log('  ✅  6 vehicle locations seeded.\n');
+    await prisma.expense.createMany({ data: expenseData });
+    console.log(`  ✅  ${expenseData.length} expenses seeded.\n`);
 
-    // ──────────────────────────────────────────────────────────────
-    //  Step 10: Historical Data — January 2026
-    //  Fills last month so analytics charts show 2 months of data.
-    // ──────────────────────────────────────────────────────────────
-    console.log('  → Seeding January 2026 historical data...');
+    // ────────────────────────────────────────────────────────────
+    //  9. Incident Reports (30) — bulk createMany
+    // ────────────────────────────────────────────────────────────
+    console.log('  → Incidents (30)...');
+    const incidentConfigs: {
+        type: IncidentType; title: string; desc: string; status: IncidentStatus;
+        injuries: boolean; damage: number; resolution?: string; daysAgoVal: number;
+    }[] = [
+        { type: IncidentType.ACCIDENT, title: 'Rear-end collision on NH-48', desc: 'Truck rear-ended by a car near Khopoli exit. Minor bumper damage. No cargo damage. Police report filed.', status: IncidentStatus.RESOLVED, injuries: false, damage: 45_000, resolution: 'Insurance claim filed and approved. Bumper replaced at authorized workshop.', daysAgoVal: 250 },
+        { type: IncidentType.ACCIDENT, title: 'Side-swipe on Pune-Bangalore highway', desc: 'Side mirror and door panel scraped against a divider during lane change. Driver was fatigued after 10-hour shift.', status: IncidentStatus.CLOSED, injuries: false, damage: 22_000, resolution: 'Door panel repainted. Driver counseled on rest requirements. Shift policy updated.', daysAgoVal: 200 },
+        { type: IncidentType.ACCIDENT, title: 'Minor collision at Solapur toll plaza', desc: 'Low-speed collision with another truck at toll queue. Front bumper cracked.', status: IncidentStatus.RESOLVED, injuries: false, damage: 18_000, resolution: 'Bumper replaced. Insurance settled.', daysAgoVal: 120 },
+        { type: IncidentType.ACCIDENT, title: 'Cargo shift during sharp turn', desc: 'Improperly secured cargo shifted causing vehicle to tilt dangerously on NH-44 curve. Emergency stop executed.', status: IncidentStatus.INVESTIGATING, injuries: false, damage: 85_000, daysAgoVal: 15 },
+        { type: IncidentType.BREAKDOWN, title: 'Engine overheating near Mathura', desc: 'Coolant system failure caused engine overheating. Vehicle stopped on highway shoulder. Tow truck called.', status: IncidentStatus.RESOLVED, injuries: false, damage: 35_000, resolution: 'Radiator and coolant hose replaced. Vehicle back in service.', daysAgoVal: 180 },
+        { type: IncidentType.BREAKDOWN, title: 'Transmission failure on NH-65', desc: 'Gearbox seized on Solapur highway. Complete transmission replacement required.', status: IncidentStatus.CLOSED, injuries: false, damage: 120_000, resolution: 'Full transmission rebuilt. Vehicle in service after 5 days downtime.', daysAgoVal: 150 },
+        { type: IncidentType.BREAKDOWN, title: 'Flat tyre blowout near Tumkur', desc: 'Front-right tyre blowout at 70 km/h on NH-48. Driver managed to safely pull over.', status: IncidentStatus.RESOLVED, injuries: false, damage: 8_000, resolution: 'Tyre replaced. All tyres inspected and rotated.', daysAgoVal: 90 },
+        { type: IncidentType.BREAKDOWN, title: 'Electrical failure — starter motor', desc: 'Vehicle failed to start at Delhi depot. Starter motor diagnosed as faulty.', status: IncidentStatus.CLOSED, injuries: false, damage: 12_000, resolution: 'Starter motor replaced. Battery health checked and cleared.', daysAgoVal: 60 },
+        { type: IncidentType.BREAKDOWN, title: 'Brake fluid leak on Jaipur highway', desc: 'Brake warning light triggered. Fluid leak from rear brake line. Emergency roadside stop.', status: IncidentStatus.OPEN, injuries: false, damage: 25_000, daysAgoVal: 5 },
+        { type: IncidentType.TRAFFIC_VIOLATION, title: 'Speeding violation — NH-44', desc: 'Driver clocked at 95 km/h in 60 km/h zone near Hyderabad outskirts. E-challan issued.', status: IncidentStatus.CLOSED, injuries: false, damage: 2_000, resolution: 'Fine paid. Driver issued formal warning. Safety score reduced.', daysAgoVal: 220 },
+        { type: IncidentType.TRAFFIC_VIOLATION, title: 'Red light violation — Chennai', desc: 'Van ran a red light at T. Nagar signal. Captured by traffic camera.', status: IncidentStatus.RESOLVED, injuries: false, damage: 1_500, resolution: 'Fine paid. Driver completed mandatory safety refresher course.', daysAgoVal: 160 },
+        { type: IncidentType.TRAFFIC_VIOLATION, title: 'Overloading fine at weigh bridge', desc: 'Vehicle weighed 2.5 tons over declared limit at Maharashtra state weigh bridge.', status: IncidentStatus.CLOSED, injuries: false, damage: 5_000, resolution: 'Fine paid. Loading procedures reviewed and updated. Weight verification mandatory before dispatch.', daysAgoVal: 100 },
+        { type: IncidentType.TRAFFIC_VIOLATION, title: 'Lane violation on expressway', desc: 'Heavy vehicle found in fast lane on Mumbai-Pune Expressway. E-challan generated.', status: IncidentStatus.RESOLVED, injuries: false, damage: 1_000, resolution: 'Fine settled. Driver briefed on expressway lane discipline.', daysAgoVal: 40 },
+        { type: IncidentType.THEFT, title: 'Fuel siphoning — Kolkata depot', desc: 'Approximately 40 liters of diesel siphoned from parked truck overnight at Kolkata depot. Security camera footage under review.', status: IncidentStatus.INVESTIGATING, injuries: false, damage: 4_000, daysAgoVal: 25 },
+        { type: IncidentType.THEFT, title: 'Attempted cargo theft on NH-19', desc: 'Driver reported suspicious vehicles following the truck. Pulled into police checkpost. Attempted theft averted.', status: IncidentStatus.CLOSED, injuries: false, damage: 0, resolution: 'Police FIR filed. GPS tracking alert system installed on vehicle. Route security review completed.', daysAgoVal: 130 },
+        { type: IncidentType.CARGO_DAMAGE, title: 'Water damage to electronics cargo', desc: 'Rain water seeped through tarpaulin tear during monsoon delivery. 15 cartons of electronics water-damaged.', status: IncidentStatus.RESOLVED, injuries: false, damage: 180_000, resolution: 'Insurance claim settled for ₹1,50,000. All tarpaulins replaced with heavy-duty waterproof variants. Pre-monsoon vehicle inspection protocol established.', daysAgoVal: 190 },
+        { type: IncidentType.CARGO_DAMAGE, title: 'Fragile goods broken in transit', desc: 'Ceramic tiles shipment — 8% breakage due to inadequate cushioning on Pune-Nashik route.', status: IncidentStatus.CLOSED, injuries: false, damage: 32_000, resolution: 'Client compensation paid. Packaging standards updated for fragile goods category.', daysAgoVal: 80 },
+        { type: IncidentType.CARGO_DAMAGE, title: 'Temperature excursion — pharma cargo', desc: 'Cold chain monitoring showed 2-hour temperature excursion above 8°C during Mumbai-Delhi air freight. 3 vaccine pallets affected.', status: IncidentStatus.INVESTIGATING, injuries: false, damage: 350_000, daysAgoVal: 10 },
+        { type: IncidentType.NEAR_MISS, title: 'Near collision with pedestrian — Andheri', desc: 'Bike courier narrowly avoided hitting a pedestrian who jaywalked near Andheri station. Emergency braking applied.', status: IncidentStatus.CLOSED, injuries: false, damage: 0, resolution: 'Route modified to avoid peak-hour pedestrian zones. Speed limit reduced for urban corridors.', daysAgoVal: 170 },
+        { type: IncidentType.NEAR_MISS, title: 'Near miss — truck swerve on NH-48', desc: 'Truck swerved to avoid a stalled vehicle on highway shoulder. No contact made but cargo shifted slightly.', status: IncidentStatus.RESOLVED, injuries: false, damage: 0, resolution: 'Cargo re-secured. Driver commended for quick reflexes. Incident logged for safety analysis.', daysAgoVal: 110 },
+        { type: IncidentType.NEAR_MISS, title: 'Tyre burst during overtaking', desc: 'Rear tyre burst while overtaking on NH-44. Driver maintained control. No collision.', status: IncidentStatus.CLOSED, injuries: false, damage: 6_000, resolution: 'Tyre age policy updated — max 3 years. All fleet tyres audited.', daysAgoVal: 70 },
+        { type: IncidentType.NEAR_MISS, title: 'Close call at railway crossing', desc: 'Van narrowly cleared unmanned railway crossing as barriers descended late. Within seconds of gate closure.', status: IncidentStatus.OPEN, injuries: false, damage: 0, daysAgoVal: 3 },
+        { type: IncidentType.OTHER, title: 'Road rage incident — Gurgaon', desc: 'Driver involved in verbal altercation with another motorist after minor road dispute. No physical contact.', status: IncidentStatus.CLOSED, injuries: false, damage: 0, resolution: 'Driver counseled. Conflict resolution training scheduled for all drivers.', daysAgoVal: 140 },
+        { type: IncidentType.OTHER, title: 'GPS tracker malfunction', desc: 'Vehicle GPS tracker went offline for 6 hours during Chennai-Coimbatore run. Location data gap in records.', status: IncidentStatus.RESOLVED, injuries: false, damage: 3_000, resolution: 'GPS unit replaced. Backup manual check-in protocol activated for future connectivity losses.', daysAgoVal: 50 },
+        { type: IncidentType.ACCIDENT, title: 'Pedestrian minor injury — Jaipur', desc: 'Van bumped a pedestrian at low speed in Jaipur market area. Minor bruising reported. Medical assistance provided.', status: IncidentStatus.RESOLVED, injuries: true, damage: 15_000, resolution: 'Medical expenses covered. Driver license suspended for 30 days. Market area driving protocol updated.', daysAgoVal: 240 },
+        { type: IncidentType.ACCIDENT, title: 'Multi-vehicle pileup — fog on NH-1', desc: 'Low visibility fog caused chain collision involving our truck and 3 other vehicles near Panipat. Driver sustained minor injuries.', status: IncidentStatus.CLOSED, injuries: true, damage: 280_000, resolution: 'Full vehicle repair completed. Driver recovered. Fog protocol — mandatory halt policy implemented for visibility below 50m.', daysAgoVal: 300 },
+        { type: IncidentType.BREAKDOWN, title: 'Alternator failure on Bangalore ring road', desc: 'Vehicle electrical system failed mid-trip. All dashboard lights dimmed. Roadside assistance called.', status: IncidentStatus.RESOLVED, injuries: false, damage: 14_000, resolution: 'Alternator and voltage regulator replaced. Electrical system audit completed.', daysAgoVal: 35 },
+        { type: IncidentType.CARGO_DAMAGE, title: 'Paint drums leaked during transit', desc: 'Two industrial paint drums developed leaks due to vibration damage. Van interior stained. Partial cargo loss.', status: IncidentStatus.OPEN, injuries: false, damage: 28_000, daysAgoVal: 7 },
+        { type: IncidentType.NEAR_MISS, title: 'Bike courier near-miss with bus', desc: 'Delivery bike nearly collided with a reversing bus at Koramangala depot. Driver alert prevented contact.', status: IncidentStatus.INVESTIGATING, injuries: false, damage: 0, daysAgoVal: 12 },
+        { type: IncidentType.TRAFFIC_VIOLATION, title: 'Parking violation — BKC Mumbai', desc: 'Delivery bike parked in no-parking zone during urgent delivery. Towed and fine issued.', status: IncidentStatus.RESOLVED, injuries: false, damage: 500, resolution: 'Fine paid. Designated parking spots identified for regular delivery zones.', daysAgoVal: 20 },
+    ];
 
-    // ── January trips (all COMPLETED) ───────────────────────────
-    const [janT1, janT2, janT3, janT4, janT5] = await Promise.all([
-        // Jan-1: Mumbai → Pune  (Truck1, Ramesh)
-        prisma.trip.create({
-            data: {
-                vehicleId: truck1.id,
-                driverId: ramesh.id,
-                origin: 'Mumbai, Maharashtra',
-                destination: 'Pune, Maharashtra',
-                distanceEstimated: 156,
-                distanceActual: 162,
-                cargoWeight: 14_000,
-                cargoDescription: 'Steel coils — JSW Steel Pune plant supply',
-                odometerStart: 44_900,
-                odometerEnd: 45_062,
-                revenue: 32_000,
-                clientName: 'JSW Steel Ltd.',
-                invoiceReference: 'INV-FF-2025-0006',
-                status: TripStatus.COMPLETED,
-                dispatchTime: cal(2026, 1, 5, 6),
-                completionTime: cal(2026, 1, 5, 15),
-                createdAt: cal(2026, 1, 4),
-            },
-        }),
-        // Jan-2: Delhi → Agra  (Van1, Anjali)
-        prisma.trip.create({
-            data: {
-                vehicleId: van1.id,
-                driverId: anjali.id,
-                origin: 'Delhi, NCT',
-                destination: 'Agra, Uttar Pradesh',
-                distanceEstimated: 200,
-                distanceActual: 204,
-                cargoWeight: 900,
-                cargoDescription: 'Consumer electronics — Amazon warehouse replenishment',
-                odometerStart: 12_100,
-                odometerEnd: 12_304,
-                revenue: 10_500,
-                clientName: 'Amazon India Pvt. Ltd.',
-                invoiceReference: 'INV-FF-2025-0007',
-                status: TripStatus.COMPLETED,
-                dispatchTime: cal(2026, 1, 8, 8),
-                completionTime: cal(2026, 1, 8, 17),
-                createdAt: cal(2026, 1, 7),
-            },
-        }),
-        // Jan-3: Bangalore → Chennai  (Van1, Ramesh)
-        prisma.trip.create({
-            data: {
-                vehicleId: van1.id,
-                driverId: ramesh.id,
-                origin: 'Bangalore, Karnataka',
-                destination: 'Chennai, Tamil Nadu',
-                distanceEstimated: 345,
-                distanceActual: 352,
-                cargoWeight: 750,
-                cargoDescription: 'IT peripherals — HP India distribution',
-                odometerStart: 12_304,
-                odometerEnd: 12_656,
-                revenue: 26_000,
-                clientName: 'HP India Pvt. Ltd.',
-                invoiceReference: 'INV-FF-2025-0008',
-                status: TripStatus.COMPLETED,
-                dispatchTime: cal(2026, 1, 12, 7),
-                completionTime: cal(2026, 1, 13, 9),
-                createdAt: cal(2026, 1, 11),
-            },
-        }),
-        // Jan-4: Mumbai → Delhi air freight  (Plane1, Anjali)
-        prisma.trip.create({
-            data: {
-                vehicleId: plane1.id,
-                driverId: anjali.id,
-                origin: 'CSIA Mumbai (BOM)',
-                destination: 'IGI Delhi (DEL)',
-                distanceEstimated: 1_415,
-                distanceActual: 1_410,
-                cargoWeight: 950,
-                cargoDescription: 'Pharma cold-chain — Cipla API batch',
-                odometerStart: 8_150,
-                odometerEnd: 8_890,
-                revenue: 195_000,
-                clientName: 'Cipla Ltd.',
-                invoiceReference: 'INV-FF-2025-0009',
-                status: TripStatus.COMPLETED,
-                dispatchTime: cal(2026, 1, 18, 5),
-                completionTime: cal(2026, 1, 18, 8),
-                createdAt: cal(2026, 1, 17),
-            },
-        }),
-        // Jan-5: Mumbai local  (Bike1, Mohan)
-        prisma.trip.create({
-            data: {
-                vehicleId: bike1.id,
-                driverId: mohan.id,
-                origin: 'Andheri East, Mumbai',
-                destination: 'Nariman Point, Mumbai',
-                distanceEstimated: 22,
-                distanceActual: 26,
-                cargoWeight: 15,
-                cargoDescription: 'Legal courier — signed contracts, banking documents',
-                odometerStart: 3_160,
-                odometerEnd: 3_186,
-                revenue: 3_200,
-                clientName: 'Cyril Amarchand Mangaldas',
-                invoiceReference: 'INV-FF-2025-0010',
-                status: TripStatus.COMPLETED,
-                dispatchTime: cal(2026, 1, 22, 10),
-                completionTime: cal(2026, 1, 22, 12),
-                createdAt: cal(2026, 1, 22),
-            },
-        }),
-    ]);
+    const incidentData: Prisma.IncidentReportCreateManyInput[] = incidentConfigs.map(inc => {
+        const vehicleIdx = randInt(0, vehicles.length - 1);
+        const driverIdx = randInt(0, drivers.length - 1);
+        const relatedTrip = completedTrips.find(t =>
+            t.vehicleId === vehicles[vehicleIdx].id && t.driverId === drivers[driverIdx].id
+        );
 
-    // ── January fuel logs ────────────────────────────────────────
-    await Promise.all([
-        prisma.fuelLog.create({
-            data: {
-                vehicleId: truck1.id,
-                tripId: janT1.id,
-                liters: 85,
-                costPerLiter: 94.10,
-                totalCost: 7_998.5,
-                odometerAtFill: 44_940,
-                fuelStation: 'HP Petrol Pump, Khopoli, NH-48',
-                loggedAt: cal(2026, 1, 5, 5),
-            },
-        }),
-        prisma.fuelLog.create({
-            data: {
-                vehicleId: van1.id,
-                tripId: janT2.id,
-                liters: 32,
-                costPerLiter: 96.50,
-                totalCost: 3_088,
-                odometerAtFill: 12_120,
-                fuelStation: 'Indian Oil, Mathura Road, NH-19',
-                loggedAt: cal(2026, 1, 8, 7),
-            },
-        }),
-        prisma.fuelLog.create({
-            data: {
-                vehicleId: van1.id,
-                tripId: janT3.id,
-                liters: 45,
-                costPerLiter: 96.50,
-                totalCost: 4_342.5,
-                odometerAtFill: 12_380,
-                fuelStation: 'BPCL, Hosur Road, Bangalore',
-                loggedAt: cal(2026, 1, 12, 6),
-            },
-        }),
-        prisma.fuelLog.create({
-            data: {
-                vehicleId: plane1.id,
-                tripId: janT4.id,
-                liters: 460,
-                costPerLiter: 87.90,
-                totalCost: 40_434,
-                odometerAtFill: 8_155,
-                fuelStation: 'CSIA Cargo Terminal, Mumbai',
-                loggedAt: cal(2026, 1, 18, 4),
-            },
-        }),
-        prisma.fuelLog.create({
-            data: {
-                vehicleId: bike1.id,
-                tripId: janT5.id,
-                liters: 6,
-                costPerLiter: 105.41,
-                totalCost: 632.46,
-                odometerAtFill: 3_161,
-                fuelStation: 'Shell, Andheri East, Mumbai',
-                loggedAt: cal(2026, 1, 22, 9),
-            },
-        }),
-    ]);
-
-    // ── January maintenance log ──────────────────────────────────
-    await prisma.maintenanceLog.create({
-        data: {
-            vehicleId: van2.id,
-            serviceType: 'OIL_CHANGE',
-            description: 'Engine oil change (10W-30, 12 litres) and oil filter. Coolant top-up.',
-            cost: 3_800,
-            odometerAtService: 58_200,
-            technicianName: 'Kishore Auto Works',
-            shopName: 'Force Motors ASC, Whitefield, Bangalore',
-            serviceDate: cal(2026, 1, 15),
-            nextServiceDue: cal(2026, 7, 15),
-        },
+        return {
+            vehicleId: vehicles[vehicleIdx].id,
+            driverId: drivers[driverIdx].id,
+            tripId: relatedTrip?.id,
+            incidentType: inc.type,
+            title: inc.title,
+            description: inc.desc,
+            incidentDate: daysAgo(inc.daysAgoVal),
+            location: ROUTES[randInt(0, ROUTES.length - 1)].origin,
+            injuriesReported: inc.injuries,
+            damageEstimate: inc.damage,
+            status: inc.status,
+            resolution: inc.resolution,
+            resolvedAt: inc.resolution ? daysAgo(inc.daysAgoVal - randInt(1, 10)) : undefined,
+            reportedByUserId: safetyUser.id,
+        };
     });
 
-    // ── January expenses ─────────────────────────────────────────
-    await Promise.all([
-        prisma.expense.create({
-            data: {
-                vehicleId: truck1.id,
-                tripId: janT1.id,
-                amount: 780,
-                category: ExpenseCategory.TOLL,
-                description: 'Mumbai-Pune Expressway toll (heavy commercial)',
-                loggedByUserId: dispatcher.id,
-                dateLogged: cal(2026, 1, 5, 16),
-            },
-        }),
-        prisma.expense.create({
-            data: {
-                vehicleId: van1.id,
-                tripId: janT3.id,
-                amount: 1_200,
-                category: ExpenseCategory.TOLL,
-                description: 'NH-44 toll plazas, Bangalore-Chennai corridor',
-                loggedByUserId: dispatcher.id,
-                dateLogged: cal(2026, 1, 13, 10),
-            },
-        }),
-        prisma.expense.create({
-            data: {
-                vehicleId: plane1.id,
-                tripId: janT4.id,
-                amount: 8_200,
-                category: ExpenseCategory.MISC,
-                description: 'CSIA cold-chain cargo handling + DGCA documentation fees',
-                loggedByUserId: financeAnalyst.id,
-                dateLogged: cal(2026, 1, 18, 9),
-            },
-        }),
-    ]);
+    await prisma.incidentReport.createMany({ data: incidentData });
+    console.log(`  ✅  ${incidentData.length} incidents seeded.\n`);
 
-    // Suppress unused variable warnings for janT2/janT5
-    void janT2; void janT5;
+    // ────────────────────────────────────────────────────────────
+    //  10. Vehicle Documents — bulk createMany
+    // ────────────────────────────────────────────────────────────
+    console.log('  → Vehicle documents...');
+    const docTypes = [
+        VehicleDocumentType.INSURANCE, VehicleDocumentType.REGISTRATION,
+        VehicleDocumentType.INSPECTION, VehicleDocumentType.PERMIT,
+    ];
+    const docData: Prisma.VehicleDocumentCreateManyInput[] = [];
 
-    console.log('  ✅  Jan 2026: 5 trips + 5 fuel logs + 1 maintenance + 3 expenses seeded.\n');
+    for (const vehicle of vehicles) {
+        for (const docType of docTypes) {
+            const expiryMonths = docType === VehicleDocumentType.INSURANCE ? randInt(6, 18)
+                : docType === VehicleDocumentType.REGISTRATION ? randInt(12, 36)
+                : randInt(3, 12);
 
-    // ──────────────────────────────────────────────────────────────
-    //  Step 11: Historical Data — December 2025
-    //  Provides realistic older history visible in trip lists,
-    //  driver performance aggregates, and fuel efficiency stats.
-    // ──────────────────────────────────────────────────────────────
-    console.log('  → Seeding December 2025 historical data...');
+            docData.push({
+                vehicleId: vehicle.id,
+                documentType: docType,
+                documentNumber: `${docType.slice(0, 3)}-${vehicle.licensePlate}-${randInt(1000, 9999)}`,
+                issuedBy: pick(['RTO Mumbai', 'RTO Delhi', 'RTO Bangalore', 'RTO Chennai', 'NHAI', 'IRDAI']),
+                issuedAt: daysAgo(randInt(60, 365)),
+                expiresAt: daysFromNow(expiryMonths * 30),
+                notes: `Valid ${docType.toLowerCase()} document for ${vehicle.licensePlate}`,
+                isActive: true,
+            });
+        }
+    }
 
-    // ── December 2025 trips (all COMPLETED) ──────────────────────
-    const [decT1, decT2, decT3, decT4, decT5, decT6, decT7, decT8] = await Promise.all([
-        // Dec-1: Mumbai → Pune  (Truck1, Ramesh)
-        prisma.trip.create({
-            data: {
-                vehicleId: truck1.id,
-                driverId: ramesh.id,
-                origin: 'Mumbai, Maharashtra',
-                destination: 'Pune, Maharashtra',
-                distanceEstimated: 156,
-                distanceActual: 160,
-                cargoWeight: 13_500,
-                cargoDescription: 'Auto components — Bosch India plant supply',
-                odometerStart: 44_580,
-                odometerEnd: 44_740,
-                revenue: 30_000,
-                clientName: 'Bosch India Ltd.',
-                invoiceReference: 'INV-FF-2025-DEC-001',
-                status: TripStatus.COMPLETED,
-                dispatchTime: cal(2025, 12, 3, 6),
-                completionTime: cal(2025, 12, 3, 14),
-                createdAt: cal(2025, 12, 2),
-            },
-        }),
-        // Dec-2: Delhi → Jaipur  (Van1, Anjali)
-        prisma.trip.create({
-            data: {
-                vehicleId: van1.id,
-                driverId: anjali.id,
-                origin: 'Delhi, NCT',
-                destination: 'Jaipur, Rajasthan',
-                distanceEstimated: 270,
-                distanceActual: 275,
-                cargoWeight: 650,
-                cargoDescription: 'Textile goods — Manyavar Jaipur showroom restocking',
-                odometerStart: 11_620,
-                odometerEnd: 11_895,
-                revenue: 18_500,
-                clientName: 'Manyavar (Vedant Fashions Ltd.)',
-                invoiceReference: 'INV-FF-2025-DEC-002',
-                status: TripStatus.COMPLETED,
-                dispatchTime: cal(2025, 12, 5, 7),
-                completionTime: cal(2025, 12, 5, 16),
-                createdAt: cal(2025, 12, 4),
-            },
-        }),
-        // Dec-3: Mumbai → Hyderabad  (Truck2, Suresh) — long haul
-        prisma.trip.create({
-            data: {
-                vehicleId: truck2.id,
-                driverId: suresh.id,
-                origin: 'Mumbai, Maharashtra',
-                destination: 'Hyderabad, Telangana',
-                distanceEstimated: 710,
-                distanceActual: 718,
-                cargoWeight: 19_000,
-                cargoDescription: 'FMCG goods — HUL distribution to Hyderabad warehouses',
-                odometerStart: 37_350,
-                odometerEnd: 38_068,
-                revenue: 72_000,
-                clientName: 'Hindustan Unilever Ltd.',
-                invoiceReference: 'INV-FF-2025-DEC-003',
-                status: TripStatus.COMPLETED,
-                dispatchTime: cal(2025, 12, 8, 5),
-                completionTime: cal(2025, 12, 9, 11),
-                createdAt: cal(2025, 12, 7),
-            },
-        }),
-        // Dec-4: Mumbai → Delhi air freight  (Plane1, Anjali)
-        prisma.trip.create({
-            data: {
-                vehicleId: plane1.id,
-                driverId: anjali.id,
-                origin: 'CSIA Mumbai (BOM)',
-                destination: 'IGI Delhi (DEL)',
-                distanceEstimated: 1_415,
-                distanceActual: 1_408,
-                cargoWeight: 880,
-                cargoDescription: 'Pharma cold-chain — Dr. Reddy\'s API express consignment',
-                odometerStart: 7_700,
-                odometerEnd: 8_408,
-                revenue: 185_000,
-                clientName: 'Dr. Reddy\'s Laboratories Ltd.',
-                invoiceReference: 'INV-FF-2025-DEC-004',
-                status: TripStatus.COMPLETED,
-                dispatchTime: cal(2025, 12, 12, 5),
-                completionTime: cal(2025, 12, 12, 8),
-                createdAt: cal(2025, 12, 11),
-            },
-        }),
-        // Dec-5: Pune → Nashik  (Van1, Ramesh)
-        prisma.trip.create({
-            data: {
-                vehicleId: van1.id,
-                driverId: ramesh.id,
-                origin: 'Pune, Maharashtra',
-                destination: 'Nashik, Maharashtra',
-                distanceEstimated: 215,
-                distanceActual: 218,
-                cargoWeight: 420,
-                cargoDescription: 'Wine cases — Sula Vineyards festive season bulk order',
-                odometerStart: 11_895,
-                odometerEnd: 12_113,
-                revenue: 12_000,
-                clientName: 'Sula Vineyards Pvt. Ltd.',
-                invoiceReference: 'INV-FF-2025-DEC-005',
-                status: TripStatus.COMPLETED,
-                dispatchTime: cal(2025, 12, 15, 9),
-                completionTime: cal(2025, 12, 15, 17),
-                createdAt: cal(2025, 12, 14),
-            },
-        }),
-        // Dec-6: Mumbai local  (Bike1, Mohan)
-        prisma.trip.create({
-            data: {
-                vehicleId: bike1.id,
-                driverId: mohan.id,
-                origin: 'Lower Parel, Mumbai',
-                destination: 'Fort, Mumbai',
-                distanceEstimated: 20,
-                distanceActual: 23,
-                cargoWeight: 12,
-                cargoDescription: 'Banking documents — HDFC corporate courier, urgent',
-                odometerStart: 3_100,
-                odometerEnd: 3_123,
-                revenue: 2_500,
-                clientName: 'HDFC Bank Ltd.',
-                invoiceReference: 'INV-FF-2025-DEC-006',
-                status: TripStatus.COMPLETED,
-                dispatchTime: cal(2025, 12, 20, 10),
-                completionTime: cal(2025, 12, 20, 12),
-                createdAt: cal(2025, 12, 20),
-            },
-        }),
-        // Dec-7: Bangalore → Mumbai  (Truck1, Suresh) — cross-country
-        prisma.trip.create({
-            data: {
-                vehicleId: truck1.id,
-                driverId: suresh.id,
-                origin: 'Bangalore, Karnataka',
-                destination: 'Mumbai, Maharashtra',
-                distanceEstimated: 985,
-                distanceActual: 992,
-                cargoWeight: 16_000,
-                cargoDescription: 'Electronics — Samsung India B2B bulk shipment',
-                odometerStart: 44_740,
-                odometerEnd: 45_732,
-                revenue: 65_000,
-                clientName: 'Samsung India Electronics Pvt. Ltd.',
-                invoiceReference: 'INV-FF-2025-DEC-007',
-                status: TripStatus.COMPLETED,
-                dispatchTime: cal(2025, 12, 22, 6),
-                completionTime: cal(2025, 12, 23, 18),
-                createdAt: cal(2025, 12, 21),
-            },
-        }),
-        // Dec-8: Delhi → Lucknow  (Van1, Anjali)
-        prisma.trip.create({
-            data: {
-                vehicleId: van1.id,
-                driverId: anjali.id,
-                origin: 'Delhi, NCT',
-                destination: 'Lucknow, Uttar Pradesh',
-                distanceEstimated: 550,
-                distanceActual: 558,
-                cargoWeight: 700,
-                cargoDescription: 'Medical supplies — Apollo Pharmacy UP warehouse stock',
-                odometerStart: 12_113,
-                odometerEnd: 12_671,
-                revenue: 28_000,
-                clientName: 'Apollo Pharmacy Ltd.',
-                invoiceReference: 'INV-FF-2025-DEC-008',
-                status: TripStatus.COMPLETED,
-                dispatchTime: cal(2025, 12, 28, 7),
-                completionTime: cal(2025, 12, 28, 22),
-                createdAt: cal(2025, 12, 27),
-            },
-        }),
-    ]);
+    await prisma.vehicleDocument.createMany({ data: docData });
+    console.log(`  ✅  ${docData.length} vehicle documents seeded.\n`);
 
-    // ── December 2025 fuel logs ──────────────────────────────────
-    await Promise.all([
-        prisma.fuelLog.create({
-            data: {
-                vehicleId: truck1.id,
-                tripId: decT1.id,
-                liters: 82,
-                costPerLiter: 93.80,
-                totalCost: 7_691.6,
-                odometerAtFill: 44_600,
-                fuelStation: 'Indian Oil, Khopoli, NH-48',
-                loggedAt: cal(2025, 12, 3, 5),
-            },
-        }),
-        prisma.fuelLog.create({
-            data: {
-                vehicleId: van1.id,
-                tripId: decT2.id,
-                liters: 38,
-                costPerLiter: 96.20,
-                totalCost: 3_655.6,
-                odometerAtFill: 11_640,
-                fuelStation: 'BPCL, NH-48, Gurgaon',
-                loggedAt: cal(2025, 12, 5, 6),
-            },
-        }),
-        prisma.fuelLog.create({
-            data: {
-                vehicleId: truck2.id,
-                tripId: decT3.id,
-                liters: 125,
-                costPerLiter: 93.80,
-                totalCost: 11_725,
-                odometerAtFill: 37_380,
-                fuelStation: 'HP Petrol Pump, Pune Bypass, NH-65',
-                loggedAt: cal(2025, 12, 8, 4),
-            },
-        }),
-        prisma.fuelLog.create({
-            data: {
-                vehicleId: plane1.id,
-                tripId: decT4.id,
-                liters: 452,
-                costPerLiter: 87.50,
-                totalCost: 39_550,
-                odometerAtFill: 7_705,
-                fuelStation: 'CSIA Cargo Terminal, Mumbai',
-                loggedAt: cal(2025, 12, 12, 4),
-            },
-        }),
-        prisma.fuelLog.create({
-            data: {
-                vehicleId: van1.id,
-                tripId: decT5.id,
-                liters: 28,
-                costPerLiter: 96.20,
-                totalCost: 2_693.6,
-                odometerAtFill: 11_910,
-                fuelStation: 'Shell, Pune-Nashik Highway',
-                loggedAt: cal(2025, 12, 15, 8),
-            },
-        }),
-        prisma.fuelLog.create({
-            data: {
-                vehicleId: truck1.id,
-                tripId: decT7.id,
-                liters: 110,
-                costPerLiter: 93.80,
-                totalCost: 10_318,
-                odometerAtFill: 44_850,
-                fuelStation: 'Indian Oil, Tumkur Road, Bangalore',
-                loggedAt: cal(2025, 12, 22, 5),
-            },
-        }),
-        prisma.fuelLog.create({
-            data: {
-                vehicleId: van1.id,
-                tripId: decT8.id,
-                liters: 55,
-                costPerLiter: 96.20,
-                totalCost: 5_291,
-                odometerAtFill: 12_130,
-                fuelStation: 'BPCL, NH-19, Aligarh',
-                loggedAt: cal(2025, 12, 28, 6),
-            },
-        }),
-    ]);
+    // ────────────────────────────────────────────────────────────
+    //  11. Vehicle Locations — bulk createMany
+    // ────────────────────────────────────────────────────────────
+    console.log('  → Vehicle locations...');
+    const cityCoords: [number, number][] = [
+        [19.0330, 73.0297],   // Navi Mumbai
+        [17.6869, 75.9064],   // Solapur (en-route)
+        [28.6139, 77.2090],   // Delhi
+        [12.9716, 77.5946],   // Bangalore
+        [13.0827, 80.2707],   // Chennai
+        [23.0225, 72.5714],   // Ahmedabad
+        [26.9124, 75.7873],   // Jaipur
+        [22.5726, 88.3639],   // Kolkata
+        [19.0760, 72.8777],   // Mumbai
+        [18.5204, 73.8567],   // Pune
+        [17.3850, 78.4867],   // Hyderabad
+        [23.2599, 77.4126],   // Bhopal
+        [25.4358, 81.8463],   // Prayagraj
+        [21.1702, 72.8311],   // Surat
+    ];
 
-    // ── December 2025 maintenance logs ──────────────────────────
-    await Promise.all([
-        prisma.maintenanceLog.create({
-            data: {
-                vehicleId: truck2.id,
-                serviceType: 'OIL_CHANGE',
-                description: 'Full engine oil change (15W-40, 22 litres) and all filters. Pre-winter servicing.',
-                cost: 5_500,
-                odometerAtService: 37_350,
-                technicianName: 'Tata Motors ASC Thane',
-                shopName: 'Tata Motors Authorized Workshop, Thane',
-                serviceDate: cal(2025, 12, 1),
-                nextServiceDue: cal(2026, 6, 1),
-            },
-        }),
-        prisma.maintenanceLog.create({
-            data: {
-                vehicleId: van1.id,
-                serviceType: 'TYRE_ROTATION',
-                description: 'Tyre rotation and balancing. Front tyres swapped. Tread depth verified.',
-                cost: 1_800,
-                odometerAtService: 11_620,
-                technicianName: 'Suresh Tyre Service',
-                shopName: 'Bridgestone Tyre Centre, Connaught Place, Delhi',
-                serviceDate: cal(2025, 12, 10),
-                nextServiceDue: cal(2026, 6, 10),
-            },
-        }),
-    ]);
+    const locationData: Prisma.VehicleLocationCreateManyInput[] = [];
+    for (const vehicle of vehicles) {
+        if (vehicle.status === VehicleStatus.RETIRED) continue;
 
-    // ── December 2025 expenses ──────────────────────────────────
-    await Promise.all([
-        prisma.expense.create({
-            data: {
-                vehicleId: truck2.id,
-                tripId: decT3.id,
-                amount: 1_380,
-                category: ExpenseCategory.TOLL,
-                description: 'NH-65 toll plazas — Solapur, Bidar, Zaheerabad (heavy commercial)',
-                loggedByUserId: dispatcher.id,
-                dateLogged: cal(2025, 12, 9, 12),
-            },
-        }),
-        prisma.expense.create({
-            data: {
-                vehicleId: truck2.id,
-                tripId: decT3.id,
-                amount: 1_800,
-                category: ExpenseCategory.LODGING,
-                description: 'Driver overnight stay — Hotel Sai Grand, Solapur',
-                loggedByUserId: dispatcher.id,
-                dateLogged: cal(2025, 12, 8, 22),
-            },
-        }),
-        prisma.expense.create({
-            data: {
-                vehicleId: plane1.id,
-                tripId: decT4.id,
-                amount: 8_000,
-                category: ExpenseCategory.MISC,
-                description: 'CSIA cold-chain handling fee + DGCA pharma clearance charges',
-                loggedByUserId: financeAnalyst.id,
-                dateLogged: cal(2025, 12, 12, 9),
-            },
-        }),
-        prisma.expense.create({
-            data: {
-                vehicleId: truck1.id,
-                tripId: decT7.id,
-                amount: 1_960,
-                category: ExpenseCategory.TOLL,
-                description: 'NH-48 toll — Tumkur, Pune Expressway (heavy vehicle rate)',
-                loggedByUserId: dispatcher.id,
-                dateLogged: cal(2025, 12, 23, 8),
-            },
-        }),
-        prisma.expense.create({
-            data: {
-                vehicleId: truck1.id,
-                tripId: decT7.id,
-                amount: 1_800,
-                category: ExpenseCategory.LODGING,
-                description: 'Driver lodging — Hotel Highway Inn, Kolhapur (overnight)',
-                loggedByUserId: dispatcher.id,
-                dateLogged: cal(2025, 12, 22, 21),
-            },
-        }),
-        prisma.expense.create({
-            data: {
-                vehicleId: van1.id,
-                tripId: decT8.id,
-                amount: 920,
-                category: ExpenseCategory.TOLL,
-                description: 'Yamuna Expressway + Agra-Lucknow Expressway tolls',
-                loggedByUserId: dispatcher.id,
-                dateLogged: cal(2025, 12, 28, 23),
-            },
-        }),
-    ]);
+        const [lat, lng] = pick(cityCoords);
+        const isMoving = vehicle.status === VehicleStatus.ON_TRIP;
 
-    // Suppress unused variable warnings
-    void decT6;
+        const numPings = isMoving ? randInt(5, 12) : 1;
+        for (let p = 0; p < numPings; p++) {
+            locationData.push({
+                vehicleId: vehicle.id,
+                latitude: lat + (isMoving ? randFloat(-0.5, 0.5, 4) : randFloat(-0.01, 0.01, 4)),
+                longitude: lng + (isMoving ? randFloat(-0.5, 0.5, 4) : randFloat(-0.01, 0.01, 4)),
+                speed: isMoving ? randFloat(40, 85) : 0,
+                heading: isMoving ? randFloat(0, 360) : 0,
+                accuracy: randFloat(3, 15),
+                recordedAt: isMoving
+                    ? new Date(Date.now() - p * randInt(5, 15) * 60_000)
+                    : daysAgo(randInt(0, 2)),
+            });
+        }
+    }
 
-    console.log('  ✅  Dec 2025: 8 trips + 7 fuel logs + 2 maintenance + 6 expenses seeded.\n');
+    await prisma.vehicleLocation.createMany({ data: locationData });
+    console.log(`  ✅  ${locationData.length} GPS locations seeded.\n`);
 
-    // ──────────────────────────────────────────────────────────────
+    // ────────────────────────────────────────────────────────────
+    //  12. Trip Waypoints — bulk createMany
+    // ────────────────────────────────────────────────────────────
+    console.log('  → Trip waypoints...');
+    const dispatchedTrips = allTrips.filter(t => t.status === TripStatus.DISPATCHED);
+    const waypointData: Prisma.TripWaypointCreateManyInput[] = [];
+
+    for (const trip of dispatchedTrips) {
+        const route = ROUTES[trip.routeIdx];
+        const waypointNames = [
+            `${route.origin} — Loading Bay`,
+            `Highway rest stop — ${randInt(50, 200)} km marker`,
+            `Fuel station — ${pick(FUEL_STATIONS)}`,
+            `${route.destination} — Unloading Bay`,
+        ];
+
+        for (let seq = 1; seq <= waypointNames.length; seq++) {
+            const [lat, lng] = pick(cityCoords);
+            waypointData.push({
+                tripId: trip.id,
+                sequence: seq,
+                location: waypointNames[seq - 1],
+                latitude: lat + randFloat(-0.3, 0.3, 4),
+                longitude: lng + randFloat(-0.3, 0.3, 4),
+                scheduledAt: new Date(Date.now() + seq * randInt(1, 3) * 3_600_000),
+                arrivedAt: seq <= 2 ? new Date(Date.now() - (4 - seq) * 3_600_000) : undefined,
+                departedAt: seq === 1 ? new Date(Date.now() - 3 * 3_600_000) : undefined,
+            });
+        }
+    }
+
+    await prisma.tripWaypoint.createMany({ data: waypointData });
+    console.log(`  ✅  ${waypointData.length} waypoints seeded.\n`);
+
+    // ────────────────────────────────────────────────────────────
+    //  13. Audit Logs — bulk createMany
+    // ────────────────────────────────────────────────────────────
+    console.log('  → Audit logs...');
+    const auditData: Prisma.AuditLogCreateManyInput[] = [
+        { entity: 'Trip', action: AuditAction.CREATE, daysAgoVal: 1 },
+        { entity: 'Trip', action: AuditAction.UPDATE, daysAgoVal: 1 },
+        { entity: 'Vehicle', action: AuditAction.UPDATE, daysAgoVal: 2 },
+        { entity: 'Driver', action: AuditAction.UPDATE, daysAgoVal: 3 },
+        { entity: 'Trip', action: AuditAction.CREATE, daysAgoVal: 5 },
+        { entity: 'Vehicle', action: AuditAction.CREATE, daysAgoVal: 10 },
+        { entity: 'Driver', action: AuditAction.CREATE, daysAgoVal: 10 },
+        { entity: 'Trip', action: AuditAction.UPDATE, daysAgoVal: 7 },
+    ].map(a => ({
+        userId: pick(users).id,
+        entity: a.entity,
+        entityId: pick(vehicles).id,
+        action: a.action,
+        newValues: { status: 'COMPLETED' },
+        ipAddress: '192.168.1.' + randInt(2, 254),
+        userAgent: 'Mozilla/5.0 FleetFlow Dashboard',
+        timestamp: daysAgo(a.daysAgoVal),
+    }));
+
+    await prisma.auditLog.createMany({ data: auditData });
+    console.log(`  ✅  ${auditData.length} audit logs seeded.\n`);
+
+    // ────────────────────────────────────────────────────────────
     //  Summary
-    // ──────────────────────────────────────────────────────────────
-    console.log('🎉  FleetFlow seed completed successfully!\n');
+    // ────────────────────────────────────────────────────────────
+    console.log('🎉  FleetFlow comprehensive seed completed!\n');
 
     console.log('📋  Login credentials (all roles — same password):');
-    console.log('    Password: FleetFlow@2025\n');
+    console.log('    Password: FleetFlow@2026\n');
     console.log('    ┌──────────────────────────────────────┬─────────────────────┬──────────────────┐');
     console.log('    │ Email                                │ Name                │ Role             │');
     console.log('    ├──────────────────────────────────────┼─────────────────────┼──────────────────┤');
-    console.log('    │ manager@fleetflow.io                 │ Priya Sharma        │ MANAGER ★        │');
+    console.log('    │ manager@fleetflow.io                 │ Priya Sharma        │ MANAGER          │');
     console.log('    │ dispatcher@fleetflow.io              │ Rahul Verma         │ DISPATCHER       │');
     console.log('    │ safety@fleetflow.io                  │ Sneha Patel         │ SAFETY_OFFICER   │');
     console.log('    │ finance@fleetflow.io                 │ Vikram Nair         │ FINANCE_ANALYST  │');
     console.log('    └──────────────────────────────────────┴─────────────────────┴──────────────────┘');
-    console.log('    ★ MANAGER is highest authority in single-org mode\n');
+    console.log('    + 4 more users (manager2, dispatcher2, safety2, finance2)\n');
 
-    console.log('🚛  Fleet status snapshot:');
-    console.log('    Vehicles  →  2 trucks  |  2 vans  |  1 bike  |  1 plane');
-    console.log('    Statuses  →  AVAILABLE: truck1, van1, bike1, plane1');
-    console.log('               →  ON_TRIP: truck2 (Mumbai→Hyderabad, Suresh Yadav driving)');
-    console.log('               →  IN_SHOP: van2 (brake inspection, Whitefield)\n');
-
-    console.log('📊  Drivers:');
-    console.log('    Ramesh Kumar   →  ON_DUTY    (safety: 98/100)');
-    console.log('    Suresh Yadav   →  ON_TRIP    (safety: 85/100)');
-    console.log('    Anjali Singh   →  ON_DUTY    (safety: 100/100 ⭐)');
-    console.log('    Mohan Das      →  OFF_DUTY   (safety: 92/100 | ⚠️ License expires in 20 days)');
-    console.log('    Deepak Gupta   →  SUSPENDED  (safety: 45/100 ⛔)\n');
-
-    console.log('🗺️   Active trip:');
-    console.log('    Trip 3 → Mumbai → Hyderabad | ITC Ltd | ₹75,000 | Tata Prima 5530 | Suresh Yadav\n');
+    console.log('📊  Data Summary:');
+    console.log(`    Vehicles:     ${vehicles.length} (12 trucks, 7 vans, 4 bikes, 2 planes)`);
+    console.log(`    Drivers:      ${drivers.length} (4 expiring licenses, 2 suspended)`);
+    console.log(`    Trips:        ${allTrips.length} (${completedTrips.length} completed, 5 today)`);
+    console.log(`    Fuel logs:    ${fuelLogData.length}`);
+    console.log(`    Maintenance:  ${maintData.length}`);
+    console.log(`    Expenses:     ${expenseData.length}`);
+    console.log(`    Incidents:    ${incidentData.length}`);
+    console.log(`    Documents:    ${docData.length}`);
+    console.log(`    GPS points:   ${locationData.length}`);
+    console.log(`    Waypoints:    ${waypointData.length}`);
+    console.log(`    Audit logs:   ${auditData.length}\n`);
 }
 
 main()

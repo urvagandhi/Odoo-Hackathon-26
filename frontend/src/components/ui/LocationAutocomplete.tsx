@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
-import { Loader2, MapPin } from "lucide-react";
+import { MapPin } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { useTheme } from "../../context/ThemeContext";
 
 interface LocationAutocompleteProps {
@@ -18,6 +19,7 @@ interface NominatimResult {
 
 export function LocationAutocomplete({ value, onChange, placeholder, className }: LocationAutocompleteProps) {
   const { isDark } = useTheme();
+  const { t } = useTranslation();
   
   const [inputValue, setInputValue] = useState(value);
   const [results, setResults] = useState<NominatimResult[]>([]);
@@ -107,7 +109,7 @@ export function LocationAutocomplete({ value, onChange, placeholder, className }
         />
         {loading && (
           <div className="absolute right-3 top-1/2 -translate-y-1/2">
-            <Loader2 className={`w-4 h-4 animate-spin ${isDark ? "text-neutral-400" : "text-slate-400"}`} />
+            <span className={`text-xs ${isDark ? "text-neutral-400" : "text-slate-400"}`}>{t("common.loading")}</span>
           </div>
         )}
       </div>

@@ -15,14 +15,20 @@ export const createVehicleSchema = z.object({
   color: z.string().max(30).optional().or(z.literal("")),
   vin: z.string().max(17, "VIN must be 17 characters max").optional().or(z.literal("")),
   vehicleTypeId: z.string().min(1, "Vehicle type is required"),
-  capacityWeight: z.coerce.number().positive("Capacity must be > 0"),
+  capacityWeight: z.preprocess(
+    (val) => (val === "" || val === null || val === undefined ? undefined : Number(val)),
+    z.number({ message: "Capacity is required" }).positive("Capacity must be greater than 0")
+  ),
   capacityVolume: z.coerce.number().nonnegative().optional().or(z.literal("")),
   currentOdometer: z.coerce.number().nonnegative("Odometer must be ≥ 0").optional().or(z.literal("")),
   region: z.string().max(100, "Region too long").optional().or(z.literal("")),
   acquisitionCost: z.coerce.number().nonnegative("Cost must be ≥ 0").optional().or(z.literal("")),
 });
 
-export const updateVehicleSchema = createVehicleSchema.partial().omit({ currentOdometer: true });
+export const updateVehicleSchema = createVehicleSchema
+  .partial()
+  .omit({ currentOdometer: true })
+  .required({ capacityWeight: true });
 
 export type CreateVehicleFormData = z.infer<typeof createVehicleSchema>;
 export type UpdateVehicleFormData = z.infer<typeof updateVehicleSchema>;

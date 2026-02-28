@@ -32,6 +32,7 @@ import {
 import { useTheme } from "../context/ThemeContext";
 import { useAuth } from "../hooks/useAuth";
 import { dispatchApi } from "../api/client";
+import { Select } from "../components/ui/Select";
 import { useToast } from "../hooks/useToast";
 import { StatusPill } from "../components/ui/StatusPill";
 import { DataTable } from "../components/ui/DataTable";
@@ -435,8 +436,8 @@ export default function TripDispatcher() {
           </div>
 
           {/* Status filter */}
-          <select
-            className={`px-3 py-2 rounded-lg border text-sm ${
+          <Select
+            className={`px-3 py-2 rounded-lg border text-sm transition-colors focus:outline-none focus:ring-2 focus:ring-violet-500/30 ${
               isDark
                 ? "bg-neutral-700 border-neutral-600 text-white"
                 : "bg-white border-slate-200 text-slate-900"
@@ -452,7 +453,7 @@ export default function TripDispatcher() {
                 {opt.label}
               </option>
             ))}
-          </select>
+          </Select>
         </div>
 
         {/* ── Table ── */}

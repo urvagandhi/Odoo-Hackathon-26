@@ -22,39 +22,31 @@ export class AnalyticsService {
         const vehicleBaseWhere = { isDeleted: false, ...(region ? { region } : {}) };
 
         const [
-            totalVehicles,
-            availableVehicles,
-            onTripVehicles,
-            inShopVehicles,
-            retiredVehicles,
-            totalDrivers,
-            onDutyDrivers,
-            suspendedDrivers,
-            pendingTrips,
-            activeTrips,
-            completedTripsToday,
+            vehicleGroups,
+            driverGroups,
+            tripGroups,
             expiringLicenses,
+            completedTripsToday,
         ] = await Promise.all([
-            // Fleet counts
-            prisma.vehicle.count({ where: vehicleBaseWhere }),
-            prisma.vehicle.count({ where: { ...vehicleBaseWhere, status: VehicleStatus.AVAILABLE } }),
-            prisma.vehicle.count({ where: { ...vehicleBaseWhere, status: VehicleStatus.ON_TRIP } }),
-            prisma.vehicle.count({ where: { ...vehicleBaseWhere, status: VehicleStatus.IN_SHOP } }),
-            prisma.vehicle.count({ where: { ...vehicleBaseWhere, status: VehicleStatus.RETIRED } }),
-            // Driver counts
-            prisma.driver.count({ where: { isDeleted: false } }),
-            prisma.driver.count({ where: { isDeleted: false, status: DriverStatus.ON_DUTY } }),
-            prisma.driver.count({ where: { isDeleted: false, status: DriverStatus.SUSPENDED } }),
-            // Trip counts
-            prisma.trip.count({ where: { status: TripStatus.DRAFT } }),
-            prisma.trip.count({ where: { status: TripStatus.DISPATCHED } }),
-            prisma.trip.count({
-                where: {
-                    status: TripStatus.COMPLETED,
-                    completionTime: { gte: new Date(now.setHours(0, 0, 0, 0)) },
-                },
+            // Aggregate Vehicle status counts
+            prisma.vehicle.groupBy({
+                by: ['status'],
+                where: vehicleBaseWhere,
+                _count: { _all: true },
             }),
-            // Compliance
+            // Aggregate Driver status counts
+            prisma.driver.groupBy({
+                by: ['status'],
+                where: { isDeleted: false },
+                _count: { _all: true },
+            }),
+            // Aggregate Trip counts for DRAFT and DISPATCHED
+            prisma.trip.groupBy({
+                by: ['status'],
+                where: { status: { in: [TripStatus.DRAFT, TripStatus.DISPATCHED] } },
+                _count: { _all: true },
+            }),
+            // Compliance: Drivers with expiring licenses in next 30 days
             prisma.driver.count({
                 where: {
                     isDeleted: false,
@@ -62,7 +54,31 @@ export class AnalyticsService {
                     licenseExpiryDate: { lte: thirtyDaysAhead },
                 },
             }),
+            // Productivity: Trips completed so far today
+            prisma.trip.count({
+                where: {
+                    status: TripStatus.COMPLETED,
+                    completionTime: { gte: new Date(now.setHours(0, 0, 0, 0)) },
+                },
+            }),
         ]);
+
+        // Helper to extract count from grouped results
+        const getCount = (groups: any[], status: string) =>
+            groups.find((g) => g.status === status)?._count?._all ?? 0;
+
+        const availableVehicles = getCount(vehicleGroups, VehicleStatus.AVAILABLE);
+        const onTripVehicles = getCount(vehicleGroups, VehicleStatus.ON_TRIP);
+        const inShopVehicles = getCount(vehicleGroups, VehicleStatus.IN_SHOP);
+        const retiredVehicles = getCount(vehicleGroups, VehicleStatus.RETIRED);
+        const totalVehicles = vehicleGroups.reduce((acc, g) => acc + (g._count?._all ?? 0), 0);
+
+        const onDutyDrivers = getCount(driverGroups, DriverStatus.ON_DUTY);
+        const suspendedDrivers = getCount(driverGroups, DriverStatus.SUSPENDED);
+        const totalDrivers = driverGroups.reduce((acc, g) => acc + (g._count?._all ?? 0), 0);
+
+        const pendingTrips = getCount(tripGroups, TripStatus.DRAFT);
+        const activeTrips = getCount(tripGroups, TripStatus.DISPATCHED);
 
         const activeFleet = availableVehicles + onTripVehicles;
         const utilizationRate = activeFleet > 0

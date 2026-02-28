@@ -1,12 +1,12 @@
-/**
- * FuelExpenses — Fuel log & miscellaneous expense tracking
- */
-import { useState, useEffect, useCallback } from "react";
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { motion, AnimatePresence } from "framer-motion";
 import { Plus, X, Fuel, DollarSign, AlertTriangle, Filter } from "lucide-react";
-import { fleetApi, financeApi, type Vehicle, type FuelLog, type Expense } from "../api/client";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { Select } from "../components/ui/Select";
+import { fleetApi, financeApi } from "../api/client";
 import { useTheme } from "../context/ThemeContext";
+import { TableSkeleton } from "../components/ui/TableSkeleton";
 
 const FIELD = "block w-full rounded-xl border px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-colors";
 
@@ -15,12 +15,9 @@ const EXPENSE_CATEGORIES = ["TOLL", "LODGING", "MAINTENANCE_EN_ROUTE", "MISC"];
 export default function FuelExpenses() {
     const { t } = useTranslation();
     const { isDark } = useTheme();
+    const queryClient = useQueryClient();
     const [tab, setTab] = useState<"fuel" | "expenses">("fuel");
-    const [vehicles, setVehicles] = useState<Vehicle[]>([]);
-    const [fuelLogs, setFuelLogs] = useState<FuelLog[]>([]);
-    const [expenses, setExpenses] = useState<Expense[]>([]);
     const [showModal, setShowModal] = useState(false);
-    const [saving, setSaving] = useState(false);
     const [error, setError] = useState("");
     const [vehicleFilter, setVehicleFilter] = useState("");
 
@@ -31,41 +28,61 @@ export default function FuelExpenses() {
         vehicleId: "", amount: 0, category: "TOLL" as "TOLL" | "LODGING" | "MAINTENANCE_EN_ROUTE" | "MISC", description: "",
     });
 
-    const load = useCallback(async () => {
-        try {
-            const [v, f, e] = await Promise.all([
-                fleetApi.listVehicles({ limit: 100 }),
-                financeApi.listFuelLogs({ vehicleId: vehicleFilter || undefined }),
-                financeApi.listExpenses({ vehicleId: vehicleFilter || undefined }),
-            ]);
-            setVehicles(v.data ?? []);
-            setFuelLogs(Array.isArray(f) ? f : []);
-            setExpenses(Array.isArray(e) ? e : []);
-        } catch { /* ignore */ }
-    }, [vehicleFilter]);
+    // Queries
+    const { data: vehicles = [] } = useQuery({
+        queryKey: ["vehicles"],
+        queryFn: () => fleetApi.listVehicles({ limit: 100 }).then(res => res.data ?? []),
+    });
 
-    useEffect(() => { load(); }, [load]);
+    const { data: fuelLogs = [], isLoading: loadingFuel } = useQuery({
+        queryKey: ["fuel-logs", vehicleFilter],
+        queryFn: () => financeApi.listFuelLogs({ vehicleId: vehicleFilter || undefined }).then(res => Array.isArray(res) ? res : []),
+    });
+
+    const { data: expenses = [], isLoading: loadingExpenses } = useQuery({
+        queryKey: ["expenses", vehicleFilter],
+        queryFn: () => financeApi.listExpenses({ vehicleId: vehicleFilter || undefined }).then(res => Array.isArray(res) ? res : []),
+    });
+
+    const loading = loadingFuel || loadingExpenses;
+
+    // Mutations
+    const fuelMutation = useMutation({
+        mutationFn: (data: any) => financeApi.createFuelLog({ ...data, loggedAt: new Date(data.loggedAt).toISOString() }),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["fuel-logs"] });
+            setShowModal(false);
+            setFuelForm({
+                vehicleId: "", liters: 0, costPerLiter: 0, odometerAtFill: 0, fuelStation: "", loggedAt: new Date().toISOString().slice(0, 10),
+            });
+        },
+        onError: (err: any) => {
+            setError(err?.response?.data?.message ?? "Failed to save");
+        }
+    });
+
+    const expenseMutation = useMutation({
+        mutationFn: (data: any) => financeApi.createExpense(data),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["expenses"] });
+            setShowModal(false);
+            setExpenseForm({
+                vehicleId: "", amount: 0, category: "TOLL", description: "",
+            });
+        },
+        onError: (err: any) => {
+            setError(err?.response?.data?.message ?? "Failed to save");
+        }
+    });
 
     const handleFuelSave = async (e: React.FormEvent) => {
-        e.preventDefault(); setSaving(true); setError("");
-        try {
-            await financeApi.createFuelLog({ ...fuelForm, loggedAt: new Date(fuelForm.loggedAt).toISOString() });
-            setShowModal(false);
-            load();
-        } catch (err: unknown) {
-            setError((err as { response?: { data?: { message?: string } } })?.response?.data?.message ?? "Failed to save");
-        } finally { setSaving(false); }
+        e.preventDefault(); setError("");
+        fuelMutation.mutate(fuelForm);
     };
 
     const handleExpenseSave = async (e: React.FormEvent) => {
-        e.preventDefault(); setSaving(true); setError("");
-        try {
-            await financeApi.createExpense(expenseForm);
-            setShowModal(false);
-            load();
-        } catch (err: unknown) {
-            setError((err as { response?: { data?: { message?: string } } })?.response?.data?.message ?? "Failed to save");
-        } finally { setSaving(false); }
+        e.preventDefault(); setError("");
+        expenseMutation.mutate(expenseForm);
     };
 
     const totalFuel = fuelLogs.reduce((s, l) => s + Number(l.totalCost), 0);
@@ -73,6 +90,8 @@ export default function FuelExpenses() {
 
     const inputClass = `${FIELD} ${isDark ? "bg-neutral-700 border-neutral-600 text-white placeholder-neutral-400" : "bg-white border-neutral-200 text-neutral-900 placeholder-neutral-400"}`;
     const cardClass = `rounded-2xl border p-5 ${isDark ? "bg-neutral-800 border-neutral-700" : "bg-white border-neutral-200 shadow-sm"}`;
+
+    const saving = fuelMutation.isPending || expenseMutation.isPending;
 
     return (
         <div className="max-w-[1200px] mx-auto space-y-5">
@@ -122,17 +141,19 @@ export default function FuelExpenses() {
                 </div>
                 <div className="flex items-center gap-2">
                     <Filter className="w-4 h-4 text-neutral-400" />
-                    <select value={vehicleFilter} onChange={e => setVehicleFilter(e.target.value)} className={`${inputClass} max-w-[220px]`}>
+                    <Select value={vehicleFilter} onChange={e => setVehicleFilter(e.target.value)} className={`${inputClass} max-w-[220px]`}>
                         <option value="">{t("fuelExpenses.allVehicles")}</option>
                         {vehicles.map(v => <option key={v.id} value={v.id}>{v.licensePlate} — {v.make}</option>)}
-                    </select>
+                    </Select>
                 </div>
             </div>
 
             {/* Table */}
             <div className={`rounded-2xl border overflow-hidden ${isDark ? "bg-neutral-800 border-neutral-700" : "bg-white border-neutral-200 shadow-sm"}`}>
                 {tab === "fuel" ? (
-                    fuelLogs.length === 0 ? (
+                    loading ? (
+                        <TableSkeleton />
+                    ) : fuelLogs.length === 0 ? (
                         <div className="flex flex-col items-center justify-center h-32 text-neutral-400"><Fuel className="w-8 h-8 mb-2 opacity-30" /><p>{t("fuelExpenses.noFuelLogs")}</p></div>
                     ) : (
                         <table className="w-full text-sm">
@@ -159,7 +180,9 @@ export default function FuelExpenses() {
                         </table>
                     )
                 ) : (
-                    expenses.length === 0 ? (
+                    loading ? (
+                        <TableSkeleton />
+                    ) : expenses.length === 0 ? (
                         <div className="flex flex-col items-center justify-center h-32 text-neutral-400"><DollarSign className="w-8 h-8 mb-2 opacity-30" /><p>{t("fuelExpenses.noExpenses")}</p></div>
                     ) : (
                         <table className="w-full text-sm">
@@ -212,10 +235,10 @@ export default function FuelExpenses() {
                                 <form onSubmit={handleFuelSave} className="space-y-4">
                                     <div>
                                         <label className={`block text-xs font-semibold mb-1.5 ${isDark ? "text-neutral-300" : "text-neutral-700"}`}>{t("fuelExpenses.form.vehicle")}</label>
-                                        <select required value={fuelForm.vehicleId} onChange={e => setFuelForm(f => ({ ...f, vehicleId: e.target.value }))} className={inputClass}>
+                                        <Select required value={fuelForm.vehicleId} onChange={e => setFuelForm(f => ({ ...f, vehicleId: e.target.value }))} className={inputClass}>
                                             <option value="">{t("fuelExpenses.form.selectVehicle")}</option>
                                             {vehicles.map(v => <option key={v.id} value={v.id}>{v.licensePlate} — {v.make}</option>)}
-                                        </select>
+                                        </Select>
                                     </div>
                                     <div className="grid grid-cols-3 gap-3">
                                         <div>
@@ -256,16 +279,16 @@ export default function FuelExpenses() {
                                     <div className="grid grid-cols-2 gap-4">
                                         <div>
                                             <label className={`block text-xs font-semibold mb-1.5 ${isDark ? "text-neutral-300" : "text-neutral-700"}`}>{t("fuelExpenses.form.vehicle")}</label>
-                                            <select required value={expenseForm.vehicleId} onChange={e => setExpenseForm(f => ({ ...f, vehicleId: e.target.value }))} className={inputClass}>
+                                            <Select required value={expenseForm.vehicleId} onChange={e => setExpenseForm(f => ({ ...f, vehicleId: e.target.value }))} className={inputClass}>
                                                 <option value="">{t("fuelExpenses.form.selectVehicle")}</option>
                                                 {vehicles.map(v => <option key={v.id} value={v.id}>{v.licensePlate}</option>)}
-                                            </select>
+                                            </Select>
                                         </div>
                                         <div>
                                             <label className={`block text-xs font-semibold mb-1.5 ${isDark ? "text-neutral-300" : "text-neutral-700"}`}>{t("fuelExpenses.form.category")}</label>
-                                            <select required value={expenseForm.category} onChange={e => setExpenseForm(f => ({ ...f, category: e.target.value as typeof expenseForm.category }))} className={inputClass}>
+                                            <Select required value={expenseForm.category} onChange={e => setExpenseForm(f => ({ ...f, category: e.target.value as typeof expenseForm.category }))} className={inputClass}>
                                                 {EXPENSE_CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
-                                            </select>
+                                            </Select>
                                         </div>
                                     </div>
                                     <div>
