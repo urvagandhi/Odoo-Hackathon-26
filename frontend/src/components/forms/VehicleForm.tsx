@@ -4,10 +4,12 @@
 import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Truck, Save, Loader2 } from "lucide-react";
+import { X, Truck, Save } from "lucide-react";
 import { useTheme } from "../../context/ThemeContext";
 import { fleetApi } from "../../api/client";
 import { createVehicleSchema, type CreateVehicleFormData } from "../../validators/vehicle";
+import { Select } from "../ui/Select";
+import { VehicleTypePreview } from "../ui/VehicleTypePreview";
 
 interface VehicleType {
   id: string;
@@ -29,7 +31,7 @@ interface VehicleFormProps {
     color?: string;
     vin?: string;
     vehicleTypeId: string;
-    capacityWeight: number;
+    capacityWeight?: number;
     capacityVolume?: number;
     currentOdometer?: number;
     region?: string;
@@ -45,13 +47,26 @@ const INITIAL_FORM: CreateVehicleFormData = {
   color: "",
   vin: "",
   vehicleTypeId: "",
-  capacityWeight: 0,
+  capacityWeight: "" as unknown as number,
   capacityVolume: "",
   currentOdometer: "",
   region: "",
   acquisitionCost: "",
 };
 
+/**
+ * Slide-over form for creating a new vehicle or editing an existing one.
+ *
+ * Renders a modal panel that loads available vehicle types, validates input (requires max capacity > 0),
+ * and submits create or update requests to the fleet API. In edit mode the form is pre-filled from `editData`
+ * and the `licensePlate` is treated as immutable.
+ *
+ * @param open - Whether the slide-over is visible
+ * @param onClose - Callback invoked when the form is dismissed
+ * @param onSuccess - Callback invoked after a successful create or update
+ * @param editData - Optional vehicle data to populate the form for editing; when provided the form updates the vehicle, otherwise it creates a new one
+ * @returns A React element rendering the vehicle creation / editing slide-over
+ */
 export function VehicleForm({ open, onClose, onSuccess, editData }: VehicleFormProps) {
   const { isDark } = useTheme();
   const { t } = useTranslation();
@@ -82,7 +97,7 @@ export function VehicleForm({ open, onClose, onSuccess, editData }: VehicleFormP
         color: editData.color ?? "",
         vin: editData.vin ?? "",
         vehicleTypeId: editData.vehicleTypeId,
-        capacityWeight: editData.capacityWeight,
+        capacityWeight: editData.capacityWeight ?? 0,
         capacityVolume: editData.capacityVolume ?? "",
         currentOdometer: editData.currentOdometer ?? "",
         region: editData.region ?? "",
@@ -106,6 +121,12 @@ export function VehicleForm({ open, onClose, onSuccess, editData }: VehicleFormP
     setErrors({});
 
     // Validate
+    // Explicit guard: capacityWeight must be a positive number
+    if (!form.capacityWeight || Number(form.capacityWeight) <= 0) {
+      setErrors({ capacityWeight: "Capacity is required and must be greater than 0" });
+      return;
+    }
+
     const result = createVehicleSchema.safeParse(form);
     if (!result.success) {
       const fieldErrors: Record<string, string> = {};
@@ -119,8 +140,7 @@ export function VehicleForm({ open, onClose, onSuccess, editData }: VehicleFormP
 
     setSubmitting(true);
     try {
-      const payload: Record<string, unknown> = {
-        licensePlate: result.data.licensePlate,
+      const basePayload: Record<string, unknown> = {
         make: result.data.make,
         model: result.data.model,
         year: result.data.year,
@@ -128,15 +148,20 @@ export function VehicleForm({ open, onClose, onSuccess, editData }: VehicleFormP
         capacityWeight: result.data.capacityWeight,
       };
 
-      if (result.data.color) payload.color = result.data.color;
-      if (result.data.vin) payload.vin = result.data.vin;
+      if (result.data.color) basePayload.color = result.data.color;
+      if (result.data.vin) basePayload.vin = result.data.vin;
       if (result.data.capacityVolume) {
-        payload.capacityVolume = Number(result.data.capacityVolume);
+        basePayload.capacityVolume = Number(result.data.capacityVolume);
       }
-      if (result.data.region) payload.region = result.data.region;
+      if (result.data.region) basePayload.region = result.data.region;
       if (result.data.acquisitionCost) {
-        payload.acquisitionCost = Number(result.data.acquisitionCost);
+        basePayload.acquisitionCost = Number(result.data.acquisitionCost);
       }
+
+      // licensePlate is immutable — backend schema omits it on updates
+      const payload = isEditing
+        ? basePayload
+        : { licensePlate: result.data.licensePlate, ...basePayload };
 
       if (isEditing && editData) {
         await fleetApi.updateVehicle(editData.id, payload as Parameters<typeof fleetApi.updateVehicle>[1]);
@@ -148,7 +173,19 @@ export function VehicleForm({ open, onClose, onSuccess, editData }: VehicleFormP
       onSuccess();
       onClose();
     } catch (err: unknown) {
-      const axiosErr = err as { response?: { data?: { message?: string } } };
+      const axiosErr = err as { response?: { data?: { message?: string; details?: Record<string, string[]> } } };
+      const details = axiosErr.response?.data?.details;
+      if (details && typeof details === 'object') {
+        // Map backend Zod field errors to form errors
+        const fieldErrors: Record<string, string> = {};
+        Object.entries(details).forEach(([key, msgs]) => {
+          if (Array.isArray(msgs) && msgs.length > 0) fieldErrors[key] = msgs[0];
+        });
+        if (Object.keys(fieldErrors).length > 0) {
+          setErrors(fieldErrors);
+          return;
+        }
+      }
       setServerError(axiosErr.response?.data?.message ?? "Something went wrong");
     } finally {
       setSubmitting(false);
@@ -237,7 +274,7 @@ export function VehicleForm({ open, onClose, onSuccess, editData }: VehicleFormP
               </div>
 
               {/* Make + Model row */}
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className={labelCls}>{t("forms.vehicle.make")}</label>
                   <input
@@ -261,7 +298,7 @@ export function VehicleForm({ open, onClose, onSuccess, editData }: VehicleFormP
               </div>
 
               {/* Year + Color */}
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className={labelCls}>{t("forms.vehicle.year")}</label>
                   <input
@@ -299,8 +336,9 @@ export function VehicleForm({ open, onClose, onSuccess, editData }: VehicleFormP
               {/* Vehicle Type */}
               <div>
                 <label className={labelCls}>{t("forms.vehicle.vehicleType")}</label>
-                <select
-                  className={`${inputCls} ${errors.vehicleTypeId ? "border-red-400" : ""}`}
+                <Select
+                  className={inputCls}
+                  error={!!errors.vehicleTypeId}
                   value={form.vehicleTypeId}
                   onChange={(e) => handleChange("vehicleTypeId", e.target.value)}
                 >
@@ -310,16 +348,26 @@ export function VehicleForm({ open, onClose, onSuccess, editData }: VehicleFormP
                       {vt.name}
                     </option>
                   ))}
-                </select>
+                </Select>
                 {errors.vehicleTypeId && <p className={errCls}>{errors.vehicleTypeId}</p>}
               </div>
 
+              {/* Vehicle Type Photo Preview */}
+              {(() => {
+                const selectedType = vehicleTypes.find((vt) => vt.id === form.vehicleTypeId);
+                return selectedType ? (
+                  <VehicleTypePreview typeName={selectedType.name} size="md" showDescription />
+                ) : null;
+              })()}
+
               {/* Capacity Weight + Volume */}
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className={labelCls}>{t("forms.vehicle.maxCapacity")}</label>
+                  <label className={labelCls}>{t("forms.vehicle.maxCapacity")} *</label>
                   <input
                     type="number"
+                    required
+                    min={1}
                     className={`${inputCls} ${errors.capacityWeight ? "border-red-400" : ""}`}
                     placeholder={t("forms.vehicle.capacityPlaceholder")}
                     value={form.capacityWeight || ""}
@@ -340,15 +388,20 @@ export function VehicleForm({ open, onClose, onSuccess, editData }: VehicleFormP
               </div>
 
               {/* Region + Acquisition Cost */}
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className={labelCls}>{t("forms.vehicle.region")}</label>
-                  <input
-                    className={`${inputCls} ${errors.region ? "border-red-400" : ""}`}
-                    placeholder={t("forms.vehicle.regionPlaceholder")}
+                  <Select
+                    className={inputCls}
+                    error={!!errors.region}
                     value={form.region ?? ""}
                     onChange={(e) => handleChange("region", e.target.value)}
-                  />
+                  >
+                    <option value="">{t("forms.vehicle.selectRegion") ?? "Select Region"}</option>
+                    {["NORTH", "SOUTH", "EAST", "WEST", "CENTRAL", "INTERNATIONAL"].map(r => (
+                      <option key={r} value={r}>{t(`forms.vehicle.regions.${r}`)}</option>
+                    ))}
+                  </Select>
                   {errors.region && <p className={errCls}>{errors.region}</p>}
                 </div>
                 <div>
@@ -399,7 +452,10 @@ export function VehicleForm({ open, onClose, onSuccess, editData }: VehicleFormP
                 className="inline-flex items-center gap-2 px-5 py-2 rounded-lg bg-violet-600 hover:bg-violet-500 text-white text-sm font-medium transition-colors disabled:opacity-50"
               >
                 {submitting ? (
-                  <Loader2 className="w-4 h-4 animate-spin" />
+                  <svg className="w-4 h-4 animate-spin text-white" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
                 ) : (
                   <Save className="w-4 h-4" />
                 )}

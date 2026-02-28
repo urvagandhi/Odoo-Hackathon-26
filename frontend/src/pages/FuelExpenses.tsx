@@ -1,26 +1,31 @@
-/**
- * FuelExpenses — Fuel log & miscellaneous expense tracking
- */
-import { useState, useEffect, useCallback } from "react";
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { motion, AnimatePresence } from "framer-motion";
 import { Plus, X, Fuel, DollarSign, AlertTriangle, Filter } from "lucide-react";
-import { fleetApi, financeApi, type Vehicle, type FuelLog, type Expense } from "../api/client";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { Select } from "../components/ui/Select";
+import { fleetApi, financeApi } from "../api/client";
 import { useTheme } from "../context/ThemeContext";
+import { TableSkeleton } from "../components/ui/TableSkeleton";
 
 const FIELD = "block w-full rounded-xl border px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-colors";
 
 const EXPENSE_CATEGORIES = ["TOLL", "LODGING", "MAINTENANCE_EN_ROUTE", "MISC"];
 
+/**
+ * Manage and display vehicle fuel logs and expense entries with UI for viewing, filtering, and adding records.
+ *
+ * Displays summary cards, tabbed tables for fuel logs and expenses, a vehicle filter, and a modal for creating new fuel or expense entries.
+ * Data is loaded and kept in sync via React Query; creating entries resets the form, surfaces API errors in the modal, and invalidates related queries to refresh lists.
+ *
+ * @returns A JSX element rendering the fuel and expenses management UI.
+ */
 export default function FuelExpenses() {
     const { t } = useTranslation();
     const { isDark } = useTheme();
+    const queryClient = useQueryClient();
     const [tab, setTab] = useState<"fuel" | "expenses">("fuel");
-    const [vehicles, setVehicles] = useState<Vehicle[]>([]);
-    const [fuelLogs, setFuelLogs] = useState<FuelLog[]>([]);
-    const [expenses, setExpenses] = useState<Expense[]>([]);
     const [showModal, setShowModal] = useState(false);
-    const [saving, setSaving] = useState(false);
     const [error, setError] = useState("");
     const [vehicleFilter, setVehicleFilter] = useState("");
 
@@ -31,41 +36,67 @@ export default function FuelExpenses() {
         vehicleId: "", amount: 0, category: "TOLL" as "TOLL" | "LODGING" | "MAINTENANCE_EN_ROUTE" | "MISC", description: "",
     });
 
-    const load = useCallback(async () => {
-        try {
-            const [v, f, e] = await Promise.all([
-                fleetApi.listVehicles({ limit: 100 }),
-                financeApi.listFuelLogs({ vehicleId: vehicleFilter || undefined }),
-                financeApi.listExpenses({ vehicleId: vehicleFilter || undefined }),
-            ]);
-            setVehicles(v.data ?? []);
-            setFuelLogs(Array.isArray(f) ? f : []);
-            setExpenses(Array.isArray(e) ? e : []);
-        } catch { /* ignore */ }
-    }, [vehicleFilter]);
+    // Queries
+    const { data: vehicles = [] } = useQuery({
+        queryKey: ["vehicles"],
+        queryFn: () => fleetApi.listVehicles({ limit: 100 }).then(res => res.data ?? []),
+    });
 
-    useEffect(() => { load(); }, [load]);
+    const { data: fuelLogs = [], isLoading: loadingFuel } = useQuery({
+        queryKey: ["fuel-logs", vehicleFilter],
+        queryFn: () => financeApi.listFuelLogs({ vehicleId: vehicleFilter || undefined }).then(res => Array.isArray(res) ? res : []),
+    });
+
+    const { data: expenses = [], isLoading: loadingExpenses } = useQuery({
+        queryKey: ["expenses", vehicleFilter],
+        queryFn: () => financeApi.listExpenses({ vehicleId: vehicleFilter || undefined }).then(res => Array.isArray(res) ? res : []),
+    });
+
+    const loading = loadingFuel || loadingExpenses;
+
+    // Mutations
+    const fuelMutation = useMutation({
+        mutationFn: (data: any) => financeApi.createFuelLog({ ...data, loggedAt: new Date(data.loggedAt).toISOString() }),
+        onMutate: () => {
+            setShowModal(false);
+            setFuelForm({
+                vehicleId: "", liters: 0, costPerLiter: 0, odometerAtFill: 0, fuelStation: "", loggedAt: new Date().toISOString().slice(0, 10),
+            });
+        },
+        onError: (err: any) => {
+            setShowModal(true);
+            setError(err?.response?.data?.message ?? "Failed to save");
+        },
+        onSettled: () => {
+            queryClient.invalidateQueries({ queryKey: ["fuel-logs"] });
+        }
+    });
+
+    const expenseMutation = useMutation({
+        mutationFn: (data: any) => financeApi.createExpense(data),
+        onMutate: () => {
+            setShowModal(false);
+            setExpenseForm({
+                vehicleId: "", amount: 0, category: "TOLL", description: "",
+            });
+        },
+        onError: (err: any) => {
+            setShowModal(true);
+            setError(err?.response?.data?.message ?? "Failed to save");
+        },
+        onSettled: () => {
+            queryClient.invalidateQueries({ queryKey: ["expenses"] });
+        }
+    });
 
     const handleFuelSave = async (e: React.FormEvent) => {
-        e.preventDefault(); setSaving(true); setError("");
-        try {
-            await financeApi.createFuelLog({ ...fuelForm, loggedAt: new Date(fuelForm.loggedAt).toISOString() });
-            setShowModal(false);
-            load();
-        } catch (err: unknown) {
-            setError((err as { response?: { data?: { message?: string } } })?.response?.data?.message ?? "Failed to save");
-        } finally { setSaving(false); }
+        e.preventDefault(); setError("");
+        fuelMutation.mutate(fuelForm);
     };
 
     const handleExpenseSave = async (e: React.FormEvent) => {
-        e.preventDefault(); setSaving(true); setError("");
-        try {
-            await financeApi.createExpense(expenseForm);
-            setShowModal(false);
-            load();
-        } catch (err: unknown) {
-            setError((err as { response?: { data?: { message?: string } } })?.response?.data?.message ?? "Failed to save");
-        } finally { setSaving(false); }
+        e.preventDefault(); setError("");
+        expenseMutation.mutate(expenseForm);
     };
 
     const totalFuel = fuelLogs.reduce((s, l) => s + Number(l.totalCost), 0);
@@ -74,6 +105,8 @@ export default function FuelExpenses() {
     const inputClass = `${FIELD} ${isDark ? "bg-neutral-700 border-neutral-600 text-white placeholder-neutral-400" : "bg-white border-neutral-200 text-neutral-900 placeholder-neutral-400"}`;
     const cardClass = `rounded-2xl border p-5 ${isDark ? "bg-neutral-800 border-neutral-700" : "bg-white border-neutral-200 shadow-sm"}`;
 
+    const saving = fuelMutation.isPending || expenseMutation.isPending;
+
     return (
         <div className="max-w-[1200px] mx-auto space-y-5">
             <div className="flex items-center justify-between">
@@ -81,13 +114,13 @@ export default function FuelExpenses() {
                     <h1 className={`text-2xl font-bold ${isDark ? "text-white" : "text-neutral-900"}`}>{t("fuelExpenses.title")}</h1>
                     <p className={`text-sm ${isDark ? "text-neutral-400" : "text-neutral-500"}`}>{t("fuelExpenses.subtitle")}</p>
                 </div>
-                <button onClick={() => { setError(""); setShowModal(true); }} className="flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-500 text-white text-sm font-semibold hover:bg-emerald-600 transition-colors">
+                <button onClick={() => { setError(""); setShowModal(true); }} className="flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-500 text-white text-sm font-semibold hover:bg-emerald-600 transition-all active:scale-[0.97]">
                     <Plus className="w-4 h-4" /> {t("fuelExpenses.addEntry")}
                 </button>
             </div>
 
             {/* Summary cards */}
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className={cardClass}>
                     <div className="flex items-center gap-3">
                         <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center"><Fuel className="w-5 h-5 text-blue-600" /></div>
@@ -111,7 +144,7 @@ export default function FuelExpenses() {
             </div>
 
             {/* Filter & Tabs */}
-            <div className={`flex items-center justify-between p-3 rounded-2xl border gap-4 ${isDark ? "bg-neutral-800 border-neutral-700" : "bg-white border-neutral-200"}`}>
+            <div className={`flex flex-col sm:flex-row items-stretch sm:items-center justify-between p-3 rounded-2xl border gap-3 ${isDark ? "bg-neutral-800 border-neutral-700" : "bg-white border-neutral-200"}`}>
                 <div className="flex items-center gap-2 bg-neutral-100 dark:bg-neutral-700 rounded-xl p-1">
                     <button onClick={() => setTab("fuel")} className={`px-4 py-1.5 rounded-lg text-sm font-semibold transition-colors ${tab === "fuel" ? "bg-white text-neutral-900 shadow-sm dark:bg-neutral-600 dark:text-white" : "text-neutral-500"}`}>
                         {t("fuelExpenses.fuelLogs")}
@@ -121,21 +154,24 @@ export default function FuelExpenses() {
                     </button>
                 </div>
                 <div className="flex items-center gap-2">
-                    <Filter className="w-4 h-4 text-neutral-400" />
-                    <select value={vehicleFilter} onChange={e => setVehicleFilter(e.target.value)} className={`${inputClass} max-w-[220px]`}>
+                    <Filter className="w-4 h-4 text-neutral-400 shrink-0" />
+                    <Select value={vehicleFilter} onChange={e => setVehicleFilter(e.target.value)} className={`${inputClass} w-full sm:max-w-[220px]`}>
                         <option value="">{t("fuelExpenses.allVehicles")}</option>
                         {vehicles.map(v => <option key={v.id} value={v.id}>{v.licensePlate} — {v.make}</option>)}
-                    </select>
+                    </Select>
                 </div>
             </div>
 
             {/* Table */}
             <div className={`rounded-2xl border overflow-hidden ${isDark ? "bg-neutral-800 border-neutral-700" : "bg-white border-neutral-200 shadow-sm"}`}>
                 {tab === "fuel" ? (
-                    fuelLogs.length === 0 ? (
+                    loading ? (
+                        <TableSkeleton />
+                    ) : fuelLogs.length === 0 ? (
                         <div className="flex flex-col items-center justify-center h-32 text-neutral-400"><Fuel className="w-8 h-8 mb-2 opacity-30" /><p>{t("fuelExpenses.noFuelLogs")}</p></div>
                     ) : (
-                        <table className="w-full text-sm">
+                        <div className="overflow-x-auto">
+                        <table className="w-full text-sm min-w-[700px]">
                             <thead>
                                 <tr className={`text-xs font-semibold uppercase border-b ${isDark ? "text-neutral-400 border-neutral-700 bg-neutral-900/30" : "text-neutral-500 border-neutral-100 bg-neutral-50"}`}>
                                     {[t("fuelExpenses.fuelColumns.date"), t("fuelExpenses.fuelColumns.vehicle"), t("fuelExpenses.fuelColumns.liters"), t("fuelExpenses.fuelColumns.costPerLiter"), t("fuelExpenses.fuelColumns.total"), t("fuelExpenses.fuelColumns.odometer"), t("fuelExpenses.fuelColumns.station")].map(h => <th key={h} className="text-left px-4 py-3">{h}</th>)}
@@ -157,12 +193,16 @@ export default function FuelExpenses() {
                                 ))}
                             </tbody>
                         </table>
+                        </div>
                     )
                 ) : (
-                    expenses.length === 0 ? (
+                    loading ? (
+                        <TableSkeleton />
+                    ) : expenses.length === 0 ? (
                         <div className="flex flex-col items-center justify-center h-32 text-neutral-400"><DollarSign className="w-8 h-8 mb-2 opacity-30" /><p>{t("fuelExpenses.noExpenses")}</p></div>
                     ) : (
-                        <table className="w-full text-sm">
+                        <div className="overflow-x-auto">
+                        <table className="w-full text-sm min-w-[600px]">
                             <thead>
                                 <tr className={`text-xs font-semibold uppercase border-b ${isDark ? "text-neutral-400 border-neutral-700 bg-neutral-900/30" : "text-neutral-500 border-neutral-100 bg-neutral-50"}`}>
                                     {[t("fuelExpenses.expenseColumns.date"), t("fuelExpenses.expenseColumns.vehicle"), t("fuelExpenses.expenseColumns.category"), t("fuelExpenses.expenseColumns.amount"), t("fuelExpenses.expenseColumns.description")].map(h => <th key={h} className="text-left px-4 py-3">{h}</th>)}
@@ -184,6 +224,7 @@ export default function FuelExpenses() {
                                 ))}
                             </tbody>
                         </table>
+                        </div>
                     )
                 )}
             </div>
@@ -212,12 +253,12 @@ export default function FuelExpenses() {
                                 <form onSubmit={handleFuelSave} className="space-y-4">
                                     <div>
                                         <label className={`block text-xs font-semibold mb-1.5 ${isDark ? "text-neutral-300" : "text-neutral-700"}`}>{t("fuelExpenses.form.vehicle")}</label>
-                                        <select required value={fuelForm.vehicleId} onChange={e => setFuelForm(f => ({ ...f, vehicleId: e.target.value }))} className={inputClass}>
+                                        <Select required value={fuelForm.vehicleId} onChange={e => setFuelForm(f => ({ ...f, vehicleId: e.target.value }))} className={inputClass}>
                                             <option value="">{t("fuelExpenses.form.selectVehicle")}</option>
                                             {vehicles.map(v => <option key={v.id} value={v.id}>{v.licensePlate} — {v.make}</option>)}
-                                        </select>
+                                        </Select>
                                     </div>
-                                    <div className="grid grid-cols-3 gap-3">
+                                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                                         <div>
                                             <label className={`block text-xs font-semibold mb-1.5 ${isDark ? "text-neutral-300" : "text-neutral-700"}`}>{t("fuelExpenses.form.liters")}</label>
                                             <input required type="number" step="0.1" min="0" value={fuelForm.liters || ""} onChange={e => setFuelForm(f => ({ ...f, liters: +e.target.value }))} className={inputClass} />
@@ -234,7 +275,7 @@ export default function FuelExpenses() {
                                     {fuelForm.liters > 0 && fuelForm.costPerLiter > 0 && (
                                         <p className="text-xs text-emerald-600 font-semibold">{t("fuelExpenses.form.totalLabel", { amount: (fuelForm.liters * fuelForm.costPerLiter).toFixed(2) })}</p>
                                     )}
-                                    <div className="grid grid-cols-2 gap-3">
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                         <div>
                                             <label className={`block text-xs font-semibold mb-1.5 ${isDark ? "text-neutral-300" : "text-neutral-700"}`}>{t("fuelExpenses.form.station")}</label>
                                             <input value={fuelForm.fuelStation} onChange={e => setFuelForm(f => ({ ...f, fuelStation: e.target.value }))} className={inputClass} placeholder={t("fuelExpenses.form.stationPlaceholder")} />
@@ -253,19 +294,19 @@ export default function FuelExpenses() {
                                 </form>
                             ) : (
                                 <form onSubmit={handleExpenseSave} className="space-y-4">
-                                    <div className="grid grid-cols-2 gap-4">
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                         <div>
                                             <label className={`block text-xs font-semibold mb-1.5 ${isDark ? "text-neutral-300" : "text-neutral-700"}`}>{t("fuelExpenses.form.vehicle")}</label>
-                                            <select required value={expenseForm.vehicleId} onChange={e => setExpenseForm(f => ({ ...f, vehicleId: e.target.value }))} className={inputClass}>
+                                            <Select required value={expenseForm.vehicleId} onChange={e => setExpenseForm(f => ({ ...f, vehicleId: e.target.value }))} className={inputClass}>
                                                 <option value="">{t("fuelExpenses.form.selectVehicle")}</option>
                                                 {vehicles.map(v => <option key={v.id} value={v.id}>{v.licensePlate}</option>)}
-                                            </select>
+                                            </Select>
                                         </div>
                                         <div>
                                             <label className={`block text-xs font-semibold mb-1.5 ${isDark ? "text-neutral-300" : "text-neutral-700"}`}>{t("fuelExpenses.form.category")}</label>
-                                            <select required value={expenseForm.category} onChange={e => setExpenseForm(f => ({ ...f, category: e.target.value as typeof expenseForm.category }))} className={inputClass}>
+                                            <Select required value={expenseForm.category} onChange={e => setExpenseForm(f => ({ ...f, category: e.target.value as typeof expenseForm.category }))} className={inputClass}>
                                                 {EXPENSE_CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
-                                            </select>
+                                            </Select>
                                         </div>
                                     </div>
                                     <div>

@@ -5,7 +5,7 @@
 import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Users, Save, Loader2 } from "lucide-react";
+import { X, Users, Save } from "lucide-react";
 import { useTheme } from "../../context/ThemeContext";
 import { hrApi } from "../../api/client";
 import { createDriverSchema, type CreateDriverFormData } from "../../validators/driver";
@@ -36,6 +36,15 @@ const INITIAL_FORM: CreateDriverFormData = {
   dateOfBirth: "",
 };
 
+/**
+ * Render a slide-over panel containing a form for creating a new driver or editing an existing driver.
+ *
+ * @param open - Whether the slide-over is visible.
+ * @param onClose - Callback invoked to close the panel.
+ * @param onSuccess - Callback invoked after a successful create or update operation.
+ * @param editData - Optional existing driver data to pre-fill the form; expected fields include `id`, `fullName`, `licenseNumber`, `licenseExpiryDate`, `licenseClass`, `phone`, `email`, and `dateOfBirth`.
+ * @returns The slide-over driver form element.
+ */
 export function DriverForm({ open, onClose, onSuccess, editData }: DriverFormProps) {
   const { isDark } = useTheme();
   const { t } = useTranslation();
@@ -195,7 +204,7 @@ export function DriverForm({ open, onClose, onSuccess, editData }: DriverFormPro
               </div>
 
               {/* License Number + Class */}
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className={labelCls}>{t("forms.driver.licenseNumber")}</label>
                   <input
@@ -230,7 +239,7 @@ export function DriverForm({ open, onClose, onSuccess, editData }: DriverFormPro
               </div>
 
               {/* Phone + Email */}
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className={labelCls}>{t("forms.driver.phone")}</label>
                   <input
@@ -284,7 +293,10 @@ export function DriverForm({ open, onClose, onSuccess, editData }: DriverFormPro
                 className="inline-flex items-center gap-2 px-5 py-2 rounded-lg bg-violet-600 hover:bg-violet-500 text-white text-sm font-medium transition-colors disabled:opacity-50"
               >
                 {submitting ? (
-                  <Loader2 className="w-4 h-4 animate-spin" />
+                  <svg className="w-4 h-4 animate-spin text-white" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
                 ) : (
                   <Save className="w-4 h-4" />
                 )}

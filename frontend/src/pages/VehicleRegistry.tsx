@@ -2,8 +2,9 @@
  * VehicleRegistry — full CRUD page for fleet vehicles.
  * Status cards, search, filters, DataTable with pagination, create/edit slide-over.
  */
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { motion } from "framer-motion";
 import {
   Truck,
@@ -17,12 +18,11 @@ import {
   XCircle,
   Download,
 } from "lucide-react";
-import { useTheme } from "../context/ThemeContext";
-import { useAuth } from "../hooks/useAuth";
-import { fleetApi, analyticsApi } from "../api/client";
-import { useToast } from "../hooks/useToast";
+import { Select } from "../components/ui/Select";
+import { TableSkeleton } from "../components/ui/TableSkeleton";
 import { StatusPill } from "../components/ui/StatusPill";
 import { VehicleForm } from "../components/forms/VehicleForm";
+import { VehicleTypeThumbnail } from "../components/ui/VehicleTypePreview";
 import {
   AlertDialog,
   AlertDialogContent,
@@ -33,30 +33,13 @@ import {
   AlertDialogCancel,
   AlertDialogAction,
 } from "../components/ui/AlertDialog";
+import { useTheme } from "../context/ThemeContext";
+import { useAuth } from "../hooks/useAuth";
+import { fleetApi, analyticsApi, type Vehicle } from "../api/client";
+import { useToast } from "../hooks/useToast";
 
 /* ── Types ──────────────────────────────────────────────── */
 
-interface VehicleType {
-  id: string;
-  name: string;
-}
-
-interface Vehicle {
-  id: string;
-  licensePlate: string;
-  make: string;
-  model: string;
-  year: number;
-  color?: string;
-  vin?: string;
-  status: string;
-  currentOdometer: number;
-  capacityWeight: number;
-  capacityVolume?: number;
-  vehicleTypeId: string;
-  vehicleType?: VehicleType;
-  createdAt: string;
-}
 
 const STATUS_FILTERS = [
   { value: "", label: "All Statuses" },
@@ -66,27 +49,33 @@ const STATUS_FILTERS = [
   { value: "RETIRED", label: "Retired" },
 ];
 
+/**
+ * Display and manage the fleet vehicle registry with search, status filters, CSV export, create/edit form, retire/delete actions, and paginated listing.
+ *
+ * Renders a section containing:
+ * - Header with export and new-vehicle controls (permission-gated).
+ * - Status summary cards with counts and filter toggles.
+ * - Toolbar with debounced search and status select.
+ * - Data table showing vehicles (type, capacity, odometer, status) with action buttons and confirmation dialogs.
+ * - Pagination controls and a slide-over VehicleForm for create/edit.
+ *
+ * @returns The rendered section element containing the vehicle registry UI.
+ */
 export default function VehicleRegistry() {
   const { isDark } = useTheme();
   const { user } = useAuth();
-  const toast = useToast();
   const { t } = useTranslation();
+  const toast = useToast();
+  const queryClient = useQueryClient();
 
   // Data state
-  const [vehicles, setVehicles] = useState<Vehicle[]>([]);
-  const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
-  const [total, setTotal] = useState(0);
   const limit = 10;
 
   // Filters
   const [searchInput, setSearchInput] = useState("");   // raw input value
   const [search, setSearch] = useState("");             // debounced — sent to API
   const [statusFilter, setStatusFilter] = useState("");
-
-  // Status counts
-  const [counts, setCounts] = useState({ AVAILABLE: 0, ON_TRIP: 0, IN_SHOP: 0, RETIRED: 0 });
 
   // Form state
   const [formOpen, setFormOpen] = useState(false);
@@ -124,18 +113,16 @@ export default function VehicleRegistry() {
     return () => clearTimeout(t);
   }, [searchInput]);
 
-  /* ── Fetch vehicles ──────────────────────────────── */
-  const fetchVehicles = useCallback(async () => {
-    setLoading(true);
-    try {
+  /* ── Fetch vehicles using React Query ──────────────────────────────── */
+  const { data: vehiclesData, isLoading: loading } = useQuery({
+    queryKey: ['vehicles', page, limit, statusFilter, search],
+    queryFn: async () => {
       const params: Record<string, unknown> = { page, limit };
       if (statusFilter) params.status = statusFilter;
       if (search) params.search = search;
-
+      
       const res = await fleetApi.listVehicles(params);
-
       const vehicleList = (res.data ?? []) as unknown as Record<string, unknown>[];
-      // Stringify bigint IDs
       const normalized = vehicleList.map((v) => ({
         ...v,
         id: String(v.id),
@@ -144,36 +131,39 @@ export default function VehicleRegistry() {
           ? { ...(v.vehicleType as Record<string, unknown>), id: String((v.vehicleType as Record<string, unknown>).id) }
           : undefined,
       })) as Vehicle[];
+      
+      return {
+        vehicles: normalized,
+        total: res.total ?? normalized.length,
+        totalPages: res.totalPages ?? Math.ceil((res.total ?? normalized.length) / limit)
+      };
+    },
+    // Keep previous data when paginating to avoid skeleton flashes
+    placeholderData: (previousData) => previousData,
+  });
 
-      setVehicles(normalized);
-      setTotal(res.total ?? normalized.length);
-      setTotalPages(res.totalPages ?? Math.ceil((res.total ?? normalized.length) / limit));
-    } catch {
-      setVehicles([]);
-    } finally {
-      setLoading(false);
+  const vehicles = vehiclesData?.vehicles ?? [];
+  const total = vehiclesData?.total ?? 0;
+  const totalPages = vehiclesData?.totalPages ?? 1;
+
+  /* ── Fetch status counts using React Query ──────────────────────────── */
+  const { data: countsData } = useQuery({
+    queryKey: ['vehicles', 'counts'],
+    queryFn: async () => {
+      const reqs = ["AVAILABLE", "ON_TRIP", "IN_SHOP", "RETIRED"].map((s) =>
+        fleetApi.listVehicles({ status: s, page: 1, limit: 1 })
+      );
+      const results = await Promise.all(reqs);
+      const c = { AVAILABLE: 0, ON_TRIP: 0, IN_SHOP: 0, RETIRED: 0 };
+      const keys = ["AVAILABLE", "ON_TRIP", "IN_SHOP", "RETIRED"] as const;
+      results.forEach((r, i) => {
+        c[keys[i]] = r.total ?? 0;
+      });
+      return c;
     }
-  }, [page, statusFilter, search]);
+  });
 
-  useEffect(() => { fetchVehicles(); }, [fetchVehicles]);
-
-  /* ── Fetch status counts ──────────────────────────── */
-  useEffect(() => {
-    (async () => {
-      try {
-        const reqs = ["AVAILABLE", "ON_TRIP", "IN_SHOP", "RETIRED"].map((s) =>
-          fleetApi.listVehicles({ status: s, page: 1, limit: 1 })
-        );
-        const results = await Promise.all(reqs);
-        const c = { AVAILABLE: 0, ON_TRIP: 0, IN_SHOP: 0, RETIRED: 0 };
-        const keys = ["AVAILABLE", "ON_TRIP", "IN_SHOP", "RETIRED"] as const;
-        results.forEach((r, i) => {
-          c[keys[i]] = r.total ?? 0;
-        });
-        setCounts(c);
-      } catch { /* ignore */ }
-    })();
-  }, [vehicles]);
+  const counts = countsData ?? { AVAILABLE: 0, ON_TRIP: 0, IN_SHOP: 0, RETIRED: 0 };
 
   // Server handles search — vehicles array is already filtered
   const filtered = vehicles;
@@ -184,24 +174,42 @@ export default function VehicleRegistry() {
     setFormOpen(true);
   };
 
-  const handleRetire = async () => {
+  const retireMutation = useMutation({
+    mutationFn: (id: string) => fleetApi.updateVehicleStatus(id, "RETIRED"),
+    onMutate: () => {
+      setActionVehicleId(null);
+      setActionType(null);
+    },
+    onSuccess: () => {
+      toast.success(t("vehicleRegistry.toast.vehicleRetired"), { title: t("vehicleRegistry.toast.retireSuccess") });
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ['vehicles'] });
+    }
+  });
+
+  const handleRetire = () => {
     if (!actionVehicleId) return;
-    try {
-      await fleetApi.updateVehicleStatus(actionVehicleId, "RETIRED");
-      fetchVehicles();
-    } catch { /* handled by interceptor */ }
-    setActionVehicleId(null);
-    setActionType(null);
+    retireMutation.mutate(actionVehicleId);
   };
 
-  const handleDelete = async () => {
+  const deleteMutation = useMutation({
+    mutationFn: (id: string) => fleetApi.deleteVehicle(id),
+    onMutate: () => {
+      setActionVehicleId(null);
+      setActionType(null);
+    },
+    onSuccess: () => {
+      toast.success(t("vehicleRegistry.toast.vehicleDeleted"), { title: t("vehicleRegistry.toast.deleteSuccess") });
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ['vehicles'] });
+    }
+  });
+
+  const handleDelete = () => {
     if (!actionVehicleId) return;
-    try {
-      await fleetApi.deleteVehicle(actionVehicleId);
-      fetchVehicles();
-    } catch { /* handled by interceptor */ }
-    setActionVehicleId(null);
-    setActionType(null);
+    deleteMutation.mutate(actionVehicleId);
   };
 
   /* ── Style helpers ───────────────────────────────── */
@@ -233,7 +241,7 @@ export default function VehicleRegistry() {
         <div className="flex items-center gap-2">
           <button
             onClick={handleExport}
-            className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border text-sm font-medium transition-colors shadow-sm ${
+            className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border text-sm font-medium transition-all shadow-sm active:scale-[0.97] ${
               isDark 
                 ? "border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/10" 
                 : "border-emerald-200 text-emerald-600 hover:bg-emerald-50"
@@ -245,7 +253,7 @@ export default function VehicleRegistry() {
           {canMutate && (
             <button
               onClick={() => { setEditVehicle(null); setFormOpen(true); }}
-              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-violet-600 hover:bg-violet-500 text-white text-sm font-medium transition-colors shadow-lg shadow-violet-500/20"
+              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-violet-600 hover:bg-violet-500 text-white text-sm font-medium transition-all shadow-lg shadow-violet-500/20 active:scale-[0.97]"
             >
               <Plus className="w-4 h-4" />
               {t("vehicleRegistry.newVehicle")}
@@ -266,7 +274,7 @@ export default function VehicleRegistry() {
             key={item.key}
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
-            className={`rounded-xl border p-4 ${cardBg} cursor-pointer hover:shadow-md transition-shadow`}
+            className={`rounded-xl border p-4 ${cardBg} cursor-pointer card-lift`}
             onClick={() => { setStatusFilter(statusFilter === item.key ? "" : item.key); setPage(1); }}
           >
             <div className="flex items-center justify-between">
@@ -301,18 +309,16 @@ export default function VehicleRegistry() {
         </div>
 
         {/* Status filter */}
-        <div className="relative">
-          <Filter className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 ${isDark ? "text-neutral-500" : "text-slate-400"}`} />
-          <select
-            className={`${inputCls} pl-9 pr-8 appearance-none cursor-pointer`}
-            value={statusFilter}
-            onChange={(e) => { setStatusFilter(e.target.value); setPage(1); }}
-          >
-            {STATUS_FILTERS.map((f) => (
-              <option key={f.value} value={f.value}>{f.label}</option>
-            ))}
-          </select>
-        </div>
+        <Select
+          icon={<Filter className="w-4 h-4" />}
+          className={inputCls}
+          value={statusFilter}
+          onChange={(e) => { setStatusFilter(e.target.value); setPage(1); }}
+        >
+          {STATUS_FILTERS.map((f) => (
+            <option key={f.value} value={f.value}>{f.label}</option>
+          ))}
+        </Select>
       </motion.div>
 
       {/* DataTable */}
@@ -334,16 +340,11 @@ export default function VehicleRegistry() {
             </thead>
             <tbody>
               {loading ? (
-                Array.from({ length: 5 }).map((_, i) => (
-                  <tr key={i} className={`border-b last:border-0 ${isDark ? "border-neutral-700" : "border-slate-100"}`}>
-                    {Array.from({ length: 8 }).map((_, j) => (
-                      <td key={j} className="px-4 py-3">
-                        <div className={`h-4 rounded ${isDark ? "bg-neutral-700" : "bg-slate-100"} animate-pulse`}
-                          style={{ width: `${50 + (j % 3) * 20}%` }} />
-                      </td>
-                    ))}
-                  </tr>
-                ))
+                <tr className="border-b last:border-0">
+                  <td colSpan={8} className="p-0">
+                    <TableSkeleton />
+                  </td>
+                </tr>
               ) : filtered.length === 0 ? (
                 <tr>
                   <td colSpan={8} className="py-16 text-center">
@@ -370,9 +371,14 @@ export default function VehicleRegistry() {
                       {v.make} {v.model}
                       <span className={`block text-xs ${textSecondary}`}>{v.year}</span>
                     </td>
-                    <td className={`px-4 py-3 ${textSecondary}`}>{v.vehicleType?.name ?? "—"}</td>
+                    <td className={`px-4 py-3 ${textSecondary}`}>
+                      <span className="inline-flex items-center gap-1.5">
+                        <VehicleTypeThumbnail typeName={v.vehicleType?.name ?? ""} />
+                        {v.vehicleType?.name ?? "—"}
+                      </span>
+                    </td>
                     <td className={`px-4 py-3 tabular-nums ${textPrimary}`}>
-                      {v.capacityWeight.toLocaleString()} kg
+                       {(v.capacityWeight ?? 0).toLocaleString()} kg
                     </td>
                     <td className={`px-4 py-3 tabular-nums ${textSecondary}`}>
                       {v.currentOdometer.toLocaleString()} km
@@ -522,8 +528,12 @@ export default function VehicleRegistry() {
       <VehicleForm
         open={formOpen}
         onClose={() => { setFormOpen(false); setEditVehicle(null); }}
-        onSuccess={fetchVehicles}
-        editData={editVehicle}
+        editData={editVehicle ?? undefined}
+        onSuccess={() => {
+          queryClient.invalidateQueries({ queryKey: ['vehicles'] });
+          setFormOpen(false);
+          setEditVehicle(null);
+        }}
       />
     </section>
   );

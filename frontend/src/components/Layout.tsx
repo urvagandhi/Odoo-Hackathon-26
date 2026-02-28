@@ -8,7 +8,7 @@ import { useTranslation } from "react-i18next";
 import {
   LayoutDashboard, Settings, Bell, ChevronDown, LogOut, User,
   Car, Route, Users, AlertTriangle, Wrench, Sun, Moon,
-  BarChart3, Fuel, Shield,
+  BarChart3, Fuel, Shield, Menu, X,
 } from "lucide-react";
 import {
   DropdownMenu, DropdownMenuTrigger, DropdownMenuContent,
@@ -41,6 +41,13 @@ const PAGE_TITLE_KEYS: Record<string, string> = {
   "/settings": "layout.systemConfig",
 };
 
+/**
+ * Application shell that renders a responsive left sidebar with navigation and live KPIs, a top navigation bar (theme toggle, notifications, user menu), and the main content Outlet for nested routes.
+ *
+ * The component updates document.title based on the current route key, polls dashboard KPIs for near real-time alerts, and manages mobile drawer and notifications UI state.
+ *
+ * @returns The layout element containing the app chrome and an Outlet for nested route content
+ */
 export default function Layout() {
   const { t } = useTranslation();
   const location = useLocation();
@@ -50,6 +57,27 @@ export default function Layout() {
   const [kpis, setKpis] = useState<DashboardKPIs | null>(null);
   const [showNotifs, setShowNotifs] = useState(false);
   const notifsRef = useRef<HTMLDivElement>(null);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  // Close mobile sidebar on route change
+  useEffect(() => {
+    setSidebarOpen(false);
+  }, [location.pathname]);
+
+  // Close mobile sidebar on Escape key
+  useEffect(() => {
+    const onEscape = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setSidebarOpen(false);
+    };
+    document.addEventListener("keydown", onEscape);
+    return () => document.removeEventListener("keydown", onEscape);
+  }, []);
+
+  // Prevent background scroll when mobile sidebar is open
+  useEffect(() => {
+    document.body.style.overflow = sidebarOpen ? "hidden" : "";
+    return () => { document.body.style.overflow = ""; };
+  }, [sidebarOpen]);
 
   useEffect(() => {
     const handler = (e: MouseEvent) => {
@@ -86,12 +114,25 @@ export default function Layout() {
 
   return (
     <div className={`min-h-screen flex transition-colors duration-300 ${isDark ? "bg-slate-950" : "bg-slate-50"}`}>
-      {/* ═══ LEFT SIDEBAR ═══════════════════════════════════ */}
-      <aside className={`w-[260px] flex flex-col shrink-0 overflow-y-auto border-r transition-colors duration-300 ${
-        isDark ? "bg-slate-950 border-slate-800 text-slate-300" : "bg-white border-slate-200 text-slate-600"
-      }`}>
-        {/* Logo */}
-        <div className="px-5 pt-6 pb-6">
+      {/* ═══ MOBILE BACKDROP ════════════════════════════════ */}
+      <div
+        className={`fixed inset-0 z-40 bg-black/50 transition-opacity duration-300 md:hidden ${
+          sidebarOpen ? "opacity-100" : "opacity-0 pointer-events-none"
+        }`}
+        onClick={() => setSidebarOpen(false)}
+        aria-hidden="true"
+      />
+
+      {/* ═══ LEFT SIDEBAR (drawer on mobile, static on md+) ═══ */}
+      <aside className={`
+        fixed inset-y-0 left-0 z-50 w-[280px] flex flex-col overflow-y-auto border-r
+        transform transition-transform duration-300 ease-in-out
+        ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}
+        md:static md:z-auto md:translate-x-0 md:w-[260px] md:shrink-0
+        ${isDark ? "bg-slate-950 border-slate-800 text-slate-300" : "bg-white border-slate-200 text-slate-600"}
+      `}>
+        {/* Logo + Mobile Close */}
+        <div className="px-5 pt-6 pb-6 flex items-center justify-between">
           <Link to="/dashboard" className="flex items-center gap-2.5 group">
             <div className={`w-9 h-9 rounded-xl flex items-center justify-center shadow-lg transition-transform group-hover:scale-105 overflow-hidden ${
               isDark ? "bg-slate-900 shadow-blue-900/50" : "bg-white shadow-blue-200"
@@ -104,6 +145,15 @@ export default function Layout() {
               FleetFlow
             </span>
           </Link>
+          <button
+            onClick={() => setSidebarOpen(false)}
+            className={`md:hidden w-8 h-8 rounded-lg flex items-center justify-center transition-colors ${
+              isDark ? "text-slate-400 hover:bg-slate-800 hover:text-slate-100" : "text-slate-500 hover:bg-slate-100 hover:text-slate-900"
+            }`}
+            aria-label="Close sidebar"
+          >
+            <X className="w-5 h-5" />
+          </button>
         </div>
 
         {/* Live KPI mini-stats */}
@@ -190,10 +240,24 @@ export default function Layout() {
       {/* ═══ MAIN CONTENT ════════════════════════════════════ */}
       <div className="flex-1 flex flex-col min-w-0">
         {/* Top bar */}
-        <header className={`border-b px-6 py-3.5 transition-colors duration-300 z-10 sticky top-0 backdrop-blur-md ${
+        <header className={`border-b px-4 md:px-6 py-3.5 transition-colors duration-300 z-10 sticky top-0 backdrop-blur-md ${
           isDark ? "bg-slate-950/80 border-slate-800" : "bg-white/80 border-slate-200"
         }`}>
-          <div className="flex items-center justify-end gap-3">
+          <div className="flex items-center gap-3">
+            {/* Mobile hamburger */}
+            <button
+              onClick={() => setSidebarOpen(true)}
+              className={`md:hidden w-10 h-10 rounded-full flex items-center justify-center transition-colors ${
+                isDark ? "text-slate-400 hover:bg-slate-800 hover:text-slate-100" : "text-slate-500 hover:bg-slate-100 hover:text-slate-900"
+              }`}
+              aria-label="Open menu"
+            >
+              <Menu className="w-5 h-5" />
+            </button>
+
+            {/* Spacer — pushes controls right */}
+            <div className="flex-1" />
+
             {/* Theme toggle */}
             <button
               onClick={toggleTheme}
@@ -337,7 +401,7 @@ export default function Layout() {
         </header>
 
         {/* Page content */}
-        <main className={`flex-1 overflow-y-auto p-6 md:p-8 transition-colors duration-300 ${isDark ? "bg-[#0B1120]" : "bg-slate-50/50"}`}>
+        <main className={`flex-1 overflow-y-auto p-4 md:p-6 lg:p-8 transition-colors duration-300 ${isDark ? "bg-[#0B1120]" : "bg-slate-50/50"}`}>
           <Outlet />
         </main>
       </div>

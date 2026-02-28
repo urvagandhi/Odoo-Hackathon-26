@@ -4,7 +4,7 @@
 import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Fuel, Receipt, Save, Loader2 } from "lucide-react";
+import { X, Save, Fuel, Receipt } from "lucide-react";
 import { useTheme } from "../../context/ThemeContext";
 import { fleetApi, financeApi } from "../../api/client";
 import {
@@ -13,6 +13,7 @@ import {
   type CreateFuelLogFormData,
   type CreateExpenseFormData,
 } from "../../validators/finance";
+import { Select } from "../ui/Select";
 
 interface Vehicle {
   id: string;
@@ -47,6 +48,18 @@ const EXPENSE_INITIAL: CreateExpenseFormData = {
 
 const CATEGORY_VALUES = ["TOLL", "LODGING", "MAINTENANCE_EN_ROUTE", "MISC"] as const;
 
+/**
+ * Slide-over panel component that provides two tabs for creating a fuel log or a miscellaneous expense.
+ *
+ * The panel resets its form state and fetches available (non-retired) vehicles each time it opens.
+ * On successful submission it calls `onSuccess` and then `onClose`; on server failure it surfaces a message in the form.
+ *
+ * @param open - Whether the panel is visible
+ * @param onClose - Callback invoked when the panel should be closed
+ * @param onSuccess - Callback invoked after a successful create operation
+ * @param defaultTab - Initial active tab, either `"fuel"` or `"expense"`; defaults to `"fuel"`
+ * @returns The rendered ExpenseForm panel element
+ */
 export function ExpenseForm({ open, onClose, onSuccess, defaultTab = "fuel" }: ExpenseFormProps) {
   const { isDark } = useTheme();
   const { t } = useTranslation();
@@ -233,24 +246,28 @@ export function ExpenseForm({ open, onClose, onSuccess, defaultTab = "fuel" }: E
 
               {loadingVehicles ? (
                 <div className={`py-8 text-center text-sm ${isDark ? "text-neutral-400" : "text-slate-500"}`}>
-                  <Loader2 className="w-5 h-5 mx-auto mb-2 animate-spin" />{t("forms.expense.loadingVehicles")}
+                  <svg className="w-5 h-5 mx-auto mb-2 animate-spin" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  {t("forms.expense.loadingVehicles")}
                 </div>
               ) : tab === "fuel" ? (
                 /* ── FUEL LOG ── */
                 <>
                   <div>
                     <label className={labelCls}>{t("forms.expense.vehicle")}</label>
-                    <select className={`${inputCls} ${errors.vehicleId ? "border-red-400" : ""}`} value={fuelForm.vehicleId} onChange={(e) => handleFuelChange("vehicleId", e.target.value)}>
+                    <Select className={inputCls} error={!!errors.vehicleId} value={fuelForm.vehicleId} onChange={(e) => handleFuelChange("vehicleId", e.target.value)}>
                       <option value="">{t("forms.expense.selectVehicle")}</option>
                       {vehicles.map((v) => <option key={v.id} value={v.id}>{v.licensePlate} — {v.make} {v.model}</option>)}
-                    </select>
+                    </Select>
                     {errors.vehicleId && <p className={errCls}>{errors.vehicleId}</p>}
                   </div>
                   <div>
                     <label className={labelCls}>{t("forms.expense.tripId")}</label>
                     <input className={inputCls} placeholder={t("forms.expense.tripIdPlaceholder")} value={fuelForm.tripId ?? ""} onChange={(e) => handleFuelChange("tripId", e.target.value)} />
                   </div>
-                  <div className="grid grid-cols-2 gap-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
                       <label className={labelCls}>{t("forms.expense.liters")}</label>
                       <input type="number" step="0.01" className={`${inputCls} ${errors.liters ? "border-red-400" : ""}`} value={fuelForm.liters || ""} onChange={(e) => handleFuelChange("liters", e.target.value)} />
@@ -281,10 +298,10 @@ export function ExpenseForm({ open, onClose, onSuccess, defaultTab = "fuel" }: E
                 <>
                   <div>
                     <label className={labelCls}>{t("forms.expense.vehicle")}</label>
-                    <select className={`${inputCls} ${errors.vehicleId ? "border-red-400" : ""}`} value={expForm.vehicleId} onChange={(e) => handleExpChange("vehicleId", e.target.value)}>
+                    <Select className={inputCls} error={!!errors.vehicleId} value={expForm.vehicleId} onChange={(e) => handleExpChange("vehicleId", e.target.value)}>
                       <option value="">{t("forms.expense.selectVehicle")}</option>
                       {vehicles.map((v) => <option key={v.id} value={v.id}>{v.licensePlate} — {v.make} {v.model}</option>)}
-                    </select>
+                    </Select>
                     {errors.vehicleId && <p className={errCls}>{errors.vehicleId}</p>}
                   </div>
                   <div>
@@ -293,9 +310,9 @@ export function ExpenseForm({ open, onClose, onSuccess, defaultTab = "fuel" }: E
                   </div>
                   <div>
                     <label className={labelCls}>{t("forms.expense.category")}</label>
-                    <select className={`${inputCls} ${errors.category ? "border-red-400" : ""}`} value={expForm.category} onChange={(e) => handleExpChange("category", e.target.value)}>
+                    <Select className={inputCls} error={!!errors.category} value={expForm.category} onChange={(e) => handleExpChange("category", e.target.value)}>
                       {CATEGORY_VALUES.map((c) => <option key={c} value={c}>{t(`forms.expense.categories.${c}`)}</option>)}
-                    </select>
+                    </Select>
                     {errors.category && <p className={errCls}>{errors.category}</p>}
                   </div>
                   <div>
@@ -317,7 +334,14 @@ export function ExpenseForm({ open, onClose, onSuccess, defaultTab = "fuel" }: E
                 {t("common.cancel")}
               </button>
               <button onClick={handleSubmit} disabled={submitting || loadingVehicles} className="inline-flex items-center gap-2 px-5 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-medium transition-colors disabled:opacity-50">
-                {submitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                {submitting ? (
+                  <svg className="w-4 h-4 animate-spin text-white" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                ) : (
+                  <Save className="w-4 h-4" />
+                )}
                 {tab === "fuel" ? t("forms.expense.createFuelLog") : t("forms.expense.createExpense")}
               </button>
             </div>

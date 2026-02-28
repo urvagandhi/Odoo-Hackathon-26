@@ -48,6 +48,13 @@ interface Expense {
 
 type Tab = "fuel" | "expenses";
 
+/**
+ * Render the Expenses page with tabbed views for fuel logs and miscellaneous expenses, including search, pagination, summary cards, and a role-restricted form to add records.
+ *
+ * The component fetches and normalizes fuel logs and expenses on mount, provides client-side filtering and pagination, computes totals, and exposes UI controls for switching tabs, searching, and opening the add-record form (visible to users with MANAGER or FINANCE_ANALYST roles). Table columns, empty states, and labels are localized; visual styling adapts to the current theme.
+ *
+ * @returns The Expenses page React element.
+ */
 export default function Expenses() {
   const { isDark } = useTheme();
   const { user } = useAuth();
@@ -286,7 +293,7 @@ export default function Expenses() {
             <Receipt className="w-4 h-4" /> {t("expenses.tabs.expenses", { count: expenses.length })}
           </button>
         </div>
-        <div className={`flex items-center gap-2 px-3 py-2 rounded-lg border text-sm w-64 ${
+        <div className={`flex items-center gap-2 px-3 py-2 rounded-lg border text-sm w-full sm:w-64 ${
           isDark ? "bg-neutral-800 border-neutral-700 text-white" : "bg-white border-slate-200 text-slate-900"
         }`}>
           <Search className={`w-4 h-4 ${isDark ? "text-neutral-400" : "text-slate-400"}`} />

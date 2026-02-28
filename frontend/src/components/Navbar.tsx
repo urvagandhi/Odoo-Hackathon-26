@@ -33,6 +33,15 @@ interface NavbarProps {
   onToggleSidebar?: () => void;
 }
 
+/**
+ * Top navigation bar with brand, search, notifications, theme toggle, and user menu.
+ *
+ * Renders a responsive header containing the site logo, an expandable search input with clear action,
+ * a notifications button with an activity indicator, a dark-mode toggle, and a user avatar dropdown
+ * that exposes Profile, Settings, and Logout actions (Logout calls the auth logout handler and navigates to /login).
+ *
+ * @returns The Navbar component's JSX element.
+ */
 export default function Navbar({ }: NavbarProps) {
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -105,7 +114,7 @@ export default function Navbar({ }: NavbarProps) {
                 aria-label={t("ui.navbar.notifications")}
               >
                 <Bell className="w-[18px] h-[18px]" strokeWidth={1.8} />
-                <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border-[1.5px] border-white" />
+                <span className={`absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border-[1.5px] animate-notif-pulse ${isDark ? "border-neutral-900" : "border-white"}`} />
               </button>
 
               {/* Dark mode */}

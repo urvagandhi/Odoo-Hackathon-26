@@ -4,7 +4,7 @@
  * Exports: CSV download for trips
  * Charts: Revenue line chart, expenses donut, fleet performance table, CO2 estimates
  */
-import { useState, useEffect, useCallback } from "react";
+import { useState, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { motion } from "framer-motion";
 import {
@@ -14,11 +14,11 @@ import {
 import { Line, AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
-import {
-    analyticsApi, type MonthlyReport, type VehicleROI, type FuelEfficiency,
-} from "../api/client";
+import { useQuery } from "@tanstack/react-query";
+import { analyticsApi } from "../api/client";
 import { useTheme } from "../context/ThemeContext";
 import { useToast } from "../hooks/useToast";
+import { TableSkeleton } from "../components/ui/TableSkeleton";
 import html2canvas from "html2canvas";
 
 const COLORS = ["#10b981", "#f59e0b", "#6366f1", "#ef4444", "#3b82f6", "#8b5cf6"];
@@ -26,32 +26,41 @@ const card = "rounded-2xl border p-5 transition-all duration-200";
 const lightCard = "bg-white border-neutral-200 shadow-sm hover:shadow-md";
 const darkCard = "bg-neutral-800 border-neutral-700 shadow-sm hover:shadow-md";
 
+/**
+ * Renders the Analytics dashboard for financial and operational fleet reports, including KPIs, charts, tables, and export actions.
+ *
+ * The component fetches monthly financials, fuel-efficiency, and vehicle ROI data and provides UI controls to refresh data, export CSV, and export a PDF report. It displays three tabs: Overview (KPIs, revenue vs cost trend, expense breakdown, fleet performance, monthly report), Fuel Efficiency (charts and per-vehicle details), and Vehicle ROI (charts and per-vehicle ROI details). Loading and empty states are handled for charts and tables.
+ *
+ * @returns A React element containing the full analytics dashboard UI.
+ */
 export default function Analytics() {
     const { isDark } = useTheme();
     const { t } = useTranslation();
     const toast = useToast();
     const cardClass = `${card} ${isDark ? darkCard : lightCard}`;
-    const [monthly, setMonthly] = useState<MonthlyReport[]>([]);
-    const [fuelEff, setFuelEff] = useState<FuelEfficiency[]>([]);
-    const [vehicleROI, setVehicleROI] = useState<VehicleROI[]>([]);
-    const [loading, setLoading] = useState(true);
     const [activeTab, setActiveTab] = useState<"overview" | "fuel" | "roi">("overview");
 
-    const load = useCallback(async () => {
-        setLoading(true);
-        try {
-            const [m, f, r] = await Promise.all([
-                analyticsApi.getMonthlyReport(new Date().getFullYear()),
-                analyticsApi.getFuelEfficiency(),
-                analyticsApi.getVehicleROI(),
-            ]);
-            setMonthly(m);
-            setFuelEff(f ?? []);
-            setVehicleROI(r ?? []);
-        } catch { } finally { setLoading(false); }
-    }, []);
+    // Queries
+    const { data: monthly = [], isLoading: loadingMonthly, refetch: refetchMonthly } = useQuery({
+        queryKey: ["analytics", "monthly", new Date().getFullYear()],
+        queryFn: () => analyticsApi.getMonthlyReport(new Date().getFullYear()),
+    });
 
-    useEffect(() => { load(); }, [load]);
+    const { data: fuelEff = [], isLoading: loadingFuel, refetch: refetchFuel } = useQuery({
+        queryKey: ["analytics", "fuel-efficiency"],
+        queryFn: () => analyticsApi.getFuelEfficiency().then(res => res ?? []),
+    });
+
+    const { data: vehicleROI = [], isLoading: loadingROI, refetch: refetchROI } = useQuery({
+        queryKey: ["analytics", "vehicle-roi"],
+        queryFn: () => analyticsApi.getVehicleROI().then(res => res ?? []),
+    });
+
+    const loading = loadingMonthly || loadingFuel || loadingROI;
+
+    const load = useCallback(async () => {
+        await Promise.all([refetchMonthly(), refetchFuel(), refetchROI()]);
+    }, [refetchMonthly, refetchFuel, refetchROI]);
 
     const handleExport = async () => {
         try {
@@ -240,7 +249,7 @@ export default function Analytics() {
                         <Download className="w-4 h-4" /> {t("analytics.exportCSV")}
                     </button>
                     <button onClick={load}
-                        className="flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-500 text-white text-sm font-semibold hover:bg-emerald-600 transition-colors">
+                        className="flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-500 text-white text-sm font-semibold hover:bg-emerald-600 transition-all active:scale-[0.97]">
                         <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} /> {t("common.refresh")}
                     </button>
                 </div>
@@ -269,13 +278,13 @@ export default function Analytics() {
                     {/* Top KPIs */}
                     <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
                         <FinKpi label={t("analytics.kpi.totalRevenue")} value={`₹${(totalRevenue / 1000).toFixed(0)}K`} icon={DollarSign}
-                            color="emerald" sub={`${totalTrips} trips`} isDark={isDark} />
+                            color="emerald" sub={`${totalTrips} trips`} isDark={isDark} loading={loadingMonthly} />
                         <FinKpi label={t("analytics.kpi.totalExpenses")} value={`₹${(totalCost / 1000).toFixed(0)}K`} icon={TrendingDown}
-                            color="amber" sub="Fuel + Maintenance + Other" isDark={isDark} />
+                            color="amber" sub="Fuel + Maintenance + Other" isDark={isDark} loading={loadingMonthly} />
                         <FinKpi label={t("analytics.kpi.netProfit")} value={`₹${(totalProfit / 1000).toFixed(0)}K`} icon={totalProfit >= 0 ? TrendingUp : TrendingDown}
-                            color={totalProfit >= 0 ? "emerald" : "red"} sub={totalRevenue > 0 ? `${((totalProfit / totalRevenue) * 100).toFixed(1)}% margin` : ""} isDark={isDark} />
+                            color={totalProfit >= 0 ? "emerald" : "red"} sub={totalRevenue > 0 ? `${((totalProfit / totalRevenue) * 100).toFixed(1)}% margin` : ""} isDark={isDark} loading={loadingMonthly} />
                         <FinKpi label={t("analytics.kpi.avgFuelEfficiency")} value={`${avgFuelEfficiency} km/L`} icon={Fuel}
-                            color="blue" sub={`${fuelEff.length} vehicles tracked`} isDark={isDark} />
+                            color="blue" sub={`${fuelEff.length} vehicles tracked`} isDark={isDark} loading={loadingFuel} />
                     </div>
 
                     {/* Revenue chart + Expense breakdown */}
@@ -290,49 +299,61 @@ export default function Analytics() {
                                     <span className="flex items-center gap-1"><span className="w-3 h-3 rounded-full bg-violet-500" /> {t("analytics.charts.profit")}</span>
                                 </div>
                             </div>
-                            {monthly.length > 0 ? (
+                            {loadingMonthly || monthly.length > 0 ? (
                                 <ResponsiveContainer width="100%" height={260}>
-                                    <AreaChart data={monthly} margin={{ top: 4, right: 4, left: 0, bottom: 0 }}>
-                                        <defs>
-                                            <linearGradient id="revGradA" x1="0" y1="0" x2="0" y2="1">
-                                                <stop offset="5%" stopColor="#10b981" stopOpacity={0.15} />
-                                                <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
-                                            </linearGradient>
-                                            <linearGradient id="costGradA" x1="0" y1="0" x2="0" y2="1">
-                                                <stop offset="5%" stopColor="#f59e0b" stopOpacity={0.15} />
-                                                <stop offset="95%" stopColor="#f59e0b" stopOpacity={0} />
-                                            </linearGradient>
-                                        </defs>
-                                        <CartesianGrid strokeDasharray="3 3" stroke={isDark ? "#374151" : "#f0f0f0"} />
-                                        <XAxis dataKey="label" tick={{ fontSize: 10, fill: isDark ? "#9CA3AF" : "#6B7280" }} tickFormatter={v => v.split(" ")[0]} />
-                                        <YAxis tick={{ fontSize: 10, fill: isDark ? "#9CA3AF" : "#6B7280" }} tickFormatter={v => `₹${(v / 1000).toFixed(0)}k`} />
-                                        <Tooltip
-                                            contentStyle={{ background: isDark ? "#1f2937" : "#fff", border: "1px solid #e5e7eb", borderRadius: "12px", fontSize: 12 }}
-                                            formatter={(v: unknown) => String(v)}
-                                        />
-                                        <Area type="monotone" dataKey="revenue" stroke="#10b981" strokeWidth={2} fill="url(#revGradA)" name="Revenue" />
-                                        <Area type="monotone" dataKey="totalCost" stroke="#f59e0b" strokeWidth={2} fill="url(#costGradA)" name="Total Cost" />
-                                        <Line type="monotone" dataKey="profit" stroke="#8b5cf6" strokeWidth={2} dot={false} name="Profit" />
-                                    </AreaChart>
+                                    {!loadingMonthly ? (
+                                        <AreaChart data={monthly} margin={{ top: 4, right: 4, left: 0, bottom: 0 }}>
+                                            <defs>
+                                                <linearGradient id="revGradA" x1="0" y1="0" x2="0" y2="1">
+                                                    <stop offset="5%" stopColor="#10b981" stopOpacity={0.15} />
+                                                    <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
+                                                </linearGradient>
+                                                <linearGradient id="costGradA" x1="0" y1="0" x2="0" y2="1">
+                                                    <stop offset="5%" stopColor="#f59e0b" stopOpacity={0.15} />
+                                                    <stop offset="95%" stopColor="#f59e0b" stopOpacity={0} />
+                                                </linearGradient>
+                                            </defs>
+                                            <CartesianGrid strokeDasharray="3 3" stroke={isDark ? "#374151" : "#f0f0f0"} />
+                                            <XAxis dataKey="label" tick={{ fontSize: 10, fill: isDark ? "#9CA3AF" : "#6B7280" }} tickFormatter={v => v.split(" ")[0]} />
+                                            <YAxis tick={{ fontSize: 10, fill: isDark ? "#9CA3AF" : "#6B7280" }} tickFormatter={v => `₹${(v / 1000).toFixed(0)}k`} />
+                                            <Tooltip
+                                                contentStyle={{ background: isDark ? "#1f2937" : "#fff", border: "1px solid #e5e7eb", borderRadius: "12px", fontSize: 12 }}
+                                                formatter={(v: unknown) => String(v)}
+                                            />
+                                            <Area type="monotone" dataKey="revenue" stroke="#10b981" strokeWidth={2} fill="url(#revGradA)" name="Revenue" />
+                                            <Area type="monotone" dataKey="totalCost" stroke="#f59e0b" strokeWidth={2} fill="url(#costGradA)" name="Total Cost" />
+                                            <Line type="monotone" dataKey="profit" stroke="#8b5cf6" strokeWidth={2} dot={false} name="Profit" />
+                                        </AreaChart>
+                                    ) : (
+                                        <div className="w-full h-full flex items-center justify-center">
+                                            <EmptyState loading={true} isDark={isDark} text="" />
+                                        </div>
+                                    )}
                                 </ResponsiveContainer>
-                            ) : <EmptyState loading={loading} isDark={isDark} text={t("analytics.noData.monthly")} />}
+                            ) : <EmptyState loading={false} isDark={isDark} text={t("analytics.noData.monthly")} />}
                         </div>
 
                         {/* Expense donut */}
                         <div className={cardClass}>
                             <h2 className={`text-base font-bold mb-4 ${isDark ? "text-white" : "text-neutral-900"}`}>{t("analytics.charts.expenseBreakdown")}</h2>
-                            {expenseBreakdown.length > 0 ? (
+                            {loadingMonthly || expenseBreakdown.length > 0 ? (
                                 <ResponsiveContainer width="100%" height={260}>
-                                    <PieChart>
-                                        <Pie data={expenseBreakdown} cx="50%" cy="45%" innerRadius={55} outerRadius={85} paddingAngle={3} dataKey="value"
-                                            label={({ name, percent }) => `${name} ${((percent ?? 0) * 100).toFixed(0)}%`}
-                                        >
-                                            {expenseBreakdown.map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
-                                        </Pie>
-                                        <Tooltip contentStyle={{ borderRadius: "12px", fontSize: 12 }} formatter={(v: unknown) => `₹${Number(v).toLocaleString()}`} />
-                                    </PieChart>
+                                    {!loadingMonthly ? (
+                                        <PieChart>
+                                            <Pie data={expenseBreakdown} cx="50%" cy="45%" innerRadius={55} outerRadius={85} paddingAngle={3} dataKey="value"
+                                                label={({ name, percent }) => `${name} ${((percent ?? 0) * 100).toFixed(0)}%`}
+                                            >
+                                                {expenseBreakdown.map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
+                                            </Pie>
+                                            <Tooltip contentStyle={{ borderRadius: "12px", fontSize: 12 }} formatter={(v: unknown) => `₹${Number(v).toLocaleString()}`} />
+                                        </PieChart>
+                                    ) : (
+                                        <div className="w-full h-full flex items-center justify-center">
+                                            <EmptyState loading={true} isDark={isDark} text="" type="donut" />
+                                        </div>
+                                    )}
                                 </ResponsiveContainer>
-                            ) : <EmptyState loading={loading} isDark={isDark} text={t("analytics.noData.expenses")} />}
+                            ) : <EmptyState loading={false} isDark={isDark} text={t("analytics.noData.expenses")} type="donut" />}
                             {expenseBreakdown.length > 0 && (
                                 <div className="space-y-2 mt-2">
                                     {expenseBreakdown.map((e, i) => (
@@ -350,97 +371,101 @@ export default function Analytics() {
                     </div>
 
                     {/* Fleet performance table */}
-                    {vehicleROI.length > 0 && (
+                    {(loadingROI || vehicleROI.length > 0) && (
                         <div className={cardClass}>
                             <div className="flex items-center justify-between mb-4">
                                 <h2 className={`text-base font-bold ${isDark ? "text-white" : "text-neutral-900"}`}>{t("analytics.monthly.title")}</h2>
                                 <span className={`text-xs ${isDark ? "text-neutral-400" : "text-neutral-500"}`}>By vehicle</span>
                             </div>
-                            <div className="overflow-x-auto">
-                                <table className="w-full text-sm">
-                                    <thead>
-                                        <tr className={isDark ? "text-neutral-400 border-b border-neutral-700" : "text-neutral-500 border-b border-neutral-100"}>
-                                            {["#", t("analytics.monthly.title"), t("analytics.charts.revenue"), t("analytics.charts.cost"), t("analytics.charts.profit"), t("analytics.roiTable.roi")].map(h =>
-                                                <th key={h} className="text-left pb-3 pr-4 font-semibold text-xs">{h}</th>
-                                            )}
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {vehicleROI.slice(0, 10).map((v, i) => (
-                                            <tr key={v.vehicleId} className={isDark ? "border-b border-neutral-700/50" : "border-b border-neutral-50"}>
-                                                <td className={`py-2.5 pr-4 ${isDark ? "text-neutral-500" : "text-neutral-400"}`}>{i + 1}</td>
-                                                <td className="py-2.5 pr-4">
-                                                    <div className="flex items-center gap-2">
-                                                        <div className="w-7 h-7 rounded-full bg-emerald-500/10 flex items-center justify-center">
-                                                            <Truck className="w-3.5 h-3.5 text-emerald-500" />
-                                                        </div>
-                                                        <div>
-                                                            <p className={`font-semibold text-xs ${isDark ? "text-white" : "text-neutral-900"}`}>{v.licensePlate}</p>
-                                                            <p className={`text-[10px] ${isDark ? "text-neutral-500" : "text-neutral-400"}`}>{v.make} {v.model}</p>
-                                                        </div>
-                                                    </div>
-                                                </td>
-                                                <td className="py-2.5 pr-4 text-emerald-500 font-semibold">₹{Number(v.revenue).toLocaleString()}</td>
-                                                <td className={`py-2.5 pr-4 ${isDark ? "text-neutral-300" : "text-neutral-700"}`}>₹{Number(v.totalCost).toLocaleString()}</td>
-                                                <td className={`py-2.5 pr-4 font-bold ${Number(v.profit) >= 0 ? "text-emerald-500" : "text-red-500"}`}>
-                                                    <span className="flex items-center gap-1">
-                                                        {Number(v.profit) >= 0 ? <ArrowUpRight className="w-3 h-3" /> : <ArrowDownRight className="w-3 h-3" />}
-                                                        ₹{Math.abs(Number(v.profit)).toLocaleString()}
-                                                    </span>
-                                                </td>
-                                                <td className="py-2.5">
-                                                    <div className="flex items-center gap-2">
-                                                        <div className="flex-1 max-w-[80px] bg-neutral-200 dark:bg-neutral-600 rounded-full h-2 overflow-hidden">
-                                                            <div className={`h-full rounded-full ${parseFloat(v.roi) >= 0 ? "bg-emerald-500" : "bg-red-500"}`}
-                                                                style={{ width: `${Math.min(100, Math.abs(parseFloat(v.roi)))}%` }} />
-                                                        </div>
-                                                        <span className={`text-xs font-semibold ${parseFloat(v.roi) >= 0 ? "text-emerald-500" : "text-red-500"}`}>
-                                                            {v.roi}
-                                                        </span>
-                                                    </div>
-                                                </td>
+                            {loadingROI ? <TableSkeleton /> : (
+                                <div className="overflow-x-auto">
+                                    <table className="w-full text-sm">
+                                        <thead>
+                                            <tr className={isDark ? "text-neutral-400 border-b border-neutral-700" : "text-neutral-500 border-b border-neutral-100"}>
+                                                {["#", t("analytics.monthly.title"), t("analytics.charts.revenue"), t("analytics.charts.cost"), t("analytics.charts.profit"), t("analytics.roiTable.roi")].map(h =>
+                                                    <th key={h} className="text-left pb-3 pr-4 font-semibold text-xs">{h}</th>
+                                                )}
                                             </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
-                            </div>
+                                        </thead>
+                                        <tbody>
+                                            {vehicleROI.slice(0, 10).map((v, i) => (
+                                                <tr key={v.vehicleId} className={isDark ? "border-b border-neutral-700/50" : "border-b border-neutral-50"}>
+                                                    <td className={`py-2.5 pr-4 ${isDark ? "text-neutral-500" : "text-neutral-400"}`}>{i + 1}</td>
+                                                    <td className="py-2.5 pr-4">
+                                                        <div className="flex items-center gap-2">
+                                                            <div className="w-7 h-7 rounded-full bg-emerald-500/10 flex items-center justify-center">
+                                                                <Truck className="w-3.5 h-3.5 text-emerald-500" />
+                                                            </div>
+                                                            <div>
+                                                                <p className={`font-semibold text-xs ${isDark ? "text-white" : "text-neutral-900"}`}>{v.licensePlate}</p>
+                                                                <p className={`text-[10px] ${isDark ? "text-neutral-500" : "text-neutral-400"}`}>{v.make} {v.model}</p>
+                                                            </div>
+                                                        </div>
+                                                    </td>
+                                                    <td className="py-2.5 pr-4 text-emerald-500 font-semibold">₹{Number(v.revenue).toLocaleString()}</td>
+                                                    <td className={`py-2.5 pr-4 ${isDark ? "text-neutral-300" : "text-neutral-700"}`}>₹{Number(v.totalCost).toLocaleString()}</td>
+                                                    <td className={`py-2.5 pr-4 font-bold ${Number(v.profit) >= 0 ? "text-emerald-500" : "text-red-500"}`}>
+                                                        <span className="flex items-center gap-1">
+                                                            {Number(v.profit) >= 0 ? <ArrowUpRight className="w-3 h-3" /> : <ArrowDownRight className="w-3 h-3" />}
+                                                            ₹{Math.abs(Number(v.profit)).toLocaleString()}
+                                                        </span>
+                                                    </td>
+                                                    <td className="py-2.5">
+                                                        <div className="flex items-center gap-2">
+                                                            <div className="flex-1 max-w-[80px] bg-neutral-200 dark:bg-neutral-600 rounded-full h-2 overflow-hidden">
+                                                                <div className={`h-full rounded-full ${parseFloat(v.roi) >= 0 ? "bg-emerald-500" : "bg-red-500"}`}
+                                                                    style={{ width: `${Math.min(100, Math.abs(parseFloat(v.roi)))}%` }} />
+                                                            </div>
+                                                            <span className={`text-xs font-semibold ${parseFloat(v.roi) >= 0 ? "text-emerald-500" : "text-red-500"}`}>
+                                                                {v.roi}
+                                                            </span>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            )}
                         </div>
                     )}
 
                     {/* Monthly report table */}
-                    {monthly.filter(m => m.tripsCompleted > 0).length > 0 && (
+                    {(loadingMonthly || monthly.filter(m => m.tripsCompleted > 0).length > 0) && (
                         <div className={cardClass}>
                             <h2 className={`text-base font-bold mb-4 ${isDark ? "text-white" : "text-neutral-900"}`}>
                                 {t("analytics.monthly.title")}
                             </h2>
-                            <div className="overflow-x-auto">
-                                <table className="w-full text-sm">
-                                    <thead>
-                                        <tr className={isDark ? "text-neutral-400 border-b border-neutral-700" : "text-neutral-500 border-b border-neutral-100"}>
-                                            {[t("analytics.monthly.month"), t("analytics.monthly.trips"), t("analytics.monthly.distance"), t("analytics.monthly.revenue"), t("analytics.monthly.fuel"), t("analytics.monthly.maintenance"), t("analytics.monthly.other"), t("analytics.monthly.totalCost"), t("analytics.monthly.profit")].map(h =>
-                                                <th key={h} className="text-left pb-3 pr-3 font-semibold text-xs">{h}</th>
-                                            )}
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {monthly.filter(m => m.tripsCompleted > 0).map(m => (
-                                            <tr key={m.month} className={isDark ? "border-b border-neutral-700/50" : "border-b border-neutral-50"}>
-                                                <td className={`py-2.5 pr-3 font-medium ${isDark ? "text-white" : "text-neutral-900"}`}>{m.label}</td>
-                                                <td className={`py-2.5 pr-3 ${isDark ? "text-neutral-300" : "text-neutral-700"}`}>{m.tripsCompleted}</td>
-                                                <td className={`py-2.5 pr-3 ${isDark ? "text-neutral-300" : "text-neutral-700"}`}>{m.totalDistanceKm.toLocaleString()}</td>
-                                                <td className="py-2.5 pr-3 text-emerald-500 font-semibold">₹{m.revenue.toLocaleString()}</td>
-                                                <td className={`py-2.5 pr-3 ${isDark ? "text-neutral-300" : "text-neutral-700"}`}>₹{m.fuelCost.toLocaleString()}</td>
-                                                <td className={`py-2.5 pr-3 ${isDark ? "text-neutral-300" : "text-neutral-700"}`}>₹{m.maintenanceCost.toLocaleString()}</td>
-                                                <td className={`py-2.5 pr-3 ${isDark ? "text-neutral-300" : "text-neutral-700"}`}>₹{m.otherExpenses.toLocaleString()}</td>
-                                                <td className="py-2.5 pr-3 text-amber-500 font-semibold">₹{m.totalCost.toLocaleString()}</td>
-                                                <td className={`py-2.5 font-bold ${m.profit >= 0 ? "text-emerald-500" : "text-red-500"}`}>
-                                                    {m.profit >= 0 ? "+" : ""}₹{m.profit.toLocaleString()}
-                                                </td>
+                            {loadingMonthly ? <TableSkeleton /> : (
+                                <div className="overflow-x-auto">
+                                    <table className="w-full text-sm">
+                                        <thead>
+                                            <tr className={isDark ? "text-neutral-400 border-b border-neutral-700" : "text-neutral-500 border-b border-neutral-100"}>
+                                                {[t("analytics.monthly.month"), t("analytics.monthly.trips"), t("analytics.monthly.distance"), t("analytics.monthly.revenue"), t("analytics.monthly.fuel"), t("analytics.monthly.maintenance"), t("analytics.monthly.other"), t("analytics.monthly.totalCost"), t("analytics.monthly.profit")].map(h =>
+                                                    <th key={h} className="text-left pb-3 pr-3 font-semibold text-xs">{h}</th>
+                                                )}
                                             </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
-                            </div>
+                                        </thead>
+                                        <tbody>
+                                            {monthly.filter(m => m.tripsCompleted > 0).map(m => (
+                                                <tr key={m.month} className={isDark ? "border-b border-neutral-700/50" : "border-b border-neutral-50"}>
+                                                    <td className={`py-2.5 pr-3 font-medium ${isDark ? "text-white" : "text-neutral-900"}`}>{m.label}</td>
+                                                    <td className={`py-2.5 pr-3 ${isDark ? "text-neutral-300" : "text-neutral-700"}`}>{m.tripsCompleted}</td>
+                                                    <td className={`py-2.5 pr-3 ${isDark ? "text-neutral-300" : "text-neutral-700"}`}>{m.totalDistanceKm.toLocaleString()}</td>
+                                                    <td className="py-2.5 pr-3 text-emerald-500 font-semibold">₹{m.revenue.toLocaleString()}</td>
+                                                    <td className={`py-2.5 pr-3 ${isDark ? "text-neutral-300" : "text-neutral-700"}`}>₹{m.fuelCost.toLocaleString()}</td>
+                                                    <td className={`py-2.5 pr-3 ${isDark ? "text-neutral-300" : "text-neutral-700"}`}>₹{m.maintenanceCost.toLocaleString()}</td>
+                                                    <td className={`py-2.5 pr-3 ${isDark ? "text-neutral-300" : "text-neutral-700"}`}>₹{m.otherExpenses.toLocaleString()}</td>
+                                                    <td className="py-2.5 pr-3 text-amber-500 font-semibold">₹{m.totalCost.toLocaleString()}</td>
+                                                    <td className={`py-2.5 font-bold ${m.profit >= 0 ? "text-emerald-500" : "text-red-500"}`}>
+                                                        {m.profit >= 0 ? "+" : ""}₹{m.profit.toLocaleString()}
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            )}
                         </div>
                     )}
                 </motion.div>
@@ -468,40 +493,42 @@ export default function Analytics() {
                     {/* Fuel efficiency table */}
                     <div className={cardClass}>
                         <h2 className={`text-base font-bold mb-4 ${isDark ? "text-white" : "text-neutral-900"}`}>Fuel Efficiency Details</h2>
-                        <div className="overflow-x-auto">
-                            <table className="w-full text-sm">
-                                <thead>
-                                    <tr className={isDark ? "text-neutral-400 border-b border-neutral-700" : "text-neutral-500 border-b border-neutral-100"}>
-                                        {[t("analytics.fuelTable.vehicle"), t("analytics.fuelTable.totalDistance"), t("analytics.fuelTable.totalLiters"), t("analytics.fuelTable.fuelCost"), t("analytics.fuelTable.kmPerL"), t("analytics.fuelTable.costPerKm")].map(h =>
-                                            <th key={h} className="text-left pb-3 pr-4 font-semibold text-xs">{h}</th>
-                                        )}
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {fuelEff.map(f => (
-                                        <tr key={f.vehicleId} className={isDark ? "border-b border-neutral-700/50" : "border-b border-neutral-50"}>
-                                            <td className="py-2.5 pr-4">
-                                                <p className={`font-semibold ${isDark ? "text-white" : "text-neutral-900"}`}>{f.licensePlate}</p>
-                                                <p className={`text-xs ${isDark ? "text-neutral-500" : "text-neutral-400"}`}>{f.make} {f.model}</p>
-                                            </td>
-                                            <td className={`py-2.5 pr-4 ${isDark ? "text-neutral-300" : "text-neutral-700"}`}>{Number(f.totalDistanceKm).toLocaleString()} km</td>
-                                            <td className={`py-2.5 pr-4 ${isDark ? "text-neutral-300" : "text-neutral-700"}`}>{Number(f.totalLiters).toFixed(1)} L</td>
-                                            <td className="py-2.5 pr-4 text-blue-500 font-semibold">₹{Number(f.totalFuelCost).toLocaleString()}</td>
-                                            <td className="py-2.5 pr-4">
-                                                {f.kmPerLiter != null ? (
-                                                    <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-bold ${Number(f.kmPerLiter) >= 5 ? "bg-emerald-100 text-emerald-700" : Number(f.kmPerLiter) >= 2 ? "bg-amber-100 text-amber-700" : "bg-red-100 text-red-600"}`}>
-                                                        <Fuel className="w-3 h-3" />{Number(f.kmPerLiter).toFixed(2)}
-                                                    </span>
-                                                ) : <span className="text-neutral-400">—</span>}
-                                            </td>
-                                            <td className={`py-2.5 ${isDark ? "text-neutral-300" : "text-neutral-700"}`}>
-                                                {f.costPerKm != null ? `₹${Number(f.costPerKm).toFixed(2)}` : "—"}
-                                            </td>
+                        {loadingFuel ? <TableSkeleton /> : (
+                            <div className="overflow-x-auto">
+                                <table className="w-full text-sm">
+                                    <thead>
+                                        <tr className={isDark ? "text-neutral-400 border-b border-neutral-700" : "text-neutral-500 border-b border-neutral-100"}>
+                                            {[t("analytics.fuelTable.vehicle"), t("analytics.fuelTable.totalDistance"), t("analytics.fuelTable.totalLiters"), t("analytics.fuelTable.fuelCost"), t("analytics.fuelTable.kmPerL"), t("analytics.fuelTable.costPerKm")].map(h =>
+                                                <th key={h} className="text-left pb-3 pr-4 font-semibold text-xs">{h}</th>
+                                            )}
                                         </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                        </div>
+                                    </thead>
+                                    <tbody>
+                                        {fuelEff.map(f => (
+                                            <tr key={f.vehicleId} className={isDark ? "border-b border-neutral-700/50" : "border-b border-neutral-50"}>
+                                                <td className="py-2.5 pr-4">
+                                                    <p className={`font-semibold ${isDark ? "text-white" : "text-neutral-900"}`}>{f.licensePlate}</p>
+                                                    <p className={`text-xs ${isDark ? "text-neutral-500" : "text-neutral-400"}`}>{f.make} {f.model}</p>
+                                                </td>
+                                                <td className={`py-2.5 pr-4 ${isDark ? "text-neutral-300" : "text-neutral-700"}`}>{Number(f.totalDistanceKm).toLocaleString()} km</td>
+                                                <td className={`py-2.5 pr-4 ${isDark ? "text-neutral-300" : "text-neutral-700"}`}>{Number(f.totalLiters).toFixed(1)} L</td>
+                                                <td className="py-2.5 pr-4 text-blue-500 font-semibold">₹{Number(f.totalFuelCost).toLocaleString()}</td>
+                                                <td className="py-2.5 pr-4">
+                                                    {f.kmPerLiter != null ? (
+                                                        <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-bold ${Number(f.kmPerLiter) >= 5 ? "bg-emerald-100 text-emerald-700" : Number(f.kmPerLiter) >= 2 ? "bg-amber-100 text-amber-700" : "bg-red-100 text-red-600"}`}>
+                                                            <Fuel className="w-3 h-3" />{Number(f.kmPerLiter).toFixed(2)}
+                                                        </span>
+                                                    ) : <span className="text-neutral-400">—</span>}
+                                                </td>
+                                                <td className={`py-2.5 ${isDark ? "text-neutral-300" : "text-neutral-700"}`}>
+                                                    {f.costPerKm != null ? `₹${Number(f.costPerKm).toFixed(2)}` : "—"}
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        )}
                     </div>
                 </motion.div>
             )}
@@ -533,40 +560,42 @@ export default function Analytics() {
                     {/* ROI details table */}
                     <div className={cardClass}>
                         <h2 className={`text-base font-bold mb-4 ${isDark ? "text-white" : "text-neutral-900"}`}>Vehicle ROI Details</h2>
-                        <div className="overflow-x-auto">
-                            <table className="w-full text-sm">
-                                <thead>
-                                    <tr className={isDark ? "text-neutral-400 border-b border-neutral-700" : "text-neutral-500 border-b border-neutral-100"}>
-                                        {[t("analytics.roiTable.vehicle"), t("analytics.roiTable.revenue"), t("analytics.roiTable.fuelCost"), t("analytics.roiTable.maintenance"), t("analytics.roiTable.expenses"), t("analytics.roiTable.totalCost"), t("analytics.roiTable.profit"), t("analytics.roiTable.roi")].map(h =>
-                                            <th key={h} className="text-left pb-3 pr-3 font-semibold text-xs">{h}</th>
-                                        )}
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {vehicleROI.map(v => (
-                                        <tr key={v.vehicleId} className={isDark ? "border-b border-neutral-700/50" : "border-b border-neutral-50"}>
-                                            <td className="py-2.5 pr-3">
-                                                <p className={`font-semibold ${isDark ? "text-white" : "text-neutral-900"}`}>{v.licensePlate}</p>
-                                                <p className={`text-xs ${isDark ? "text-neutral-500" : "text-neutral-400"}`}>{v.make} {v.model}</p>
-                                            </td>
-                                            <td className="py-2.5 pr-3 text-emerald-500 font-semibold">₹{Number(v.revenue).toLocaleString()}</td>
-                                            <td className={`py-2.5 pr-3 ${isDark ? "text-neutral-300" : "text-neutral-700"}`}>₹{Number(v.fuelCost).toLocaleString()}</td>
-                                            <td className={`py-2.5 pr-3 ${isDark ? "text-neutral-300" : "text-neutral-700"}`}>₹{Number(v.maintenanceCost).toLocaleString()}</td>
-                                            <td className={`py-2.5 pr-3 ${isDark ? "text-neutral-300" : "text-neutral-700"}`}>₹{Number(v.expenseCost).toLocaleString()}</td>
-                                            <td className="py-2.5 pr-3 text-amber-500 font-semibold">₹{Number(v.totalCost).toLocaleString()}</td>
-                                            <td className={`py-2.5 pr-3 font-bold ${Number(v.profit) >= 0 ? "text-emerald-500" : "text-red-500"}`}>
-                                                {Number(v.profit) >= 0 ? "+" : ""}₹{Number(v.profit).toLocaleString()}
-                                            </td>
-                                            <td className="py-2.5">
-                                                <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${parseFloat(v.roi) >= 0 ? "bg-emerald-100 text-emerald-700" : "bg-red-100 text-red-600"}`}>
-                                                    {v.roi}%
-                                                </span>
-                                            </td>
+                        {loadingROI ? <TableSkeleton /> : (
+                            <div className="overflow-x-auto">
+                                <table className="w-full text-sm">
+                                    <thead>
+                                        <tr className={isDark ? "text-neutral-400 border-b border-neutral-700" : "text-neutral-500 border-b border-neutral-100"}>
+                                            {[t("analytics.roiTable.vehicle"), t("analytics.roiTable.revenue"), t("analytics.roiTable.fuelCost"), t("analytics.roiTable.maintenance"), t("analytics.roiTable.expenses"), t("analytics.roiTable.totalCost"), t("analytics.roiTable.profit"), t("analytics.roiTable.roi")].map(h =>
+                                                <th key={h} className="text-left pb-3 pr-3 font-semibold text-xs">{h}</th>
+                                            )}
                                         </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                        </div>
+                                    </thead>
+                                    <tbody>
+                                        {vehicleROI.map(v => (
+                                            <tr key={v.vehicleId} className={isDark ? "border-b border-neutral-700/50" : "border-b border-neutral-50"}>
+                                                <td className="py-2.5 pr-3">
+                                                    <p className={`font-semibold ${isDark ? "text-white" : "text-neutral-900"}`}>{v.licensePlate}</p>
+                                                    <p className={`text-xs ${isDark ? "text-neutral-500" : "text-neutral-400"}`}>{v.make} {v.model}</p>
+                                                </td>
+                                                <td className="py-2.5 pr-3 text-emerald-500 font-semibold">₹{Number(v.revenue).toLocaleString()}</td>
+                                                <td className={`py-2.5 pr-3 ${isDark ? "text-neutral-300" : "text-neutral-700"}`}>₹{Number(v.fuelCost).toLocaleString()}</td>
+                                                <td className={`py-2.5 pr-3 ${isDark ? "text-neutral-300" : "text-neutral-700"}`}>₹{Number(v.maintenanceCost).toLocaleString()}</td>
+                                                <td className={`py-2.5 pr-3 ${isDark ? "text-neutral-300" : "text-neutral-700"}`}>₹{Number(v.expenseCost).toLocaleString()}</td>
+                                                <td className="py-2.5 pr-3 text-amber-500 font-semibold">₹{Number(v.totalCost).toLocaleString()}</td>
+                                                <td className={`py-2.5 pr-3 font-bold ${Number(v.profit) >= 0 ? "text-emerald-500" : "text-red-500"}`}>
+                                                    {Number(v.profit) >= 0 ? "+" : ""}₹{Number(v.profit).toLocaleString()}
+                                                </td>
+                                                <td className="py-2.5">
+                                                    <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${parseFloat(v.roi) >= 0 ? "bg-emerald-100 text-emerald-700" : "bg-red-100 text-red-600"}`}>
+                                                        {v.roi}%
+                                                    </span>
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        )}
                     </div>
                 </motion.div>
             )}
@@ -574,9 +603,18 @@ export default function Analytics() {
     );
 }
 
-function FinKpi({ label, value, sub, icon: Icon, color, isDark }: {
+/**
+ * Render a financial KPI card displaying a label, primary value, subtitle, and an icon with selectable color and dark-mode styling; shows a shimmering skeleton when loading.
+ *
+ * @param icon - React component used as the KPI icon; rendered inside a colored circular background.
+ * @param color - Visual theme for the icon background and accent. Supported values: `"emerald"`, `"amber"`, `"blue"`, `"red"`. Defaults to emerald if an unknown value is provided.
+ * @param isDark - When `true`, apply dark-mode styles for text and backgrounds.
+ * @param loading - When `true`, display a skeleton placeholder instead of the KPI content.
+ * @returns A JSX element representing the KPI card.
+ */
+function FinKpi({ label, value, sub, icon: Icon, color, isDark, loading }: {
     label: string; value: string; sub: string;
-    icon: React.ElementType; color: string; isDark: boolean;
+    icon: React.ElementType; color: string; isDark: boolean; loading?: boolean;
 }) {
     const bgMap: Record<string, { bg: string; darkBg: string; text: string }> = {
         emerald: { bg: "bg-emerald-50", darkBg: "bg-emerald-500/10", text: "text-emerald-600" },
@@ -587,26 +625,65 @@ function FinKpi({ label, value, sub, icon: Icon, color, isDark }: {
     const c = bgMap[color] ?? bgMap.emerald;
     return (
         <div className={`${card} ${isDark ? darkCard : lightCard}`}>
-            <div className="flex items-start justify-between">
-                <div>
-                    <p className={`text-xs font-semibold mb-1 ${isDark ? "text-neutral-400" : "text-neutral-500"}`}>{label}</p>
-                    <p className={`text-2xl font-extrabold ${isDark ? "text-white" : "text-neutral-900"}`}>{value}</p>
-                    <p className={`text-xs mt-1 ${isDark ? "text-neutral-500" : "text-neutral-400"}`}>{sub}</p>
+            {loading ? (
+                <div className="space-y-3 relative overflow-hidden">
+                    <div className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent dark:via-white/5 via-white/10 to-transparent animate-shimmer" />
+                    <div className={`h-3 w-20 rounded ${isDark ? 'bg-neutral-700' : 'bg-neutral-100'}`} />
+                    <div className={`h-8 w-32 rounded ${isDark ? 'bg-neutral-700' : 'bg-neutral-100'}`} />
+                    <div className={`h-3 w-24 rounded ${isDark ? 'bg-neutral-700' : 'bg-neutral-100'}`} />
                 </div>
-                <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${isDark ? c.darkBg : c.bg}`}>
-                    <Icon className={`w-5 h-5 ${c.text}`} />
+            ) : (
+                <div className="flex items-start justify-between">
+                    <div>
+                        <p className={`text-xs font-semibold mb-1 ${isDark ? "text-neutral-400" : "text-neutral-500"}`}>{label}</p>
+                        <p className={`text-2xl font-extrabold ${isDark ? "text-white" : "text-neutral-900"}`}>{value}</p>
+                        <p className={`text-xs mt-1 ${isDark ? "text-neutral-500" : "text-neutral-400"}`}>{sub}</p>
+                    </div>
+                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${isDark ? c.darkBg : c.bg}`}>
+                        <Icon className={`w-5 h-5 ${c.text}`} />
+                    </div>
                 </div>
-            </div>
+            )}
         </div>
     );
 }
 
-function EmptyState({ loading, isDark, text }: { loading: boolean; isDark: boolean; text: string }) {
-    const { t } = useTranslation();
+/**
+ * Renders a placeholder UI for chart or donut visuals when data is loading or absent.
+ *
+ * When `loading` is true, displays an animated skeleton: a circular ring for `type = "donut"`
+ * or a set of rising bars for `type = "chart"`. When `loading` is false, displays a centered
+ * minimal empty state with a small chart icon and the provided `text`.
+ *
+ * @param loading - Whether to show the loading skeleton (true) or the empty-state message (false).
+ * @param isDark - Controls dark-mode styling variations for the placeholder.
+ * @param text - The message shown when not loading.
+ * @param type - The placeholder style to render; `"chart"` renders bar-like skeletons, `"donut"` renders a circular ring.
+ * @returns A React element containing the appropriate empty/loading placeholder.
+ */
+function EmptyState({ loading, isDark, text, type = "chart" }: { loading: boolean; isDark: boolean; text: string; type?: "chart" | "donut" }) {
+    if (loading) {
+        if (type === "donut") {
+            return (
+                <div className={`w-full h-[260px] flex items-center justify-center rounded-xl relative overflow-hidden ${isDark ? 'bg-neutral-800/20' : 'bg-neutral-50/50'}`}>
+                    <div className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent dark:via-white/5 via-white/20 to-transparent animate-shimmer" />
+                    <div className={`w-36 h-36 rounded-full border-[1.5rem] ${isDark ? 'border-neutral-700/50' : 'border-neutral-200/60'}`} />
+                </div>
+            );
+        }
+        return (
+            <div className={`w-full h-[260px] rounded-xl flex items-end gap-3 p-4 relative overflow-hidden ${isDark ? 'bg-neutral-800/20' : 'bg-neutral-50/50'}`}>
+                <div className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent dark:via-white/5 via-white/20 to-transparent animate-shimmer" />
+                {[40, 70, 45, 90, 65, 80, 50, 85].map((h, i) => (
+                    <div key={i} className={`flex-1 rounded-t-sm ${isDark ? 'bg-neutral-700/40' : 'bg-neutral-200/60'}`} style={{ height: `${h}%` }} />
+                ))}
+            </div>
+        );
+    }
     return (
         <div className={`h-[260px] flex items-center justify-center ${isDark ? "text-neutral-500" : "text-neutral-400"}`}>
             <BarChart3 className="w-6 h-6 mr-2 opacity-40" />
-            {loading ? t("common.loading") : text}
+            {text}
         </div>
     );
 }

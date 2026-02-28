@@ -5,14 +5,14 @@
  * status toggle: On Duty / Off Duty / Suspended
  * Live map showing driver's last known location
  */
-import { useState, useEffect, useCallback } from "react";
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { motion, AnimatePresence } from "framer-motion";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
-    Calendar, Award, TrendingDown, Filter, Download,
-    CheckCircle2, Clock, MapPin, UserX, Plus, Users,
-    Shield, AlertTriangle, Search, Phone, Mail,
-    ChevronDown, Edit3, Trash2, X
+    AlertTriangle, Award, Calendar, CheckCircle2, ChevronDown, Clock, Download,
+    Edit3, Filter, Mail, MapPin, Phone, Plus, Search, Shield,
+    TrendingDown, Trash2, UserX, Users, X
 } from "lucide-react";
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import L from "leaflet";
@@ -30,6 +30,7 @@ import {
     AlertDialogCancel,
     AlertDialogAction,
 } from "../components/ui/AlertDialog";
+import { TableSkeleton } from "../components/ui/TableSkeleton";
 
 // Fix Leaflet default icon
 delete (L.Icon.Default.prototype as unknown as Record<string, unknown>)._getIconUrl;
@@ -71,42 +72,66 @@ interface LocationPoint {
     speed?: number;
 }
 
+/**
+ * Renders the Drivers management page, providing listing, search/filter, CRUD (create, update, delete), status management, safety score adjustments, license expiry alerts, CSV export, and a detail view with a live map of driver locations.
+ *
+ * This component fetches drivers, expiring licenses, and latest locations via React Query, performs mutations with optimistic updates for status and delete operations, and shows a modal for creating or editing drivers. It also computes KPIs (total, on-duty, on-trip, suspended, average safety) and adapts layout for mobile and dark mode.
+ *
+ * @returns The JSX element for the Drivers management page.
+ */
 export default function Drivers() {
     const { isDark } = useTheme();
     const toast = useToast();
     const { t } = useTranslation();
-    const [drivers, setDrivers] = useState<Driver[]>([]);
-    const [loading, setLoading] = useState(true);
+    const queryClient = useQueryClient();
     const [search, setSearch] = useState("");
     const [statusFilter, setStatusFilter] = useState("");
     const [showModal, setShowModal] = useState(false);
     const [editDriver, setEditDriver] = useState<Driver | null>(null);
-    const [saving, setSaving] = useState(false);
-    const [error, setError] = useState("");
+    const [localError, setLocalError] = useState("");
     const [selectedDriver, setSelectedDriver] = useState<Driver | null>(null);
-    const [expiringDrivers, setExpiringDrivers] = useState<Driver[]>([]);
-    const [locations, setLocations] = useState<LocationPoint[]>([]);
     const [actionDriverId, setActionDriverId] = useState<string | null>(null);
+    const [mobileView, setMobileView] = useState<'list' | 'detail'>('list');
     const [form, setForm] = useState({
         fullName: "", licenseNumber: "", phone: "", email: "",
         dateOfBirth: "", licenseExpiryDate: "", licenseClass: "", safetyScore: 100,
     });
 
-    const load = useCallback(async () => {
-        setLoading(true);
-        try {
-            const [d, exp, locs] = await Promise.all([
-                hrApi.listDrivers({ limit: 100 }),
-                hrApi.getExpiringLicenses(30).catch(() => []),
-                locationsApi.getLatestLocations().catch(() => []),
-            ]);
-            setDrivers(d.data ?? []);
-            setExpiringDrivers(exp ?? []);
-            setLocations((locs as LocationPoint[]) ?? []);
-        } finally { setLoading(false); }
-    }, []);
+    /* ── Fetch Data using React Query ───────────────── */
+    const { data: driversData, isLoading: loadingDrivers, refetch: refetchDrivers } = useQuery({
+        queryKey: ['drivers'],
+        queryFn: async () => {
+            const res = await hrApi.listDrivers({ limit: 100 });
+            return res.data ?? [];
+        }
+    });
 
-    useEffect(() => { load(); }, [load]);
+    const { data: expiringDriversData } = useQuery({
+        queryKey: ['drivers', 'expiring'],
+        queryFn: async () => {
+            try {
+                return await hrApi.getExpiringLicenses(30);
+            } catch {
+                return [];
+            }
+        }
+    });
+
+    const { data: locationsData } = useQuery({
+        queryKey: ['drivers', 'locations'],
+        queryFn: async () => {
+            try {
+                return await locationsApi.getLatestLocations();
+            } catch {
+                return [];
+            }
+        }
+    });
+
+    const drivers = driversData ?? [];
+    const expiringDrivers = expiringDriversData ?? [];
+    const locations = (locationsData as LocationPoint[]) ?? [];
+    const loading = loadingDrivers;
 
     const filtered = drivers.filter(d =>
         (!statusFilter || d.status === statusFilter) &&
@@ -118,7 +143,7 @@ export default function Drivers() {
     const openCreate = () => {
         setEditDriver(null);
         setForm({ fullName: "", licenseNumber: "", phone: "", email: "", dateOfBirth: "", licenseExpiryDate: "", licenseClass: "", safetyScore: 100 });
-        setError(""); setShowModal(true);
+        setLocalError(""); setShowModal(true);
     };
 
     const openEdit = (d: Driver) => {
@@ -130,44 +155,82 @@ export default function Drivers() {
             licenseExpiryDate: d.licenseExpiryDate.slice(0, 10),
             licenseClass: d.licenseClass ?? "", safetyScore: d.safetyScore,
         });
-        setError(""); setShowModal(true);
+        setLocalError(""); setShowModal(true);
     };
+
+    const saveMutation = useMutation({
+        mutationFn: async () => {
+            if (editDriver) {
+                return hrApi.updateDriver(editDriver.id, form as unknown as Partial<Driver>);
+            } else {
+                return hrApi.createDriver(form);
+            }
+        },
+        onMutate: () => { setShowModal(false); },
+        onSuccess: () => {
+            toast.success(t("crew.form.savedSuccess"), { title: t("crew.form.savedSuccessTitle") });
+        },
+        onError: (err: any) => {
+            setShowModal(true);
+            setLocalError(err.response?.data?.message || err.message || t("crew.form.savedFailed"));
+        },
+        onSettled: () => { queryClient.invalidateQueries({ queryKey: ["drivers"] }); }
+    });
+    const saving = saveMutation.isPending;
 
     const handleSave = async (e: React.FormEvent) => {
         e.preventDefault();
-        setSaving(true); setError("");
-        try {
-            if (editDriver) {
-                await hrApi.updateDriver(editDriver.id, form as unknown as Partial<Driver>);
-            } else {
-                await hrApi.createDriver(form);
-            }
-            setShowModal(false);
-            load();
-        } catch (err: unknown) {
-            setError((err as { response?: { data?: { message?: string } } })?.response?.data?.message ?? t("drivers.toast.saveFailed"));
-        } finally { setSaving(false); }
+        setLocalError("");
+        saveMutation.mutate();
     };
 
-    const handleStatusChange = async (d: Driver, status: string) => {
-        try {
-            await hrApi.updateDriverStatus(d.id, status);
-            toast.success(t("drivers.toast.statusUpdated", { name: d.fullName, status: status.replace('_', ' ') }), { title: t("drivers.toast.statusUpdatedTitle") });
-            load();
-        } catch (err: unknown) {
-            toast.error((err as { response?: { data?: { message?: string } } })?.response?.data?.message ?? t("drivers.toast.statusUpdateFailed"), { title: t("drivers.toast.statusUpdateFailedTitle") });
-        }
+    const statusMutation = useMutation({
+        mutationFn: ({ id, status }: { id: string, status: string }) => hrApi.updateDriverStatus(id, status),
+        onMutate: async ({ id, status }) => {
+            await queryClient.cancelQueries({ queryKey: ["drivers"] });
+            const previous = queryClient.getQueryData<Driver[]>(["drivers"]);
+            queryClient.setQueryData<Driver[]>(["drivers"], old =>
+                (old ?? []).map(d => d.id === id ? { ...d, status } as Driver : d)
+            );
+            return { previous };
+        },
+        onSuccess: (_data, { status }) => {
+            toast.success(t("drivers.toast.statusUpdated", { name: "", status: status.replace('_', ' ') }), { title: t("drivers.toast.statusUpdatedTitle") });
+        },
+        onError: (_err, _vars, context) => {
+            if (context?.previous) queryClient.setQueryData(["drivers"], context.previous);
+            toast.error(t("drivers.toast.statusUpdateFailed"), { title: t("drivers.toast.statusUpdateFailedTitle") });
+        },
+        onSettled: () => { queryClient.invalidateQueries({ queryKey: ["drivers"] }); }
+    });
+
+    const handleStatusChange = (d: Driver, status: string) => {
+        statusMutation.mutate({ id: d.id, status });
     };
 
-    const handleDelete = async (id: string) => {
-        try {
-            await hrApi.deleteDriver(id);
+    const deleteMutation = useMutation({
+        mutationFn: (id: string) => hrApi.deleteDriver(id),
+        onMutate: async (id) => {
+            await queryClient.cancelQueries({ queryKey: ["drivers"] });
+            const previous = queryClient.getQueryData<Driver[]>(["drivers"]);
+            queryClient.setQueryData<Driver[]>(["drivers"], old =>
+                (old ?? []).filter(d => d.id !== id)
+            );
+            setActionDriverId(null);
+            return { previous };
+        },
+        onSuccess: () => {
             toast.success(t("drivers.toast.deleted"), { title: t("drivers.toast.deletedTitle") });
-            load();
-        } catch {
+        },
+        onError: (_err, _id, context) => {
+            if (context?.previous) queryClient.setQueryData(["drivers"], context.previous);
             toast.error(t("drivers.toast.deleteFailed"), { title: t("drivers.toast.deleteFailedTitle") });
-        }
-        setActionDriverId(null);
+        },
+        onSettled: () => { queryClient.invalidateQueries({ queryKey: ["drivers"] }); }
+    });
+
+    const handleDelete = (id: string) => {
+        deleteMutation.mutate(id);
     };
 
     const handleExport = async () => {
@@ -190,7 +253,7 @@ export default function Drivers() {
         const reason = prompt(`Reason for ${adj > 0 ? "+" : ""}${adj} safety score?`);
         if (reason === null) return;
         await hrApi.adjustSafetyScore(d.id, adj, reason);
-        load();
+        refetchDrivers();
     };
 
     const inputClass = `${FIELD} ${isDark ? "bg-neutral-700 border-neutral-600 text-white placeholder-neutral-400" : "bg-white border-neutral-200 text-neutral-900 placeholder-neutral-400"}`;
@@ -206,18 +269,18 @@ export default function Drivers() {
     return (
         <div className="max-w-[1600px] mx-auto space-y-5">
             {/* Header */}
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
                 <div>
                     <h1 className={`text-2xl font-bold ${isDark ? "text-white" : "text-neutral-900"}`}>{t("drivers.title")}</h1>
                     <p className={`text-sm ${isDark ? "text-neutral-400" : "text-neutral-500"}`}>
                         {t("drivers.stats", { total: totalDrivers, onDuty, onTrip })}
                     </p>
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 w-full sm:w-auto">
                     <button onClick={handleExport} className="flex items-center gap-2 px-4 py-2 rounded-xl border border-emerald-200 text-emerald-600 text-sm font-semibold hover:bg-emerald-50 dark:border-emerald-500/30 dark:text-emerald-400 dark:hover:bg-emerald-500/10 transition-colors">
                         <Download className="w-4 h-4" /> {t("drivers.exportCSV")}
                     </button>
-                    <button onClick={openCreate} className="flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-500 text-white text-sm font-semibold hover:bg-emerald-600 transition-colors">
+                    <button onClick={openCreate} className="flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-500 text-white text-sm font-semibold hover:bg-emerald-600 transition-all active:scale-[0.97]">
                         <Plus className="w-4 h-4" /> {t("drivers.addDriver")}
                     </button>
                 </div>
@@ -252,18 +315,28 @@ export default function Drivers() {
                 </div>
             )}
 
-            <div className="flex gap-5">
+            {/* Mobile view toggle */}
+            <div className={`flex lg:hidden mb-0 gap-1 p-1 rounded-xl ${isDark ? 'bg-neutral-800' : 'bg-neutral-100'}`}>
+                <button onClick={() => setMobileView('list')} className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-sm font-semibold transition-colors ${mobileView === 'list' ? (isDark ? 'bg-neutral-700 text-emerald-400 shadow-sm' : 'bg-white text-emerald-600 shadow-sm') : (isDark ? 'text-neutral-500' : 'text-neutral-500')}`}>
+                    <Users className="w-4 h-4" /> Drivers
+                </button>
+                <button onClick={() => setMobileView('detail')} className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-sm font-semibold transition-colors ${mobileView === 'detail' ? (isDark ? 'bg-neutral-700 text-emerald-400 shadow-sm' : 'bg-white text-emerald-600 shadow-sm') : (isDark ? 'text-neutral-500' : 'text-neutral-500')}`}>
+                    <MapPin className="w-4 h-4" /> Detail & Map
+                </button>
+            </div>
+
+            <div className="flex flex-col lg:flex-row gap-5">
                 {/* LEFT: Driver list */}
-                <div className="flex-1 space-y-4">
+                <div className={`flex-1 space-y-4 ${mobileView === 'detail' ? 'hidden lg:block' : 'block'}`}>
                     {/* Search & filter */}
-                    <div className={`flex items-center gap-3 p-3 rounded-2xl border ${isDark ? "bg-neutral-800 border-neutral-700" : "bg-white border-neutral-200"}`}>
-                        <div className="relative flex-1 max-w-sm">
+                    <div className={`flex flex-col sm:flex-row items-stretch sm:items-center gap-3 p-3 rounded-2xl border ${isDark ? "bg-neutral-800 border-neutral-700" : "bg-white border-neutral-200"}`}>
+                        <div className="relative w-full sm:flex-1 sm:max-w-sm">
                             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400" />
                             <input value={search} onChange={e => setSearch(e.target.value)} placeholder={t("drivers.searchPlaceholder")}
                                 className={`${inputClass} pl-9`} />
                         </div>
-                        <div className="flex items-center gap-2">
-                            <Filter className="w-4 h-4 text-neutral-400" />
+                        <div className="flex items-center gap-2 overflow-x-auto">
+                            <Filter className="w-4 h-4 text-neutral-400 shrink-0" />
                             {["", "ON_DUTY", "OFF_DUTY", "ON_TRIP", "SUSPENDED"].map(s => (
                                 <button key={s} onClick={() => setStatusFilter(s)}
                                     className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${statusFilter === s ? "bg-emerald-500 text-white" : isDark ? "text-neutral-300 hover:bg-neutral-700" : "text-neutral-600 hover:bg-neutral-100"}`}
@@ -277,14 +350,15 @@ export default function Drivers() {
                     {/* Table */}
                     <div className={`rounded-2xl border overflow-hidden ${isDark ? "bg-neutral-800 border-neutral-700" : "bg-white border-neutral-200 shadow-sm"}`}>
                         {loading ? (
-                            <div className="flex items-center justify-center h-40 text-neutral-400">{t("common.loading")}</div>
+                            <TableSkeleton />
                         ) : filtered.length === 0 ? (
                             <div className="flex flex-col items-center justify-center h-40 text-neutral-400">
                                 <Users className="w-10 h-10 mb-2 opacity-30" />
                                 <p>{t("drivers.noDrivers")}</p>
                             </div>
                         ) : (
-                            <table className="w-full text-sm">
+                            <div className="overflow-x-auto">
+                            <table className="w-full text-sm min-w-[700px]">
                                 <thead>
                                     <tr className={`text-xs font-semibold uppercase tracking-wide border-b ${isDark ? "text-neutral-400 border-neutral-700 bg-neutral-900/30" : "text-neutral-500 border-neutral-100 bg-neutral-50"}`}>
                                         {[
@@ -351,12 +425,12 @@ export default function Drivers() {
                                                     </span>
                                                 </td>
                                                 <td className="px-4 py-3.5">
-                                                    <div className="relative group inline-block">
+                                                    <div className="relative group inline-block" tabIndex={0}>
                                                         <button className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold ${STATUS_CONFIG[d.status]?.className}`}>
                                                             {STATUS_CONFIG[d.status] ? t(STATUS_CONFIG[d.status].labelKey) : d.status}
                                                             <ChevronDown className="w-3 h-3" />
                                                         </button>
-                                                        <div className="absolute left-0 top-full mt-1 z-20 hidden group-hover:block bg-white border border-neutral-200 rounded-xl shadow-lg py-1 min-w-[140px]">
+                                                        <div className="absolute left-0 top-full mt-1 z-20 hidden group-hover:block group-focus-within:block bg-white border border-neutral-200 rounded-xl shadow-lg py-1 min-w-[140px]">
                                                             {["ON_DUTY", "OFF_DUTY", "SUSPENDED"].filter(s => s !== d.status).map(s => (
                                                                 <button key={s} onClick={(e) => { e.stopPropagation(); handleStatusChange(d, s); }}
                                                                     className="block w-full text-left px-3 py-1.5 text-xs text-neutral-700 hover:bg-neutral-50">
@@ -402,12 +476,13 @@ export default function Drivers() {
                                     })}
                                 </tbody>
                             </table>
+                            </div>
                         )}
                     </div>
                 </div>
 
                 {/* RIGHT: Driver detail + map */}
-                <div className="w-[380px] shrink-0 space-y-4">
+                <div className={`w-full lg:w-[380px] lg:shrink-0 space-y-4 ${mobileView === 'list' ? 'hidden lg:block' : 'block'}`}>
                     {selectedDriver ? (
                         <>
                             {/* Driver profile card */}
@@ -506,10 +581,10 @@ export default function Drivers() {
                                 </button>
                             </div>
 
-                            {error && <div className="mb-4 text-red-500 text-sm bg-red-50 border border-red-100 rounded-xl p-3 flex items-center gap-2"><AlertTriangle className="w-4 h-4" />{error}</div>}
+                            {localError && <div className="mb-4 text-red-500 text-sm bg-red-50 border border-red-100 rounded-xl p-3 flex items-center gap-2"><AlertTriangle className="w-4 h-4" />{localError}</div>}
 
                             <form onSubmit={handleSave} className="space-y-4">
-                                <div className="grid grid-cols-2 gap-4">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                     <div>
                                         <label className={`block text-xs font-semibold mb-1.5 ${isDark ? "text-neutral-300" : "text-neutral-700"}`}>{t("drivers.form.fullName")} *</label>
                                         <input required value={form.fullName} onChange={e => setForm(f => ({ ...f, fullName: e.target.value }))} className={inputClass} placeholder={t("drivers.form.fullNamePlaceholder")} />
@@ -519,7 +594,7 @@ export default function Drivers() {
                                         <input required value={form.licenseNumber} onChange={e => setForm(f => ({ ...f, licenseNumber: e.target.value.toUpperCase() }))} className={inputClass} placeholder={t("drivers.form.licensePlaceholder")} />
                                     </div>
                                 </div>
-                                <div className="grid grid-cols-2 gap-4">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                     <div>
                                         <label className={`block text-xs font-semibold mb-1.5 ${isDark ? "text-neutral-300" : "text-neutral-700"}`}>{t("drivers.form.phone")}</label>
                                         <input value={form.phone} onChange={e => setForm(f => ({ ...f, phone: e.target.value }))} className={inputClass} placeholder={t("drivers.form.phonePlaceholder")} />
@@ -529,7 +604,7 @@ export default function Drivers() {
                                         <input type="email" value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))} className={inputClass} placeholder={t("drivers.form.emailPlaceholder")} />
                                     </div>
                                 </div>
-                                <div className="grid grid-cols-2 gap-4">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                     <div>
                                         <label className={`block text-xs font-semibold mb-1.5 ${isDark ? "text-neutral-300" : "text-neutral-700"}`}>{t("drivers.form.dateOfBirth")}</label>
                                         <input type="date" value={form.dateOfBirth} onChange={e => setForm(f => ({ ...f, dateOfBirth: e.target.value }))} className={inputClass} />
@@ -539,7 +614,7 @@ export default function Drivers() {
                                         <input required type="date" value={form.licenseExpiryDate} onChange={e => setForm(f => ({ ...f, licenseExpiryDate: e.target.value }))} className={inputClass} />
                                     </div>
                                 </div>
-                                <div className="grid grid-cols-2 gap-4">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                     <div>
                                         <label className={`block text-xs font-semibold mb-1.5 ${isDark ? "text-neutral-300" : "text-neutral-700"}`}>{t("drivers.form.licenseClass")}</label>
                                         <input value={form.licenseClass} onChange={e => setForm(f => ({ ...f, licenseClass: e.target.value }))} className={inputClass} placeholder={t("drivers.form.licenseClassPlaceholder")} />

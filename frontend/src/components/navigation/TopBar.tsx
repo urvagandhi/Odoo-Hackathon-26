@@ -12,11 +12,22 @@ import {
   Search,
   LogOut,
   User,
+  Menu,
 } from "lucide-react";
 import { useAuth } from "../../hooks/useAuth";
 import { useTheme } from "../../context/ThemeContext";
 
-export default function TopBar() {
+interface TopBarProps {
+  onMenuClick?: () => void;
+}
+
+/**
+ * Top navigation bar that displays the current page title, action buttons, and a user menu.
+ *
+ * @param onMenuClick - Optional callback invoked when the mobile hamburger button is clicked.
+ * @returns A header element containing the page title, search and notification buttons, a theme-aware divider, and a user avatar menu with profile and logout actions.
+ */
+export default function TopBar({ onMenuClick }: TopBarProps) {
   const { user, logout } = useAuth();
   const { isDark } = useTheme();
   const navigate = useNavigate();
@@ -31,7 +42,20 @@ export default function TopBar() {
   };
 
   return (
-    <header className={`h-16 border-b px-6 flex items-center gap-4 shrink-0 ${isDark ? 'bg-neutral-900 border-neutral-800' : 'bg-white border-slate-100'}`}>
+    <header className={`h-16 border-b px-4 md:px-6 flex items-center gap-4 shrink-0 ${isDark ? 'bg-neutral-900 border-neutral-800' : 'bg-white border-slate-100'}`}>
+      {/* Mobile hamburger */}
+      {onMenuClick && (
+        <button
+          onClick={onMenuClick}
+          className={`md:hidden w-10 h-10 rounded-full flex items-center justify-center transition-colors ${
+            isDark ? 'text-neutral-400 hover:text-white hover:bg-neutral-800' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-100'
+          }`}
+          aria-label="Open menu"
+        >
+          <Menu className="w-5 h-5" />
+        </button>
+      )}
+
       {/* Left — Page title */}
       <div className="flex items-center gap-4">
         <h1 className={`text-xl font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>

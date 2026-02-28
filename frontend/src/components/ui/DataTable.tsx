@@ -15,7 +15,7 @@ export interface Column<T> {
 
 interface DataTableProps<T> {
   columns: Column<T>[];
-  rows: T[];
+  rows?: T[];
   rowKey: (row: T) => string | number;
   loading?: boolean;
   emptyTitle?: string | null;
@@ -37,9 +37,21 @@ function SkeletonRow({ cols, isDark }: { cols: number; isDark: boolean }) {
   );
 }
 
+/**
+ * Render a responsive, theme-aware data table with customizable columns, optional loading skeletons, an empty state, and animated rows.
+ *
+ * @param columns - Column definitions including `key`, `header`, `render`, and optional `className`
+ * @param rows - Array of row data to render (defaults to an empty array)
+ * @param rowKey - Function that returns a stable key (string or number) for a given row
+ * @param loading - When true, displays skeleton placeholder rows instead of data
+ * @param emptyTitle - Optional title to show when there are no rows; falls back to a localized default when omitted
+ * @param emptyMessage - Optional message to show under the empty title; falls back to a localized default when omitted
+ * @param skeletonRows - Number of skeleton rows to render while loading (defaults to 5)
+ * @returns The rendered table React element reflecting the provided props
+ */
 export function DataTable<T>({
   columns,
-  rows,
+  rows = [],
   rowKey,
   loading = false,
   emptyTitle,

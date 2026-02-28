@@ -18,6 +18,7 @@ import { useTheme } from "../context/ThemeContext";
 import { useAuth } from "../hooks/useAuth";
 import { incidentsApi } from "../api/client";
 import { DataTable, type Column } from "../components/ui/DataTable";
+import { Select } from "../components/ui/Select";
 
 /* ── Types ──────────────────────────────────────────────── */
 interface Incident {
@@ -59,6 +60,15 @@ const statusColor: Record<string, string> = {
   CLOSED: "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400",
 };
 
+/**
+ * Render the incidents management interface for listing, filtering, creating, and closing safety incident reports.
+ *
+ * Displays a searchable, paginated table of incidents with status filtering, summary statistics, role-based actions
+ * for reporting and closing incidents, and modals for creating and closing incidents. Uses optimistic updates when
+ * closing an incident and refreshes the list after create/close operations.
+ *
+ * @returns The React element for the incidents management UI.
+ */
 export default function Incidents() {
   const { t } = useTranslation();
   const { isDark } = useTheme();
@@ -114,13 +124,19 @@ export default function Incidents() {
   /* ── Close Incident ──────────────────────────────── */
   const handleClose = async () => {
     if (!closeModal || resolution.length < 10) return;
+    const incidentId = closeModal.id;
+    const previousStatus = closeModal.status;
+    // Optimistic: close modal and update status instantly
+    setCloseModal(null);
+    setResolution("");
+    setIncidents(prev => prev.map(i => i.id === incidentId ? { ...i, status: "CLOSED", resolution } : i));
+
     try {
-      await incidentsApi.closeIncident(closeModal.id, resolution);
-      setCloseModal(null);
-      setResolution("");
+      await incidentsApi.closeIncident(incidentId, resolution);
       fetchIncidents();
     } catch {
-      /* toast would go here */
+      // Rollback
+      setIncidents(prev => prev.map(i => i.id === incidentId ? { ...i, status: previousStatus, resolution: undefined } : i));
     }
   };
 
@@ -271,7 +287,7 @@ export default function Incidents() {
       {/* Filters */}
       <div className="flex flex-wrap items-center gap-3 mb-4">
         <div
-          className={`flex items-center gap-2 px-3 py-2 rounded-lg border text-sm w-64 ${
+          className={`flex items-center gap-2 px-3 py-2 rounded-lg border text-sm w-full sm:w-64 ${
             isDark ? "bg-neutral-800 border-neutral-700 text-white" : "bg-white border-slate-200 text-slate-900"
           }`}
         >
@@ -283,10 +299,10 @@ export default function Incidents() {
             onChange={(e) => setSearch(e.target.value)}
           />
         </div>
-        <select
+        <Select
           value={statusFilter}
           onChange={(e) => { setStatusFilter(e.target.value); setPage(1); }}
-          className={`px-3 py-2 rounded-lg border text-sm ${
+          className={`px-3 py-2 rounded-lg border text-sm transition-colors focus:outline-none focus:ring-2 focus:ring-violet-500/30 ${
             isDark ? "bg-neutral-800 border-neutral-700 text-white" : "bg-white border-slate-200 text-slate-900"
           }`}
         >
@@ -294,7 +310,7 @@ export default function Incidents() {
           {STATUS_OPTIONS.map((s) => (
             <option key={s} value={s}>{s}</option>
           ))}
-        </select>
+        </Select>
       </div>
 
       {/* Table */}
@@ -395,7 +411,16 @@ export default function Incidents() {
   );
 }
 
-/* ── Inline Create Form ──────────────────────────────── */
+/**
+ * Render a modal form for creating a new incident report.
+ *
+ * The form collects incident details and, on submit, builds a payload, closes the modal immediately for instant feedback, and attempts to create the incident via the API; if creation succeeds it calls `onSuccess`.
+ *
+ * @param isDark - Whether to render in dark theme styling
+ * @param onClose - Callback invoked to close the modal
+ * @param onSuccess - Callback invoked after a successful incident creation
+ * @returns The modal's JSX element
+ */
 function IncidentFormModal({
   isDark,
   onClose,
@@ -415,25 +440,25 @@ function IncidentFormModal({
     injuriesReported: false,
     damageEstimate: "",
   });
-  const [submitting, setSubmitting] = useState(false);
+  const [submitting] = useState(false);
 
   const handleSubmit = async () => {
-    setSubmitting(true);
+    // Close modal immediately for instant feedback
+    const data = {
+      title: form.title,
+      description: form.description,
+      incidentType: form.incidentType,
+      incidentDate: new Date(form.incidentDate).toISOString(),
+      location: form.location || undefined,
+      injuriesReported: form.injuriesReported,
+      damageEstimate: form.damageEstimate ? Number(form.damageEstimate) : undefined,
+    };
+    onClose();
     try {
-      await incidentsApi.createIncident({
-        title: form.title,
-        description: form.description,
-        incidentType: form.incidentType,
-        incidentDate: new Date(form.incidentDate).toISOString(),
-        location: form.location || undefined,
-        injuriesReported: form.injuriesReported,
-        damageEstimate: form.damageEstimate ? Number(form.damageEstimate) : undefined,
-      });
+      await incidentsApi.createIncident(data);
       onSuccess();
     } catch {
       /* error handling */
-    } finally {
-      setSubmitting(false);
     }
   };
 
@@ -467,7 +492,7 @@ function IncidentFormModal({
           </div>
 
           {/* Type + Date row */}
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <label className={`text-xs font-medium mb-1 block ${isDark ? "text-neutral-300" : "text-slate-600"}`}>
                 {t("incidents.createModal.type")}
@@ -495,7 +520,7 @@ function IncidentFormModal({
           </div>
 
           {/* Location + Damage row */}
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <label className={`text-xs font-medium mb-1 block ${isDark ? "text-neutral-300" : "text-slate-600"}`}>
                 {t("incidents.createModal.location")}

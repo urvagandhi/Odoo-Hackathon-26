@@ -32,6 +32,7 @@ import {
 import { useTheme } from "../context/ThemeContext";
 import { useAuth } from "../hooks/useAuth";
 import { dispatchApi } from "../api/client";
+import { Select } from "../components/ui/Select";
 import { useToast } from "../hooks/useToast";
 import { StatusPill } from "../components/ui/StatusPill";
 import { DataTable } from "../components/ui/DataTable";
@@ -95,7 +96,13 @@ const STATUS_COLORS: Record<TripStatus, { bg: string; text: string; icon: React.
   },
 };
 
-/* ─── Component ─── */
+/**
+ * Renders the TripDispatcher UI for managing trips, including status summaries, search and filters, a data table, and modals/drawers for creating, completing, canceling, dispatching, and viewing ledgers.
+ *
+ * The component adapts available actions based on the current user's role and each trip's status, maintains pagination and counts per status, and performs optimistic updates when dispatching trips.
+ *
+ * @returns The rendered TripDispatcher React element
+ */
 export default function TripDispatcher() {
   const { isDark } = useTheme();
   const { user } = useAuth();
@@ -130,7 +137,7 @@ export default function TripDispatcher() {
     open: false,
     trip: null,
   });
-  const [dispatching, setDispatching] = useState(false);
+  const [dispatching] = useState(false);
 
   // Theme helpers
   const textPrimary = isDark ? "text-white" : "text-slate-900";
@@ -189,17 +196,22 @@ export default function TripDispatcher() {
 
   /* ─── Dispatch action ─── */
   const handleDispatch = async (trip: Trip) => {
-    setDispatching(true);
+    // Optimistic: close dialog and update local state instantly
+    const previousStatus = trip.status;
+    setDispatchDialog({ open: false, trip: null });
+    setTrips(prev => prev.map(t => t.id === trip.id ? { ...t, status: "DISPATCHED" } : t));
+    setCounts(prev => ({ ...prev, DRAFT: Math.max(0, prev.DRAFT - 1), DISPATCHED: prev.DISPATCHED + 1 }));
+
     try {
       await dispatchApi.transitionStatus(trip.id, { status: "DISPATCHED" });
-      setDispatchDialog({ open: false, trip: null });
       toast.success(t("tripDispatcher.toast.dispatched"), { title: t("tripDispatcher.toast.dispatchedTitle") });
       fetchTrips();
     } catch (err: unknown) {
+      // Rollback
+      setTrips(prev => prev.map(t => t.id === trip.id ? { ...t, status: previousStatus } : t));
+      setCounts(prev => ({ ...prev, DRAFT: prev.DRAFT + 1, DISPATCHED: Math.max(0, prev.DISPATCHED - 1) }));
       const axiosErr = err as { response?: { data?: { message?: string } } };
       toast.error(axiosErr.response?.data?.message ?? t("tripDispatcher.toast.dispatchFailed"), { title: t("tripDispatcher.toast.errorTitle") });
-    } finally {
-      setDispatching(false);
     }
   };
 
@@ -435,8 +447,8 @@ export default function TripDispatcher() {
           </div>
 
           {/* Status filter */}
-          <select
-            className={`px-3 py-2 rounded-lg border text-sm ${
+          <Select
+            className={`px-3 py-2 rounded-lg border text-sm transition-colors focus:outline-none focus:ring-2 focus:ring-violet-500/30 ${
               isDark
                 ? "bg-neutral-700 border-neutral-600 text-white"
                 : "bg-white border-slate-200 text-slate-900"
@@ -452,7 +464,7 @@ export default function TripDispatcher() {
                 {opt.label}
               </option>
             ))}
-          </select>
+          </Select>
         </div>
 
         {/* ── Table ── */}

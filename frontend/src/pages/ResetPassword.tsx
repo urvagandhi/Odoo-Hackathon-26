@@ -20,6 +20,16 @@ import { LogoIcon } from "../components/Branding/Logo";
 import { useTheme } from "../context/ThemeContext";
 import { authApi } from "../api/client";
 
+/**
+ * Render a password reset page that lets a user set a new password using a token from the URL.
+ *
+ * The component:
+ * - Extracts a `token` from the URL search params and displays a form to enter and confirm a new password.
+ * - Validates the new password for at least 8 characters, at least one uppercase letter, and at least one number, and verifies the confirmation matches.
+ * - Submits the new password to the API using the extracted token, surfaces server-provided errors, and on success shows a confirmation and navigates to the login page after a short delay.
+ *
+ * @returns The React element for the reset-password UI.
+ */
 export default function ResetPassword() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -263,7 +273,7 @@ export default function ResetPassword() {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white font-semibold text-sm transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white font-semibold text-sm transition-all duration-200 active:scale-[0.97] disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {loading ? (
                   <Loader2 className="w-4 h-4 animate-spin" />

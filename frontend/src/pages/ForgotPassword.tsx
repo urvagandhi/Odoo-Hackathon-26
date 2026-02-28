@@ -19,6 +19,15 @@ import { LogoIcon } from "../components/Branding/Logo";
 import { useTheme } from "../context/ThemeContext";
 import { authApi } from "../api/client";
 
+/**
+ * Renders the "Forgot Password" UI, handling email input, validation, API submission, and success/error states.
+ *
+ * The component validates the email, shows inline validation messages, performs a password-reset request via
+ * authApi.forgotPassword, displays a loading state during the request, and shows an error or success panel after.
+ * In development, if the backend returns a reset token it is exposed as a development-only reset link.
+ *
+ * @returns The Forgot Password form and related UI states (loading, validation errors, success confirmation).
+ */
 export default function ForgotPassword() {
   const { isDark, toggleTheme } = useTheme();
   const { t } = useTranslation();
@@ -200,7 +209,7 @@ export default function ForgotPassword() {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white font-semibold text-sm transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white font-semibold text-sm transition-all duration-200 active:scale-[0.97] disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {loading ? (
                   <Loader2 className="w-4 h-4 animate-spin" />

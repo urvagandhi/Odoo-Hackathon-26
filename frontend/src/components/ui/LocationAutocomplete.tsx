@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
-import { Loader2, MapPin } from "lucide-react";
+import { MapPin } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { useTheme } from "../../context/ThemeContext";
 
 interface LocationAutocompleteProps {
@@ -16,8 +17,19 @@ interface NominatimResult {
   lon: string;
 }
 
+/**
+ * Autocomplete input that suggests places from Nominatim and lets the user type or select a location.
+ *
+ * Performs debounced remote lookup for place suggestions and updates the parent with the current input or selected place name.
+ *
+ * @param value - Controlled input value provided by the parent
+ * @param onChange - Called with the new input string when the user types or selects a suggestion
+ * @param placeholder - Optional placeholder text for the input
+ * @param className - Optional CSS class names applied to the input element
+ */
 export function LocationAutocomplete({ value, onChange, placeholder, className }: LocationAutocompleteProps) {
   const { isDark } = useTheme();
+  const { t } = useTranslation();
   
   const [inputValue, setInputValue] = useState(value);
   const [results, setResults] = useState<NominatimResult[]>([]);
@@ -107,7 +119,7 @@ export function LocationAutocomplete({ value, onChange, placeholder, className }
         />
         {loading && (
           <div className="absolute right-3 top-1/2 -translate-y-1/2">
-            <Loader2 className={`w-4 h-4 animate-spin ${isDark ? "text-neutral-400" : "text-slate-400"}`} />
+            <span className={`text-xs ${isDark ? "text-neutral-400" : "text-slate-400"}`}>{t("common.loading")}</span>
           </div>
         )}
       </div>

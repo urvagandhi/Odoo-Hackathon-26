@@ -48,6 +48,20 @@ const STATUS_COLORS: Record<string, string> = {
   CANCELLED: "bg-red-100 text-red-600",
 };
 
+/**
+ * Render the manager-facing fleet overview dashboard with KPIs, charts, alerts, and recent trips.
+ *
+ * Fetches dashboard KPIs, monthly reports, and a short list of recent trips from the analytics and dispatch APIs,
+ * shows a loading skeleton while data is being loaded, and presents:
+ * - KPI stat cards for fleet, utilization, drivers on duty, and active trips
+ * - Monthly trips sparkline and revenue trend charts with current-month summaries
+ * - Fleet alerts summary blocks
+ * - A recent trips table with driver/vehicle info and status badges
+ *
+ * The layout and visual styling adapt to the current theme (dark/light) and to responsive breakpoints.
+ *
+ * @returns The rendered AdminDashboard React element.
+ */
 export default function AdminDashboard() {
   const { isDark } = useTheme();
   const cardClass = `${card} ${isDark ? darkCard : lightCard}`;
@@ -157,7 +171,7 @@ export default function AdminDashboard() {
       </motion.div>
 
       {/* ═══ ROW 2 — Charts + Alerts ════════════════════════════════════ */}
-      <motion.div variants={fadeIn} className="grid grid-cols-3 gap-5">
+      <motion.div variants={fadeIn} className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-5">
         {/* Monthly Trips Sparkline */}
         <div className={`${cardClass} p-5`}>
           <h3 className={`text-sm font-semibold mb-4 ${isDark ? "text-slate-100" : "text-slate-900"}`}>Trips This Year</h3>
@@ -271,7 +285,8 @@ export default function AdminDashboard() {
         {recentTrips.length === 0 ? (
           <div className={`p-8 text-center text-sm ${isDark ? "text-slate-500" : "text-slate-400"}`}>No trips found. Add trips via Dispatch.</div>
         ) : (
-          <table className="w-full text-sm">
+          <div className="overflow-x-auto">
+          <table className="min-w-[600px] w-full text-sm">
             <thead>
               <tr className={`border-b ${isDark ? "bg-slate-900 border-slate-800" : "bg-slate-50 border-slate-100"}`}>
                 <th className="text-left px-6 py-3 text-xs font-semibold text-slate-400 uppercase tracking-wide">ID</th>
@@ -305,6 +320,7 @@ export default function AdminDashboard() {
               ))}
             </tbody>
           </table>
+          </div>
         )}
       </motion.div>
     </motion.div>

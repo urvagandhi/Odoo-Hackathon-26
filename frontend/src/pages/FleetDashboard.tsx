@@ -16,6 +16,7 @@ import {
 } from "recharts";
 import { MapContainer, TileLayer, Marker, Popup, Polyline } from "react-leaflet";
 import L from "leaflet";
+import { DashboardSkeleton } from "../components/ui/DashboardSkeleton";
 import "leaflet/dist/leaflet.css";
 import { analyticsApi, locationsApi, type DashboardKPIs, type MonthlyReport } from "../api/client";
 import { useTheme } from "../context/ThemeContext";
@@ -85,6 +86,13 @@ const card = "rounded-3xl border p-6 transition-all duration-300 relative overfl
 const lightCard = "bg-gradient-to-br from-white via-white to-slate-50/80 border-slate-200/60 shadow-[0_8px_30px_rgb(0,0,0,0.06)] hover:shadow-[0_8px_30px_rgb(0,0,0,0.12)]";
 const darkCard = "bg-slate-900/60 border-slate-700/50 shadow-[0_8px_30px_rgb(0,0,0,0.2)] hover:shadow-[0_8px_30px_rgb(0,0,0,0.4)]";
 
+/**
+ * Renders the fleet operations dashboard containing KPI cards, a live vehicle map, revenue/cost and fleet-status charts, and a monthly performance table.
+ *
+ * The component fetches KPIs, monthly reports, and latest vehicle locations, refreshes data periodically, and shows a loading skeleton while initial KPI data is being retrieved.
+ *
+ * @returns The Fleet Dashboard React element
+ */
 export default function FleetDashboard() {
     const { isDark } = useTheme();
     const { t } = useTranslation();
@@ -138,6 +146,10 @@ export default function FleetDashboard() {
         { name: "Available", value: kpis.fleet.available },
         { name: "Retired", value: kpis.fleet.retired },
     ].filter(d => d.value > 0) : [];
+
+    if (loading && !kpis) {
+        return <DashboardSkeleton />;
+    }
 
     return (
         <div className="space-y-8 max-w-[1600px] mx-auto">
@@ -258,7 +270,7 @@ export default function FleetDashboard() {
                         {locations.length > 0 ? t("fleetDashboard.vehiclesTracked", { count: locations.length }) : t("fleetDashboard.noLiveData")}
                     </span>
                 </div>
-                <div className={`rounded-2xl overflow-hidden border relative z-10 ${isDark ? "border-slate-800" : "border-slate-200 shadow-inner"}`} style={{ height: 380 }}>
+                <div className={`rounded-2xl overflow-hidden border relative z-10 h-[280px] sm:h-[380px] ${isDark ? "border-slate-800" : "border-slate-200 shadow-inner"}`}>
                     <MapContainer
                         center={[20.5937, 78.9629]}
                         zoom={5}
@@ -377,7 +389,7 @@ export default function FleetDashboard() {
                         {t("fleetDashboard.monthlyPerformance")}
                     </h2>
                     <div className="overflow-x-auto">
-                        <table className="w-full text-sm">
+                        <table className="w-full text-sm min-w-[700px]">
                             <thead>
                                 <tr className={isDark ? "text-slate-400 border-b border-slate-800" : "text-slate-500 border-b border-slate-200"}>
                                     {[t("fleetDashboard.tableHeaders.month"), t("fleetDashboard.tableHeaders.trips"), t("fleetDashboard.tableHeaders.distance"), t("fleetDashboard.tableHeaders.revenue"), t("fleetDashboard.tableHeaders.fuelCost"), t("fleetDashboard.tableHeaders.maintenance"), t("fleetDashboard.tableHeaders.profit")].map(h =>

@@ -3,8 +3,9 @@
  * Trip creation, lifecycle (DRAFT → DISPATCHED → COMPLETED/CANCELLED)
  * Embedded Leaflet map with OpenRouteService routing for shortest path
  */
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
 import {
     Plus, X, Route, MapPin, Truck, User, Clock, CheckCircle2,
@@ -13,9 +14,10 @@ import {
 import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
-import { fleetApi, hrApi, dispatchApi, type Trip, type Vehicle, type Driver } from "../api/client";
+import { fleetApi, hrApi, dispatchApi, type Trip } from "../api/client";
 import { useTheme } from "../context/ThemeContext";
 import { useToast } from "../hooks/useToast";
+import { Select } from "../components/ui/Select";
 import {
     AlertDialog,
     AlertDialogContent,
@@ -97,16 +99,20 @@ function MapBounds({ bounds }: { bounds: [[number, number], [number, number]] | 
     return null;
 }
 
+/**
+ * Renders the Trip Dispatcher UI for listing, filtering, creating, and managing trips.
+ *
+ * Provides a searchable trip list with status filters, a detail panel with an embedded map and route display,
+ * controls to dispatch/complete/cancel trips, and a modal form to create new trips. Integrates with the app's
+ * data layer for fetching/updating trips, vehicles, and drivers and uses geocoding/routing utilities to compute map routes.
+ *
+ * @returns The dispatcher UI as a JSX element.
+ */
 export default function Dispatch() {
     const { isDark } = useTheme();
     const { t } = useTranslation();
     const toast = useToast();
-    const [trips, setTrips] = useState<Trip[]>([]);
-    const [vehicles, setVehicles] = useState<Vehicle[]>([]);
-    const [drivers, setDrivers] = useState<Driver[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [statusFilter, setStatusFilter] = useState("");
-    const [search, setSearch] = useState("");
+    const queryClient = useQueryClient();
     const [showModal, setShowModal] = useState(false);
     const [selectedTrip, setSelectedTrip] = useState<Trip | null>(null);
     const [form, setForm] = useState<{
@@ -114,7 +120,6 @@ export default function Dispatch() {
         distanceEstimated: number; cargoWeight: number; cargoDescription: string;
         clientName: string; revenue: number;
     }>({ vehicleId: "", driverId: "", origin: "", destination: "", distanceEstimated: 0, cargoWeight: 0, cargoDescription: "", clientName: "", revenue: 0 });
-    const [saving, setSaving] = useState(false);
     const [formError, setFormError] = useState("");
     const [transitioning, setTransitioning] = useState<{ id: string, status: string } | null>(null);
     const [completeTripId, setCompleteTripId] = useState<string | null>(null);
@@ -126,22 +131,37 @@ export default function Dispatch() {
     const [destCoord, setDestCoord] = useState<[number, number] | null>(null);
     const [mapBounds, setMapBounds] = useState<[[number, number], [number, number]] | null>(null);
     const [mapLoading, setMapLoading] = useState(false);
+    const [mobileView, setMobileView] = useState<'list' | 'detail'>('list');
 
-    const load = useCallback(async () => {
-        setLoading(true);
-        try {
-            const [tripsRes, vRes, dRes] = await Promise.all([
-                dispatchApi.listTrips({ limit: 100 }),
-                fleetApi.listVehicles({ status: "AVAILABLE", limit: 100 }),
-                hrApi.listDrivers({ status: "ON_DUTY", limit: 100 }),
-            ]);
-            setTrips(tripsRes.data ?? []);
-            setVehicles(vRes.data ?? []);
-            setDrivers(dRes.data ?? []);
-        } finally { setLoading(false); }
-    }, []);
+    /* ── Fetch Data using React Query ───────────────── */
+    const { data: tripsData, isLoading: loadingTrips } = useQuery({
+        queryKey: ['trips'],
+        queryFn: async () => {
+            const res = await dispatchApi.listTrips({ limit: 100 });
+            return res.data ?? [];
+        }
+    });
 
-    useEffect(() => { load(); }, [load]);
+    const { data: vehiclesData } = useQuery({
+        queryKey: ['vehicles', 'available'],
+        queryFn: async () => {
+            const res = await fleetApi.listVehicles({ status: "AVAILABLE", limit: 100 });
+            return res.data ?? [];
+        }
+    });
+
+    const { data: driversData } = useQuery({
+        queryKey: ['drivers', 'on_duty'],
+        queryFn: async () => {
+            const res = await hrApi.listDrivers({ status: "ON_DUTY", limit: 100 });
+            return res.data ?? [];
+        }
+    });
+
+    const trips = tripsData ?? [];
+    const vehicles = vehiclesData ?? [];
+    const drivers = driversData ?? [];
+    const loading = loadingTrips;
 
     // Load route on trip select
     useEffect(() => {
@@ -164,6 +184,9 @@ export default function Dispatch() {
         loadRoute();
     }, [selectedTrip]);
 
+    const [search, setSearch] = useState("");
+    const [statusFilter, setStatusFilter] = useState("");
+
     const filtered = trips.filter(tr =>
         (!statusFilter || tr.status === statusFilter) &&
         (!search || tr.origin.toLowerCase().includes(search.toLowerCase()) ||
@@ -171,40 +194,73 @@ export default function Dispatch() {
             tr.driver?.fullName?.toLowerCase().includes(search.toLowerCase()))
     );
 
-    const handleCreate = async (e: React.FormEvent) => {
-        e.preventDefault();
-        setSaving(true); setFormError("");
-        try {
-            const selectedVehicle = vehicles.find(v => v.id === form.vehicleId);
-            if (selectedVehicle && form.cargoWeight > (Number(selectedVehicle.capacityWeight) || Infinity)) {
-                setFormError(`Cargo weight (${form.cargoWeight} kg) exceeds vehicle capacity (${selectedVehicle.capacityWeight} kg)`);
-                return;
-            }
-            await dispatchApi.createTrip({ ...form, distanceEstimated: form.distanceEstimated });
-            toast.success(t("dispatch.toast.created"));
+    const createTripMutation = useMutation({
+        mutationFn: (data: typeof form) => dispatchApi.createTrip({ ...data, distanceEstimated: data.distanceEstimated }),
+        onMutate: () => {
             setShowModal(false);
-            load();
-        } catch (err: unknown) {
-            setFormError((err as { response?: { data?: { message?: string } } })?.response?.data?.message ?? "Failed to create trip");
-        } finally { setSaving(false); }
+            setForm({ vehicleId: "", driverId: "", origin: "", destination: "", distanceEstimated: 0, cargoWeight: 0, cargoDescription: "", clientName: "", revenue: 0 });
+        },
+        onSuccess: () => { toast.success(t("dispatch.toast.created")); },
+        onError: (err: any) => {
+            setShowModal(true);
+            setFormError(err?.response?.data?.message ?? "Failed to create trip");
+        },
+        onSettled: () => {
+            queryClient.invalidateQueries({ queryKey: ['trips'] });
+            queryClient.invalidateQueries({ queryKey: ['vehicles', 'available'] });
+            queryClient.invalidateQueries({ queryKey: ['drivers', 'on_duty'] });
+        }
+    });
+
+    const handleCreate = (e: React.FormEvent) => {
+        e.preventDefault();
+        setFormError("");
+        const selectedVehicle = vehicles.find(v => v.id === form.vehicleId);
+        if (selectedVehicle && form.cargoWeight > (Number(selectedVehicle.capacityWeight) || Infinity)) {
+            setFormError(`Cargo weight (${form.cargoWeight} kg) exceeds vehicle capacity (${selectedVehicle.capacityWeight} kg)`);
+            return;
+        }
+        createTripMutation.mutate(form);
     };
 
-    const handleTransition = async (trip: Trip, status: "DISPATCHED" | "COMPLETED" | "CANCELLED") => {
-        try {
-            await dispatchApi.transitionStatus(trip.id, { status });
+    const transitionMutation = useMutation({
+        mutationFn: ({ tripId, status }: { tripId: string, status: "DISPATCHED" | "COMPLETED" | "CANCELLED" }) =>
+            dispatchApi.transitionStatus(tripId, { status }),
+        onMutate: async ({ tripId, status }) => {
+            await queryClient.cancelQueries({ queryKey: ['trips'] });
+            const previous = queryClient.getQueryData<Trip[]>(['trips']);
+            queryClient.setQueryData<Trip[]>(['trips'], old =>
+                (old ?? []).map(t => t.id === tripId ? { ...t, status } as Trip : t)
+            );
+            if (selectedTrip?.id === tripId) {
+                setSelectedTrip(prev => prev ? { ...prev, status } as Trip : null);
+            }
+            setTransitioning(null);
+            return { previous };
+        },
+        onSuccess: (_data, { status }) => {
             toast.success(t("dispatch.toast.transitioned", { status: status.toLowerCase() }));
-            load();
-            if (selectedTrip?.id === trip.id) {
-                const updated = await dispatchApi.getTrip(trip.id);
+        },
+        onError: (_err, _vars, context) => {
+            if (context?.previous) queryClient.setQueryData(['trips'], context.previous);
+            toast.error(t("dispatch.toast.transitionFailed"));
+        },
+        onSettled: async (_data, _err, { tripId }) => {
+            queryClient.invalidateQueries({ queryKey: ['trips'] });
+            if (selectedTrip?.id === tripId) {
+                const updated = await dispatchApi.getTrip(tripId);
                 setSelectedTrip(updated);
             }
-        } catch (err: unknown) {
-            toast.error((err as { response?: { data?: { message?: string } } })?.response?.data?.message ?? t("dispatch.toast.transitionFailed"));
         }
-        setTransitioning(null);
+    });
+
+    const handleTransition = (trip: Trip, status: "DISPATCHED" | "COMPLETED" | "CANCELLED") => {
+        transitionMutation.mutate({ tripId: trip.id, status });
     };
 
     const inputClass = `${FIELD} ${isDark ? "bg-neutral-700 border-neutral-600 text-white placeholder-neutral-400" : "bg-white border-neutral-200 text-neutral-900 placeholder-neutral-400"}`;
+
+
 
     return (
         <div className="max-w-[1600px] mx-auto h-full">
@@ -213,14 +269,24 @@ export default function Dispatch() {
                     <h1 className={`text-2xl font-bold ${isDark ? "text-white" : "text-neutral-900"}`}>{t("dispatch.title")}</h1>
                     <p className={`text-sm ${isDark ? "text-neutral-400" : "text-neutral-500"}`}>{t("dispatch.tripsTotal", { count: trips.length })}</p>
                 </div>
-                <button onClick={() => { setFormError(""); setShowModal(true); }} className="flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-500 text-white text-sm font-semibold hover:bg-emerald-600 transition-colors">
+                <button onClick={() => { setFormError(""); setShowModal(true); }} className="flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-500 text-white text-sm font-semibold hover:bg-emerald-600 transition-all active:scale-[0.97]">
                     <Plus className="w-4 h-4" /> {t("dispatch.newTrip")}
                 </button>
             </div>
 
-            <div className="flex gap-5 h-[calc(100vh-180px)] min-h-[600px]">
+            {/* Mobile view toggle */}
+            <div className={`flex lg:hidden mb-3 gap-1 p-1 rounded-xl ${isDark ? 'bg-neutral-800' : 'bg-neutral-100'}`}>
+                <button onClick={() => setMobileView('list')} className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-sm font-semibold transition-colors ${mobileView === 'list' ? (isDark ? 'bg-neutral-700 text-emerald-400 shadow-sm' : 'bg-white text-emerald-600 shadow-sm') : (isDark ? 'text-neutral-500' : 'text-neutral-500')}`}>
+                    <Route className="w-4 h-4" /> Trips
+                </button>
+                <button onClick={() => setMobileView('detail')} className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-sm font-semibold transition-colors ${mobileView === 'detail' ? (isDark ? 'bg-neutral-700 text-emerald-400 shadow-sm' : 'bg-white text-emerald-600 shadow-sm') : (isDark ? 'text-neutral-500' : 'text-neutral-500')}`}>
+                    <MapPin className="w-4 h-4" /> Map & Detail
+                </button>
+            </div>
+
+            <div className="flex flex-col lg:flex-row gap-5 lg:h-[calc(100vh-220px)] lg:min-h-[600px]">
                 {/* LEFT: Trip List */}
-                <div className={`w-[380px] shrink-0 flex flex-col rounded-2xl border overflow-hidden ${isDark ? "bg-neutral-800 border-neutral-700" : "bg-white border-neutral-200 shadow-sm"}`}>
+                <div className={`${mobileView === 'detail' ? 'hidden lg:flex' : 'flex'} w-full lg:w-[380px] shrink-0 flex-col rounded-2xl border overflow-hidden max-h-[50vh] lg:max-h-none ${isDark ? "bg-neutral-800 border-neutral-700" : "bg-white border-neutral-200 shadow-sm"}`}>
                     {/* Search & filter */}
                     <div className={`p-3 space-y-2 border-b ${isDark ? "border-neutral-700" : "border-neutral-100"}`}>
                         <div className="relative">
@@ -241,7 +307,31 @@ export default function Dispatch() {
                     {/* Trip list */}
                     <div className="flex-1 overflow-y-auto">
                         {loading ? (
-                            <div className="flex items-center justify-center h-32 text-neutral-400">{t("common.loading")}</div>
+                            <div className="flex flex-col">
+                                {[1, 2, 3, 4, 5].map(i => (
+                                    <div key={i} className={`w-full text-left p-4 border-b ${isDark ? "border-neutral-700" : "border-neutral-50"}`}>
+                                        <div className="flex items-start justify-between mb-2">
+                                            <div className="flex items-start gap-2 w-2/3">
+                                                <div className={`w-4 h-4 rounded-full mt-0.5 shrink-0 ${isDark ? "bg-neutral-700" : "bg-neutral-200"}`} />
+                                                <div className={`h-4 rounded overflow-hidden relative w-full ${isDark ? "bg-neutral-700" : "bg-neutral-200"}`}>
+                                                    <div className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent dark:via-white/5 via-white/20 to-transparent animate-shimmer" />
+                                                </div>
+                                            </div>
+                                            <div className={`w-16 h-4 rounded overflow-hidden relative ${isDark ? "bg-neutral-700" : "bg-neutral-200"}`}>
+                                                <div className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent dark:via-white/5 via-white/20 to-transparent animate-shimmer" />
+                                            </div>
+                                        </div>
+                                        <div className="flex items-center gap-4 mt-3">
+                                            <div className={`w-20 h-3 rounded overflow-hidden relative ${isDark ? "bg-neutral-700" : "bg-neutral-200"}`}>
+                                                <div className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent dark:via-white/5 via-white/20 to-transparent animate-shimmer" />
+                                            </div>
+                                            <div className={`w-24 h-3 rounded overflow-hidden relative ${isDark ? "bg-neutral-700" : "bg-neutral-200"}`}>
+                                                <div className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent dark:via-white/5 via-white/20 to-transparent animate-shimmer" />
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
                         ) : filtered.length === 0 ? (
                             <div className="flex flex-col items-center justify-center h-32 text-neutral-400">
                                 <Route className="w-8 h-8 mb-2 opacity-30" />
@@ -278,7 +368,7 @@ export default function Dispatch() {
                 </div>
 
                 {/* RIGHT: Detail + Map */}
-                <div className="flex-1 flex flex-col gap-5">
+                <div className={`flex-1 flex flex-col gap-5 ${mobileView === 'list' ? 'hidden lg:flex' : 'flex'}`}>
                     {selectedTrip ? (
                         <>
                             {/* Trip detail card */}
@@ -337,7 +427,7 @@ export default function Dispatch() {
                                         )}
                                     </div>
                                 </div>
-                                <div className="grid grid-cols-3 gap-4 text-sm">
+                                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm">
                                     <InfoBox label={t("dispatch.detail.vehicle")} value={`${selectedTrip.vehicle?.year ?? ""} ${selectedTrip.vehicle?.make ?? "—"} ${selectedTrip.vehicle?.model ?? ""}`} sub={selectedTrip.vehicle?.licensePlate} isDark={isDark} />
                                     <InfoBox label={t("dispatch.detail.driver")} value={selectedTrip.driver?.fullName ?? "—"} sub={selectedTrip.driver?.licenseNumber} isDark={isDark} />
                                     <InfoBox label={t("dispatch.detail.cargo")} value={selectedTrip.cargoWeight ? `${selectedTrip.cargoWeight} kg` : "—"} sub={selectedTrip.cargoDescription} isDark={isDark} />
@@ -410,23 +500,23 @@ export default function Dispatch() {
                             {formError && <div className="mb-4 text-red-600 text-sm bg-red-50 border border-red-100 rounded-xl p-3 flex items-center gap-2"><AlertTriangle className="w-4 h-4 shrink-0" />{formError}</div>}
 
                             <form onSubmit={handleCreate} className="space-y-4">
-                                <div className="grid grid-cols-2 gap-4">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                     <div>
                                         <label className={`block text-xs font-semibold mb-1.5 ${isDark ? "text-neutral-300" : "text-neutral-700"}`}>{t("dispatch.form.vehicle")}</label>
-                                        <select required value={form.vehicleId} onChange={e => setForm(f => ({ ...f, vehicleId: e.target.value }))} className={inputClass}>
+                                        <Select required value={form.vehicleId} onChange={e => setForm(f => ({ ...f, vehicleId: e.target.value }))} className={inputClass}>
                                             <option value="">{t("dispatch.form.selectVehicle")}</option>
                                             {vehicles.map(v => <option key={v.id} value={v.id}>{v.licensePlate} — {v.make} {v.model}{v.capacityWeight ? ` (${v.capacityWeight} kg max)` : ""}</option>)}
-                                        </select>
+                                        </Select>
                                     </div>
                                     <div>
                                         <label className={`block text-xs font-semibold mb-1.5 ${isDark ? "text-neutral-300" : "text-neutral-700"}`}>{t("dispatch.form.driver")}</label>
-                                        <select required value={form.driverId} onChange={e => setForm(f => ({ ...f, driverId: e.target.value }))} className={inputClass}>
+                                        <Select required value={form.driverId} onChange={e => setForm(f => ({ ...f, driverId: e.target.value }))} className={inputClass}>
                                             <option value="">{t("dispatch.form.selectDriver")}</option>
                                             {drivers.map(d => <option key={d.id} value={d.id}>{d.fullName} ({d.licenseNumber})</option>)}
-                                        </select>
+                                        </Select>
                                     </div>
                                 </div>
-                                <div className="grid grid-cols-2 gap-4">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                     <div>
                                         <label className={`block text-xs font-semibold mb-1.5 ${isDark ? "text-neutral-300" : "text-neutral-700"}`}>{t("dispatch.form.origin")}</label>
                                         <input required value={form.origin} onChange={e => setForm(f => ({ ...f, origin: e.target.value }))} className={inputClass} placeholder={t("dispatch.form.originPlaceholder")} />
@@ -436,7 +526,7 @@ export default function Dispatch() {
                                         <input required value={form.destination} onChange={e => setForm(f => ({ ...f, destination: e.target.value }))} className={inputClass} placeholder={t("dispatch.form.destinationPlaceholder")} />
                                     </div>
                                 </div>
-                                <div className="grid grid-cols-3 gap-4">
+                                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                                     <div>
                                         <label className={`block text-xs font-semibold mb-1.5 ${isDark ? "text-neutral-300" : "text-neutral-700"}`}>{t("dispatch.form.distance")}</label>
                                         <input type="number" min="0" step="0.1" value={form.distanceEstimated || ""} onChange={e => setForm(f => ({ ...f, distanceEstimated: +e.target.value }))} className={inputClass} placeholder="150" />
@@ -450,7 +540,7 @@ export default function Dispatch() {
                                         <input type="number" min="0" value={form.revenue || ""} onChange={e => setForm(f => ({ ...f, revenue: +e.target.value }))} className={inputClass} placeholder="50000" />
                                     </div>
                                 </div>
-                                <div className="grid grid-cols-2 gap-4">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                     <div>
                                         <label className={`block text-xs font-semibold mb-1.5 ${isDark ? "text-neutral-300" : "text-neutral-700"}`}>{t("dispatch.form.cargoDescription")}</label>
                                         <input value={form.cargoDescription} onChange={e => setForm(f => ({ ...f, cargoDescription: e.target.value }))} className={inputClass} placeholder="Electronics, perishables…" />
@@ -462,8 +552,8 @@ export default function Dispatch() {
                                 </div>
                                 <div className="flex gap-3 pt-2">
                                     <button type="button" onClick={() => setShowModal(false)} className={`flex-1 py-2.5 rounded-xl text-sm font-semibold border transition-colors ${isDark ? "border-neutral-600 text-neutral-300 hover:bg-neutral-700" : "border-neutral-200 text-neutral-600 hover:bg-neutral-50"}`}>{t("common.cancel")}</button>
-                                    <button type="submit" disabled={saving} className="flex-1 py-2.5 rounded-xl text-sm font-semibold bg-emerald-500 text-white hover:bg-emerald-600 disabled:opacity-60 transition-colors">
-                                        {saving ? t("common.saving") : t("dispatch.createTrip")}
+                                    <button type="submit" disabled={createTripMutation.isPending} className="flex-1 py-2.5 rounded-xl text-sm font-semibold bg-emerald-500 text-white hover:bg-emerald-600 disabled:opacity-60 transition-colors">
+                                        {createTripMutation.isPending ? t("common.saving") : t("dispatch.createTrip")}
                                     </button>
                                 </div>
                             </form>
@@ -477,7 +567,7 @@ export default function Dispatch() {
                 tripId={completeTripId}
                 onClose={() => setCompleteTripId(null)}
                 onSuccess={() => {
-                    load();
+                    queryClient.invalidateQueries({ queryKey: ['trips'] });
                     if (selectedTrip?.id === completeTripId) {
                         dispatchApi.getTrip(completeTripId).then(setSelectedTrip);
                     }
@@ -490,7 +580,7 @@ export default function Dispatch() {
                 tripId={cancelTripId}
                 onClose={() => setCancelTripId(null)}
                 onSuccess={() => {
-                    load();
+                    queryClient.invalidateQueries({ queryKey: ['trips'] });
                     if (selectedTrip?.id === cancelTripId) {
                         dispatchApi.getTrip(cancelTripId).then(setSelectedTrip);
                     }
