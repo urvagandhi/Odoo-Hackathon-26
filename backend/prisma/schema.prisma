@@ -42,6 +42,7 @@ enum VehicleType {
   TRUCK
   VAN
   BIKE
+  CAR
   PLANE
 }
 

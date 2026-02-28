@@ -187,13 +187,12 @@ export default function Dispatch() {
 
     const createTripMutation = useMutation({
         mutationFn: (data: typeof form) => dispatchApi.createTrip({ ...data, distanceEstimated: data.distanceEstimated }),
-        onMutate: () => {
+        onSuccess: () => {
             setShowModal(false);
             setForm({ vehicleId: "", driverId: "", origin: "", destination: "", distanceEstimated: 0, cargoWeight: 0, cargoDescription: "", clientName: "", revenue: 0 });
+            toast.success(t("dispatch.toast.created"));
         },
-        onSuccess: () => { toast.success(t("dispatch.toast.created")); },
         onError: (err: any) => {
-            setShowModal(true);
             setFormError(err?.response?.data?.message ?? "Failed to create trip");
         },
         onSettled: () => {

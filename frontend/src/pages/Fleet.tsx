@@ -66,16 +66,13 @@ export default function Fleet() {
                 return fleetApi.createVehicle(payload);
             }
         },
-        onMutate: () => {
-            setShowModal(false);
-        },
         onSuccess: () => {
+            setShowModal(false);
             toast.success(editVehicle ? t("fleet.toast.updated") : t("fleet.toast.created"), {
                 title: editVehicle ? t("fleet.toast.updatedTitle") : t("fleet.toast.createdTitle")
             });
         },
         onError: (err: any) => {
-            setShowModal(true);
             const response = err.response;
             if (response?.status === 422 && response.data?.details) {
                 const details = response.data.details;
@@ -141,7 +138,7 @@ export default function Fleet() {
 
     const filtered = vehicles.filter(v => {
         const matchStatus = !statusFilter || v.status === statusFilter;
-        const matchRegion = !regionFilter || (v as any).region === regionFilter;
+        const matchRegion = !regionFilter || v.region === regionFilter;
         const matchSearch = !search ||
             v.licensePlate.toLowerCase().includes(search.toLowerCase()) ||
             v.make.toLowerCase().includes(search.toLowerCase()) ||

@@ -39,7 +39,7 @@ export default function Maintenance() {
     // Mutation
     const addLogMutation = useMutation({
         mutationFn: (data: any) => fleetApi.addMaintenanceLog(selectedVehicle, data),
-        onMutate: () => {
+        onSuccess: () => {
             setShowModal(false);
             setForm({
                 serviceType: "", description: "", cost: 0, odometerAtService: 0,
@@ -48,7 +48,6 @@ export default function Maintenance() {
             });
         },
         onError: (err: any) => {
-            setShowModal(true);
             setError(err?.response?.data?.message ?? "Failed to save");
         },
         onSettled: () => {

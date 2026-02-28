@@ -131,7 +131,7 @@ export default function TripDispatcher() {
     open: false,
     trip: null,
   });
-  const [dispatching] = useState(false);
+  const [dispatching, setDispatching] = useState(false);
 
   // Theme helpers
   const textPrimary = isDark ? "text-white" : "text-slate-900";
@@ -190,6 +190,7 @@ export default function TripDispatcher() {
 
   /* ─── Dispatch action ─── */
   const handleDispatch = async (trip: Trip) => {
+    setDispatching(true);
     // Optimistic: close dialog and update local state instantly
     const previousStatus = trip.status;
     setDispatchDialog({ open: false, trip: null });
@@ -206,6 +207,8 @@ export default function TripDispatcher() {
       setCounts(prev => ({ ...prev, DRAFT: prev.DRAFT + 1, DISPATCHED: Math.max(0, prev.DISPATCHED - 1) }));
       const axiosErr = err as { response?: { data?: { message?: string } } };
       toast.error(axiosErr.response?.data?.message ?? t("tripDispatcher.toast.dispatchFailed"), { title: t("tripDispatcher.toast.errorTitle") });
+    } finally {
+      setDispatching(false);
     }
   };
 

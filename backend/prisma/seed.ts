@@ -171,13 +171,14 @@ async function main() {
     //  1. Vehicle Types
     // ────────────────────────────────────────────────────────────
     console.log('  → Vehicle types...');
-    const [truckType, vanType, bikeType, planeType] = await Promise.all([
+    const [truckType, vanType, bikeType, carType, planeType] = await Promise.all([
         prisma.vehicleTypeRecord.create({ data: { name: VehicleType.TRUCK, description: 'Heavy-duty trucks for long-haul and interstate freight.' } }),
         prisma.vehicleTypeRecord.create({ data: { name: VehicleType.VAN, description: 'Mid-size vans for city, regional, and last-mile deliveries.' } }),
         prisma.vehicleTypeRecord.create({ data: { name: VehicleType.BIKE, description: 'Cargo bikes for ultra-fast urban micro-deliveries.' } }),
+        prisma.vehicleTypeRecord.create({ data: { name: VehicleType.CAR, description: 'Sedans and hatchbacks for passenger transport and light deliveries.' } }),
         prisma.vehicleTypeRecord.create({ data: { name: VehicleType.PLANE, description: 'Air freight aircraft for priority and international cargo.' } }),
     ]);
-    const typeMap = { TRUCK: truckType.id, VAN: vanType.id, BIKE: bikeType.id, PLANE: planeType.id };
+    const typeMap = { TRUCK: truckType.id, VAN: vanType.id, BIKE: bikeType.id, CAR: carType.id, PLANE: planeType.id };
 
     // ────────────────────────────────────────────────────────────
     //  2. Users (8 users across all roles)

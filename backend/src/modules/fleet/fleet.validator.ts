@@ -9,7 +9,7 @@ export const CreateVehicleSchema = z.object({
     vin: z.string().max(17).nullable().optional(),
     vehicleTypeId: z.coerce.number().int().positive(),
     currentOdometer: z.coerce.number().nonnegative().default(0),
-    capacityWeight: z.coerce.number().nonnegative('Capacity must be 0 or greater'),
+    capacityWeight: z.coerce.number().positive('Capacity must be greater than 0'),
     capacityVolume: z.coerce.number().nonnegative().nullable().optional(),
     region: z.string().max(100).nullable().optional(),
     acquisitionCost: z.coerce.number().nonnegative().nullable().optional(),

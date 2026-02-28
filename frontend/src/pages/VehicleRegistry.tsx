@@ -171,6 +171,9 @@ export default function VehicleRegistry() {
     onSuccess: () => {
       toast.success(t("vehicleRegistry.toast.vehicleRetired"), { title: t("vehicleRegistry.toast.retireSuccess") });
     },
+    onError: (err: any) => {
+      toast.error(err?.response?.data?.message ?? t("vehicleRegistry.toast.vehicleRetireFailed"), { title: t("vehicleRegistry.toast.retireFailedTitle") });
+    },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ['vehicles'] });
     }
@@ -189,6 +192,9 @@ export default function VehicleRegistry() {
     },
     onSuccess: () => {
       toast.success(t("vehicleRegistry.toast.vehicleDeleted"), { title: t("vehicleRegistry.toast.deleteSuccess") });
+    },
+    onError: (err: any) => {
+      toast.error(err?.response?.data?.message ?? t("vehicleRegistry.toast.vehicleDeleteFailed"), { title: t("vehicleRegistry.toast.deleteFailedTitle") });
     },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ['vehicles'] });

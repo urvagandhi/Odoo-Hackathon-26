@@ -57,6 +57,15 @@ export const vehicleImageMap: Record<string, VehicleImageInfo> = {
     gradient: "from-violet-500/20 to-purple-500/20",
     gradientDark: "from-violet-500/10 to-purple-500/10",
   },
+  PLANE: {
+    primary: "/vehicles/truck-1.png",
+    alt: "/vehicles/truck-2.png",
+    label: "Aircraft",
+    description: "Air freight aircraft for priority cargo",
+    icon: "✈️",
+    gradient: "from-sky-500/20 to-indigo-500/20",
+    gradientDark: "from-sky-500/10 to-indigo-500/10",
+  },
 };
 
 /**
@@ -71,5 +80,6 @@ export function getVehicleImage(typeName?: string | null): VehicleImageInfo | nu
   for (const [key, value] of Object.entries(vehicleImageMap)) {
     if (upper.includes(key) || key.includes(upper)) return value;
   }
-  return null;
+  // Falls back to TRUCK if type is unknown
+  return vehicleImageMap.TRUCK;
 }

@@ -159,12 +159,11 @@ export default function Drivers() {
                 return hrApi.createDriver(form);
             }
         },
-        onMutate: () => { setShowModal(false); },
         onSuccess: () => {
+            setShowModal(false);
             toast.success(t("crew.form.savedSuccess"), { title: t("crew.form.savedSuccessTitle") });
         },
         onError: (err: any) => {
-            setShowModal(true);
             setLocalError(err.response?.data?.message || err.message || t("crew.form.savedFailed"));
         },
         onSettled: () => { queryClient.invalidateQueries({ queryKey: ["drivers"] }); }

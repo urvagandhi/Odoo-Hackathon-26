@@ -422,10 +422,10 @@ function IncidentFormModal({
     injuriesReported: false,
     damageEstimate: "",
   });
-  const [submitting] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState("");
 
   const handleSubmit = async () => {
-    // Close modal immediately for instant feedback
     const data = {
       title: form.title,
       description: form.description,
@@ -435,12 +435,15 @@ function IncidentFormModal({
       injuriesReported: form.injuriesReported,
       damageEstimate: form.damageEstimate ? Number(form.damageEstimate) : undefined,
     };
-    onClose();
+    setSubmitting(true);
+    setError("");
     try {
       await incidentsApi.createIncident(data);
+      onClose();
       onSuccess();
-    } catch {
-      /* error handling */
+    } catch (err: any) {
+      setError(err?.response?.data?.message ?? "Failed to submit incident report");
+      setSubmitting(false);
     }
   };
 
@@ -463,6 +466,8 @@ function IncidentFormModal({
             <X className={`w-5 h-5 ${isDark ? "text-neutral-400" : "text-slate-400"}`} />
           </button>
         </div>
+
+        {error && <div className="mb-4 p-3 rounded-xl bg-red-50 border border-red-100 text-red-600 text-sm">{error}</div>}
 
         <div className="space-y-4">
           {/* Title */}

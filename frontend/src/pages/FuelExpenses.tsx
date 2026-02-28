@@ -49,14 +49,13 @@ export default function FuelExpenses() {
     // Mutations
     const fuelMutation = useMutation({
         mutationFn: (data: any) => financeApi.createFuelLog({ ...data, loggedAt: new Date(data.loggedAt).toISOString() }),
-        onMutate: () => {
+        onSuccess: () => {
             setShowModal(false);
             setFuelForm({
                 vehicleId: "", liters: 0, costPerLiter: 0, odometerAtFill: 0, fuelStation: "", loggedAt: new Date().toISOString().slice(0, 10),
             });
         },
         onError: (err: any) => {
-            setShowModal(true);
             setError(err?.response?.data?.message ?? "Failed to save");
         },
         onSettled: () => {
@@ -66,14 +65,13 @@ export default function FuelExpenses() {
 
     const expenseMutation = useMutation({
         mutationFn: (data: any) => financeApi.createExpense(data),
-        onMutate: () => {
+        onSuccess: () => {
             setShowModal(false);
             setExpenseForm({
                 vehicleId: "", amount: 0, category: "TOLL", description: "",
             });
         },
         onError: (err: any) => {
-            setShowModal(true);
             setError(err?.response?.data?.message ?? "Failed to save");
         },
         onSettled: () => {
