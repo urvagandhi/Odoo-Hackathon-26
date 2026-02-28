@@ -87,6 +87,7 @@ export default function Drivers() {
     const [expiringDrivers, setExpiringDrivers] = useState<Driver[]>([]);
     const [locations, setLocations] = useState<LocationPoint[]>([]);
     const [actionDriverId, setActionDriverId] = useState<string | null>(null);
+    const [mobileView, setMobileView] = useState<'list' | 'detail'>('list');
     const [form, setForm] = useState({
         fullName: "", licenseNumber: "", phone: "", email: "",
         dateOfBirth: "", licenseExpiryDate: "", licenseClass: "", safetyScore: 100,
@@ -206,14 +207,14 @@ export default function Drivers() {
     return (
         <div className="max-w-[1600px] mx-auto space-y-5">
             {/* Header */}
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
                 <div>
                     <h1 className={`text-2xl font-bold ${isDark ? "text-white" : "text-neutral-900"}`}>{t("drivers.title")}</h1>
                     <p className={`text-sm ${isDark ? "text-neutral-400" : "text-neutral-500"}`}>
                         {t("drivers.stats", { total: totalDrivers, onDuty, onTrip })}
                     </p>
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 w-full sm:w-auto">
                     <button onClick={handleExport} className="flex items-center gap-2 px-4 py-2 rounded-xl border border-emerald-200 text-emerald-600 text-sm font-semibold hover:bg-emerald-50 dark:border-emerald-500/30 dark:text-emerald-400 dark:hover:bg-emerald-500/10 transition-colors">
                         <Download className="w-4 h-4" /> {t("drivers.exportCSV")}
                     </button>
@@ -252,18 +253,28 @@ export default function Drivers() {
                 </div>
             )}
 
-            <div className="flex gap-5">
+            {/* Mobile view toggle */}
+            <div className={`flex lg:hidden mb-0 gap-1 p-1 rounded-xl ${isDark ? 'bg-neutral-800' : 'bg-neutral-100'}`}>
+                <button onClick={() => setMobileView('list')} className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-sm font-semibold transition-colors ${mobileView === 'list' ? (isDark ? 'bg-neutral-700 text-emerald-400 shadow-sm' : 'bg-white text-emerald-600 shadow-sm') : (isDark ? 'text-neutral-500' : 'text-neutral-500')}`}>
+                    <Users className="w-4 h-4" /> Drivers
+                </button>
+                <button onClick={() => setMobileView('detail')} className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-sm font-semibold transition-colors ${mobileView === 'detail' ? (isDark ? 'bg-neutral-700 text-emerald-400 shadow-sm' : 'bg-white text-emerald-600 shadow-sm') : (isDark ? 'text-neutral-500' : 'text-neutral-500')}`}>
+                    <MapPin className="w-4 h-4" /> Detail & Map
+                </button>
+            </div>
+
+            <div className="flex flex-col lg:flex-row gap-5">
                 {/* LEFT: Driver list */}
-                <div className="flex-1 space-y-4">
+                <div className={`flex-1 space-y-4 ${mobileView === 'detail' ? 'hidden lg:block' : 'block'}`}>
                     {/* Search & filter */}
-                    <div className={`flex items-center gap-3 p-3 rounded-2xl border ${isDark ? "bg-neutral-800 border-neutral-700" : "bg-white border-neutral-200"}`}>
-                        <div className="relative flex-1 max-w-sm">
+                    <div className={`flex flex-col sm:flex-row items-stretch sm:items-center gap-3 p-3 rounded-2xl border ${isDark ? "bg-neutral-800 border-neutral-700" : "bg-white border-neutral-200"}`}>
+                        <div className="relative w-full sm:flex-1 sm:max-w-sm">
                             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400" />
                             <input value={search} onChange={e => setSearch(e.target.value)} placeholder={t("drivers.searchPlaceholder")}
                                 className={`${inputClass} pl-9`} />
                         </div>
-                        <div className="flex items-center gap-2">
-                            <Filter className="w-4 h-4 text-neutral-400" />
+                        <div className="flex items-center gap-2 overflow-x-auto">
+                            <Filter className="w-4 h-4 text-neutral-400 shrink-0" />
                             {["", "ON_DUTY", "OFF_DUTY", "ON_TRIP", "SUSPENDED"].map(s => (
                                 <button key={s} onClick={() => setStatusFilter(s)}
                                     className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${statusFilter === s ? "bg-emerald-500 text-white" : isDark ? "text-neutral-300 hover:bg-neutral-700" : "text-neutral-600 hover:bg-neutral-100"}`}
@@ -284,7 +295,8 @@ export default function Drivers() {
                                 <p>{t("drivers.noDrivers")}</p>
                             </div>
                         ) : (
-                            <table className="w-full text-sm">
+                            <div className="overflow-x-auto">
+                            <table className="w-full text-sm min-w-[700px]">
                                 <thead>
                                     <tr className={`text-xs font-semibold uppercase tracking-wide border-b ${isDark ? "text-neutral-400 border-neutral-700 bg-neutral-900/30" : "text-neutral-500 border-neutral-100 bg-neutral-50"}`}>
                                         {[
@@ -351,12 +363,12 @@ export default function Drivers() {
                                                     </span>
                                                 </td>
                                                 <td className="px-4 py-3.5">
-                                                    <div className="relative group inline-block">
+                                                    <div className="relative group inline-block" tabIndex={0}>
                                                         <button className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold ${STATUS_CONFIG[d.status]?.className}`}>
                                                             {STATUS_CONFIG[d.status] ? t(STATUS_CONFIG[d.status].labelKey) : d.status}
                                                             <ChevronDown className="w-3 h-3" />
                                                         </button>
-                                                        <div className="absolute left-0 top-full mt-1 z-20 hidden group-hover:block bg-white border border-neutral-200 rounded-xl shadow-lg py-1 min-w-[140px]">
+                                                        <div className="absolute left-0 top-full mt-1 z-20 hidden group-hover:block group-focus-within:block bg-white border border-neutral-200 rounded-xl shadow-lg py-1 min-w-[140px]">
                                                             {["ON_DUTY", "OFF_DUTY", "SUSPENDED"].filter(s => s !== d.status).map(s => (
                                                                 <button key={s} onClick={(e) => { e.stopPropagation(); handleStatusChange(d, s); }}
                                                                     className="block w-full text-left px-3 py-1.5 text-xs text-neutral-700 hover:bg-neutral-50">
@@ -402,12 +414,13 @@ export default function Drivers() {
                                     })}
                                 </tbody>
                             </table>
+                            </div>
                         )}
                     </div>
                 </div>
 
                 {/* RIGHT: Driver detail + map */}
-                <div className="w-[380px] shrink-0 space-y-4">
+                <div className={`w-full lg:w-[380px] lg:shrink-0 space-y-4 ${mobileView === 'list' ? 'hidden lg:block' : 'block'}`}>
                     {selectedDriver ? (
                         <>
                             {/* Driver profile card */}
@@ -509,7 +522,7 @@ export default function Drivers() {
                             {error && <div className="mb-4 text-red-500 text-sm bg-red-50 border border-red-100 rounded-xl p-3 flex items-center gap-2"><AlertTriangle className="w-4 h-4" />{error}</div>}
 
                             <form onSubmit={handleSave} className="space-y-4">
-                                <div className="grid grid-cols-2 gap-4">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                     <div>
                                         <label className={`block text-xs font-semibold mb-1.5 ${isDark ? "text-neutral-300" : "text-neutral-700"}`}>{t("drivers.form.fullName")} *</label>
                                         <input required value={form.fullName} onChange={e => setForm(f => ({ ...f, fullName: e.target.value }))} className={inputClass} placeholder={t("drivers.form.fullNamePlaceholder")} />
@@ -519,7 +532,7 @@ export default function Drivers() {
                                         <input required value={form.licenseNumber} onChange={e => setForm(f => ({ ...f, licenseNumber: e.target.value.toUpperCase() }))} className={inputClass} placeholder={t("drivers.form.licensePlaceholder")} />
                                     </div>
                                 </div>
-                                <div className="grid grid-cols-2 gap-4">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                     <div>
                                         <label className={`block text-xs font-semibold mb-1.5 ${isDark ? "text-neutral-300" : "text-neutral-700"}`}>{t("drivers.form.phone")}</label>
                                         <input value={form.phone} onChange={e => setForm(f => ({ ...f, phone: e.target.value }))} className={inputClass} placeholder={t("drivers.form.phonePlaceholder")} />
@@ -529,7 +542,7 @@ export default function Drivers() {
                                         <input type="email" value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))} className={inputClass} placeholder={t("drivers.form.emailPlaceholder")} />
                                     </div>
                                 </div>
-                                <div className="grid grid-cols-2 gap-4">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                     <div>
                                         <label className={`block text-xs font-semibold mb-1.5 ${isDark ? "text-neutral-300" : "text-neutral-700"}`}>{t("drivers.form.dateOfBirth")}</label>
                                         <input type="date" value={form.dateOfBirth} onChange={e => setForm(f => ({ ...f, dateOfBirth: e.target.value }))} className={inputClass} />
@@ -539,7 +552,7 @@ export default function Drivers() {
                                         <input required type="date" value={form.licenseExpiryDate} onChange={e => setForm(f => ({ ...f, licenseExpiryDate: e.target.value }))} className={inputClass} />
                                     </div>
                                 </div>
-                                <div className="grid grid-cols-2 gap-4">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                     <div>
                                         <label className={`block text-xs font-semibold mb-1.5 ${isDark ? "text-neutral-300" : "text-neutral-700"}`}>{t("drivers.form.licenseClass")}</label>
                                         <input value={form.licenseClass} onChange={e => setForm(f => ({ ...f, licenseClass: e.target.value }))} className={inputClass} placeholder={t("drivers.form.licenseClassPlaceholder")} />

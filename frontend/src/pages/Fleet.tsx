@@ -123,8 +123,8 @@ export default function Fleet() {
             </div>
 
             {/* Filters */}
-            <div className={`flex items-center gap-3 p-3 rounded-2xl border ${isDark ? "bg-neutral-800 border-neutral-700" : "bg-white border-neutral-200"}`}>
-                <div className="relative flex-1 max-w-xs">
+            <div className={`flex flex-col sm:flex-row items-stretch sm:items-center gap-3 p-3 rounded-2xl border ${isDark ? "bg-neutral-800 border-neutral-700" : "bg-white border-neutral-200"}`}>
+                <div className="relative w-full sm:flex-1 sm:max-w-xs">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400" />
                     <input
                         value={search}
@@ -133,8 +133,8 @@ export default function Fleet() {
                         className={`${inputClass} pl-9`}
                     />
                 </div>
-                <div className="flex items-center gap-2">
-                    <Filter className="w-4 h-4 text-neutral-400" />
+                <div className="flex items-center gap-2 overflow-x-auto">
+                    <Filter className="w-4 h-4 text-neutral-400 shrink-0" />
                     {["", "AVAILABLE", "ON_TRIP", "IN_SHOP", "RETIRED"].map(s => (
                         <button
                             key={s}
@@ -160,7 +160,8 @@ export default function Fleet() {
                         <p>{t("fleet.noVehicles")}</p>
                     </div>
                 ) : (
-                    <table className="w-full text-sm">
+                    <div className="overflow-x-auto">
+                    <table className="w-full text-sm min-w-[700px]">
                         <thead>
                             <tr className={`text-xs font-semibold uppercase tracking-wide border-b ${isDark ? "text-neutral-400 border-neutral-700 bg-neutral-900/30" : "text-neutral-500 border-neutral-100 bg-neutral-50"}`}>
                                 {[
@@ -200,12 +201,12 @@ export default function Fleet() {
                                         {v.currentOdometer?.toLocaleString()} km
                                     </td>
                                     <td className="px-4 py-3.5">
-                                        <div className="relative group inline-block">
+                                        <div className="relative group inline-block" tabIndex={0}>
                                             <button className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold ${STATUS_CONFIG[v.status]?.className}`}>
                                                 {STATUS_CONFIG[v.status] ? t(STATUS_CONFIG[v.status].labelKey) : v.status}
                                                 <ChevronDown className="w-3 h-3" />
                                             </button>
-                                            <div className="absolute left-0 top-full mt-1 z-20 hidden group-hover:block bg-white border border-neutral-200 rounded-xl shadow-lg py-1 min-w-[130px]">
+                                            <div className="absolute left-0 top-full mt-1 z-20 hidden group-hover:block group-focus-within:block bg-white border border-neutral-200 rounded-xl shadow-lg py-1 min-w-[130px]">
                                                 {["AVAILABLE", "IN_SHOP", "RETIRED"].map(s =>
                                                     s !== v.status && (
                                                         <button
@@ -255,6 +256,7 @@ export default function Fleet() {
                             ))}
                         </tbody>
                     </table>
+                    </div>
                 )}
             </div>
 
@@ -280,7 +282,7 @@ export default function Fleet() {
                             {error && <div className="mb-4 text-red-500 text-sm bg-red-50 border border-red-100 rounded-xl p-3">{error}</div>}
 
                             <form onSubmit={handleSave} className="space-y-4">
-                                <div className="grid grid-cols-2 gap-4">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                     <div>
                                         <label className={`block text-xs font-semibold mb-1.5 ${isDark ? "text-neutral-300" : "text-neutral-700"}`}>{t("fleet.form.make")} *</label>
                                         <input required value={form.make ?? ""} onChange={e => setForm(f => ({ ...f, make: e.target.value }))} className={inputClass} placeholder={t("fleet.form.makePlaceholder")} />
@@ -290,7 +292,7 @@ export default function Fleet() {
                                         <input required value={form.model ?? ""} onChange={e => setForm(f => ({ ...f, model: e.target.value }))} className={inputClass} placeholder={t("fleet.form.modelPlaceholder")} />
                                     </div>
                                 </div>
-                                <div className="grid grid-cols-2 gap-4">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                     <div>
                                         <label className={`block text-xs font-semibold mb-1.5 ${isDark ? "text-neutral-300" : "text-neutral-700"}`}>{t("fleet.form.year")} *</label>
                                         <input required type="number" min="1990" max="2030" value={form.year ?? ""} onChange={e => setForm(f => ({ ...f, year: +e.target.value }))} className={inputClass} />
@@ -300,7 +302,7 @@ export default function Fleet() {
                                         <input value={form.color ?? ""} onChange={e => setForm(f => ({ ...f, color: e.target.value }))} className={inputClass} placeholder={t("fleet.form.colorPlaceholder")} />
                                     </div>
                                 </div>
-                                <div className="grid grid-cols-2 gap-4">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                     <div>
                                         <label className={`block text-xs font-semibold mb-1.5 ${isDark ? "text-neutral-300" : "text-neutral-700"}`}>{t("fleet.form.licensePlate")} *</label>
                                         <input required value={form.licensePlate ?? ""} onChange={e => setForm(f => ({ ...f, licensePlate: e.target.value.toUpperCase() }))} className={inputClass} placeholder={t("fleet.form.platePlaceholder")} />
@@ -310,7 +312,7 @@ export default function Fleet() {
                                         <input value={form.vin ?? ""} onChange={e => setForm(f => ({ ...f, vin: e.target.value }))} className={inputClass} placeholder={t("fleet.form.vinPlaceholder")} />
                                     </div>
                                 </div>
-                                <div className="grid grid-cols-2 gap-4">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                     <div>
                                         <label className={`block text-xs font-semibold mb-1.5 ${isDark ? "text-neutral-300" : "text-neutral-700"}`}>{t("fleet.form.vehicleType")} *</label>
                                         <select required value={form.vehicleTypeId ?? ""} onChange={e => setForm(f => ({ ...f, vehicleTypeId: e.target.value }))} className={inputClass}>

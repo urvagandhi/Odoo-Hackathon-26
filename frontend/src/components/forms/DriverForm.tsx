@@ -195,7 +195,7 @@ export function DriverForm({ open, onClose, onSuccess, editData }: DriverFormPro
               </div>
 
               {/* License Number + Class */}
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className={labelCls}>{t("forms.driver.licenseNumber")}</label>
                   <input
@@ -230,7 +230,7 @@ export function DriverForm({ open, onClose, onSuccess, editData }: DriverFormPro
               </div>
 
               {/* Phone + Email */}
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className={labelCls}>{t("forms.driver.phone")}</label>
                   <input

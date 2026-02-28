@@ -269,7 +269,7 @@ export function TripForm({ open, onClose, onSuccess }: TripFormProps) {
                   </div>
 
                   {/* Origin + Destination */}
-                  <div className="grid grid-cols-2 gap-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
                       <label className={labelCls}>{t("forms.trip.origin")}</label>
                       <LocationAutocomplete
@@ -293,7 +293,7 @@ export function TripForm({ open, onClose, onSuccess }: TripFormProps) {
                   </div>
 
                   {/* Cargo Weight + Distance */}
-                  <div className="grid grid-cols-2 gap-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
                       <label className={labelCls}>{t("forms.trip.cargoWeight")}</label>
                       <input
@@ -345,7 +345,7 @@ export function TripForm({ open, onClose, onSuccess }: TripFormProps) {
                   </div>
 
                   {/* Client + Revenue */}
-                  <div className="grid grid-cols-2 gap-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
                       <label className={labelCls}>{t("forms.trip.clientName")}</label>
                       <input

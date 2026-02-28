@@ -271,7 +271,7 @@ export default function Incidents() {
       {/* Filters */}
       <div className="flex flex-wrap items-center gap-3 mb-4">
         <div
-          className={`flex items-center gap-2 px-3 py-2 rounded-lg border text-sm w-64 ${
+          className={`flex items-center gap-2 px-3 py-2 rounded-lg border text-sm w-full sm:w-64 ${
             isDark ? "bg-neutral-800 border-neutral-700 text-white" : "bg-white border-slate-200 text-slate-900"
           }`}
         >
@@ -467,7 +467,7 @@ function IncidentFormModal({
           </div>
 
           {/* Type + Date row */}
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <label className={`text-xs font-medium mb-1 block ${isDark ? "text-neutral-300" : "text-slate-600"}`}>
                 {t("incidents.createModal.type")}
@@ -495,7 +495,7 @@ function IncidentFormModal({
           </div>
 
           {/* Location + Damage row */}
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <label className={`text-xs font-medium mb-1 block ${isDark ? "text-neutral-300" : "text-slate-600"}`}>
                 {t("incidents.createModal.location")}

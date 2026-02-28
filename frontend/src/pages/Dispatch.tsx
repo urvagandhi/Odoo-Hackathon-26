@@ -126,6 +126,7 @@ export default function Dispatch() {
     const [destCoord, setDestCoord] = useState<[number, number] | null>(null);
     const [mapBounds, setMapBounds] = useState<[[number, number], [number, number]] | null>(null);
     const [mapLoading, setMapLoading] = useState(false);
+    const [mobileView, setMobileView] = useState<'list' | 'detail'>('list');
 
     const load = useCallback(async () => {
         setLoading(true);
@@ -218,9 +219,19 @@ export default function Dispatch() {
                 </button>
             </div>
 
-            <div className="flex gap-5 h-[calc(100vh-180px)] min-h-[600px]">
+            {/* Mobile view toggle */}
+            <div className={`flex lg:hidden mb-3 gap-1 p-1 rounded-xl ${isDark ? 'bg-neutral-800' : 'bg-neutral-100'}`}>
+                <button onClick={() => setMobileView('list')} className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-sm font-semibold transition-colors ${mobileView === 'list' ? (isDark ? 'bg-neutral-700 text-emerald-400 shadow-sm' : 'bg-white text-emerald-600 shadow-sm') : (isDark ? 'text-neutral-500' : 'text-neutral-500')}`}>
+                    <Route className="w-4 h-4" /> Trips
+                </button>
+                <button onClick={() => setMobileView('detail')} className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-sm font-semibold transition-colors ${mobileView === 'detail' ? (isDark ? 'bg-neutral-700 text-emerald-400 shadow-sm' : 'bg-white text-emerald-600 shadow-sm') : (isDark ? 'text-neutral-500' : 'text-neutral-500')}`}>
+                    <MapPin className="w-4 h-4" /> Map & Detail
+                </button>
+            </div>
+
+            <div className="flex flex-col lg:flex-row gap-5 lg:h-[calc(100vh-220px)] lg:min-h-[600px]">
                 {/* LEFT: Trip List */}
-                <div className={`w-[380px] shrink-0 flex flex-col rounded-2xl border overflow-hidden ${isDark ? "bg-neutral-800 border-neutral-700" : "bg-white border-neutral-200 shadow-sm"}`}>
+                <div className={`${mobileView === 'detail' ? 'hidden lg:flex' : 'flex'} w-full lg:w-[380px] shrink-0 flex-col rounded-2xl border overflow-hidden max-h-[50vh] lg:max-h-none ${isDark ? "bg-neutral-800 border-neutral-700" : "bg-white border-neutral-200 shadow-sm"}`}>
                     {/* Search & filter */}
                     <div className={`p-3 space-y-2 border-b ${isDark ? "border-neutral-700" : "border-neutral-100"}`}>
                         <div className="relative">
@@ -278,7 +289,7 @@ export default function Dispatch() {
                 </div>
 
                 {/* RIGHT: Detail + Map */}
-                <div className="flex-1 flex flex-col gap-5">
+                <div className={`flex-1 flex flex-col gap-5 ${mobileView === 'list' ? 'hidden lg:flex' : 'flex'}`}>
                     {selectedTrip ? (
                         <>
                             {/* Trip detail card */}
@@ -337,7 +348,7 @@ export default function Dispatch() {
                                         )}
                                     </div>
                                 </div>
-                                <div className="grid grid-cols-3 gap-4 text-sm">
+                                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm">
                                     <InfoBox label={t("dispatch.detail.vehicle")} value={`${selectedTrip.vehicle?.year ?? ""} ${selectedTrip.vehicle?.make ?? "—"} ${selectedTrip.vehicle?.model ?? ""}`} sub={selectedTrip.vehicle?.licensePlate} isDark={isDark} />
                                     <InfoBox label={t("dispatch.detail.driver")} value={selectedTrip.driver?.fullName ?? "—"} sub={selectedTrip.driver?.licenseNumber} isDark={isDark} />
                                     <InfoBox label={t("dispatch.detail.cargo")} value={selectedTrip.cargoWeight ? `${selectedTrip.cargoWeight} kg` : "—"} sub={selectedTrip.cargoDescription} isDark={isDark} />
@@ -410,7 +421,7 @@ export default function Dispatch() {
                             {formError && <div className="mb-4 text-red-600 text-sm bg-red-50 border border-red-100 rounded-xl p-3 flex items-center gap-2"><AlertTriangle className="w-4 h-4 shrink-0" />{formError}</div>}
 
                             <form onSubmit={handleCreate} className="space-y-4">
-                                <div className="grid grid-cols-2 gap-4">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                     <div>
                                         <label className={`block text-xs font-semibold mb-1.5 ${isDark ? "text-neutral-300" : "text-neutral-700"}`}>{t("dispatch.form.vehicle")}</label>
                                         <select required value={form.vehicleId} onChange={e => setForm(f => ({ ...f, vehicleId: e.target.value }))} className={inputClass}>
@@ -426,7 +437,7 @@ export default function Dispatch() {
                                         </select>
                                     </div>
                                 </div>
-                                <div className="grid grid-cols-2 gap-4">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                     <div>
                                         <label className={`block text-xs font-semibold mb-1.5 ${isDark ? "text-neutral-300" : "text-neutral-700"}`}>{t("dispatch.form.origin")}</label>
                                         <input required value={form.origin} onChange={e => setForm(f => ({ ...f, origin: e.target.value }))} className={inputClass} placeholder={t("dispatch.form.originPlaceholder")} />
@@ -436,7 +447,7 @@ export default function Dispatch() {
                                         <input required value={form.destination} onChange={e => setForm(f => ({ ...f, destination: e.target.value }))} className={inputClass} placeholder={t("dispatch.form.destinationPlaceholder")} />
                                     </div>
                                 </div>
-                                <div className="grid grid-cols-3 gap-4">
+                                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                                     <div>
                                         <label className={`block text-xs font-semibold mb-1.5 ${isDark ? "text-neutral-300" : "text-neutral-700"}`}>{t("dispatch.form.distance")}</label>
                                         <input type="number" min="0" step="0.1" value={form.distanceEstimated || ""} onChange={e => setForm(f => ({ ...f, distanceEstimated: +e.target.value }))} className={inputClass} placeholder="150" />
@@ -450,7 +461,7 @@ export default function Dispatch() {
                                         <input type="number" min="0" value={form.revenue || ""} onChange={e => setForm(f => ({ ...f, revenue: +e.target.value }))} className={inputClass} placeholder="50000" />
                                     </div>
                                 </div>
-                                <div className="grid grid-cols-2 gap-4">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                     <div>
                                         <label className={`block text-xs font-semibold mb-1.5 ${isDark ? "text-neutral-300" : "text-neutral-700"}`}>{t("dispatch.form.cargoDescription")}</label>
                                         <input value={form.cargoDescription} onChange={e => setForm(f => ({ ...f, cargoDescription: e.target.value }))} className={inputClass} placeholder="Electronics, perishables…" />

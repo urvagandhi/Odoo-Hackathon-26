@@ -237,7 +237,7 @@ export function VehicleForm({ open, onClose, onSuccess, editData }: VehicleFormP
               </div>
 
               {/* Make + Model row */}
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className={labelCls}>{t("forms.vehicle.make")}</label>
                   <input
@@ -261,7 +261,7 @@ export function VehicleForm({ open, onClose, onSuccess, editData }: VehicleFormP
               </div>
 
               {/* Year + Color */}
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className={labelCls}>{t("forms.vehicle.year")}</label>
                   <input
@@ -315,7 +315,7 @@ export function VehicleForm({ open, onClose, onSuccess, editData }: VehicleFormP
               </div>
 
               {/* Capacity Weight + Volume */}
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className={labelCls}>{t("forms.vehicle.maxCapacity")}</label>
                   <input
@@ -340,7 +340,7 @@ export function VehicleForm({ open, onClose, onSuccess, editData }: VehicleFormP
               </div>
 
               {/* Region + Acquisition Cost */}
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className={labelCls}>{t("forms.vehicle.region")}</label>
                   <input

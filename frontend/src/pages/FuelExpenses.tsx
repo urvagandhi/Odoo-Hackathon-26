@@ -87,7 +87,7 @@ export default function FuelExpenses() {
             </div>
 
             {/* Summary cards */}
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className={cardClass}>
                     <div className="flex items-center gap-3">
                         <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center"><Fuel className="w-5 h-5 text-blue-600" /></div>
@@ -111,7 +111,7 @@ export default function FuelExpenses() {
             </div>
 
             {/* Filter & Tabs */}
-            <div className={`flex items-center justify-between p-3 rounded-2xl border gap-4 ${isDark ? "bg-neutral-800 border-neutral-700" : "bg-white border-neutral-200"}`}>
+            <div className={`flex flex-col sm:flex-row items-stretch sm:items-center justify-between p-3 rounded-2xl border gap-3 ${isDark ? "bg-neutral-800 border-neutral-700" : "bg-white border-neutral-200"}`}>
                 <div className="flex items-center gap-2 bg-neutral-100 dark:bg-neutral-700 rounded-xl p-1">
                     <button onClick={() => setTab("fuel")} className={`px-4 py-1.5 rounded-lg text-sm font-semibold transition-colors ${tab === "fuel" ? "bg-white text-neutral-900 shadow-sm dark:bg-neutral-600 dark:text-white" : "text-neutral-500"}`}>
                         {t("fuelExpenses.fuelLogs")}
@@ -121,8 +121,8 @@ export default function FuelExpenses() {
                     </button>
                 </div>
                 <div className="flex items-center gap-2">
-                    <Filter className="w-4 h-4 text-neutral-400" />
-                    <select value={vehicleFilter} onChange={e => setVehicleFilter(e.target.value)} className={`${inputClass} max-w-[220px]`}>
+                    <Filter className="w-4 h-4 text-neutral-400 shrink-0" />
+                    <select value={vehicleFilter} onChange={e => setVehicleFilter(e.target.value)} className={`${inputClass} w-full sm:max-w-[220px]`}>
                         <option value="">{t("fuelExpenses.allVehicles")}</option>
                         {vehicles.map(v => <option key={v.id} value={v.id}>{v.licensePlate} — {v.make}</option>)}
                     </select>
@@ -135,7 +135,8 @@ export default function FuelExpenses() {
                     fuelLogs.length === 0 ? (
                         <div className="flex flex-col items-center justify-center h-32 text-neutral-400"><Fuel className="w-8 h-8 mb-2 opacity-30" /><p>{t("fuelExpenses.noFuelLogs")}</p></div>
                     ) : (
-                        <table className="w-full text-sm">
+                        <div className="overflow-x-auto">
+                        <table className="w-full text-sm min-w-[700px]">
                             <thead>
                                 <tr className={`text-xs font-semibold uppercase border-b ${isDark ? "text-neutral-400 border-neutral-700 bg-neutral-900/30" : "text-neutral-500 border-neutral-100 bg-neutral-50"}`}>
                                     {[t("fuelExpenses.fuelColumns.date"), t("fuelExpenses.fuelColumns.vehicle"), t("fuelExpenses.fuelColumns.liters"), t("fuelExpenses.fuelColumns.costPerLiter"), t("fuelExpenses.fuelColumns.total"), t("fuelExpenses.fuelColumns.odometer"), t("fuelExpenses.fuelColumns.station")].map(h => <th key={h} className="text-left px-4 py-3">{h}</th>)}
@@ -157,12 +158,14 @@ export default function FuelExpenses() {
                                 ))}
                             </tbody>
                         </table>
+                        </div>
                     )
                 ) : (
                     expenses.length === 0 ? (
                         <div className="flex flex-col items-center justify-center h-32 text-neutral-400"><DollarSign className="w-8 h-8 mb-2 opacity-30" /><p>{t("fuelExpenses.noExpenses")}</p></div>
                     ) : (
-                        <table className="w-full text-sm">
+                        <div className="overflow-x-auto">
+                        <table className="w-full text-sm min-w-[600px]">
                             <thead>
                                 <tr className={`text-xs font-semibold uppercase border-b ${isDark ? "text-neutral-400 border-neutral-700 bg-neutral-900/30" : "text-neutral-500 border-neutral-100 bg-neutral-50"}`}>
                                     {[t("fuelExpenses.expenseColumns.date"), t("fuelExpenses.expenseColumns.vehicle"), t("fuelExpenses.expenseColumns.category"), t("fuelExpenses.expenseColumns.amount"), t("fuelExpenses.expenseColumns.description")].map(h => <th key={h} className="text-left px-4 py-3">{h}</th>)}
@@ -184,6 +187,7 @@ export default function FuelExpenses() {
                                 ))}
                             </tbody>
                         </table>
+                        </div>
                     )
                 )}
             </div>
@@ -217,7 +221,7 @@ export default function FuelExpenses() {
                                             {vehicles.map(v => <option key={v.id} value={v.id}>{v.licensePlate} — {v.make}</option>)}
                                         </select>
                                     </div>
-                                    <div className="grid grid-cols-3 gap-3">
+                                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                                         <div>
                                             <label className={`block text-xs font-semibold mb-1.5 ${isDark ? "text-neutral-300" : "text-neutral-700"}`}>{t("fuelExpenses.form.liters")}</label>
                                             <input required type="number" step="0.1" min="0" value={fuelForm.liters || ""} onChange={e => setFuelForm(f => ({ ...f, liters: +e.target.value }))} className={inputClass} />
@@ -234,7 +238,7 @@ export default function FuelExpenses() {
                                     {fuelForm.liters > 0 && fuelForm.costPerLiter > 0 && (
                                         <p className="text-xs text-emerald-600 font-semibold">{t("fuelExpenses.form.totalLabel", { amount: (fuelForm.liters * fuelForm.costPerLiter).toFixed(2) })}</p>
                                     )}
-                                    <div className="grid grid-cols-2 gap-3">
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                         <div>
                                             <label className={`block text-xs font-semibold mb-1.5 ${isDark ? "text-neutral-300" : "text-neutral-700"}`}>{t("fuelExpenses.form.station")}</label>
                                             <input value={fuelForm.fuelStation} onChange={e => setFuelForm(f => ({ ...f, fuelStation: e.target.value }))} className={inputClass} placeholder={t("fuelExpenses.form.stationPlaceholder")} />
@@ -253,7 +257,7 @@ export default function FuelExpenses() {
                                 </form>
                             ) : (
                                 <form onSubmit={handleExpenseSave} className="space-y-4">
-                                    <div className="grid grid-cols-2 gap-4">
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                         <div>
                                             <label className={`block text-xs font-semibold mb-1.5 ${isDark ? "text-neutral-300" : "text-neutral-700"}`}>{t("fuelExpenses.form.vehicle")}</label>
                                             <select required value={expenseForm.vehicleId} onChange={e => setExpenseForm(f => ({ ...f, vehicleId: e.target.value }))} className={inputClass}>
