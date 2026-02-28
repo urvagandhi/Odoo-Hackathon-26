@@ -131,7 +131,7 @@ export default function TripDispatcher() {
     open: false,
     trip: null,
   });
-  const [dispatching, setDispatching] = useState(false);
+  const [dispatching] = useState(false);
 
   // Theme helpers
   const textPrimary = isDark ? "text-white" : "text-slate-900";
@@ -190,17 +190,22 @@ export default function TripDispatcher() {
 
   /* ─── Dispatch action ─── */
   const handleDispatch = async (trip: Trip) => {
-    setDispatching(true);
+    // Optimistic: close dialog and update local state instantly
+    const previousStatus = trip.status;
+    setDispatchDialog({ open: false, trip: null });
+    setTrips(prev => prev.map(t => t.id === trip.id ? { ...t, status: "DISPATCHED" } : t));
+    setCounts(prev => ({ ...prev, DRAFT: Math.max(0, prev.DRAFT - 1), DISPATCHED: prev.DISPATCHED + 1 }));
+
     try {
       await dispatchApi.transitionStatus(trip.id, { status: "DISPATCHED" });
-      setDispatchDialog({ open: false, trip: null });
       toast.success(t("tripDispatcher.toast.dispatched"), { title: t("tripDispatcher.toast.dispatchedTitle") });
       fetchTrips();
     } catch (err: unknown) {
+      // Rollback
+      setTrips(prev => prev.map(t => t.id === trip.id ? { ...t, status: previousStatus } : t));
+      setCounts(prev => ({ ...prev, DRAFT: prev.DRAFT + 1, DISPATCHED: Math.max(0, prev.DISPATCHED - 1) }));
       const axiosErr = err as { response?: { data?: { message?: string } } };
       toast.error(axiosErr.response?.data?.message ?? t("tripDispatcher.toast.dispatchFailed"), { title: t("tripDispatcher.toast.errorTitle") });
-    } finally {
-      setDispatching(false);
     }
   };
 

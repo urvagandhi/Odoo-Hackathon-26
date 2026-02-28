@@ -286,7 +286,7 @@ export default function Expenses() {
             <Receipt className="w-4 h-4" /> {t("expenses.tabs.expenses", { count: expenses.length })}
           </button>
         </div>
-        <div className={`flex items-center gap-2 px-3 py-2 rounded-lg border text-sm w-64 ${
+        <div className={`flex items-center gap-2 px-3 py-2 rounded-lg border text-sm w-full sm:w-64 ${
           isDark ? "bg-neutral-800 border-neutral-700 text-white" : "bg-white border-slate-200 text-slate-900"
         }`}>
           <Search className={`w-4 h-4 ${isDark ? "text-neutral-400" : "text-slate-400"}`} />

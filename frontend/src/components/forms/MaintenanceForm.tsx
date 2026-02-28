@@ -233,7 +233,7 @@ export function MaintenanceForm({ open, onClose, onSuccess }: MaintenanceFormPro
                   </div>
 
                   {/* Cost + Odometer */}
-                  <div className="grid grid-cols-2 gap-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
                       <label className={labelCls}>{t("forms.maintenance.cost")}</label>
                       <input type="number" className={`${inputCls} ${errors.cost ? "border-red-400" : ""}`} value={form.cost || ""} onChange={(e) => handleChange("cost", e.target.value)} />
@@ -247,7 +247,7 @@ export function MaintenanceForm({ open, onClose, onSuccess }: MaintenanceFormPro
                   </div>
 
                   {/* Technician + Shop */}
-                  <div className="grid grid-cols-2 gap-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
                       <label className={labelCls}>{t("forms.maintenance.technicianName")}</label>
                       <input className={inputCls} placeholder={t("forms.maintenance.technicianPlaceholder")} value={form.technicianName ?? ""} onChange={(e) => handleChange("technicianName", e.target.value)} />
@@ -259,7 +259,7 @@ export function MaintenanceForm({ open, onClose, onSuccess }: MaintenanceFormPro
                   </div>
 
                   {/* Dates */}
-                  <div className="grid grid-cols-2 gap-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
                       <label className={labelCls}>{t("forms.maintenance.serviceDate")}</label>
                       <input type="date" className={`${inputCls} ${errors.serviceDate ? "border-red-400" : ""}`} value={form.serviceDate} onChange={(e) => handleChange("serviceDate", e.target.value)} />

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { motion, AnimatePresence } from "framer-motion";
 import { Plus, Search, Filter, Edit3, Trash2, X, Truck, ChevronDown } from "lucide-react";
@@ -8,6 +8,7 @@ import { fleetApi, type Vehicle } from "../api/client";
 import { TableSkeleton } from "../components/ui/TableSkeleton";
 import { useTheme } from "../context/ThemeContext";
 import { useToast } from "../hooks/useToast";
+import { VehicleTypeThumbnail } from "../components/ui/VehicleTypePreview";
 import {
     AlertDialog,
     AlertDialogContent,
@@ -42,7 +43,6 @@ export default function Fleet() {
     const [form, setForm] = useState<Partial<Vehicle & { vehicleTypeId: string }>>({});
     const [localError, setLocalError] = useState("");
     const [actionVehicleId, setActionVehicleId] = useState<string | null>(null);
-    const [openDropdownId, setOpenDropdownId] = useState<string | null>(null);
 
     // Queries
     const { data: vehicles = [], isLoading: loadingVehicles } = useQuery({
@@ -66,14 +66,16 @@ export default function Fleet() {
                 return fleetApi.createVehicle(payload);
             }
         },
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ["vehicles"] });
-            toast.success(editVehicle ? t("fleet.toast.updated") : t("fleet.toast.created"), { 
-                title: editVehicle ? t("fleet.toast.updatedTitle") : t("fleet.toast.createdTitle") 
-            });
+        onMutate: () => {
             setShowModal(false);
         },
+        onSuccess: () => {
+            toast.success(editVehicle ? t("fleet.toast.updated") : t("fleet.toast.created"), {
+                title: editVehicle ? t("fleet.toast.updatedTitle") : t("fleet.toast.createdTitle")
+            });
+        },
         onError: (err: any) => {
+            setShowModal(true);
             const response = err.response;
             if (response?.status === 422 && response.data?.details) {
                 const details = response.data.details;
@@ -84,38 +86,58 @@ export default function Fleet() {
             } else {
                 setLocalError(response?.data?.message ?? t("common.error"));
             }
+        },
+        onSettled: () => {
+            queryClient.invalidateQueries({ queryKey: ["vehicles"] });
         }
     });
 
     const deleteMutation = useMutation({
         mutationFn: (id: string) => fleetApi.deleteVehicle(id),
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ["vehicles"] });
-            toast.success(t("fleet.toast.retired"));
+        onMutate: async (id) => {
+            await queryClient.cancelQueries({ queryKey: ["vehicles"] });
+            const previous = queryClient.getQueryData<Vehicle[]>(["vehicles"]);
+            queryClient.setQueryData<Vehicle[]>(["vehicles"], old =>
+                (old ?? []).filter(v => v.id !== id)
+            );
             setActionVehicleId(null);
+            return { previous };
         },
-        onError: () => {
+        onSuccess: () => {
+            toast.success(t("fleet.toast.retired"));
+        },
+        onError: (_err, _id, context) => {
+            if (context?.previous) queryClient.setQueryData(["vehicles"], context.previous);
             toast.error(t("fleet.toast.retireFailed"));
+        },
+        onSettled: () => {
+            queryClient.invalidateQueries({ queryKey: ["vehicles"] });
         }
     });
 
     const statusMutation = useMutation({
         mutationFn: ({ id, status }: { id: string, status: string }) => fleetApi.updateVehicleStatus(id, status),
+        onMutate: async ({ id, status }) => {
+            await queryClient.cancelQueries({ queryKey: ["vehicles"] });
+            const previous = queryClient.getQueryData<Vehicle[]>(["vehicles"]);
+            queryClient.setQueryData<Vehicle[]>(["vehicles"], old =>
+                (old ?? []).map(v => v.id === id ? { ...v, status } as Vehicle : v)
+            );
+            return { previous };
+        },
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ["vehicles"] });
             toast.success(t("fleet.toast.statusUpdated"), { title: t("fleet.toast.updatedTitle") });
         },
-        onError: () => {
+        onError: (_err, _vars, context) => {
+            if (context?.previous) queryClient.setQueryData(["vehicles"], context.previous);
             toast.error(t("fleet.toast.statusFailed"));
+        },
+        onSettled: () => {
+            queryClient.invalidateQueries({ queryKey: ["vehicles"] });
         }
     });
 
-    // Close dropdown on outside click
-    useEffect(() => {
-        const h = () => setOpenDropdownId(null);
-        window.addEventListener("click", h);
-        return () => window.removeEventListener("click", h);
-    }, []);
+
 
     const filtered = vehicles.filter(v => {
         const matchStatus = !statusFilter || v.status === statusFilter;
@@ -173,14 +195,14 @@ export default function Fleet() {
                     <h1 className={`text-2xl font-bold ${isDark ? "text-white" : "text-neutral-900"}`}>{t("fleet.title")}</h1>
                     <p className={`text-sm ${isDark ? "text-neutral-400" : "text-neutral-500"}`}>{t("fleet.vehiclesInFleet", { count: vehicles.length })}</p>
                 </div>
-                <button onClick={openCreate} className="flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-500 text-white text-sm font-semibold hover:bg-emerald-600 transition-colors">
+                <button onClick={openCreate} className="flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-500 text-white text-sm font-semibold hover:bg-emerald-600 transition-all active:scale-[0.97]">
                     <Plus className="w-4 h-4" /> {t("fleet.addVehicle")}
                 </button>
             </div>
 
             {/* Filters */}
-            <div className={`flex items-center gap-3 p-3 rounded-2xl border ${isDark ? "bg-neutral-800 border-neutral-700" : "bg-white border-neutral-200"}`}>
-                <div className="relative flex-1 max-w-xs">
+            <div className={`flex flex-col sm:flex-row items-stretch sm:items-center gap-3 p-3 rounded-2xl border ${isDark ? "bg-neutral-800 border-neutral-700" : "bg-white border-neutral-200"}`}>
+                <div className="relative w-full sm:flex-1 sm:max-w-xs">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400" />
                     <input
                         value={search}
@@ -189,8 +211,8 @@ export default function Fleet() {
                         className={`${inputClass} pl-9`}
                     />
                 </div>
-                <div className="flex items-center gap-2">
-                    <Filter className="w-4 h-4 text-neutral-400" />
+                <div className="flex items-center gap-2 overflow-x-auto">
+                    <Filter className="w-4 h-4 text-neutral-400 shrink-0" />
                     {["", "AVAILABLE", "ON_TRIP", "IN_SHOP", "RETIRED"].map(s => (
                         <button
                             key={s}
@@ -237,7 +259,8 @@ export default function Fleet() {
                         <p>{t("fleet.noVehicles")}</p>
                     </div>
                 ) : (
-                    <table className="w-full text-sm">
+                    <div className="overflow-x-auto">
+                    <table className="w-full text-sm min-w-[700px]">
                         <thead>
                             <tr className={`text-xs font-semibold uppercase tracking-wide border-b ${isDark ? "text-neutral-400 border-neutral-700 bg-neutral-900/30" : "text-neutral-500 border-neutral-100 bg-neutral-50"}`}>
                                 {[
@@ -265,7 +288,10 @@ export default function Fleet() {
                                         {v.color && <p className={`text-xs ${isDark ? "text-neutral-400" : "text-neutral-500"}`}>{v.color}</p>}
                                     </td>
                                     <td className={`px-4 py-3.5 text-xs font-medium ${isDark ? "text-neutral-300" : "text-neutral-600"}`}>
-                                        {v.vehicleType?.name ?? "—"}
+                                        <span className="inline-flex items-center gap-1.5">
+                                            <VehicleTypeThumbnail typeName={v.vehicleType?.name ?? ""} />
+                                            {v.vehicleType?.name ?? "—"}
+                                        </span>
                                     </td>
                                     <td className={`px-4 py-3.5 font-mono text-sm font-bold ${isDark ? "text-emerald-400" : "text-emerald-600"}`}>
                                         {v.licensePlate}
@@ -277,41 +303,26 @@ export default function Fleet() {
                                         {v.currentOdometer?.toLocaleString()} km
                                     </td>
                                     <td className="px-4 py-3.5">
-                                        <div className="relative inline-block" onClick={e => e.stopPropagation()}>
-                                            <button
-                                                disabled={v.status === "RETIRED"}
-                                                onClick={() => setOpenDropdownId(openDropdownId === v.id ? null : v.id)}
-                                                className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold transition-all ${STATUS_CONFIG[v.status]?.className} ${v.status === "RETIRED" ? "opacity-60 cursor-not-allowed" : "hover:scale-105 active:scale-95"}`}
-                                            >
+                                        <div className="relative group inline-block" tabIndex={0}>
+                                            <button className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold ${STATUS_CONFIG[v.status]?.className}`}>
                                                 {STATUS_CONFIG[v.status] ? t(STATUS_CONFIG[v.status].labelKey) : v.status}
-                                                {v.status !== "RETIRED" && <ChevronDown className={`w-3 h-3 transition-transform ${openDropdownId === v.id ? "rotate-180" : ""}`} />}
+                                                {v.status !== "RETIRED" && <ChevronDown className="w-3 h-3" />}
                                             </button>
-                                            
-                                            <AnimatePresence>
-                                                {openDropdownId === v.id && (
-                                                    <motion.div
-                                                        initial={{ opacity: 0, y: 4, scale: 0.95 }}
-                                                        animate={{ opacity: 1, y: 0, scale: 1 }}
-                                                        exit={{ opacity: 0, y: 4, scale: 0.95 }}
-                                                        className={`absolute left-0 top-full mt-1 z-30 border rounded-xl shadow-xl py-1 min-w-[140px] ${isDark ? "bg-neutral-800 border-neutral-700" : "bg-white border-neutral-100"}`}
-                                                    >
-                                                        {(v.status === "ON_TRIP" ? ["IN_SHOP"] : ["AVAILABLE", "IN_SHOP", "RETIRED"]).map(s =>
-                                                            s !== v.status && (
-                                                                <button
-                                                                    key={s}
-                                                                    onClick={() => {
-                                                                        handleStatusChange(v, s);
-                                                                        setOpenDropdownId(null);
-                                                                    }}
-                                                                    className={`block w-full text-left px-3 py-2 text-xs transition-colors ${isDark ? "text-neutral-300 hover:bg-neutral-700 hover:text-white" : "text-neutral-700 hover:bg-neutral-50"}`}
-                                                                >
-                                                                    {t(STATUS_CONFIG[s]?.labelKey)}
-                                                                </button>
-                                                            )
-                                                        )}
-                                                    </motion.div>
+                                            {v.status !== "RETIRED" && (
+                                            <div className={`absolute left-0 top-full mt-1 z-20 hidden group-hover:block group-focus-within:block border rounded-xl shadow-lg py-1 min-w-[130px] ${isDark ? "bg-neutral-800 border-neutral-700" : "bg-white border-neutral-200"}`}>
+                                                {["AVAILABLE", "IN_SHOP", "RETIRED"].map(s =>
+                                                    s !== v.status && (
+                                                        <button
+                                                            key={s}
+                                                            onClick={() => handleStatusChange(v, s)}
+                                                            className={`block w-full text-left px-3 py-1.5 text-xs ${isDark ? "text-neutral-300 hover:bg-neutral-700" : "text-neutral-700 hover:bg-neutral-50"}`}
+                                                        >
+                                                            {t(STATUS_CONFIG[s]?.labelKey)}
+                                                        </button>
+                                                    )
                                                 )}
-                                            </AnimatePresence>
+                                            </div>
+                                            )}
                                         </div>
                                     </td>
                                     <td className="px-4 py-3.5">
@@ -349,6 +360,7 @@ export default function Fleet() {
                             ))}
                         </tbody>
                     </table>
+                    </div>
                 )}
             </div>
 
@@ -373,82 +385,61 @@ export default function Fleet() {
 
                             {localError && <div className="mb-4 text-red-500 text-sm bg-red-50 border border-red-100 rounded-xl p-3">{localError}</div>}
 
-                            <form onSubmit={handleSave} className="space-y-6">
-                                {/* Section 1: Basic Information */}
-                                <div className="space-y-4">
-                                    <div className="flex items-center gap-2 pb-1 border-b border-neutral-100 dark:border-neutral-700">
-                                        <Truck className="w-4 h-4 text-emerald-500" />
-                                        <h3 className={`text-xs font-bold uppercase tracking-wider ${isDark ? "text-neutral-400" : "text-neutral-500"}`}>{t("nav.sections.general")}</h3>
+                            <form onSubmit={handleSave} className="space-y-4">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                    <div>
+                                        <label className={`block text-xs font-semibold mb-1.5 ${isDark ? "text-neutral-300" : "text-neutral-700"}`}>{t("fleet.form.make")} *</label>
+                                        <input required value={form.make ?? ""} onChange={e => setForm(f => ({ ...f, make: e.target.value }))} className={inputClass} placeholder={t("fleet.form.makePlaceholder")} />
                                     </div>
-                                    <div className="grid grid-cols-2 gap-4">
-                                        <div>
-                                            <label className={`block text-xs font-semibold mb-1.5 ${isDark ? "text-neutral-300" : "text-neutral-700"}`}>{t("fleet.form.make")} *</label>
-                                            <input required value={form.make ?? ""} onChange={e => setForm(f => ({ ...f, make: e.target.value }))} className={inputClass} placeholder={t("fleet.form.makePlaceholder")} />
-                                        </div>
-                                        <div>
-                                            <label className={`block text-xs font-semibold mb-1.5 ${isDark ? "text-neutral-300" : "text-neutral-700"}`}>{t("fleet.form.model")} *</label>
-                                            <input required value={form.model ?? ""} onChange={e => setForm(f => ({ ...f, model: e.target.value }))} className={inputClass} placeholder={t("fleet.form.modelPlaceholder")} />
-                                        </div>
-                                    </div>
-                                    <div className="grid grid-cols-2 gap-4">
-                                        <div>
-                                            <label className={`block text-xs font-semibold mb-1.5 ${isDark ? "text-neutral-300" : "text-neutral-700"}`}>{t("fleet.form.year")} *</label>
-                                            <input required type="number" min="1990" max="2030" value={form.year ?? ""} onChange={e => setForm(f => ({ ...f, year: +e.target.value }))} className={inputClass} />
-                                        </div>
-                                        <div>
-                                            <label className={`block text-xs font-semibold mb-1.5 ${isDark ? "text-neutral-300" : "text-neutral-700"}`}>{t("fleet.form.color")}</label>
-                                            <input value={form.color ?? ""} onChange={e => setForm(f => ({ ...f, color: e.target.value }))} className={inputClass} placeholder={t("fleet.form.colorPlaceholder")} />
-                                        </div>
+                                    <div>
+                                        <label className={`block text-xs font-semibold mb-1.5 ${isDark ? "text-neutral-300" : "text-neutral-700"}`}>{t("fleet.form.model")} *</label>
+                                        <input required value={form.model ?? ""} onChange={e => setForm(f => ({ ...f, model: e.target.value }))} className={inputClass} placeholder={t("fleet.form.modelPlaceholder")} />
                                     </div>
                                 </div>
-
-                                {/* Section 2: Registration Details */}
-                                <div className="space-y-4">
-                                    <div className="flex items-center gap-2 pb-1 border-b border-neutral-100 dark:border-neutral-700">
-                                        <Search className="w-4 h-4 text-blue-500" />
-                                        <h3 className={`text-xs font-bold uppercase tracking-wider ${isDark ? "text-neutral-400" : "text-neutral-500"}`}>REGISTRATION & REGION</h3>
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                    <div>
+                                        <label className={`block text-xs font-semibold mb-1.5 ${isDark ? "text-neutral-300" : "text-neutral-700"}`}>{t("fleet.form.year")} *</label>
+                                        <input required type="number" min="1990" max="2030" value={form.year ?? ""} onChange={e => setForm(f => ({ ...f, year: +e.target.value }))} className={inputClass} />
                                     </div>
-                                    <div className="grid grid-cols-2 gap-4">
-                                        <div>
-                                            <label className={`block text-xs font-semibold mb-1.5 ${isDark ? "text-neutral-300" : "text-neutral-700"}`}>{t("fleet.form.licensePlate")} *</label>
-                                            <input required value={form.licensePlate ?? ""} onChange={e => setForm(f => ({ ...f, licensePlate: e.target.value.toUpperCase() }))} className={`${inputClass} font-mono font-bold tracking-wider`} placeholder={t("fleet.form.platePlaceholder")} />
-                                        </div>
-                                        <div>
-                                            <label className={`block text-xs font-semibold mb-1.5 ${isDark ? "text-neutral-300" : "text-neutral-700"}`}>{t("fleet.form.region")}</label>
-                                            <Select value={form.region ?? ""} onChange={e => setForm(f => ({ ...f, region: e.target.value }))} className={inputClass}>
-                                                <option value="">{t("fleet.form.selectRegion")}</option>
-                                                {["NORTH", "SOUTH", "EAST", "WEST", "CENTRAL", "INTERNATIONAL"].map(r => (
-                                                    <option key={r} value={r}>{t(`fleet.form.regions.${r}`)}</option>
-                                                ))}
-                                            </Select>
-                                        </div>
+                                    <div>
+                                        <label className={`block text-xs font-semibold mb-1.5 ${isDark ? "text-neutral-300" : "text-neutral-700"}`}>{t("fleet.form.color")}</label>
+                                        <input value={form.color ?? ""} onChange={e => setForm(f => ({ ...f, color: e.target.value }))} className={inputClass} placeholder={t("fleet.form.colorPlaceholder")} />
                                     </div>
+                                </div>
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                    <div>
+                                        <label className={`block text-xs font-semibold mb-1.5 ${isDark ? "text-neutral-300" : "text-neutral-700"}`}>{t("fleet.form.licensePlate")} *</label>
+                                        <input required value={form.licensePlate ?? ""} onChange={e => setForm(f => ({ ...f, licensePlate: e.target.value.toUpperCase() }))} className={`${inputClass} font-mono font-bold tracking-wider`} placeholder={t("fleet.form.platePlaceholder")} />
+                                    </div>
+                                    <div>
+                                        <label className={`block text-xs font-semibold mb-1.5 ${isDark ? "text-neutral-300" : "text-neutral-700"}`}>{t("fleet.form.region")}</label>
+                                        <Select value={form.region ?? ""} onChange={e => setForm(f => ({ ...f, region: e.target.value }))} className={inputClass}>
+                                            <option value="">{t("fleet.form.selectRegion")}</option>
+                                            {["NORTH", "SOUTH", "EAST", "WEST", "CENTRAL", "INTERNATIONAL"].map(r => (
+                                                <option key={r} value={r}>{t(`fleet.form.regions.${r}`)}</option>
+                                            ))}
+                                        </Select>
+                                    </div>
+                                </div>
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                     <div>
                                         <label className={`block text-xs font-semibold mb-1.5 ${isDark ? "text-neutral-300" : "text-neutral-700"}`}>{t("fleet.form.vin")}</label>
                                         <input value={form.vin ?? ""} onChange={e => setForm(f => ({ ...f, vin: e.target.value.toUpperCase() }))} className={`${inputClass} font-mono text-xs`} placeholder={t("fleet.form.vinPlaceholder")} maxLength={17} />
                                     </div>
-                                </div>
-
-                                {/* Section 3: Technical Specs */}
-                                <div className="space-y-4">
-                                    <div className="flex items-center gap-2 pb-1 border-b border-neutral-100 dark:border-neutral-700">
-                                        <Filter className="w-4 h-4 text-amber-500" />
-                                        <h3 className={`text-xs font-bold uppercase tracking-wider ${isDark ? "text-neutral-400" : "text-neutral-500"}`}>TECHNICAL SPECIFICATIONS</h3>
+                                    <div>
+                                        <label className={`block text-xs font-semibold mb-1.5 ${isDark ? "text-neutral-300" : "text-neutral-700"}`}>{t("fleet.form.vehicleType")} *</label>
+                                        <Select required value={form.vehicleTypeId ?? ""} onChange={e => setForm(f => ({ ...f, vehicleTypeId: e.target.value }))} className={inputClass}>
+                                            <option value="">{t("fleet.form.selectType")}</option>
+                                            {vehicleTypes.map(vt => <option key={vt.id} value={vt.id}>{vt.name}</option>)}
+                                        </Select>
                                     </div>
-                                    <div className="grid grid-cols-2 gap-4">
-                                        <div>
-                                            <label className={`block text-xs font-semibold mb-1.5 ${isDark ? "text-neutral-300" : "text-neutral-700"}`}>{t("fleet.form.vehicleType")} *</label>
-                                            <Select required value={form.vehicleTypeId ?? ""} onChange={e => setForm(f => ({ ...f, vehicleTypeId: e.target.value }))} className={inputClass}>
-                                                <option value="">{t("fleet.form.selectType")}</option>
-                                                {vehicleTypes.map(vt => <option key={vt.id} value={vt.id}>{vt.name}</option>)}
-                                            </Select>
-                                        </div>
-                                        <div>
-                                            <label className={`block text-xs font-semibold mb-1.5 ${isDark ? "text-neutral-300" : "text-neutral-700"}`}>{t("fleet.form.capacity")} (kg) *</label>
-                                            <div className="relative">
-                                                <input required type="number" min="1" value={form.capacityWeight ?? ""} onChange={e => setForm(f => ({ ...f, capacityWeight: +e.target.value }))} className={inputClass} placeholder="5000" />
-                                                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] font-bold text-neutral-400">KG</span>
-                                            </div>
+                                </div>
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                    <div>
+                                        <label className={`block text-xs font-semibold mb-1.5 ${isDark ? "text-neutral-300" : "text-neutral-700"}`}>{t("fleet.form.capacity")} (kg) *</label>
+                                        <div className="relative">
+                                            <input required type="number" min="1" value={form.capacityWeight ?? ""} onChange={e => setForm(f => ({ ...f, capacityWeight: +e.target.value }))} className={inputClass} placeholder="5000" />
+                                            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] font-bold text-neutral-400">KG</span>
                                         </div>
                                     </div>
                                     <div>

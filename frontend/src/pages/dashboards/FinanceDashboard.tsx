@@ -144,7 +144,7 @@ export default function FinanceDashboard() {
   return (
     <motion.div className="space-y-5" initial="hidden" animate="visible" variants={stagger}>
       {/* ══ ROW 1 — Stat Cards ══════════════════════════════════════ */}
-      <motion.div variants={stagger} className="grid grid-cols-4 gap-5">
+      <motion.div variants={stagger} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-5">
         {[
           { label: "Total Expenses (YTD)", value: fmt(ytdCost), icon: DollarSign, iconBg: "bg-emerald-100", iconColor: "text-emerald-600", up: false },
           { label: "Profit (YTD)", value: fmt(ytdProfit), icon: TrendingUp, iconBg: "bg-violet-100", iconColor: "text-violet-600", up: ytdProfit > 0 },
@@ -175,9 +175,9 @@ export default function FinanceDashboard() {
       </motion.div>
 
       {/* ══ ROW 2 — Revenue chart + Expenses donut ══════════════════ */}
-      <motion.div variants={stagger} className="grid grid-cols-3 gap-5">
+      <motion.div variants={stagger} className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-5">
         {/* Revenue vs Costs area chart */}
-        <motion.div variants={fadeIn} className={`col-span-2 ${cardClass} p-6`}>
+        <motion.div variants={fadeIn} className={`lg:col-span-2 ${cardClass} p-6`}>
           <div className="flex items-center justify-between mb-4">
             <h3 className={`text-sm font-semibold ${isDark ? 'text-slate-100' : 'text-slate-700'}`}>Revenue vs Costs</h3>
             <div className={`flex items-center gap-1 rounded-lg p-0.5 ${isDark ? 'bg-slate-800/50' : 'bg-slate-50'}`}>
@@ -293,9 +293,9 @@ export default function FinanceDashboard() {
       </motion.div>
 
       {/* ══ ROW 3 — Fleet Fuel Efficiency + Monthly Fuel Cost ══════════ */}
-      <motion.div variants={stagger} className="grid grid-cols-3 gap-5">
+      <motion.div variants={stagger} className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-5">
         {/* Fleet Fuel Efficiency table */}
-        <motion.div variants={fadeIn} className={`col-span-2 ${cardClass} p-6`}>
+        <motion.div variants={fadeIn} className={`lg:col-span-2 ${cardClass} p-6`}>
           <div className="flex items-center justify-between mb-5">
             <h3 className={`text-sm font-semibold ${isDark ? 'text-slate-100' : 'text-slate-700'}`}>Fleet Fuel Efficiency</h3>
             <div className="flex items-center gap-2">

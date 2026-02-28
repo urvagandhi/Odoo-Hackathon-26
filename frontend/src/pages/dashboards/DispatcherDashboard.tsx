@@ -177,7 +177,7 @@ export default function DispatcherDashboard() {
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full text-sm">
+            <table className="min-w-[700px] w-full text-sm">
               <thead>
                 <tr className={`border-b ${isDark ? "bg-slate-900 border-slate-800" : "bg-slate-50 border-slate-100"}`}>
                   <th className="text-left px-6 py-3 text-xs font-semibold text-slate-400 uppercase tracking-wide">Trip ID</th>
@@ -227,7 +227,7 @@ export default function DispatcherDashboard() {
       </motion.div>
 
       {/* ═══ ROW 3 — Fleet + Driver Summary ═════════════════════════════ */}
-      <motion.div variants={fadeIn} className="grid grid-cols-3 gap-5">
+      <motion.div variants={fadeIn} className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-5">
         <div className={`${cardClass} p-5`}>
           <div className="flex items-center gap-2 mb-4">
             <Truck className="w-4 h-4 text-violet-600" />

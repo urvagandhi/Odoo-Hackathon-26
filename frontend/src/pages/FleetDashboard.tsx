@@ -263,7 +263,7 @@ export default function FleetDashboard() {
                         {locations.length > 0 ? t("fleetDashboard.vehiclesTracked", { count: locations.length }) : t("fleetDashboard.noLiveData")}
                     </span>
                 </div>
-                <div className={`rounded-2xl overflow-hidden border relative z-10 ${isDark ? "border-slate-800" : "border-slate-200 shadow-inner"}`} style={{ height: 380 }}>
+                <div className={`rounded-2xl overflow-hidden border relative z-10 h-[280px] sm:h-[380px] ${isDark ? "border-slate-800" : "border-slate-200 shadow-inner"}`}>
                     <MapContainer
                         center={[20.5937, 78.9629]}
                         zoom={5}
@@ -382,7 +382,7 @@ export default function FleetDashboard() {
                         {t("fleetDashboard.monthlyPerformance")}
                     </h2>
                     <div className="overflow-x-auto">
-                        <table className="w-full text-sm">
+                        <table className="w-full text-sm min-w-[700px]">
                             <thead>
                                 <tr className={isDark ? "text-slate-400 border-b border-slate-800" : "text-slate-500 border-b border-slate-200"}>
                                     {[t("fleetDashboard.tableHeaders.month"), t("fleetDashboard.tableHeaders.trips"), t("fleetDashboard.tableHeaders.distance"), t("fleetDashboard.tableHeaders.revenue"), t("fleetDashboard.tableHeaders.fuelCost"), t("fleetDashboard.tableHeaders.maintenance"), t("fleetDashboard.tableHeaders.profit")].map(h =>

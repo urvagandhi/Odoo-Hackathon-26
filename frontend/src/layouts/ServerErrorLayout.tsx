@@ -18,6 +18,7 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Server, RefreshCw, Home, ChevronDown, AlertTriangle } from "lucide-react";
 import { Link } from "react-router-dom";
+import { useTheme } from "../context/ThemeContext";
 
 interface ServerErrorLayoutProps {
   /** Override default error title */
@@ -39,10 +40,11 @@ export function ServerErrorLayout({
   technicalDetail,
   homePath = "/",
 }: ServerErrorLayoutProps) {
+  const { isDark } = useTheme();
   const [detailOpen, setDetailOpen] = useState(false);
 
   return (
-    <div className="min-h-screen bg-slate-50 flex items-center justify-center px-4">
+    <div className={`min-h-screen flex items-center justify-center px-4 ${isDark ? "bg-neutral-900" : "bg-slate-50"}`}>
       <div className="max-w-lg w-full text-center">
 
         {/* Animated illustration */}
@@ -56,11 +58,11 @@ export function ServerErrorLayout({
           <motion.div
             animate={{ scale: [1, 1.15, 1], opacity: [0.3, 0.1, 0.3] }}
             transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
-            className="absolute inset-0 rounded-full bg-red-100"
+            className={`absolute inset-0 rounded-full ${isDark ? "bg-red-900/30" : "bg-red-100"}`}
           />
 
           {/* Icon container */}
-          <div className="absolute inset-3 rounded-full bg-red-50 border-2 border-red-200 flex items-center justify-center">
+          <div className={`absolute inset-3 rounded-full border-2 flex items-center justify-center ${isDark ? "bg-red-900/20 border-red-800" : "bg-red-50 border-red-200"}`}>
             <Server className="w-12 h-12 text-red-400" />
           </div>
 
@@ -69,7 +71,7 @@ export function ServerErrorLayout({
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
             transition={{ delay: 0.3, type: "spring", stiffness: 300, damping: 14 }}
-            className="absolute -top-1 -right-1 w-9 h-9 bg-amber-400 rounded-full border-2 border-white flex items-center justify-center shadow-md"
+            className={`absolute -top-1 -right-1 w-9 h-9 bg-amber-400 rounded-full border-2 flex items-center justify-center shadow-md ${isDark ? "border-neutral-900" : "border-white"}`}
           >
             <AlertTriangle className="w-4 h-4 text-white" />
           </motion.div>
@@ -110,11 +112,11 @@ export function ServerErrorLayout({
             Error 500
           </p>
 
-          <h1 className="text-2xl sm:text-3xl font-bold text-slate-900">
+          <h1 className={`text-2xl sm:text-3xl font-bold ${isDark ? "text-white" : "text-slate-900"}`}>
             {title}
           </h1>
 
-          <p className="text-slate-500 text-sm sm:text-base leading-relaxed max-w-sm mx-auto">
+          <p className={`text-sm sm:text-base leading-relaxed max-w-sm mx-auto ${isDark ? "text-neutral-400" : "text-slate-500"}`}>
             {message}
           </p>
         </motion.div>
@@ -145,14 +147,15 @@ export function ServerErrorLayout({
 
           <Link
             to={homePath}
-            className="
+            className={`
               inline-flex items-center gap-2 px-5 py-2.5 rounded-xl
-              bg-white text-slate-700 text-sm font-semibold
-              border border-slate-200 shadow-sm
-              hover:bg-slate-50 hover:border-slate-300 active:scale-[0.97]
+              text-sm font-semibold shadow-sm active:scale-[0.97]
               transition-all duration-150
-              focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-2
-            "
+              focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2
+              ${isDark
+                ? "bg-neutral-800 text-neutral-200 border border-neutral-600 hover:bg-neutral-700 hover:border-neutral-500 focus-visible:ring-neutral-500 focus-visible:ring-offset-neutral-900"
+                : "bg-white text-slate-700 border border-slate-200 hover:bg-slate-50 hover:border-slate-300 focus-visible:ring-slate-400"}
+            `}
           >
             <Home className="w-4 h-4" />
             Go Home
@@ -169,7 +172,7 @@ export function ServerErrorLayout({
           >
             <button
               onClick={() => setDetailOpen((o) => !o)}
-              className="flex items-center gap-1.5 text-xs text-slate-400 hover:text-slate-600 transition-colors duration-150 mx-auto"
+              className={`flex items-center gap-1.5 text-xs transition-colors duration-150 mx-auto ${isDark ? "text-neutral-500 hover:text-neutral-300" : "text-slate-400 hover:text-slate-600"}`}
             >
               <ChevronDown
                 className={`w-3.5 h-3.5 transition-transform duration-200 ${detailOpen ? "rotate-180" : ""}`}

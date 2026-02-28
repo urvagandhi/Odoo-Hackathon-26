@@ -933,7 +933,7 @@ This makes the dashboard show real numbers on first load, tables have data to br
 **The full demo flow (must work end-to-end):**
 
 ```
-1. Login as superadmin@fleetflow.io / FleetFlow@2025
+1. Login as superadmin@fleetflow.io / FleetFlow@2026
    ✓ Lands on Dashboard with real KPIs
 
 2. Dashboard → Quick Action "Register Vehicle"

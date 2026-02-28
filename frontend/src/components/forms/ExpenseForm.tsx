@@ -255,7 +255,7 @@ export function ExpenseForm({ open, onClose, onSuccess, defaultTab = "fuel" }: E
                     <label className={labelCls}>{t("forms.expense.tripId")}</label>
                     <input className={inputCls} placeholder={t("forms.expense.tripIdPlaceholder")} value={fuelForm.tripId ?? ""} onChange={(e) => handleFuelChange("tripId", e.target.value)} />
                   </div>
-                  <div className="grid grid-cols-2 gap-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
                       <label className={labelCls}>{t("forms.expense.liters")}</label>
                       <input type="number" step="0.01" className={`${inputCls} ${errors.liters ? "border-red-400" : ""}`} value={fuelForm.liters || ""} onChange={(e) => handleFuelChange("liters", e.target.value)} />

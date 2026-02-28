@@ -163,7 +163,7 @@ export default function SafetyOfficerDashboard() {
   return (
     <motion.div variants={stagger} initial="hidden" animate="visible" className="space-y-6">
       {/* ═══ ROW 1 — Three stat cards ═══════════════════ */}
-      <motion.div variants={fadeIn} className="grid grid-cols-3 gap-5">
+      <motion.div variants={fadeIn} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-5">
         {/* ── Fleet Safety Score ───────────────────── */}
         <div className={`group ${cardClass} p-5`}>
           {!isDark && <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-violet-100/50 to-transparent opacity-50 rounded-bl-full pointer-events-none transition-transform group-hover:scale-110" />}
@@ -291,7 +291,7 @@ export default function SafetyOfficerDashboard() {
       </motion.div>
 
       {/* ═══ ROW 2 — Alert card + Top drivers + Driver status ════════ */}
-      <motion.div variants={fadeIn} className="grid grid-cols-3 gap-5">
+      <motion.div variants={fadeIn} className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-5">
         {/* ── License Expiry Alert card ─────────────── */}
         <div className={`${cardClass} p-5 flex flex-col`}>
           <div className="flex items-center gap-3 mb-4">
@@ -450,9 +450,9 @@ export default function SafetyOfficerDashboard() {
       </motion.div>
 
       {/* ═══ ROW 3 — Maintenance tickets + Compliance breakdown ═══ */}
-      <motion.div variants={fadeIn} className="grid grid-cols-3 gap-5">
+      <motion.div variants={fadeIn} className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-5">
         {/* ── Vehicles In Shop (2-col) ──────────────── */}
-        <div className={`col-span-2 ${cardClass} p-0 overflow-hidden`}>
+        <div className={`lg:col-span-2 ${cardClass} p-0 overflow-hidden`}>
           <div className={`px-5 py-4 border-b flex items-center justify-between ${isDark ? "border-slate-800" : "border-slate-100"}`}>
             <div className="flex items-center gap-2">
               <Wrench className="w-5 h-5 text-amber-500" />
