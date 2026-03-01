@@ -65,7 +65,7 @@ interface InShopVehicle {
 
 const STATUS_DOT: Record<string, string> = {
   ON_DUTY: "bg-emerald-500",
-  ON_TRIP: "bg-blue-500",
+  ON_TRIP: "bg-emerald-500",
   OFF_DUTY: "bg-slate-400",
   SUSPENDED: "bg-red-500",
 };
@@ -140,7 +140,7 @@ export default function SafetyOfficerDashboard() {
         ? Math.round((driverPerformance.filter((d) => d.safetyScore >= 80).length / driverPerformance.length) * 100)
         : 0,
       count: String(driverPerformance.filter((d) => d.safetyScore >= 80).length),
-      color: "#3b82f6",
+      color: "#4ADE80",
     },
     {
       label: "License",
@@ -157,7 +157,7 @@ export default function SafetyOfficerDashboard() {
   const donutSegments: { key: string; count: number; color: string; label: string }[] = [
     { key: "ON_DUTY", count: onDuty, color: "#22c55e", label: "On Duty" },
     { key: "SUSPENDED", count: suspended, color: "#ef4444", label: "Suspended" },
-    { key: "OFF_DUTY", count: offDuty, color: "#94a3b8", label: "Off Duty" },
+    { key: "OFF_DUTY", count: offDuty, color: "#6B7C6B", label: "Off Duty" },
   ];
 
   return (
@@ -270,7 +270,7 @@ export default function SafetyOfficerDashboard() {
                 </linearGradient>
               </defs>
               {[0, 1, 2, 3].map((i) => (
-                <line key={i} x1="0" y1={i * 23} x2="200" y2={i * 23} stroke="#f1f5f9" strokeWidth="1" strokeDasharray="4 4" />
+                <line key={i} x1="0" y1={i * 23} x2="200" y2={i * 23} stroke="#E4E6DE" strokeWidth="1" strokeDasharray="4 4" />
               ))}
               <motion.path
                 initial={{ pathLength: 0 }}
@@ -394,7 +394,7 @@ export default function SafetyOfficerDashboard() {
             <div className="relative w-24 h-24 shrink-0">
               <svg className="w-24 h-24 -rotate-90" viewBox="0 0 100 100">
                 {(() => {
-                  const colors = { ON_DUTY: "#22c55e", SUSPENDED: "#ef4444", OFF_DUTY: "#94a3b8" };
+                  const colors = { ON_DUTY: "#22c55e", SUSPENDED: "#ef4444", OFF_DUTY: "#6B7C6B" };
                   const r = 40;
                   const circ = 2 * Math.PI * r;
                   let offset = 0;

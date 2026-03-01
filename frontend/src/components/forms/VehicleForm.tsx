@@ -210,12 +210,12 @@ export function VehicleForm({ open, onClose, onSuccess, editData }: VehicleFormP
             exit={{ x: "100%" }}
             transition={{ type: "spring", damping: 30, stiffness: 300 }}
             className={`fixed right-0 top-0 bottom-0 z-[9991] w-full max-w-lg shadow-2xl flex flex-col ${
-              isDark ? "bg-neutral-800" : "bg-white"
+              isDark ? "bg-[#111A15]" : "bg-white"
             }`}
           >
             {/* Header */}
             <div className={`flex items-center justify-between px-6 py-4 border-b shrink-0 ${
-              isDark ? "border-neutral-700" : "border-slate-100"
+              isDark ? "border-[#1E2B22]" : "border-slate-100"
             }`}>
               <div className="flex items-center gap-3">
                 <div className="w-9 h-9 rounded-lg bg-violet-600 flex items-center justify-center">
@@ -225,7 +225,7 @@ export function VehicleForm({ open, onClose, onSuccess, editData }: VehicleFormP
                   <h2 className={`text-base font-bold ${isDark ? "text-white" : "text-slate-900"}`}>
                     {isEditing ? t("forms.vehicle.editTitle") : t("forms.vehicle.newTitle")}
                   </h2>
-                  <p className={`text-xs ${isDark ? "text-neutral-400" : "text-slate-500"}`}>
+                  <p className={`text-xs ${isDark ? "text-[#6B7C6B]" : "text-slate-500"}`}>
                     {isEditing ? t("forms.vehicle.editSubtitle") : t("forms.vehicle.newSubtitle")}
                   </p>
                 </div>
@@ -233,7 +233,7 @@ export function VehicleForm({ open, onClose, onSuccess, editData }: VehicleFormP
               <button
                 onClick={onClose}
                 className={`p-2 rounded-lg transition-colors ${
-                  isDark ? "hover:bg-neutral-700 text-neutral-400" : "hover:bg-slate-100 text-slate-400"
+                  isDark ? "hover:bg-neutral-700 text-[#6B7C6B]" : "hover:bg-slate-100 text-slate-400"
                 }`}
               >
                 <X className="w-5 h-5" />
@@ -422,7 +422,7 @@ export function VehicleForm({ open, onClose, onSuccess, editData }: VehicleFormP
 
             {/* Footer */}
             <div className={`px-6 py-4 border-t shrink-0 flex items-center justify-end gap-3 ${
-              isDark ? "border-neutral-700" : "border-slate-100"
+              isDark ? "border-[#1E2B22]" : "border-slate-100"
             }`}>
               <button
                 type="button"

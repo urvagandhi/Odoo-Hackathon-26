@@ -148,7 +148,7 @@ export default function FinanceDashboard() {
         {[
           { label: "Total Expenses (YTD)", value: fmt(ytdCost), icon: DollarSign, iconBg: "bg-emerald-100", iconColor: "text-emerald-600", up: false },
           { label: "Profit (YTD)", value: fmt(ytdProfit), icon: TrendingUp, iconBg: "bg-violet-100", iconColor: "text-violet-600", up: ytdProfit > 0 },
-          { label: "Revenue (YTD)", value: fmt(ytdRevenue), icon: Briefcase, iconBg: "bg-blue-100", iconColor: "text-blue-600", up: true },
+          { label: "Revenue (YTD)", value: fmt(ytdRevenue), icon: Briefcase, iconBg: "bg-emerald-100", iconColor: "text-emerald-600", up: true },
           { label: "Fuel Cost (YTD)", value: fmt(ytdFuel), icon: Droplets, iconBg: "bg-amber-100", iconColor: "text-amber-600", up: false },
         ].map((card) => {
           const Icon = card.icon;
@@ -237,7 +237,7 @@ export default function FinanceDashboard() {
             {revenuePoints.length > 1 ? (
               <svg viewBox="0 0 480 112" className="w-full h-full relative z-10" preserveAspectRatio="none">
                 {[0, 37, 74, 111].map((y) => (
-                  <line key={y} x1="0" y1={y} x2="480" y2={y} stroke={isDark ? "#334155" : "#f1f5f9"} strokeWidth="1" />
+                  <line key={y} x1="0" y1={y} x2="480" y2={y} stroke={isDark ? "#1E2B22" : "#E4E6DE"} strokeWidth="1" />
                 ))}
                 <path d={buildAreaPath(costPoints, 480, 112, true)} fill="#10b98112" />
                 <path d={buildAreaPath(costPoints, 480, 112, false)} fill="none" stroke="#10b981" strokeWidth="1.5" strokeDasharray="5 3" />
@@ -264,13 +264,13 @@ export default function FinanceDashboard() {
               {expenseTotal > 0 ? (
                 donutSlices.map((slice) => <path key={slice.label} d={slice.d} fill={slice.color} />)
               ) : (
-                <circle cx="80" cy="80" r="65" fill={isDark ? "#334155" : "#f1f5f9"} />
+                <circle cx="80" cy="80" r="65" fill={isDark ? "#1E2B22" : "#E4E6DE"} />
               )}
-              <circle cx="80" cy="80" r="42" fill={isDark ? "#0f172a" : "white"} />
-              <text x="80" y="75" textAnchor="middle" fontSize="12" fontWeight="700" fill={isDark ? "#f8fafc" : "#1e293b"}>
+              <circle cx="80" cy="80" r="42" fill={isDark ? "#090D0B" : "white"} />
+              <text x="80" y="75" textAnchor="middle" fontSize="12" fontWeight="700" fill={isDark ? "#f8fafc" : "#111A15"}>
                 {fmt(expenseTotal)}
               </text>
-              <text x="80" y="90" textAnchor="middle" fontSize="8" fill={isDark ? "#94a3b8" : "#94a3b8"}>This Month</text>
+              <text x="80" y="90" textAnchor="middle" fontSize="8" fill={isDark ? "#6B7C6B" : "#6B7C6B"}>This Month</text>
             </svg>
           </div>
 

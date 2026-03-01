@@ -111,7 +111,7 @@ export class AuthService {
     async getMe(userId: bigint) {
         const user = await prisma.user.findUnique({
             where: { id: userId },
-            select: { id: true, email: true, fullName: true, role: true, isActive: true, createdAt: true },
+            select: { id: true, email: true, fullName: true, role: true, isActive: true, createdAt: true, phone: true, bio: true, location: true },
         });
 
         if (!user) throw new ApiError(404, 'User not found.');
@@ -134,18 +134,21 @@ export class AuthService {
             if (existing) throw new ApiError(409, 'A user with this email already exists.');
         }
 
-        const data: Record<string, string> = {};
+        const data: Record<string, string | null> = {};
         if (input.fullName) data.fullName = input.fullName;
         if (input.email) data.email = input.email;
+        if (input.phone !== undefined) data.phone = input.phone ?? null;
+        if (input.bio !== undefined) data.bio = input.bio ?? null;
+        if (input.location !== undefined) data.location = input.location ?? null;
 
         if (Object.keys(data).length === 0) {
-            return { id: user.id.toString(), email: user.email, fullName: user.fullName, role: user.role };
+            return { id: user.id.toString(), email: user.email, fullName: user.fullName, role: user.role, phone: user.phone, bio: user.bio, location: user.location };
         }
 
         const updated = await prisma.user.update({
             where: { id: userId },
             data,
-            select: { id: true, email: true, fullName: true, role: true },
+            select: { id: true, email: true, fullName: true, role: true, phone: true, bio: true, location: true },
         });
 
         return { ...updated, id: updated.id.toString() };

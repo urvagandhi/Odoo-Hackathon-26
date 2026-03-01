@@ -79,17 +79,17 @@ export default function DriverPerformance() {
   };
 
   return (
-    <div className={`min-h-screen p-6 ${isDark ? "bg-neutral-900" : "bg-slate-50"}`}>
+    <div className={`min-h-screen p-6 ${isDark ? "bg-[#090D0B]" : "bg-slate-50"}`}>
       {/* Header */}
       <div className="flex items-center gap-3 mb-6">
-        <div className="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center">
+        <div className="w-10 h-10 rounded-xl bg-emerald-600 flex items-center justify-center">
           <BarChart3 className="w-5 h-5 text-white" />
         </div>
         <div>
-          <h1 className={`text-xl font-bold ${isDark ? "text-white" : "text-slate-900"}`}>
+          <h1 className={`text-xl font-bold ${isDark ? "text-[#E4E6DE]" : "text-slate-900"}`}>
             {t("driverPerformance.title")}
           </h1>
-          <p className={`text-sm ${isDark ? "text-neutral-400" : "text-slate-500"}`}>
+          <p className={`text-sm ${isDark ? "text-[#6B7C6B]" : "text-slate-500"}`}>
             {t("driverPerformance.subtitle")}
           </p>
         </div>
@@ -100,18 +100,18 @@ export default function DriverPerformance() {
         {[
           { label: t("driverPerformance.stats.drivers"), value: drivers.length, icon: Truck, color: "bg-violet-600" },
           { label: t("driverPerformance.stats.avgSafetyScore"), value: avgScore, icon: TrendingUp, color: "bg-emerald-600" },
-          { label: t("driverPerformance.stats.totalTrips"), value: totalTrips, icon: BarChart3, color: "bg-blue-600" },
+          { label: t("driverPerformance.stats.totalTrips"), value: totalTrips, icon: BarChart3, color: "bg-emerald-600" },
           { label: t("driverPerformance.stats.totalIncidents"), value: totalIncidents, icon: AlertTriangle, color: "bg-red-600" },
         ].map((s) => (
           <motion.div
             key={s.label}
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
-            className={`p-4 rounded-xl border ${isDark ? "bg-neutral-800 border-neutral-700" : "bg-white border-slate-200"}`}
+            className={`p-4 rounded-[14px] border ${isDark ? "bg-[#111A15] border-[#1E2B22]" : "bg-white border-slate-200"}`}
           >
-            <s.icon className={`w-5 h-5 mb-2 ${isDark ? "text-neutral-400" : "text-slate-400"}`} />
-            <p className={`text-2xl font-bold ${isDark ? "text-white" : "text-slate-900"}`}>{s.value}</p>
-            <p className={`text-xs ${isDark ? "text-neutral-400" : "text-slate-500"}`}>{s.label}</p>
+            <s.icon className={`w-5 h-5 mb-2 ${isDark ? "text-[#6B7C6B]" : "text-slate-400"}`} />
+            <p className={`text-2xl font-bold ${isDark ? "text-[#E4E6DE]" : "text-slate-900"}`}>{s.value}</p>
+            <p className={`text-xs ${isDark ? "text-[#6B7C6B]" : "text-slate-500"}`}>{s.label}</p>
           </motion.div>
         ))}
       </div>
@@ -120,10 +120,10 @@ export default function DriverPerformance() {
       <div className="mb-4">
         <div
           className={`flex items-center gap-2 px-3 py-2 rounded-lg border text-sm w-64 ${
-            isDark ? "bg-neutral-800 border-neutral-700 text-white" : "bg-white border-slate-200 text-slate-900"
+            isDark ? "bg-[#111A15] border-[#1E2B22] text-[#E4E6DE]" : "bg-white border-slate-200 text-slate-900"
           }`}
         >
-          <Search className={`w-4 h-4 ${isDark ? "text-neutral-400" : "text-slate-400"}`} />
+          <Search className={`w-4 h-4 ${isDark ? "text-[#6B7C6B]" : "text-slate-400"}`} />
           <input
             className="bg-transparent outline-none w-full placeholder-current opacity-60"
             placeholder={t("driverPerformance.searchPlaceholder")}
@@ -140,8 +140,8 @@ export default function DriverPerformance() {
         </div>
       ) : filtered.length === 0 ? (
         <div className="text-center py-16">
-          <BarChart3 className={`w-12 h-12 mx-auto mb-3 ${isDark ? "text-neutral-600" : "text-slate-300"}`} />
-          <p className={`text-sm ${isDark ? "text-neutral-400" : "text-slate-500"}`}>{t("driverPerformance.noData")}</p>
+          <BarChart3 className={`w-12 h-12 mx-auto mb-3 ${isDark ? "text-[#4A5C4A]" : "text-slate-300"}`} />
+          <p className={`text-sm ${isDark ? "text-[#6B7C6B]" : "text-slate-500"}`}>{t("driverPerformance.noData")}</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -152,12 +152,12 @@ export default function DriverPerformance() {
                 key={d.driverId}
                 initial={{ opacity: 0, y: 12 }}
                 animate={{ opacity: 1, y: 0 }}
-                className={`p-5 rounded-xl border ${isDark ? "bg-neutral-800 border-neutral-700" : "bg-white border-slate-200"}`}
+                className={`p-5 rounded-[14px] border ${isDark ? "bg-[#111A15] border-[#1E2B22]" : "bg-white border-slate-200"}`}
               >
                 <div className="flex items-center justify-between mb-3">
                   <div>
-                    <p className={`font-semibold ${isDark ? "text-white" : "text-slate-900"}`}>{d.fullName}</p>
-                    <p className={`text-xs ${isDark ? "text-neutral-500" : "text-slate-400"}`}>{d.licenseNumber}</p>
+                    <p className={`font-semibold ${isDark ? "text-[#E4E6DE]" : "text-slate-900"}`}>{d.fullName}</p>
+                    <p className={`text-xs ${isDark ? "text-[#4A5C4A]" : "text-slate-400"}`}>{d.licenseNumber}</p>
                   </div>
                   <span className={`text-2xl font-bold ${scoreColor(d.safetyScore ?? 0)}`}>
                     {d.safetyScore ?? 0}
@@ -165,24 +165,24 @@ export default function DriverPerformance() {
                 </div>
 
                 {/* Score bar */}
-                <div className={`w-full h-2 rounded-full mb-3 ${isDark ? "bg-neutral-700" : "bg-slate-100"}`}>
+                <div className={`w-full h-2 rounded-full mb-3 ${isDark ? "bg-[#1E2B22]" : "bg-slate-100"}`}>
                   <div className={`h-2 rounded-full transition-all ${bar.bg}`} style={{ width: `${bar.pct}%` }} />
                 </div>
 
                 <div className="grid grid-cols-3 gap-2 text-center">
                   <div>
-                    <p className={`text-lg font-bold ${isDark ? "text-white" : "text-slate-900"}`}>{d.totalTrips}</p>
-                    <p className={`text-[10px] ${isDark ? "text-neutral-500" : "text-slate-400"}`}>{t("driverPerformance.trips")}</p>
+                    <p className={`text-lg font-bold ${isDark ? "text-[#E4E6DE]" : "text-slate-900"}`}>{d.totalTrips}</p>
+                    <p className={`text-[10px] ${isDark ? "text-[#4A5C4A]" : "text-slate-400"}`}>{t("driverPerformance.trips")}</p>
                   </div>
                   <div>
-                    <p className={`text-lg font-bold ${isDark ? "text-white" : "text-slate-900"}`}>{d.completedTrips}</p>
-                    <p className={`text-[10px] ${isDark ? "text-neutral-500" : "text-slate-400"}`}>{t("driverPerformance.completed")}</p>
+                    <p className={`text-lg font-bold ${isDark ? "text-[#E4E6DE]" : "text-slate-900"}`}>{d.completedTrips}</p>
+                    <p className={`text-[10px] ${isDark ? "text-[#4A5C4A]" : "text-slate-400"}`}>{t("driverPerformance.completed")}</p>
                   </div>
                   <div>
-                    <p className={`text-lg font-bold ${d.incidentCount > 0 ? "text-red-500" : isDark ? "text-white" : "text-slate-900"}`}>
+                    <p className={`text-lg font-bold ${d.incidentCount > 0 ? "text-red-500" : isDark ? "text-[#E4E6DE]" : "text-slate-900"}`}>
                       {d.incidentCount}
                     </p>
-                    <p className={`text-[10px] ${isDark ? "text-neutral-500" : "text-slate-400"}`}>{t("driverPerformance.incidentsLabel")}</p>
+                    <p className={`text-[10px] ${isDark ? "text-[#4A5C4A]" : "text-slate-400"}`}>{t("driverPerformance.incidentsLabel")}</p>
                   </div>
                 </div>
               </motion.div>

@@ -16,6 +16,7 @@ interface AuthContextValue {
   login: (email: string, password: string) => Promise<AuthUser>;
   logout: () => void;
   hasRole: (role: UserRole | UserRole[]) => boolean;
+  refreshUser: () => Promise<void>;
 }
 
 export const AuthContext = createContext<AuthContextValue | null>(null);
@@ -51,7 +52,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     authApi.logout();
     setUser(null);
   }, []);
-
+  // ── Refresh user from server (after profile update) ────────────────
+  const refreshUser = useCallback(async () => {
+    try {
+      const freshUser = await authApi.getMe();
+      setUser(freshUser);
+      localStorage.setItem("auth_user", JSON.stringify(freshUser));
+    } catch { /* ignore — will use cached */ }
+  }, []);
   // ── Role check helper ─────────────────────────────────────────────────
   const hasRole = useCallback(
     (role: UserRole | UserRole[]) => {
@@ -71,6 +79,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         login,
         logout,
         hasRole,
+        refreshUser,
       }}
     >
       {children}

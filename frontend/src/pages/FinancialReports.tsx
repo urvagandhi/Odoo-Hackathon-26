@@ -117,12 +117,12 @@ export default function FinancialReports() {
       active
         ? "bg-violet-600 text-white"
         : isDark
-        ? "text-neutral-400 hover:bg-neutral-700"
+        ? "text-[#6B7C6B] hover:bg-[#1E2B22]"
         : "text-slate-500 hover:bg-slate-100"
     }`;
 
   return (
-    <div className={`min-h-screen p-6 ${isDark ? "bg-neutral-900" : "bg-slate-50"}`}>
+    <div className={`min-h-screen p-6 ${isDark ? "bg-[#090D0B]" : "bg-slate-50"}`}>
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
@@ -130,10 +130,10 @@ export default function FinancialReports() {
             <FileText className="w-5 h-5 text-white" />
           </div>
           <div>
-            <h1 className={`text-xl font-bold ${isDark ? "text-white" : "text-slate-900"}`}>
+            <h1 className={`text-xl font-bold ${isDark ? "text-[#E4E6DE]" : "text-slate-900"}`}>
               {t("financialReports.title")}
             </h1>
-            <p className={`text-sm ${isDark ? "text-neutral-400" : "text-slate-500"}`}>
+            <p className={`text-sm ${isDark ? "text-[#6B7C6B]" : "text-slate-500"}`}>
               {t("financialReports.subtitle")}
             </p>
           </div>
@@ -142,7 +142,7 @@ export default function FinancialReports() {
           <select
             value={year}
             onChange={(e) => setYear(Number(e.target.value))}
-            className={`px-3 py-2 rounded-lg border text-sm ${isDark ? "bg-neutral-800 border-neutral-700 text-white" : "bg-white border-slate-200"}`}
+            className={`px-3 py-2 rounded-lg border text-sm ${isDark ? "bg-[#111A15] border-[#1E2B22] text-[#E4E6DE]" : "bg-white border-slate-200"}`}
           >
             {[currentYear, currentYear - 1, currentYear - 2].map((y) => (
               <option key={y} value={y}>{y}</option>
@@ -169,11 +169,11 @@ export default function FinancialReports() {
             key={s.label}
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
-            className={`p-5 rounded-xl border ${isDark ? "bg-neutral-800 border-neutral-700" : "bg-white border-slate-200"}`}
+            className={`p-5 rounded-[14px] border ${isDark ? "bg-[#111A15] border-[#1E2B22]" : "bg-white border-slate-200"}`}
           >
             <s.icon className={`w-6 h-6 mb-2 ${s.color}`} />
-            <p className={`text-2xl font-bold ${isDark ? "text-white" : "text-slate-900"}`}>{s.value}</p>
-            <p className={`text-xs ${isDark ? "text-neutral-400" : "text-slate-500"}`}>{s.label}</p>
+            <p className={`text-2xl font-bold ${isDark ? "text-[#E4E6DE]" : "text-slate-900"}`}>{s.value}</p>
+            <p className={`text-xs ${isDark ? "text-[#6B7C6B]" : "text-slate-500"}`}>{s.label}</p>
           </motion.div>
         ))}
       </div>
@@ -193,10 +193,10 @@ export default function FinancialReports() {
         <>
           {/* P&L Table */}
           {tab === "pnl" && (
-            <div className={`rounded-xl border overflow-x-auto ${isDark ? "bg-neutral-800 border-neutral-700" : "bg-white border-slate-200"}`}>
+            <div className={`rounded-[14px] border overflow-x-auto ${isDark ? "bg-[#111A15] border-[#1E2B22]" : "bg-white border-slate-200"}`}>
               <table className="w-full text-sm">
                 <thead>
-                  <tr className={isDark ? "text-neutral-400 border-b border-neutral-700" : "text-slate-500 border-b border-slate-200"}>
+                  <tr className={isDark ? "text-[#6B7C6B] border-b border-[#1E2B22]" : "text-slate-500 border-b border-slate-200"}>
                     <th className="text-left px-4 py-3 font-medium">{t("financialReports.pnlColumns.month")}</th>
                     <th className="text-right px-4 py-3 font-medium">{t("financialReports.pnlColumns.revenue")}</th>
                     <th className="text-right px-4 py-3 font-medium">{t("financialReports.pnlColumns.fuel")}</th>
@@ -215,8 +215,8 @@ export default function FinancialReports() {
                     monthly.map((m) => {
                       const profit = Number(m.revenue ?? 0) - Number(m.fuelCost ?? 0) - Number(m.maintenanceCost ?? 0) - Number(m.otherExpenses ?? 0);
                       return (
-                        <tr key={m.month} className={isDark ? "border-b border-neutral-700/50 hover:bg-neutral-700/30" : "border-b border-slate-100 hover:bg-slate-50"}>
-                          <td className={`px-4 py-3 font-medium ${isDark ? "text-white" : "text-slate-900"}`}>{m.monthName ?? `Month ${m.month}`}</td>
+                        <tr key={m.month} className={isDark ? "border-b border-[#1E2B22]/50 hover:bg-[#1E2B22]/30" : "border-b border-slate-100 hover:bg-slate-50"}>
+                          <td className={`px-4 py-3 font-medium ${isDark ? "text-[#E4E6DE]" : "text-slate-900"}`}>{m.monthName ?? `Month ${m.month}`}</td>
                           <td className="px-4 py-3 text-right font-mono text-emerald-500">₹{Number(m.revenue ?? 0).toLocaleString()}</td>
                           <td className="px-4 py-3 text-right font-mono text-red-400">₹{Number(m.fuelCost ?? 0).toLocaleString()}</td>
                           <td className="px-4 py-3 text-right font-mono text-red-400">₹{Number(m.maintenanceCost ?? 0).toLocaleString()}</td>
@@ -224,7 +224,7 @@ export default function FinancialReports() {
                           <td className={`px-4 py-3 text-right font-mono font-semibold ${profit >= 0 ? "text-emerald-500" : "text-red-500"}`}>
                             ₹{profit.toLocaleString()}
                           </td>
-                          <td className={`px-4 py-3 text-right ${isDark ? "text-neutral-300" : "text-slate-700"}`}>{m.tripCount ?? 0}</td>
+                          <td className={`px-4 py-3 text-right ${isDark ? "text-[#B0B8A8]" : "text-slate-700"}`}>{m.tripCount ?? 0}</td>
                         </tr>
                       );
                     })
@@ -239,8 +239,8 @@ export default function FinancialReports() {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {fuel.length === 0 ? (
                 <div className="col-span-full text-center py-16">
-                  <Fuel className={`w-12 h-12 mx-auto mb-3 ${isDark ? "text-neutral-600" : "text-slate-300"}`} />
-                  <p className={`text-sm ${isDark ? "text-neutral-400" : "text-slate-500"}`}>{t("financialReports.fuelEfficiency.noData")}</p>
+                  <Fuel className={`w-12 h-12 mx-auto mb-3 ${isDark ? "text-[#4A5C4A]" : "text-slate-300"}`} />
+                  <p className={`text-sm ${isDark ? "text-[#6B7C6B]" : "text-slate-500"}`}>{t("financialReports.fuelEfficiency.noData")}</p>
                 </div>
               ) : (
                 fuel.map((v) => (
@@ -248,21 +248,21 @@ export default function FinancialReports() {
                     key={v.vehicleId}
                     initial={{ opacity: 0, y: 12 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className={`p-5 rounded-xl border ${isDark ? "bg-neutral-800 border-neutral-700" : "bg-white border-slate-200"}`}
+                    className={`p-5 rounded-[14px] border ${isDark ? "bg-[#111A15] border-[#1E2B22]" : "bg-white border-slate-200"}`}
                   >
-                    <p className={`font-semibold mb-1 ${isDark ? "text-white" : "text-slate-900"}`}>{v.licensePlate}</p>
+                    <p className={`font-semibold mb-1 ${isDark ? "text-[#E4E6DE]" : "text-slate-900"}`}>{v.licensePlate}</p>
                     <div className="grid grid-cols-3 gap-2 mt-3 text-center">
                       <div>
                         <p className="text-lg font-bold text-emerald-500">{Number(v.avgKmPerLiter ?? 0).toFixed(1)}</p>
-                        <p className={`text-[10px] ${isDark ? "text-neutral-500" : "text-slate-400"}`}>{t("financialReports.fuelEfficiency.kmPerL")}</p>
+                        <p className={`text-[10px] ${isDark ? "text-[#4A5C4A]" : "text-slate-400"}`}>{t("financialReports.fuelEfficiency.kmPerL")}</p>
                       </div>
                       <div>
-                        <p className={`text-lg font-bold ${isDark ? "text-white" : "text-slate-900"}`}>{Number(v.totalLiters ?? 0).toFixed(0)}L</p>
-                        <p className={`text-[10px] ${isDark ? "text-neutral-500" : "text-slate-400"}`}>{t("financialReports.fuelEfficiency.totalFuel")}</p>
+                        <p className={`text-lg font-bold ${isDark ? "text-[#E4E6DE]" : "text-slate-900"}`}>{Number(v.totalLiters ?? 0).toFixed(0)}L</p>
+                        <p className={`text-[10px] ${isDark ? "text-[#4A5C4A]" : "text-slate-400"}`}>{t("financialReports.fuelEfficiency.totalFuel")}</p>
                       </div>
                       <div>
                         <p className="text-lg font-bold text-red-400 font-mono">₹{Number(v.totalFuelCost ?? 0).toLocaleString()}</p>
-                        <p className={`text-[10px] ${isDark ? "text-neutral-500" : "text-slate-400"}`}>{t("financialReports.fuelEfficiency.fuelCost")}</p>
+                        <p className={`text-[10px] ${isDark ? "text-[#4A5C4A]" : "text-slate-400"}`}>{t("financialReports.fuelEfficiency.fuelCost")}</p>
                       </div>
                     </div>
                   </motion.div>
@@ -273,10 +273,10 @@ export default function FinancialReports() {
 
           {/* Vehicle ROI */}
           {tab === "roi" && (
-            <div className={`rounded-xl border overflow-x-auto ${isDark ? "bg-neutral-800 border-neutral-700" : "bg-white border-slate-200"}`}>
+            <div className={`rounded-[14px] border overflow-x-auto ${isDark ? "bg-[#111A15] border-[#1E2B22]" : "bg-white border-slate-200"}`}>
               <table className="w-full text-sm">
                 <thead>
-                  <tr className={isDark ? "text-neutral-400 border-b border-neutral-700" : "text-slate-500 border-b border-slate-200"}>
+                  <tr className={isDark ? "text-[#6B7C6B] border-b border-[#1E2B22]" : "text-slate-500 border-b border-slate-200"}>
                     <th className="text-left px-4 py-3 font-medium">{t("financialReports.roiColumns.vehicle")}</th>
                     <th className="text-right px-4 py-3 font-medium">{t("financialReports.roiColumns.revenue")}</th>
                     <th className="text-right px-4 py-3 font-medium">{t("financialReports.roiColumns.cost")}</th>
@@ -290,8 +290,8 @@ export default function FinancialReports() {
                     </tr>
                   ) : (
                     roi.map((v) => (
-                      <tr key={v.vehicleId} className={isDark ? "border-b border-neutral-700/50 hover:bg-neutral-700/30" : "border-b border-slate-100 hover:bg-slate-50"}>
-                        <td className={`px-4 py-3 font-medium ${isDark ? "text-white" : "text-slate-900"}`}>{v.licensePlate}</td>
+                      <tr key={v.vehicleId} className={isDark ? "border-b border-[#1E2B22]/50 hover:bg-[#1E2B22]/30" : "border-b border-slate-100 hover:bg-slate-50"}>
+                        <td className={`px-4 py-3 font-medium ${isDark ? "text-[#E4E6DE]" : "text-slate-900"}`}>{v.licensePlate}</td>
                         <td className="px-4 py-3 text-right font-mono text-emerald-500">₹{Number(v.totalRevenue ?? 0).toLocaleString()}</td>
                         <td className="px-4 py-3 text-right font-mono text-red-400">₹{Number(v.totalCost ?? 0).toLocaleString()}</td>
                         <td className={`px-4 py-3 text-right font-mono font-semibold ${Number(v.roi) >= 0 ? "text-emerald-500" : "text-red-500"}`}>

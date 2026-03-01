@@ -25,7 +25,7 @@ export const DriverStatusUpdateSchema = z.object({
 });
 
 export const AdjustSafetyScoreSchema = z.object({
-    adjustment: z.number().min(-100).max(100),
+    score: z.number().min(0).max(100),
     reason: z.string().min(5, 'Reason must be at least 5 characters'),
 });
 

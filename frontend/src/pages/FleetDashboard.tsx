@@ -158,7 +158,7 @@ export default function FleetDashboard() {
                 </div>
                 <button
                     onClick={fetch}
-                    className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-blue-600 text-white text-sm font-bold shadow-[0_0_15px_rgba(37,99,235,0.3)] hover:bg-blue-500 transition-all transform hover:scale-105 active:scale-95"
+                    className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-emerald-600 text-white text-sm font-bold shadow-[0_0_15px_rgba(34, 197, 94,0.3)] hover:bg-emerald-500 transition-all transform hover:scale-105 active:scale-95"
                 >
                     <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
                     {t("common.refresh")}
@@ -248,18 +248,18 @@ export default function FleetDashboard() {
                 initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.15 }}
                 className={cardClass}
             >
-                {isDark && <div className="absolute top-0 right-0 w-64 h-64 bg-blue-500/5 rounded-full blur-3xl pointer-events-none" />}
-                {!isDark && <div className="absolute top-0 right-0 w-64 h-64 bg-blue-400/10 rounded-full blur-3xl pointer-events-none" />}
+                {isDark && <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-500/5 rounded-full blur-3xl pointer-events-none" />}
+                {!isDark && <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-400/10 rounded-full blur-3xl pointer-events-none" />}
                 <div className="flex items-center justify-between mb-6 relative z-10">
                     <div className="flex items-center gap-2.5">
-                        <div className={`p-2 rounded-lg ${isDark ? "bg-blue-500/10 text-blue-400" : "bg-blue-100 text-blue-600"}`}>
+                        <div className={`p-2 rounded-lg ${isDark ? "bg-emerald-500/10 text-emerald-400" : "bg-emerald-100 text-emerald-600"}`}>
                            <MapPin className="w-5 h-5" />
                         </div>
                         <h2 className={`text-lg font-bold ${isDark ? "text-slate-100" : "text-slate-900"}`}>
                             {t("fleetDashboard.liveFleetMap")}
                         </h2>
                     </div>
-                    <span className={`text-xs px-3 py-1.5 rounded-full font-bold uppercase tracking-wider ${locations.length > 0 ? (isDark ? "bg-blue-500/20 text-blue-400 border border-blue-500/30" : "bg-blue-100 text-blue-700") : (isDark ? "bg-slate-800 text-slate-400" : "bg-slate-200 text-slate-500")}`}>
+                    <span className={`text-xs px-3 py-1.5 rounded-full font-bold uppercase tracking-wider ${locations.length > 0 ? (isDark ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30" : "bg-emerald-100 text-emerald-700") : (isDark ? "bg-slate-800 text-slate-400" : "bg-slate-200 text-slate-500")}`}>
                         {locations.length > 0 ? t("fleetDashboard.vehiclesTracked", { count: locations.length }) : t("fleetDashboard.noLiveData")}
                     </span>
                 </div>
@@ -288,12 +288,12 @@ export default function FleetDashboard() {
                             </Marker>
                         ))}
                         {/* Simulated moving vehicle: Mumbai → Pune */}
-                        <Polyline positions={MOVING_ROUTE} color="#3b82f6" weight={3} opacity={0.5} dashArray="8 6" />
+                        <Polyline positions={MOVING_ROUTE} color="#4ADE80" weight={3} opacity={0.5} dashArray="8 6" />
                         <Marker position={movingPos} icon={movingTruckIcon}>
                             <Popup>
                                 <div className="text-sm">
                                     <p className="font-bold">MH-01-AB-1234</p>
-                                    <p className="text-xs text-blue-600 font-medium">{t("fleetDashboard.inTransit", { origin: "Mumbai", destination: "Pune" })}</p>
+                                    <p className="text-xs text-emerald-600 font-medium">{t("fleetDashboard.inTransit", { origin: "Mumbai", destination: "Pune" })}</p>
                                     <p className="text-xs text-neutral-500">~65 km/h</p>
                                 </div>
                             </Popup>
@@ -330,11 +330,11 @@ export default function FleetDashboard() {
                                         <stop offset="95%" stopColor="#f59e0b" stopOpacity={0} />
                                     </linearGradient>
                                 </defs>
-                                <CartesianGrid strokeDasharray="3 3" stroke={isDark ? "#1e293b" : "#f1f5f9"} vertical={false} />
-                                <XAxis dataKey="label" tick={{ fontSize: 11, fill: isDark ? "#64748b" : "#64748b", fontWeight: 500 }} tickLine={false} axisLine={false} tickFormatter={v => v.split(" ")[0]} />
-                                <YAxis tick={{ fontSize: 11, fill: isDark ? "#64748b" : "#64748b", fontWeight: 500 }} tickLine={false} axisLine={false} tickFormatter={v => `₹${(v / 1000).toFixed(0)}k`} />
+                                <CartesianGrid strokeDasharray="3 3" stroke={isDark ? "#111A15" : "#E4E6DE"} vertical={false} />
+                                <XAxis dataKey="label" tick={{ fontSize: 11, fill: isDark ? "#4A5C4A" : "#4A5C4A", fontWeight: 500 }} tickLine={false} axisLine={false} tickFormatter={v => v.split(" ")[0]} />
+                                <YAxis tick={{ fontSize: 11, fill: isDark ? "#4A5C4A" : "#4A5C4A", fontWeight: 500 }} tickLine={false} axisLine={false} tickFormatter={v => `₹${(v / 1000).toFixed(0)}k`} />
                                 <Tooltip
-                                    contentStyle={{ background: isDark ? "rgba(15, 23, 42, 0.9)" : "rgba(255, 255, 255, 0.9)", border: isDark ? "1px solid #334155" : "1px solid #e2e8f0", borderRadius: "16px", fontSize: 13, boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)" }}
+                                    contentStyle={{ background: isDark ? "rgba(9, 13, 11, 0.9)" : "rgba(255, 255, 255, 0.9)", border: isDark ? "1px solid #1E2B22" : "1px solid #E4E6DE", borderRadius: "16px", fontSize: 13, boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)" }}
                                     itemStyle={{ fontWeight: 600 }}
                                     formatter={(v: unknown) => [`₹${Number(v).toLocaleString()}`]}
                                 />
@@ -360,7 +360,7 @@ export default function FleetDashboard() {
                                 <Pie data={expenseData} cx="50%" cy="45%" innerRadius={65} outerRadius={95} paddingAngle={4} stroke="none" dataKey="value">
                                     {expenseData.map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
                                 </Pie>
-                                <Tooltip contentStyle={{ background: isDark ? "rgba(15, 23, 42, 0.9)" : "rgba(255, 255, 255, 0.9)", border: isDark ? "1px solid #334155" : "1px solid #e2e8f0", borderRadius: "16px", fontSize: 13, fontWeight: 600, boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.1)" }} />
+                                <Tooltip contentStyle={{ background: isDark ? "rgba(9, 13, 11, 0.9)" : "rgba(255, 255, 255, 0.9)", border: isDark ? "1px solid #1E2B22" : "1px solid #E4E6DE", borderRadius: "16px", fontSize: 13, fontWeight: 600, boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.1)" }} />
                                 <Legend iconType="circle" iconSize={10} wrapperStyle={{ fontSize: 12, fontWeight: 500, paddingTop: "20px" }} />
                             </PieChart>
                         </ResponsiveContainer>
@@ -421,7 +421,7 @@ function KpiCard({ label, value, sub, icon: Icon, color, isDark }: {
         emerald: { bg: "bg-gradient-to-br from-emerald-50 to-emerald-100/50", text: "text-emerald-600", darkBg: "bg-emerald-500/10", glow: "group-hover:shadow-[0_0_20px_rgba(16,185,129,0.3)]" },
         amber: { bg: "bg-gradient-to-br from-amber-50 to-amber-100/50", text: "text-amber-600", darkBg: "bg-amber-500/10", glow: "group-hover:shadow-[0_0_20px_rgba(245,158,11,0.3)]" },
         violet: { bg: "bg-gradient-to-br from-violet-50 to-violet-100/50", text: "text-violet-600", darkBg: "bg-violet-500/10", glow: "group-hover:shadow-[0_0_20px_rgba(139,92,246,0.3)]" },
-        blue: { bg: "bg-gradient-to-br from-blue-50 to-blue-100/50", text: "text-blue-600", darkBg: "bg-blue-500/10", glow: "group-hover:shadow-[0_0_20px_rgba(59,130,246,0.3)]" },
+        blue: { bg: "bg-gradient-to-br from-emerald-50 to-emerald-100/50", text: "text-emerald-600", darkBg: "bg-emerald-500/10", glow: "group-hover:shadow-[0_0_20px_rgba(74, 222, 128,0.3)]" },
         teal: { bg: "bg-gradient-to-br from-teal-50 to-teal-100/50", text: "text-teal-600", darkBg: "bg-teal-500/10", glow: "group-hover:shadow-[0_0_20px_rgba(20,184,166,0.3)]" },
         green: { bg: "bg-gradient-to-br from-green-50 to-green-100/50", text: "text-green-600", darkBg: "bg-green-500/10", glow: "group-hover:shadow-[0_0_20px_rgba(34,197,94,0.3)]" },
         red: { bg: "bg-gradient-to-br from-red-50 to-red-100/50", text: "text-red-600", darkBg: "bg-red-500/10", glow: "group-hover:shadow-[0_0_20px_rgba(239,68,68,0.3)]" },

@@ -36,8 +36,8 @@ export const vehicleImageMap: Record<string, VehicleImageInfo> = {
     label: "Cargo Van",
     description: "Mid-size cargo & passenger van",
     icon: "🚐",
-    gradient: "from-blue-500/20 to-cyan-500/20",
-    gradientDark: "from-blue-500/10 to-cyan-500/10",
+    gradient: "from-emerald-500/20 to-cyan-500/20",
+    gradientDark: "from-emerald-500/10 to-cyan-500/10",
   },
   BIKE: {
     primary: "/vehicles/bike-1.png",

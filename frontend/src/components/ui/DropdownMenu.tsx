@@ -206,7 +206,7 @@ export function DropdownMenuContent({
           className={`
             min-w-[220px] rounded-xl border
             shadow-xl p-1.5
-            ${isDarkDm ? 'bg-neutral-800 border-neutral-700 shadow-black/30' : 'bg-white border-slate-200 shadow-black/8'}
+            ${isDarkDm ? 'bg-[#111A15] border-[#1E2B22] shadow-black/30' : 'bg-white border-slate-200 shadow-black/8'}
             ${className}
           `}
         >
@@ -259,10 +259,10 @@ export function DropdownMenuItem({
         px-2 py-1.5 rounded-md text-sm
         cursor-pointer select-none outline-none
         transition-colors duration-100
-        ${isDarkItem ? 'focus-visible:bg-neutral-700' : 'focus-visible:bg-slate-100'}
+        ${isDarkItem ? 'focus-visible:bg-[#1E2B22]' : 'focus-visible:bg-slate-100'}
         ${destructive
           ? isDarkItem ? "text-red-400 hover:bg-red-900/30" : "text-red-600 hover:bg-red-50 focus-visible:bg-red-50"
-          : isDarkItem ? "text-neutral-300 hover:bg-neutral-700" : "text-slate-700 hover:bg-slate-100"
+          : isDarkItem ? "text-[#B0B8A8] hover:bg-[#1E2B22]" : "text-slate-700 hover:bg-slate-100"
         }
         ${inset ? "pl-8" : ""}
         ${className}
@@ -281,7 +281,7 @@ export function DropdownMenuSeparator({ className = "", ...props }: HTMLAttribut
   return (
     <div
       role="separator"
-      className={`my-1 h-px ${isDarkSep ? 'bg-neutral-700' : 'bg-slate-100'} ${className}`}
+      className={`my-1 h-px ${isDarkSep ? 'bg-[#1E2B22]' : 'bg-slate-100'} ${className}`}
       {...props}
     />
   );
@@ -300,7 +300,7 @@ export function DropdownMenuLabel({
     <div
       className={`
         px-2 py-1.5 text-xs font-semibold uppercase tracking-wide select-none
-        ${isDarkLabel ? 'text-neutral-500' : 'text-slate-500'}
+        ${isDarkLabel ? 'text-[#4A5C4A]' : 'text-slate-500'}
         ${inset ? "pl-8" : ""}
         ${className}
       `}

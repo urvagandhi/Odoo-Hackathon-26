@@ -37,53 +37,53 @@ function getVariants(isDark: boolean): Record<ToastItem["variant"], VariantStyle
     success: {
       icon: CheckCircle,
       containerClass: isDark
-        ? "bg-neutral-800 border border-emerald-700/50 shadow-lg shadow-emerald-500/10"
+        ? "bg-[#111A15] border border-emerald-700/50 shadow-lg shadow-emerald-500/10"
         : "bg-white border border-emerald-200 shadow-lg shadow-emerald-500/10",
       iconClass: "text-emerald-500",
       titleClass: isDark ? "text-white" : "text-slate-900",
-      messageClass: isDark ? "text-neutral-400" : "text-slate-600",
+      messageClass: isDark ? "text-[#6B7C6B]" : "text-slate-600",
       progressClass: "bg-emerald-500",
       closeClass: isDark
-        ? "text-neutral-500 hover:text-emerald-400 hover:bg-emerald-900/30"
+        ? "text-[#4A5C4A] hover:text-emerald-400 hover:bg-emerald-900/30"
         : "text-slate-400 hover:text-emerald-600 hover:bg-emerald-50",
     },
     error: {
       icon: XCircle,
       containerClass: isDark
-        ? "bg-neutral-800 border border-red-700/50 shadow-lg shadow-red-500/10"
+        ? "bg-[#111A15] border border-red-700/50 shadow-lg shadow-red-500/10"
         : "bg-white border border-red-200 shadow-lg shadow-red-500/10",
       iconClass: "text-red-500",
       titleClass: isDark ? "text-white" : "text-slate-900",
-      messageClass: isDark ? "text-neutral-400" : "text-slate-600",
+      messageClass: isDark ? "text-[#6B7C6B]" : "text-slate-600",
       progressClass: "bg-red-500",
       closeClass: isDark
-        ? "text-neutral-500 hover:text-red-400 hover:bg-red-900/30"
+        ? "text-[#4A5C4A] hover:text-red-400 hover:bg-red-900/30"
         : "text-slate-400 hover:text-red-600 hover:bg-red-50",
     },
     warning: {
       icon: AlertTriangle,
       containerClass: isDark
-        ? "bg-neutral-800 border border-amber-700/50 shadow-lg shadow-amber-500/10"
+        ? "bg-[#111A15] border border-amber-700/50 shadow-lg shadow-amber-500/10"
         : "bg-white border border-amber-200 shadow-lg shadow-amber-500/10",
       iconClass: "text-amber-500",
       titleClass: isDark ? "text-white" : "text-slate-900",
-      messageClass: isDark ? "text-neutral-400" : "text-slate-600",
+      messageClass: isDark ? "text-[#6B7C6B]" : "text-slate-600",
       progressClass: "bg-amber-500",
       closeClass: isDark
-        ? "text-neutral-500 hover:text-amber-400 hover:bg-amber-900/30"
+        ? "text-[#4A5C4A] hover:text-amber-400 hover:bg-amber-900/30"
         : "text-slate-400 hover:text-amber-600 hover:bg-amber-50",
     },
     info: {
       icon: Info,
       containerClass: isDark
-        ? "bg-neutral-800 border border-indigo-700/50 shadow-lg shadow-indigo-500/10"
+        ? "bg-[#111A15] border border-indigo-700/50 shadow-lg shadow-indigo-500/10"
         : "bg-white border border-indigo-200 shadow-lg shadow-indigo-500/10",
       iconClass: "text-indigo-500",
       titleClass: isDark ? "text-white" : "text-slate-900",
-      messageClass: isDark ? "text-neutral-400" : "text-slate-600",
+      messageClass: isDark ? "text-[#6B7C6B]" : "text-slate-600",
       progressClass: "bg-indigo-500",
       closeClass: isDark
-        ? "text-neutral-500 hover:text-indigo-400 hover:bg-indigo-900/30"
+        ? "text-[#4A5C4A] hover:text-indigo-400 hover:bg-indigo-900/30"
         : "text-slate-400 hover:text-indigo-600 hover:bg-indigo-50",
     },
   };
@@ -175,7 +175,7 @@ export function Toast({ toast, onDismiss }: ToastProps) {
           )}
           <p
             className={`text-sm leading-snug ${
-              toast.title ? (isDark ? "mt-0.5 text-neutral-500" : "mt-0.5 text-slate-500") : style.messageClass
+              toast.title ? (isDark ? "mt-0.5 text-[#4A5C4A]" : "mt-0.5 text-slate-500") : style.messageClass
             }`}
           >
             {toast.message}

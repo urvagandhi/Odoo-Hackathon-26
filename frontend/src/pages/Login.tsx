@@ -106,13 +106,13 @@ export default function Login() {
 
   return (
     <div
-      className={`min-h-screen flex transition-colors duration-300 ${isDark ? "bg-neutral-950" : "bg-[#f5f5f0]"
+      className={`min-h-screen flex transition-colors duration-300 ${isDark ? "bg-[#090D0B]" : "bg-[#f5f5f0]"
         }`}
     >
       {/* ═══ LEFT — Brand panel ══════════════════════════════════════ */}
       <div
         className={`hidden lg:flex lg:w-[45%] relative overflow-hidden ${isDark
-            ? "bg-gradient-to-b from-neutral-900 via-neutral-800 to-neutral-900"
+            ? "bg-gradient-to-b from-[#111A15] via-[#111A15] to-[#111A15]"
             : "bg-gradient-to-b from-[#1a1a1a] via-[#2d2d2d] to-[#1a1a1a]"
           }`}
       >
@@ -142,9 +142,9 @@ export default function Login() {
             <h1 className="text-4xl font-extrabold text-white leading-tight">
               {t("auth.login.heroTitle")}
               <br />
-              <span className="text-neutral-400">{t("auth.login.heroSubtitle")}</span>
+              <span className="text-[#6B7C6B]">{t("auth.login.heroSubtitle")}</span>
             </h1>
-            <p className="text-neutral-500 text-base max-w-sm leading-relaxed">
+            <p className="text-[#4A5C4A] text-base max-w-sm leading-relaxed">
               {t("auth.login.heroDescription")}
             </p>
 
@@ -157,7 +157,7 @@ export default function Login() {
               ].map(({ icon: Icon, label }) => (
                 <div
                   key={label}
-                  className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/5 border border-white/10 text-neutral-300 text-xs font-medium"
+                  className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/5 border border-white/10 text-[#B0B8A8] text-xs font-medium"
                 >
                   <Icon className="w-3.5 h-3.5" />
                   {label}
@@ -175,7 +175,7 @@ export default function Login() {
             ].map((stat) => (
               <div key={stat.label}>
                 <p className="text-2xl font-bold text-white">{stat.value}</p>
-                <p className="text-xs text-neutral-500 mt-1">{stat.label}</p>
+                <p className="text-xs text-[#4A5C4A] mt-1">{stat.label}</p>
               </div>
             ))}
           </div>
@@ -188,7 +188,7 @@ export default function Login() {
         <button
           onClick={toggleTheme}
           className={`absolute top-6 right-6 w-10 h-10 rounded-xl flex items-center justify-center transition-colors ${isDark
-              ? "bg-neutral-800 text-neutral-300 hover:bg-neutral-700"
+              ? "bg-[#111A15] text-[#B0B8A8] hover:bg-[#182420]"
               : "bg-white border border-neutral-200 text-neutral-600 hover:bg-neutral-50"
             }`}
           title={isDark ? t("auth.login.switchToLight") : t("auth.login.switchToDark")}
@@ -208,7 +208,7 @@ export default function Login() {
               <img src="/logo-premium.png" alt="FleetFlow Logo" className="w-full h-full object-cover" />
             </div>
             <span
-              className={`text-xl font-bold tracking-tight ${isDark ? "text-white" : "text-neutral-900"
+              className={`text-xl font-bold tracking-tight ${isDark ? "text-[#E4E6DE]" : "text-neutral-900"
                 }`}
             >
               FleetFlow
@@ -218,12 +218,12 @@ export default function Login() {
           {/* Heading */}
           <div className="space-y-2 mb-8">
             <h2
-              className={`text-2xl font-bold ${isDark ? "text-white" : "text-neutral-900"
+              className={`text-2xl font-bold ${isDark ? "text-[#E4E6DE]" : "text-neutral-900"
                 }`}
             >
               {t("auth.login.welcomeBack")}
             </h2>
-            <p className={isDark ? "text-neutral-500 text-sm" : "text-neutral-500 text-sm"}>
+            <p className={isDark ? "text-[#4A5C4A] text-sm" : "text-[#4A5C4A] text-sm"}>
               {t("auth.login.signInSubtitle")}
             </p>
           </div>
@@ -255,14 +255,14 @@ export default function Login() {
             {/* Email */}
             <div>
               <label
-                className={`block text-sm font-medium mb-2 ${isDark ? "text-neutral-400" : "text-neutral-700"
+                className={`block text-sm font-medium mb-2 ${isDark ? "text-[#6B7C6B]" : "text-neutral-700"
                   }`}
               >
                 {t("auth.login.emailLabel")}
               </label>
               <div className="relative">
                 <Mail
-                  className={`absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 ${isDark ? "text-neutral-500" : "text-neutral-400"
+                  className={`absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 ${isDark ? "text-[#4A5C4A]" : "text-[#6B7C6B]"
                     }`}
                 />
                 <input
@@ -272,11 +272,11 @@ export default function Login() {
                   onBlur={handleBlur("email")}
                   placeholder={t("auth.login.emailPlaceholder")}
                   className={`w-full pl-11 pr-4 py-3 rounded-xl text-sm focus:outline-none focus:ring-2 transition-all ${isDark
-                      ? `bg-neutral-900 border text-white placeholder:text-neutral-600 ${errors.email
+                      ? `bg-[#111A15] border text-[#E4E6DE] placeholder:text-[#4A5C4A] ${errors.email
                         ? "border-red-500/50 focus:ring-red-500/40"
-                        : "border-neutral-800 focus:ring-emerald-500/40 focus:border-transparent"
+                        : "border-[#1E2B22] focus:ring-[#4ADE80]/40 focus:border-transparent"
                       }`
-                      : `bg-white border text-neutral-900 placeholder:text-neutral-400 ${errors.email
+                      : `bg-white border text-neutral-900 placeholder:text-[#6B7C6B] ${errors.email
                         ? "border-red-300 focus:ring-red-500/30"
                         : "border-neutral-300 focus:ring-emerald-500/30 focus:border-transparent"
                       }`
@@ -292,7 +292,7 @@ export default function Login() {
             <div>
               <div className="flex items-center justify-between mb-2">
                 <label
-                  className={`block text-sm font-medium ${isDark ? "text-neutral-400" : "text-neutral-700"
+                  className={`block text-sm font-medium ${isDark ? "text-[#6B7C6B]" : "text-neutral-700"
                     }`}
                 >
                   {t("auth.login.passwordLabel")}
@@ -306,7 +306,7 @@ export default function Login() {
               </div>
               <div className="relative">
                 <Lock
-                  className={`absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 ${isDark ? "text-neutral-500" : "text-neutral-400"
+                  className={`absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 ${isDark ? "text-[#4A5C4A]" : "text-[#6B7C6B]"
                     }`}
                 />
                 <input
@@ -316,11 +316,11 @@ export default function Login() {
                   onBlur={handleBlur("password")}
                   placeholder={t("auth.login.passwordPlaceholder")}
                   className={`w-full pl-11 pr-12 py-3 rounded-xl text-sm focus:outline-none focus:ring-2 transition-all ${isDark
-                      ? `bg-neutral-900 border text-white placeholder:text-neutral-600 ${errors.password
+                      ? `bg-[#111A15] border text-[#E4E6DE] placeholder:text-[#4A5C4A] ${errors.password
                         ? "border-red-500/50 focus:ring-red-500/40"
-                        : "border-neutral-800 focus:ring-emerald-500/40 focus:border-transparent"
+                        : "border-[#1E2B22] focus:ring-[#4ADE80]/40 focus:border-transparent"
                       }`
-                      : `bg-white border text-neutral-900 placeholder:text-neutral-400 ${errors.password
+                      : `bg-white border text-neutral-900 placeholder:text-[#6B7C6B] ${errors.password
                         ? "border-red-300 focus:ring-red-500/30"
                         : "border-neutral-300 focus:ring-emerald-500/30 focus:border-transparent"
                       }`
@@ -330,8 +330,8 @@ export default function Login() {
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
                   className={`absolute right-4 top-1/2 -translate-y-1/2 transition-colors ${isDark
-                      ? "text-neutral-500 hover:text-neutral-300"
-                      : "text-neutral-400 hover:text-neutral-600"
+                      ? "text-[#4A5C4A] hover:text-[#B0B8A8]"
+                      : "text-[#6B7C6B] hover:text-neutral-600"
                     }`}
                 >
                   {showPassword ? (
@@ -350,7 +350,7 @@ export default function Login() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white font-semibold text-sm transition-all duration-200 active:scale-[0.97] disabled:opacity-50 disabled:cursor-not-allowed"
+              className={`w-full flex items-center justify-center gap-2 py-3 rounded-xl font-semibold text-sm transition-all duration-200 active:scale-[0.97] disabled:opacity-50 disabled:cursor-not-allowed ${isDark ? "bg-gradient-to-r from-[#22C55E] to-[#16A34A] shadow-lg shadow-emerald-500/20 text-white" : "bg-emerald-500 hover:bg-emerald-600 text-white"}`}
             >
               {loading ? (
                 <Loader2 className="w-4 h-4 animate-spin" />
@@ -364,8 +364,8 @@ export default function Login() {
           </form>
 
           {/* Quick Access for Testing */}
-          <div className="mt-8 pt-8 border-t border-neutral-200 dark:border-neutral-800">
-            <p className={`text-center text-xs font-bold mb-4 uppercase tracking-widest ${isDark ? "text-neutral-500" : "text-neutral-400"}`}>
+          <div className={`mt-8 pt-8 border-t ${isDark ? "border-[#1E2B22]" : "border-neutral-200"}`}>
+            <p className={`text-center text-xs font-bold mb-4 uppercase tracking-widest ${isDark ? "text-[#4A5C4A]" : "text-[#6B7C6B]"}`}>
               {t("auth.login.quickAccess")}
             </p>
             <div className="grid grid-cols-2 gap-3">
@@ -401,14 +401,14 @@ export default function Login() {
                   }}
                   className={`flex flex-col items-center p-2.5 rounded-xl border transition-all ${
                     isDark
-                      ? "bg-neutral-900 border-neutral-800 hover:border-emerald-500/50 hover:bg-neutral-800/50"
+                      ? "bg-[#111A15] border-[#1E2B22] hover:border-[#4ADE80]/50 hover:bg-[#111A15]/50"
                       : "bg-white border-neutral-200 hover:border-emerald-500 hover:bg-emerald-50/30 shadow-sm"
                   }`}
                 >
-                  <span className={`text-[10px] font-bold uppercase tracking-wider ${isDark ? "text-neutral-500" : "text-neutral-400"}`}>
+                  <span className={`text-[10px] font-bold uppercase tracking-wider ${isDark ? "text-[#4A5C4A]" : "text-[#6B7C6B]"}`}>
                     {item.role}
                   </span>
-                  <span className={`text-xs font-medium mt-0.5 ${isDark ? "text-neutral-300" : "text-neutral-600"}`}>
+                  <span className={`text-xs font-medium mt-0.5 ${isDark ? "text-[#B0B8A8]" : "text-neutral-600"}`}>
                     {item.email.split('@')[0]}
                   </span>
                 </button>
@@ -417,7 +417,7 @@ export default function Login() {
           </div>
 
           <p
-            className={`mt-6 text-center text-xs ${isDark ? "text-neutral-600" : "text-neutral-400"
+            className={`mt-6 text-center text-xs ${isDark ? "text-[#4A5C4A]" : "text-[#6B7C6B]"
               }`}
           >
             {t("auth.login.noAccount")}

@@ -5,7 +5,6 @@ import {
     CreateDriverInput,
     UpdateDriverInput,
     DriverStatusUpdateInput,
-    AdjustSafetyScoreInput,
     DriverQueryInput,
 } from './hr.validator';
 import { DriverStatus } from '@prisma/client';
@@ -127,27 +126,106 @@ export class HrService {
         return updated;
     }
 
-    async adjustSafetyScore(id: bigint, input: AdjustSafetyScoreInput, actorId: bigint) {
-        const driver = await this.getDriverById(id);
-        const currentScore = Number(driver.safetyScore);
-        const newScore = Math.min(100, Math.max(0, currentScore + input.adjustment));
+    /**
+     * Get trip-based stats for a driver: completed, cancelled, total trips, incidents.
+     * Also includes unrated completed trip count and average rating.
+     */
+    async getDriverTripStats(driverId: bigint) {
+        const [completed, cancelled, total, incidents, ratedTrips] = await prisma.$transaction([
+            prisma.trip.count({ where: { driverId, status: 'COMPLETED' } }),
+            prisma.trip.count({ where: { driverId, status: 'CANCELLED' } }),
+            prisma.trip.count({ where: { driverId } }),
+            prisma.incidentReport.count({ where: { driverId } }),
+            prisma.trip.findMany({
+                where: { driverId, status: 'COMPLETED', rating: { not: null } },
+                select: { rating: true },
+            }),
+        ]);
 
-        const updated = await prisma.driver.update({
-            where: { id },
-            data: { safetyScore: newScore },
+        const dispatched = total - completed - cancelled;
+        const completionRate = total > 0 ? Math.round((completed / total) * 1000) / 10 : 100;
+
+        // Auto-compute safety score:
+        // Base = completion rate (0-100)
+        // Deduct 5 per incident, clamped to [0, 100]
+        let score = total > 0 ? (completed / total) * 100 : 100;
+        score = Math.max(0, score - (incidents * 5));
+        score = Math.round(Math.min(100, Math.max(0, score)) * 10) / 10;
+
+        // Rating stats
+        const unrated = completed - ratedTrips.length;
+        const avgRating = ratedTrips.length > 0
+            ? Math.round(ratedTrips.reduce((s, t) => s + (t.rating ?? 0), 0) / ratedTrips.length * 10) / 10
+            : null;
+
+        return { completed, cancelled, dispatched, total, incidents, completionRate, score, unrated, avgRating };
+    }
+
+    /**
+     * Get all trips for a specific driver, ordered by most recent first.
+     * Includes vehicle info for display.
+     */
+    async getDriverTrips(driverId: bigint) {
+        const driver = await prisma.driver.findFirst({ where: { id: driverId, isDeleted: false } });
+        if (!driver) throw new ApiError(404, `Driver #${driverId} not found.`);
+
+        const trips = await prisma.trip.findMany({
+            where: { driverId },
+            orderBy: { createdAt: 'desc' },
+            select: {
+                id: true,
+                origin: true,
+                destination: true,
+                status: true,
+                rating: true,
+                revenue: true,
+                distanceEstimated: true,
+                distanceActual: true,
+                createdAt: true,
+                completionTime: true,
+                cancelledReason: true,
+                vehicle: { select: { id: true, licensePlate: true, make: true, model: true } },
+            },
         });
 
-        await writeAuditLog({
-            userId: actorId,
-            entity: 'Driver',
-            entityId: id,
-            action: 'UPDATE',
-            oldValues: { safetyScore: currentScore },
-            newValues: { safetyScore: newScore },
-            reason: input.reason,
+        return trips;
+    }
+
+    /**
+     * Rate a completed trip (0–100). Only completed trips can be rated.
+     */
+    async rateTrip(tripId: bigint, rating: number) {
+        const trip = await prisma.trip.findUnique({ where: { id: tripId } });
+        if (!trip) throw new ApiError(404, `Trip #${tripId} not found.`);
+        if (trip.status !== 'COMPLETED') {
+            throw new ApiError(400, 'Only completed trips can be rated.');
+        }
+        if (rating < 0 || rating > 100) {
+            throw new ApiError(400, 'Rating must be between 0 and 100.');
+        }
+
+        const updated = await prisma.trip.update({
+            where: { id: tripId },
+            data: { rating },
         });
+
+        // Recalculate driver safety score after new rating
+        await this.recalculateDriverScore(trip.driverId);
 
         return updated;
+    }
+
+    /**
+     * Recalculate and persist a driver's safety score from trip data.
+     * Called automatically when trips complete / cancel.
+     */
+    async recalculateDriverScore(driverId: bigint) {
+        const stats = await this.getDriverTripStats(driverId);
+        await prisma.driver.update({
+            where: { id: driverId },
+            data: { safetyScore: stats.score },
+        });
+        return stats.score;
     }
 
     async softDeleteDriver(id: bigint, actorId: bigint) {

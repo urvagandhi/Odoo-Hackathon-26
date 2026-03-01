@@ -26,7 +26,7 @@ export function TripCompleteModal({ open, tripId, onClose, onSuccess }: TripComp
   const [submitting, setSubmitting] = useState(false);
 
   const textPrimary = isDark ? "text-white" : "text-slate-900";
-  const textSecondary = isDark ? "text-neutral-400" : "text-slate-500";
+  const textSecondary = isDark ? "text-[#6B7C6B]" : "text-slate-500";
 
   const handleSubmit = async () => {
     setErrors({});
@@ -91,7 +91,7 @@ export function TripCompleteModal({ open, tripId, onClose, onSuccess }: TripComp
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.95 }}
             className={`fixed z-[9993] top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-sm rounded-xl shadow-2xl p-6 ${
-              isDark ? "bg-neutral-800 border border-neutral-700" : "bg-white border border-slate-200"
+              isDark ? "bg-[#111A15] border border-[#1E2B22]" : "bg-white border border-slate-200"
             }`}
           >
             <div className="flex items-center gap-2 mb-4">

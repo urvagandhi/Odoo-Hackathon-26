@@ -244,11 +244,11 @@ export default function DriverManagement() {
   };
 
   /* ── Style helpers ───────────────────────────────── */
-  const cardBg = isDark ? "bg-neutral-800 border-neutral-700" : "bg-white border-slate-200";
-  const textPrimary = isDark ? "text-white" : "text-slate-900";
-  const textSecondary = isDark ? "text-neutral-400" : "text-slate-500";
+  const cardBg = isDark ? "bg-[#111A15] border-[#1E2B22]" : "bg-white border-slate-200";
+  const textPrimary = isDark ? "text-[#E4E6DE]" : "text-slate-900";
+  const textSecondary = isDark ? "text-[#6B7C6B]" : "text-slate-500";
   const inputCls = `px-3 py-2 rounded-lg border text-sm transition-colors focus:outline-none focus:ring-2 focus:ring-violet-500/30 ${
-    isDark ? "bg-neutral-700 border-neutral-600 text-white placeholder-neutral-400" : "bg-white border-slate-200 text-slate-900 placeholder-slate-400"
+    isDark ? "bg-[#1E2B22] border-[#1E2B22] text-[#E4E6DE] placeholder-neutral-400" : "bg-white border-slate-200 text-slate-900 placeholder-slate-400"
   }`;
 
   return (
@@ -272,7 +272,7 @@ export default function DriverManagement() {
         {canMutate && (
           <button
             onClick={() => { setEditDriver(null); setFormOpen(true); }}
-            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-violet-600 hover:bg-violet-500 text-white text-sm font-medium transition-colors shadow-lg shadow-violet-500/20"
+            className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-white text-sm font-medium transition-all shadow-lg ${isDark ? "bg-gradient-to-r from-[#22C55E] to-[#16A34A] shadow-emerald-500/20" : "bg-violet-600 hover:bg-violet-500 shadow-violet-500/20"}`}
           >
             <Plus className="w-4 h-4" />
             {t("driverManagement.addDriver")}
@@ -285,7 +285,7 @@ export default function DriverManagement() {
         <motion.div
           initial={{ opacity: 0, y: 6 }}
           animate={{ opacity: 1, y: 0 }}
-          className={`rounded-xl border p-4 ${isDark ? "bg-amber-900/20 border-amber-800/50" : "bg-amber-50 border-amber-200"}`}
+          className={`rounded-[14px] border p-4 ${isDark ? "bg-amber-900/20 border-amber-800/50" : "bg-amber-50 border-amber-200"}`}
         >
           <div className="flex items-center gap-2 mb-2">
             <AlertTriangle className={`w-4 h-4 ${isDark ? "text-amber-400" : "text-amber-600"}`} />
@@ -302,8 +302,8 @@ export default function DriverManagement() {
                   key={d.id}
                   className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium ${
                     isUrgent
-                      ? isDark ? "bg-red-900/30 text-red-300" : "bg-red-100 text-red-700"
-                      : isDark ? "bg-amber-900/30 text-amber-300" : "bg-amber-100 text-amber-700"
+                      ? isDark ? "bg-[#2D1518]/30 text-red-300" : "bg-red-100 text-red-700"
+                      : isDark ? "bg-[#2D2410] text-amber-300" : "bg-amber-100 text-amber-700"
                   }`}
                 >
                   {d.fullName} — {daysLeft <= 0 ? t("common.expired") : t("driverManagement.daysLeft", { days: daysLeft })}
@@ -321,15 +321,15 @@ export default function DriverManagement() {
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         {([
           { key: "ON_DUTY", label: t("driverManagement.statusCards.onDuty"), icon: "🟢", color: isDark ? "text-emerald-400" : "text-emerald-600" },
-          { key: "ON_TRIP", label: t("driverManagement.statusCards.onTrip"), icon: "🔵", color: isDark ? "text-blue-400" : "text-blue-600" },
-          { key: "OFF_DUTY", label: t("driverManagement.statusCards.offDuty"), icon: "⚫", color: isDark ? "text-neutral-400" : "text-slate-500" },
-          { key: "SUSPENDED", label: t("driverManagement.statusCards.suspended"), icon: "🔴", color: isDark ? "text-red-400" : "text-red-600" },
+          { key: "ON_TRIP", label: t("driverManagement.statusCards.onTrip"), icon: "🟢", color: isDark ? "text-emerald-400" : "text-emerald-600" },
+          { key: "OFF_DUTY", label: t("driverManagement.statusCards.offDuty"), icon: "⚫", color: isDark ? "text-[#6B7C6B]" : "text-slate-500" },
+          { key: "SUSPENDED", label: t("driverManagement.statusCards.suspended"), icon: "🔴", color: isDark ? "text-[#FCA5A5]" : "text-red-600" },
         ] as const).map((item) => (
           <motion.div
             key={item.key}
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
-            className={`rounded-xl border p-4 ${cardBg} cursor-pointer hover:shadow-md transition-shadow`}
+            className={`rounded-[14px] border p-4 ${cardBg} cursor-pointer hover:shadow-md transition-shadow`}
             onClick={() => { setStatusFilter(statusFilter === item.key ? "" : item.key); setPage(1); }}
           >
             <div className="flex items-center justify-between">
@@ -353,7 +353,7 @@ export default function DriverManagement() {
         className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3"
       >
         <div className="relative flex-1 max-w-sm">
-          <Search className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 ${isDark ? "text-neutral-500" : "text-slate-400"}`} />
+          <Search className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 ${isDark ? "text-[#4A5C4A]" : "text-slate-400"}`} />
           <input
             className={`${inputCls} pl-9 w-full`}
             placeholder={t("driverManagement.search")}
@@ -363,7 +363,7 @@ export default function DriverManagement() {
         </div>
 
         <div className="relative">
-          <Filter className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 ${isDark ? "text-neutral-500" : "text-slate-400"}`} />
+          <Filter className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 ${isDark ? "text-[#4A5C4A]" : "text-slate-400"}`} />
           <select
             className={`${inputCls} pl-9 pr-8 appearance-none cursor-pointer`}
             value={statusFilter}
@@ -376,7 +376,7 @@ export default function DriverManagement() {
         </div>
 
         <div className="relative">
-          <AlertTriangle className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 ${isDark ? "text-neutral-500" : "text-slate-400"}`} />
+          <AlertTriangle className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 ${isDark ? "text-[#4A5C4A]" : "text-slate-400"}`} />
           <select
             className={`${inputCls} pl-9 pr-8 appearance-none cursor-pointer`}
             value={expiryFilter}
@@ -393,12 +393,12 @@ export default function DriverManagement() {
       <motion.div
         initial={{ opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}
-        className={`rounded-xl border shadow-sm overflow-hidden ${cardBg}`}
+        className={`rounded-[14px] border shadow-sm overflow-hidden ${cardBg}`}
       >
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
-              <tr className={`border-b ${isDark ? "border-neutral-700 bg-neutral-800/50" : "border-slate-200 bg-slate-50"}`}>
+              <tr className={`border-b ${isDark ? "border-[#1E2B22] bg-[#111A15]/50" : "border-slate-200 bg-slate-50"}`}>
                 {[t("driverManagement.columns.number"), t("driverManagement.columns.name"), t("driverManagement.columns.license"), t("driverManagement.columns.expiry"), t("driverManagement.columns.safetyScore"), t("driverManagement.columns.status"), t("driverManagement.columns.actions")].map((h) => (
                   <th key={h} className={`text-left px-4 py-3 text-xs font-semibold uppercase tracking-wide ${textSecondary}`}>
                     {h}
@@ -409,10 +409,10 @@ export default function DriverManagement() {
             <tbody>
               {loading ? (
                 Array.from({ length: 5 }).map((_, i) => (
-                  <tr key={i} className={`border-b last:border-0 ${isDark ? "border-neutral-700" : "border-slate-100"}`}>
+                  <tr key={i} className={`border-b last:border-0 ${isDark ? "border-[#1E2B22]" : "border-slate-100"}`}>
                     {Array.from({ length: 7 }).map((_, j) => (
                       <td key={j} className="px-4 py-3">
-                        <div className={`h-4 rounded ${isDark ? "bg-neutral-700" : "bg-slate-100"} animate-pulse`}
+                        <div className={`h-4 rounded ${isDark ? "bg-[#1E2B22]" : "bg-slate-100"} animate-pulse`}
                           style={{ width: `${50 + (j % 3) * 20}%` }} />
                       </td>
                     ))}
@@ -435,7 +435,7 @@ export default function DriverManagement() {
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     className={`border-b last:border-0 transition-colors duration-100 ${
-                      isDark ? "border-neutral-700 hover:bg-neutral-700/50" : "border-slate-100 hover:bg-slate-50"
+                      isDark ? "border-[#1E2B22] hover:bg-[#1E2B22]/50" : "border-slate-100 hover:bg-slate-50"
                     } ${d.status === "SUSPENDED" ? "opacity-60" : ""}`}
                   >
                     <td className={`px-4 py-3 ${textSecondary}`}>{(page - 1) * limit + idx + 1}</td>
@@ -460,7 +460,7 @@ export default function DriverManagement() {
                           <button
                             onClick={() => handleEdit(d)}
                             className={`p-1.5 rounded-lg transition-colors ${
-                              isDark ? "hover:bg-neutral-600 text-neutral-400" : "hover:bg-slate-100 text-slate-400"
+                              isDark ? "hover:bg-[#1E2B22] text-[#6B7C6B]" : "hover:bg-slate-100 text-slate-400"
                             }`}
                             title={t("driverManagement.editTooltip")}
                           >
@@ -473,7 +473,7 @@ export default function DriverManagement() {
                           <button
                             onClick={() => handleToggleDuty(d, "ON_DUTY")}
                             className={`p-1.5 rounded-lg transition-colors ${
-                              isDark ? "hover:bg-emerald-900/30 text-emerald-400" : "hover:bg-emerald-50 text-emerald-600"
+                              isDark ? "hover:bg-[#14332A] text-emerald-400" : "hover:bg-emerald-50 text-emerald-600"
                             }`}
                             title={t("driverManagement.clockIn")}
                           >
@@ -484,7 +484,7 @@ export default function DriverManagement() {
                           <button
                             onClick={() => handleToggleDuty(d, "OFF_DUTY")}
                             className={`p-1.5 rounded-lg transition-colors ${
-                              isDark ? "hover:bg-neutral-600 text-neutral-400" : "hover:bg-slate-100 text-slate-500"
+                              isDark ? "hover:bg-[#1E2B22] text-[#6B7C6B]" : "hover:bg-slate-100 text-slate-500"
                             }`}
                             title={t("driverManagement.clockOut")}
                           >
@@ -506,7 +506,7 @@ export default function DriverManagement() {
                               <button
                                 onClick={() => setSuspendDriverId(d.id)}
                                 className={`p-1.5 rounded-lg transition-colors ${
-                                  isDark ? "hover:bg-red-900/30 text-red-400" : "hover:bg-red-50 text-red-500"
+                                  isDark ? "hover:bg-[#2D1518]/30 text-[#FCA5A5]" : "hover:bg-red-50 text-red-500"
                                 }`}
                                 title={t("driverManagement.suspendTooltip")}
                               >
@@ -522,7 +522,7 @@ export default function DriverManagement() {
                               <div className="px-6 pb-2">
                                 <textarea
                                   className={`w-full px-3 py-2 rounded-lg border text-sm ${
-                                    isDark ? "bg-neutral-700 border-neutral-600 text-white" : "bg-white border-slate-200 text-slate-900"
+                                    isDark ? "bg-[#1E2B22] border-[#1E2B22] text-[#E4E6DE]" : "bg-white border-slate-200 text-slate-900"
                                   }`}
                                   placeholder={t("driverManagement.suspendDialog.placeholder")}
                                   rows={3}
@@ -567,7 +567,7 @@ export default function DriverManagement() {
                               <button
                                 onClick={() => setDeleteDriverId(d.id)}
                                 className={`p-1.5 rounded-lg transition-colors ${
-                                  isDark ? "hover:bg-red-900/30 text-red-400" : "hover:bg-red-50 text-red-500"
+                                  isDark ? "hover:bg-[#2D1518]/30 text-[#FCA5A5]" : "hover:bg-red-50 text-red-500"
                                 }`}
                                 title={t("driverManagement.deleteTooltip")}
                               >
@@ -606,7 +606,7 @@ export default function DriverManagement() {
             onClick={() => setPage((p) => Math.max(1, p - 1))}
             disabled={page === 1}
             className={`p-2 rounded-lg transition-colors disabled:opacity-40 ${
-              isDark ? "hover:bg-neutral-700 text-neutral-400" : "hover:bg-slate-100 text-slate-500"
+              isDark ? "hover:bg-[#1E2B22] text-[#6B7C6B]" : "hover:bg-slate-100 text-slate-500"
             }`}
           >
             <ChevronLeft className="w-4 h-4" />
@@ -625,7 +625,7 @@ export default function DriverManagement() {
                     p === page
                       ? "bg-violet-600 text-white"
                       : isDark
-                        ? "text-neutral-400 hover:bg-neutral-700"
+                        ? "text-[#6B7C6B] hover:bg-[#1E2B22]"
                         : "text-slate-600 hover:bg-slate-100"
                   }`}
                 >
@@ -638,7 +638,7 @@ export default function DriverManagement() {
             onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
             disabled={page === totalPages}
             className={`p-2 rounded-lg transition-colors disabled:opacity-40 ${
-              isDark ? "hover:bg-neutral-700 text-neutral-400" : "hover:bg-slate-100 text-slate-500"
+              isDark ? "hover:bg-[#1E2B22] text-[#6B7C6B]" : "hover:bg-slate-100 text-slate-500"
             }`}
           >
             <ChevronRight className="w-4 h-4" />
@@ -663,13 +663,13 @@ export default function DriverManagement() {
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             className={`fixed z-[9991] top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-sm rounded-xl shadow-2xl p-6 ${
-              isDark ? "bg-neutral-800 border border-neutral-700" : "bg-white border border-slate-200"
+              isDark ? "bg-[#111A15] border border-[#1E2B22]" : "bg-white border border-slate-200"
             }`}
           >
             <h3 className={`text-base font-bold mb-4 ${textPrimary}`}>{t("driverManagement.scoreModal.title")}</h3>
 
             <div className="mb-4">
-              <label className={`block text-xs font-semibold mb-2 ${isDark ? "text-neutral-300" : "text-slate-600"}`}>
+              <label className={`block text-xs font-semibold mb-2 ${isDark ? "text-[#B0B8A8]" : "text-slate-600"}`}>
                 {t("driverManagement.scoreModal.adjustment")} <span className={`font-bold ${scoreAdjustment >= 0 ? "text-emerald-500" : "text-red-500"}`}>
                   {scoreAdjustment > 0 ? "+" : ""}{scoreAdjustment}
                 </span>
@@ -691,12 +691,12 @@ export default function DriverManagement() {
             </div>
 
             <div className="mb-4">
-              <label className={`block text-xs font-semibold mb-1 ${isDark ? "text-neutral-300" : "text-slate-600"}`}>
+              <label className={`block text-xs font-semibold mb-1 ${isDark ? "text-[#B0B8A8]" : "text-slate-600"}`}>
                 {t("driverManagement.scoreModal.reason")}
               </label>
               <textarea
                 className={`w-full px-3 py-2 rounded-lg border text-sm ${
-                  isDark ? "bg-neutral-700 border-neutral-600 text-white" : "bg-white border-slate-200 text-slate-900"
+                  isDark ? "bg-[#1E2B22] border-[#1E2B22] text-[#E4E6DE]" : "bg-white border-slate-200 text-slate-900"
                 }`}
                 placeholder={t("driverManagement.scoreModal.placeholder")}
                 rows={3}
@@ -708,14 +708,14 @@ export default function DriverManagement() {
             <div className="flex justify-end gap-2">
               <button
                 onClick={() => setScoreModalOpen(false)}
-                className={`px-4 py-2 rounded-lg text-sm font-medium ${isDark ? "text-neutral-300 hover:bg-neutral-700" : "text-slate-600 hover:bg-slate-100"}`}
+                className={`px-4 py-2 rounded-lg text-sm font-medium ${isDark ? "text-[#B0B8A8] hover:bg-[#1E2B22]" : "text-slate-600 hover:bg-slate-100"}`}
               >
                 {t("common.cancel")}
               </button>
               <button
                 onClick={handleAdjustScore}
                 disabled={scoreSubmitting || scoreReason.length < 5 || scoreAdjustment === 0}
-                className="px-4 py-2 rounded-lg bg-violet-600 hover:bg-violet-500 text-white text-sm font-medium disabled:opacity-50"
+                className={`px-4 py-2 rounded-lg text-white text-sm font-medium disabled:opacity-50 transition-all ${isDark ? "bg-gradient-to-r from-[#22C55E] to-[#16A34A] shadow-lg shadow-emerald-500/20" : "bg-violet-600 hover:bg-violet-500"}`}
               >
                 {t("common.apply")}
               </button>
