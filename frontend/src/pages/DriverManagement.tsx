@@ -230,7 +230,7 @@ export default function DriverManagement() {
   };
 
   const handleAdjustScore = async () => {
-    if (!scoreDriverId || !scoreReason.trim() || scoreReason.length < 5) return;
+    if (!scoreDriverId) return;
     setScoreSubmitting(true);
     try {
       await hrApi.recalculateScore(scoreDriverId);
@@ -714,7 +714,7 @@ export default function DriverManagement() {
               </button>
               <button
                 onClick={handleAdjustScore}
-                disabled={scoreSubmitting || scoreReason.length < 5 || scoreAdjustment === 0}
+                disabled={scoreSubmitting}
                 className={`px-4 py-2 rounded-lg text-white text-sm font-medium disabled:opacity-50 transition-all ${isDark ? "bg-gradient-to-r from-[#22C55E] to-[#16A34A] shadow-lg shadow-emerald-500/20" : "bg-violet-600 hover:bg-violet-500"}`}
               >
                 {t("common.apply")}

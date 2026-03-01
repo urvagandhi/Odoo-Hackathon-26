@@ -239,33 +239,26 @@ export default function Drivers() {
     };
 
     const adjustScore = async (d: Driver) => {
-        // Open trip-stats dialog for this driver
         setRatingDriver(d);
         setTripStats(null);
         setDriverTrips([]);
         setRatingTripId(null);
         setStatsLoading(true);
         setStatsError("");
-        try {
-            const [statsResult, tripsResult] = await Promise.allSettled([
-                hrApi.getTripStats(d.id),
-                hrApi.getDriverTrips(d.id),
-            ]);
-            if (statsResult.status === "fulfilled") {
-                setTripStats(statsResult.value);
-            } else {
-                const err = statsResult.reason as { response?: { data?: { message?: string }; status?: number }; message?: string };
-                setStatsError(err?.response?.data?.message || err?.message || "Failed to load trip stats");
-            }
-            if (tripsResult.status === "fulfilled") {
-                setDriverTrips(tripsResult.value);
-            }
-        } catch (err: unknown) {
-            const e = err as { response?: { data?: { message?: string } }; message?: string };
-            setStatsError(e?.response?.data?.message || e?.message || "Failed to load trip stats");
-        } finally {
-            setStatsLoading(false);
+        const [statsResult, tripsResult] = await Promise.allSettled([
+            hrApi.getTripStats(d.id),
+            hrApi.getDriverTrips(d.id),
+        ]);
+        if (statsResult.status === "fulfilled") {
+            setTripStats(statsResult.value);
+        } else {
+            const err = statsResult.reason as { response?: { data?: { message?: string }; status?: number }; message?: string };
+            setStatsError(err?.response?.data?.message || err?.message || t("drivers.rating.loadStatsFailed"));
         }
+        if (tripsResult.status === "fulfilled") {
+            setDriverTrips(tripsResult.value);
+        }
+        setStatsLoading(false);
     };
 
     const recalculateScore = async () => {
@@ -279,10 +272,11 @@ export default function Drivers() {
             setTripStats(stats);
             setDriverTrips(trips);
             await refetchDrivers();
-            toast.success(`Score recalculated for ${ratingDriver.fullName}`, { title: "Score Updated" });
-        } catch (err: any) {
-            const msg = err?.response?.data?.message || err?.message || "Failed to recalculate";
-            toast.error(msg, { title: "Error" });
+            toast.success(t("drivers.rating.scoreRecalculated", { name: ratingDriver.fullName }), { title: t("drivers.rating.scoreUpdatedTitle") });
+        } catch (err: unknown) {
+            const e = err as { response?: { data?: { message?: string } }; message?: string };
+            const msg = e?.response?.data?.message || e?.message || t("drivers.rating.recalculateFailed");
+            toast.error(msg, { title: t("common.error") });
         }
     };
 
@@ -291,7 +285,6 @@ export default function Drivers() {
         setRatingSubmitting(true);
         try {
             await hrApi.rateTrip(ratingDriver.id, ratingTripId, ratingValue);
-            // Refresh data
             const [stats, trips] = await Promise.all([
                 hrApi.getTripStats(ratingDriver.id),
                 hrApi.getDriverTrips(ratingDriver.id),
@@ -300,10 +293,11 @@ export default function Drivers() {
             setDriverTrips(trips);
             setRatingTripId(null);
             await refetchDrivers();
-            toast.success("Trip rated successfully!", { title: "Rating Saved" });
-        } catch (err: any) {
-            const msg = err?.response?.data?.message || err?.message || "Failed to rate trip";
-            toast.error(msg, { title: "Error" });
+            toast.success(t("drivers.rating.tripRated"), { title: t("drivers.rating.ratingSavedTitle") });
+        } catch (err: unknown) {
+            const e = err as { response?: { data?: { message?: string } }; message?: string };
+            const msg = e?.response?.data?.message || e?.message || t("drivers.rating.rateFailed");
+            toast.error(msg, { title: t("common.error") });
         } finally {
             setRatingSubmitting(false);
         }
@@ -317,10 +311,15 @@ export default function Drivers() {
 
     const submitStatusUpdate = async () => {
         if (!updateDriver || updateStatus === updateDriver.status) { setUpdateDriver(null); return; }
-        await hrApi.updateDriverStatus(updateDriver.id, updateStatus);
-        refetchDrivers();
-        toast.success(`${updateDriver.fullName} set to ${updateStatus.replace("_", " ")}`, { title: "Status Updated" });
-        setUpdateDriver(null);
+        try {
+            await hrApi.updateDriverStatus(updateDriver.id, updateStatus);
+            refetchDrivers();
+            toast.success(t("drivers.toast.statusUpdated", { name: updateDriver.fullName, status: updateStatus.replace(/_/g, " ") }), { title: t("drivers.toast.statusUpdatedTitle") });
+            setUpdateDriver(null);
+        } catch (err: unknown) {
+            const e = err as { response?: { data?: { message?: string } }; message?: string };
+            toast.error(e?.response?.data?.message || e?.message || t("drivers.toast.statusUpdateFailed"), { title: t("common.error") });
+        }
     };
 
     const inputClass = `${FIELD} ${isDark ? "bg-[#1E2B22] border-[#1E2B22] text-[#E4E6DE] placeholder-[#6B7C6B]" : "bg-white border-neutral-200 text-neutral-900 placeholder-neutral-400"}`;
@@ -357,7 +356,7 @@ export default function Drivers() {
             <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
                 <StatMini label={t("drivers.kpi.totalDrivers")} value={`${totalDrivers}`} icon={Users} color="emerald" isDark={isDark} />
                 <StatMini label={t("drivers.kpi.onDuty")} value={`${onDuty}`} icon={CheckCircle2} color="green" isDark={isDark} />
-                <StatMini label={t("drivers.kpi.onTrip")} value={`${onTrip}`} icon={MapPin} color="blue" isDark={isDark} />
+                <StatMini label={t("drivers.kpi.onTrip")} value={`${onTrip}`} icon={MapPin} color="emerald" isDark={isDark} />
                 <StatMini label={t("drivers.kpi.suspended")} value={`${suspended}`} icon={UserX} color="red" isDark={isDark} />
                 <StatMini label={t("drivers.kpi.avgSafetyScore")} value={avgSafety} icon={Shield} color="amber" isDark={isDark} />
             </div>
@@ -725,7 +724,7 @@ export default function Drivers() {
                             className={`w-full max-w-lg rounded-3xl border-2 p-6 shadow-2xl max-h-[90vh] overflow-y-auto ${dialogTint}`}>
                             <div className="flex items-center justify-between mb-4">
                                 <h2 className={`text-lg font-bold ${isDark ? "text-[#E4E6DE]" : "text-neutral-900"}`}>
-                                    Safety Score — {ratingDriver.fullName}
+                                    {t("drivers.rating.safetyScoreTitle", { name: ratingDriver.fullName })}
                                 </h2>
                                 <button onClick={() => setRatingDriver(null)} className={`p-1.5 rounded-lg transition-colors ${isDark ? "hover:bg-[#1E2B22] text-[#6B7C6B]" : "hover:bg-neutral-100 text-neutral-400"}`}>
                                     <X className="w-4 h-4" />
@@ -738,10 +737,10 @@ export default function Drivers() {
                                     <AlertTriangle className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" />
                                     <div>
                                         <p className={`text-sm font-bold ${isDark ? "text-amber-400" : "text-amber-700"}`}>
-                                            {unrated} completed trip{unrated !== 1 ? "s" : ""} not yet rated
+                                            {t("drivers.rating.unratedTrips", { count: unrated })}
                                         </p>
                                         <p className={`text-xs mt-0.5 ${isDark ? "text-amber-500/70" : "text-amber-600/70"}`}>
-                                            Scroll down to rate individual trips for {ratingDriver.fullName}
+                                            {t("drivers.rating.scrollToRate", { name: ratingDriver.fullName })}
                                         </p>
                                     </div>
                                 </div>
@@ -750,14 +749,14 @@ export default function Drivers() {
                             {statsLoading ? (
                                 <div className={`text-center py-8 ${isDark ? "text-[#6B7C6B]" : "text-neutral-400"}`}>
                                     <div className="animate-spin w-8 h-8 border-2 border-emerald-500 border-t-transparent rounded-full mx-auto mb-3" />
-                                    Loading trip stats...
+                                    {t("drivers.rating.loadingStats")}
                                 </div>
                             ) : tripStats ? (
                                 <>
                                     {/* Score Display */}
                                     <div className={`p-5 rounded-2xl mb-4 border ${isDark ? "bg-[#0E1410]/80 border-[#1E2B22]" : "bg-white/60 border-neutral-200"}`}>
                                         <div className="flex items-center justify-between mb-2">
-                                            <span className={`text-[10px] font-bold uppercase tracking-widest ${isDark ? "text-[#6B7C6B]" : "text-neutral-500"}`}>Trip-Based Safety Score</span>
+                                            <span className={`text-[10px] font-bold uppercase tracking-widest ${isDark ? "text-[#6B7C6B]" : "text-neutral-500"}`}>{t("drivers.rating.tripBasedScore")}</span>
                                             <div className="flex items-center gap-1.5">
                                                 <span className={`text-xs font-semibold uppercase tracking-wider ${tier.color}`}>{tier.label}</span>
                                                 {tier.award && <span className="text-sm">{tier.award}</span>}
@@ -787,7 +786,7 @@ export default function Drivers() {
                                                 <div className={`flex items-center justify-between mb-1.5 ${isDark ? "text-[#B0B8A8]" : "text-neutral-600"}`}>
                                                     <div className="flex items-center gap-2">
                                                         <Award className="w-4 h-4 text-emerald-500" />
-                                                        <span className="text-xs font-semibold">Avg. Trip Rating</span>
+                                                        <span className="text-xs font-semibold">{t("drivers.rating.avgTripRating")}</span>
                                                     </div>
                                                     <span className={`text-lg font-black ${
                                                         tripStats.avgRating >= 90 ? "text-emerald-500" : tripStats.avgRating >= 70 ? "text-amber-500" : tripStats.avgRating >= 50 ? "text-orange-500" : "text-red-500"
@@ -799,7 +798,7 @@ export default function Drivers() {
                                                     }`} style={{ width: `${Math.min(100, Math.max(0, tripStats.avgRating))}%` }} />
                                                 </div>
                                                 <p className={`text-[10px] mt-1 ${isDark ? "text-[#4A5C4A]" : "text-neutral-400"}`}>
-                                                    Based on {tripStats.completed - tripStats.unrated} of {tripStats.completed} completed trips rated
+                                                    {t("drivers.rating.basedOnRated", { rated: tripStats.completed - tripStats.unrated, total: tripStats.completed })}
                                                 </p>
                                             </div>
                                         )}
@@ -807,32 +806,32 @@ export default function Drivers() {
 
                                     {/* Trip Breakdown */}
                                     <div className={`p-4 rounded-2xl mb-4 border ${isDark ? "bg-[#0E1410]/80 border-[#1E2B22]" : "bg-white/60 border-neutral-200"}`}>
-                                        <p className={`text-[10px] font-bold uppercase tracking-widest mb-3 ${isDark ? "text-[#6B7C6B]" : "text-neutral-500"}`}>Trip Breakdown</p>
+                                        <p className={`text-[10px] font-bold uppercase tracking-widest mb-3 ${isDark ? "text-[#6B7C6B]" : "text-neutral-500"}`}>{t("drivers.rating.tripBreakdown")}</p>
                                         <div className="grid grid-cols-2 gap-3">
                                             <div className={`p-3 rounded-xl text-center ${isDark ? "bg-[#1E2B22]/50" : "bg-neutral-50"}`}>
                                                 <p className="text-2xl font-black text-emerald-500">{tripStats.completed}</p>
-                                                <p className={`text-[10px] font-semibold uppercase tracking-wider ${isDark ? "text-[#6B7C6B]" : "text-neutral-500"}`}>Completed</p>
+                                                <p className={`text-[10px] font-semibold uppercase tracking-wider ${isDark ? "text-[#6B7C6B]" : "text-neutral-500"}`}>{t("drivers.rating.completed")}</p>
                                             </div>
                                             <div className={`p-3 rounded-xl text-center ${isDark ? "bg-[#1E2B22]/50" : "bg-neutral-50"}`}>
                                                 <p className="text-2xl font-black text-red-500">{tripStats.cancelled}</p>
-                                                <p className={`text-[10px] font-semibold uppercase tracking-wider ${isDark ? "text-[#6B7C6B]" : "text-neutral-500"}`}>Cancelled</p>
+                                                <p className={`text-[10px] font-semibold uppercase tracking-wider ${isDark ? "text-[#6B7C6B]" : "text-neutral-500"}`}>{t("drivers.rating.cancelled")}</p>
                                             </div>
                                             <div className={`p-3 rounded-xl text-center ${isDark ? "bg-[#1E2B22]/50" : "bg-neutral-50"}`}>
                                                 <p className={`text-2xl font-black ${isDark ? "text-[#B0B8A8]" : "text-neutral-700"}`}>{tripStats.dispatched}</p>
-                                                <p className={`text-[10px] font-semibold uppercase tracking-wider ${isDark ? "text-[#6B7C6B]" : "text-neutral-500"}`}>In Progress</p>
+                                                <p className={`text-[10px] font-semibold uppercase tracking-wider ${isDark ? "text-[#6B7C6B]" : "text-neutral-500"}`}>{t("drivers.rating.dispatched")}</p>
                                             </div>
                                             <div className={`p-3 rounded-xl text-center ${isDark ? "bg-[#1E2B22]/50" : "bg-neutral-50"}`}>
                                                 <p className={`text-2xl font-black ${isDark ? "text-[#E4E6DE]" : "text-neutral-900"}`}>{tripStats.total}</p>
-                                                <p className={`text-[10px] font-semibold uppercase tracking-wider ${isDark ? "text-[#6B7C6B]" : "text-neutral-500"}`}>Total Trips</p>
+                                                <p className={`text-[10px] font-semibold uppercase tracking-wider ${isDark ? "text-[#6B7C6B]" : "text-neutral-500"}`}>{t("drivers.rating.totalTrips")}</p>
                                             </div>
                                         </div>
                                     </div>
 
                                     {/* Performance Metrics */}
                                     <div className={`p-4 rounded-2xl mb-4 border space-y-3 ${isDark ? "bg-[#0E1410]/80 border-[#1E2B22]" : "bg-white/60 border-neutral-200"}`}>
-                                        <p className={`text-[10px] font-bold uppercase tracking-widest ${isDark ? "text-[#6B7C6B]" : "text-neutral-500"}`}>Performance Metrics</p>
+                                        <p className={`text-[10px] font-bold uppercase tracking-widest ${isDark ? "text-[#6B7C6B]" : "text-neutral-500"}`}>{t("drivers.rating.performanceMetrics")}</p>
                                         <div className="flex items-center justify-between">
-                                            <span className={`text-xs font-medium ${isDark ? "text-[#B0B8A8]" : "text-neutral-600"}`}>Completion Rate</span>
+                                            <span className={`text-xs font-medium ${isDark ? "text-[#B0B8A8]" : "text-neutral-600"}`}>{t("drivers.rating.completionRate")}</span>
                                             <div className="flex items-center gap-2">
                                                 <div className={`w-24 h-2 rounded-full overflow-hidden ${isDark ? "bg-[#1E2B22]" : "bg-neutral-200"}`}>
                                                     <div className="h-full rounded-full bg-emerald-500 transition-all" style={{ width: `${tripStats.completionRate}%` }} />
@@ -841,9 +840,9 @@ export default function Drivers() {
                                             </div>
                                         </div>
                                         <div className="flex items-center justify-between">
-                                            <span className={`text-xs font-medium ${isDark ? "text-[#B0B8A8]" : "text-neutral-600"}`}>Incidents</span>
+                                            <span className={`text-xs font-medium ${isDark ? "text-[#B0B8A8]" : "text-neutral-600"}`}>{t("drivers.rating.incidents")}</span>
                                             <span className={`text-xs font-bold ${tripStats.incidents === 0 ? "text-emerald-500" : "text-red-500"}`}>
-                                                {tripStats.incidents} {tripStats.incidents === 0 ? "✓ Clean Record" : `(−${tripStats.incidents * 5} pts)`}
+                                                {tripStats.incidents} {tripStats.incidents === 0 ? t("drivers.rating.cleanRecord") : `(−${tripStats.incidents * 5} pts)`}
                                             </span>
                                         </div>
                                     </div>
@@ -851,11 +850,11 @@ export default function Drivers() {
                                     {/* ── Individual Trip List with Ratings ──────────────── */}
                                     <div className={`p-4 rounded-2xl mb-4 border ${isDark ? "bg-[#0E1410]/80 border-[#1E2B22]" : "bg-white/60 border-neutral-200"}`}>
                                         <p className={`text-[10px] font-bold uppercase tracking-widest mb-3 ${isDark ? "text-[#6B7C6B]" : "text-neutral-500"}`}>
-                                            Trip History & Ratings ({driverTrips.length} trips)
+                                            {t("drivers.rating.tripHistory", { count: driverTrips.length })}
                                         </p>
 
                                         {driverTrips.length === 0 ? (
-                                            <p className={`text-sm text-center py-4 ${isDark ? "text-[#4A5C4A]" : "text-neutral-400"}`}>No trips found for this driver</p>
+                                            <p className={`text-sm text-center py-4 ${isDark ? "text-[#4A5C4A]" : "text-neutral-400"}`}>{t("drivers.rating.noTrips")}</p>
                                         ) : (
                                             <div className="space-y-2 max-h-[250px] overflow-y-auto pr-1">
                                                 {driverTrips.map(trip => {
@@ -912,7 +911,7 @@ export default function Drivers() {
                                                                                 isDark ? "bg-amber-500/10 text-amber-400 hover:bg-amber-500/20 border border-amber-500/20" : "bg-amber-50 text-amber-600 hover:bg-amber-100 border border-amber-200"
                                                                             }`}>
                                                                             <AlertTriangle className="w-3 h-3" />
-                                                                            Unrated — Click to Rate
+                                                                            {t("drivers.rating.unratedClickToRate")}
                                                                         </button>
                                                                     ) : null}
                                                                 </div>
@@ -924,7 +923,7 @@ export default function Drivers() {
                                                                     className="mt-3 pt-3 border-t border-dashed"
                                                                     style={{ borderColor: isDark ? "#1E2B22" : "#E5E7EB" }}>
                                                                     <div className="flex items-center gap-3 mb-2">
-                                                                        <label className={`text-xs font-semibold ${isDark ? "text-[#B0B8A8]" : "text-neutral-600"}`}>Rating (0-100):</label>
+                                                                        <label className={`text-xs font-semibold ${isDark ? "text-[#B0B8A8]" : "text-neutral-600"}`}>{t("drivers.rating.ratingLabel")}</label>
                                                                         <input
                                                                             type="range" min={0} max={100} value={ratingValue}
                                                                             onChange={e => setRatingValue(Number(e.target.value))}
@@ -937,11 +936,11 @@ export default function Drivers() {
                                                                     <div className="flex gap-2">
                                                                         <button onClick={() => setRatingTripId(null)}
                                                                             className={`flex-1 py-1.5 rounded-lg text-xs font-semibold border ${isDark ? "border-[#1E2B22] text-[#B0B8A8]" : "border-neutral-200 text-neutral-600"}`}>
-                                                                            Cancel
+                                                                            {t("common.cancel")}
                                                                         </button>
                                                                         <button onClick={submitTripRating} disabled={ratingSubmitting}
                                                                             className={`flex-1 py-1.5 rounded-lg text-xs font-semibold transition-colors disabled:opacity-60 ${isDark ? "bg-emerald-500 text-white" : "bg-emerald-500 text-white hover:bg-emerald-600"}`}>
-                                                                            {ratingSubmitting ? "Saving..." : "Save Rating"}
+                                                                            {ratingSubmitting ? t("common.saving") : t("drivers.rating.saveRating")}
                                                                         </button>
                                                                     </div>
                                                                 </motion.div>
@@ -955,20 +954,20 @@ export default function Drivers() {
 
                                     {/* Buttons */}
                                     <div className="flex gap-3">
-                                        <button onClick={() => setRatingDriver(null)} className={`flex-1 py-2.5 rounded-[14px] text-sm font-semibold border ${isDark ? "border-[#1E2B22] text-[#B0B8A8]" : "border-neutral-200 text-neutral-600"}`}>Close</button>
+                                        <button onClick={() => setRatingDriver(null)} className={`flex-1 py-2.5 rounded-[14px] text-sm font-semibold border ${isDark ? "border-[#1E2B22] text-[#B0B8A8]" : "border-neutral-200 text-neutral-600"}`}>{t("common.close")}</button>
                                         <button onClick={recalculateScore}
                                             className={`flex-1 py-2.5 rounded-[14px] text-sm font-semibold transition-colors ${isDark ? "bg-gradient-to-r from-[#22C55E] to-[#16A34A] text-white" : "bg-emerald-500 text-white hover:bg-emerald-600"}`}>
-                                            ↻ Recalculate Score
+                                            {t("drivers.rating.recalculateScore")}
                                         </button>
                                     </div>
                                 </>
                             ) : (
                                 <div className={`text-center py-8 ${isDark ? "text-[#6B7C6B]" : "text-neutral-400"}`}>
                                     <AlertTriangle className="w-8 h-8 mx-auto mb-2 text-red-400" />
-                                    <p className="text-sm font-medium mb-1">{statsError || "Failed to load trip stats"}</p>
+                                    <p className="text-sm font-medium mb-1">{statsError || t("drivers.rating.loadStatsFailed")}</p>
                                     <button onClick={() => adjustScore(ratingDriver!)}
                                         className={`text-xs underline ${isDark ? "text-emerald-400" : "text-emerald-600"}`}>
-                                        Retry
+                                        {t("common.retry")}
                                     </button>
                                 </div>
                             )}
@@ -988,7 +987,7 @@ export default function Drivers() {
                         <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }}
                             className={`w-full max-w-sm rounded-3xl border p-6 shadow-2xl ${isDark ? "bg-[#111A15] border-[#1E2B22]" : "bg-white border-neutral-200"}`}>
                             <div className="flex items-center justify-between mb-4">
-                                <h2 className={`text-lg font-bold ${isDark ? "text-[#E4E6DE]" : "text-neutral-900"}`}>Update Driver</h2>
+                                <h2 className={`text-lg font-bold ${isDark ? "text-[#E4E6DE]" : "text-neutral-900"}`}>{t("drivers.updateDriver")}</h2>
                                 <button onClick={() => setUpdateDriver(null)} className={`p-1.5 rounded-lg transition-colors ${isDark ? "hover:bg-[#1E2B22] text-[#6B7C6B]" : "hover:bg-neutral-100 text-neutral-400"}`}>
                                     <X className="w-4 h-4" />
                                 </button>
@@ -1002,7 +1001,7 @@ export default function Drivers() {
                             </div>
 
                             {/* Status selector */}
-                            <label className={`block text-xs font-semibold mb-2 ${isDark ? "text-[#B0B8A8]" : "text-neutral-700"}`}>Status</label>
+                            <label className={`block text-xs font-semibold mb-2 ${isDark ? "text-[#B0B8A8]" : "text-neutral-700"}`}>{t("drivers.columns.status")}</label>
                             <div className="grid grid-cols-2 gap-2 mb-4">
                                 {["ON_DUTY", "OFF_DUTY", "SUSPENDED"].map(s => (
                                     <button key={s} onClick={() => setUpdateStatus(s)}
@@ -1019,7 +1018,7 @@ export default function Drivers() {
                                 <button onClick={() => setUpdateDriver(null)} className={`flex-1 py-2.5 rounded-[14px] text-sm font-semibold border ${isDark ? "border-[#1E2B22] text-[#B0B8A8]" : "border-neutral-200 text-neutral-600"}`}>{t("common.cancel")}</button>
                                 <button onClick={submitStatusUpdate}
                                     className={`flex-1 py-2.5 rounded-[14px] text-sm font-semibold transition-colors ${isDark ? "bg-gradient-to-r from-[#22C55E] to-[#16A34A] text-white" : "bg-emerald-500 text-white hover:bg-emerald-600"}`}>
-                                    Save Changes
+                                    {t("common.save")}
                                 </button>
                             </div>
                         </motion.div>
@@ -1036,12 +1035,11 @@ function StatMini({ label, value, icon: Icon, color, isDark }: {
     const bgMap: Record<string, string> = {
         emerald: isDark ? "bg-emerald-500/10" : "bg-emerald-50",
         green: isDark ? "bg-green-500/10" : "bg-green-50",
-        blue: isDark ? "bg-emerald-500/10" : "bg-emerald-50",
         red: isDark ? "bg-red-500/10" : "bg-red-50",
         amber: isDark ? "bg-amber-500/10" : "bg-amber-50",
     };
     const textMap: Record<string, string> = {
-        emerald: "text-emerald-500", green: "text-green-500", blue: "text-emerald-500", red: "text-red-500", amber: "text-amber-500",
+        emerald: "text-emerald-500", green: "text-green-500", red: "text-red-500", amber: "text-amber-500",
     };
     return (
         <div className={`rounded-[14px] border p-4 ${isDark ? "bg-[#111A15] border-[#1E2B22]" : "bg-white border-neutral-200 shadow-sm"}`}>

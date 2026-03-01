@@ -49,9 +49,8 @@ export class HrController {
 
     async adjustSafetyScore(req: Request, res: Response, next: NextFunction): Promise<void> {
         try {
-            // Recalculate score from trip data (trip-based, not manual)
             const driverId = BigInt(req.params.id);
-            const score = await hrService.recalculateDriverScore(driverId);
+            await hrService.recalculateDriverScore(driverId);
             const driver = await hrService.getDriverById(driverId);
             res.json({ success: true, data: driver });
         } catch (err) { next(err); }
@@ -73,13 +72,14 @@ export class HrController {
 
     async rateTrip(req: Request, res: Response, next: NextFunction): Promise<void> {
         try {
+            const driverId = BigInt(req.params.id);
             const tripId = BigInt(req.params.tripId);
             const { rating } = req.body;
             if (typeof rating !== 'number' || rating < 0 || rating > 100) {
                 res.status(400).json({ success: false, message: 'Rating must be a number between 0 and 100.' });
                 return;
             }
-            const trip = await hrService.rateTrip(tripId, rating);
+            const trip = await hrService.rateTripForDriver(driverId, tripId, rating);
             res.json({ success: true, data: trip });
         } catch (err) { next(err); }
     }

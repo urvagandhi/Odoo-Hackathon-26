@@ -168,7 +168,7 @@ export function ExpenseForm({ open, onClose, onSuccess, defaultTab = "fuel" }: E
           ? "bg-neutral-700 text-white border-b-2 border-violet-500"
           : "bg-white text-slate-900 border-b-2 border-violet-600"
         : isDark
-        ? "text-[#6B7C6B] hover:text-neutral-200"
+        ? "text-[#8FA68F] hover:text-neutral-200"
         : "text-slate-500 hover:text-slate-700"
     }`;
 
@@ -204,12 +204,12 @@ export function ExpenseForm({ open, onClose, onSuccess, defaultTab = "fuel" }: E
                   <h2 className={`text-base font-bold ${isDark ? "text-white" : "text-slate-900"}`}>
                     {tab === "fuel" ? t("forms.expense.fuelTitle") : t("forms.expense.expenseTitle")}
                   </h2>
-                  <p className={`text-xs ${isDark ? "text-[#6B7C6B]" : "text-slate-500"}`}>
+                  <p className={`text-xs ${isDark ? "text-[#8FA68F]" : "text-slate-500"}`}>
                     {tab === "fuel" ? t("forms.expense.fuelSubtitle") : t("forms.expense.expenseSubtitle")}
                   </p>
                 </div>
               </div>
-              <button onClick={onClose} className={`p-2 rounded-lg transition-colors ${isDark ? "hover:bg-neutral-700 text-[#6B7C6B]" : "hover:bg-slate-100 text-slate-400"}`}>
+              <button onClick={onClose} aria-label={t("common.close")} className={`p-2 rounded-lg transition-colors ${isDark ? "hover:bg-neutral-700 text-[#8FA68F]" : "hover:bg-slate-100 text-slate-400"}`}>
                 <X className="w-5 h-5" />
               </button>
             </div>
@@ -233,7 +233,7 @@ export function ExpenseForm({ open, onClose, onSuccess, defaultTab = "fuel" }: E
               )}
 
               {loadingVehicles ? (
-                <div className={`py-8 text-center text-sm ${isDark ? "text-[#6B7C6B]" : "text-slate-500"}`}>
+                <div className={`py-8 text-center text-sm ${isDark ? "text-[#8FA68F]" : "text-slate-500"}`}>
                   <svg className="w-5 h-5 mx-auto mb-2 animate-spin" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>

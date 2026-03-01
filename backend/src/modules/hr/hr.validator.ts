@@ -24,11 +24,6 @@ export const DriverStatusUpdateSchema = z.object({
     reason: z.string().optional(),
 });
 
-export const AdjustSafetyScoreSchema = z.object({
-    score: z.number().min(0).max(100),
-    reason: z.string().min(5, 'Reason must be at least 5 characters'),
-});
-
 export const DriverQuerySchema = z.object({
     status: z.enum(['ON_DUTY', 'OFF_DUTY', 'ON_TRIP', 'SUSPENDED']).optional(),
     page: z.coerce.number().int().positive().default(1),
@@ -38,5 +33,4 @@ export const DriverQuerySchema = z.object({
 export type CreateDriverInput = z.infer<typeof CreateDriverSchema>;
 export type UpdateDriverInput = z.infer<typeof UpdateDriverSchema>;
 export type DriverStatusUpdateInput = z.infer<typeof DriverStatusUpdateSchema>;
-export type AdjustSafetyScoreInput = z.infer<typeof AdjustSafetyScoreSchema>;
 export type DriverQueryInput = z.infer<typeof DriverQuerySchema>;

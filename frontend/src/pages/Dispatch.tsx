@@ -471,7 +471,7 @@ export default function Dispatch() {
                                 <MapContainer center={[20.5937, 78.9629]} zoom={5} className="w-full h-full" style={{ minHeight: "300px" }}>
                                     <TileLayer
                                         url={isDark ? "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png" : "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"}
-                                        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+                                        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>, &copy; <a href="https://carto.com/attributions">CARTO</a>'
                                     />
                                     {originCoord && (
                                         <Marker position={originCoord} icon={originIcon}>

@@ -334,7 +334,7 @@ export default function Layout() {
                       </button>
                     )}
                     {kpis && kpis.fleet.retired > 0 && (
-                      <button onClick={() => { setShowNotifs(false); navigate("/vehicles"); }}
+                      <button onClick={() => { setShowNotifs(false); navigate("/fleet"); }}
                         className={`w-full text-left px-4 py-3 flex items-start gap-3 border-b hover:bg-neutral-500/5 transition-colors ${isDark ? "border-[#1E2B22]" : "border-neutral-50"}`}>
                         <div className="w-8 h-8 rounded-lg bg-neutral-500/10 flex items-center justify-center shrink-0">
                           <Car className="w-4 h-4 text-neutral-500" />
@@ -349,7 +349,7 @@ export default function Layout() {
                         </div>
                       </button>
                     )}
-                    {kpis && kpis.fleet.inShop === 0 && kpis.alerts.expiringLicenses === 0 && kpis.alerts.suspendedDrivers === 0 && kpis.fleet.retired === 0 && (
+                    {kpis && kpis.alerts.maintenanceAlerts === 0 && kpis.alerts.expiringLicenses === 0 && kpis.alerts.suspendedDrivers === 0 && kpis.fleet.retired === 0 && (
                       <div className="px-4 py-8 text-center">
                         <Bell className={`w-8 h-8 mx-auto mb-2 ${isDark ? "text-[#4A5C4A]" : "text-neutral-300"}`} />
                         <p className={`text-sm ${isDark ? "text-[#6B7C6B]" : "text-neutral-500"}`}>{t("layout.allClear")}</p>

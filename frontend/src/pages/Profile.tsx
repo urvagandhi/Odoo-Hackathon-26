@@ -3,7 +3,7 @@
  * Includes "Edit Profile" button that opens a modal for name/email updates.
  * Follows FleetFlow UI theme: emerald accents, dark-green sidebar palette.
  */
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useTranslation } from "react-i18next";
 import {
@@ -56,6 +56,23 @@ export default function Profile() {
   const [editEmail, setEditEmail] = useState("");
   const [saving, setSaving] = useState(false);
   const [editError, setEditError] = useState("");
+  const dialogRef = useRef<HTMLDivElement>(null);
+  const previousFocusRef = useRef<HTMLElement | null>(null);
+
+  // Focus management for edit dialog
+  const closeEditModal = useCallback(() => {
+    setShowEdit(false);
+    previousFocusRef.current?.focus();
+  }, []);
+
+  useEffect(() => {
+    if (showEdit) {
+      previousFocusRef.current = document.activeElement as HTMLElement;
+      // Focus the dialog after animation
+      const timer = setTimeout(() => dialogRef.current?.focus(), 100);
+      return () => clearTimeout(timer);
+    }
+  }, [showEdit]);
 
   useEffect(() => {
     if (user?.role === "MANAGER" || user?.role === "FINANCE_ANALYST") {
@@ -76,7 +93,7 @@ export default function Profile() {
     e.preventDefault();
     setEditError("");
     if (!editName.trim() || !editEmail.trim()) {
-      setEditError("Name and email are required.");
+      setEditError(t("profile.edit.nameEmailRequired"));
       return;
     }
     setSaving(true);
@@ -86,10 +103,11 @@ export default function Profile() {
         email: editEmail.trim(),
       });
       await refreshUser();
-      toast.success("Profile updated successfully", { title: "Profile" });
-      setShowEdit(false);
-    } catch (err: any) {
-      const msg = err?.response?.data?.message || err?.message || "Failed to update profile";
+      toast.success(t("profile.edit.updateSuccess"), { title: t("common.profile") });
+      closeEditModal();
+    } catch (err: unknown) {
+      const e = err as { response?: { data?: { message?: string } }; message?: string };
+      const msg = e?.response?.data?.message || e?.message || t("profile.edit.updateFailed");
       setEditError(msg);
     } finally {
       setSaving(false);
@@ -143,7 +161,7 @@ export default function Profile() {
                     bg-emerald-500 text-white hover:bg-emerald-600 active:scale-[0.97] shadow-sm"
                 >
                   <Edit3 className="w-4 h-4" />
-                  Edit Profile
+                  {t("profile.edit.title")}
                 </button>
               </div>
             </div>
@@ -225,18 +243,23 @@ export default function Profile() {
           <motion.div
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
             className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4"
-            onClick={e => e.target === e.currentTarget && setShowEdit(false)}
+            onClick={e => e.target === e.currentTarget && closeEditModal()}
+            onKeyDown={e => e.key === "Escape" && closeEditModal()}
           >
             <motion.div
+              ref={dialogRef}
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="edit-profile-title"
               initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }}
               className="w-full max-w-md rounded-3xl border p-6 shadow-2xl bg-white dark:bg-[#111A15] border-slate-200 dark:border-[#1E2B22]"
             >
               <div className="flex items-center justify-between mb-5">
-                <h2 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                <h2 id="edit-profile-title" className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
                   <Edit3 className="w-5 h-5 text-emerald-500" />
-                  Edit Profile
+                  {t("profile.edit.title")}
                 </h2>
-                <button onClick={() => setShowEdit(false)} className="p-1.5 rounded-lg transition-colors hover:bg-neutral-100 dark:hover:bg-[#1E2B22] text-neutral-400 dark:text-[#6B7C6B]">
+                <button onClick={closeEditModal} aria-label={t("common.close")} className="p-1.5 rounded-lg transition-colors hover:bg-neutral-100 dark:hover:bg-[#1E2B22] text-neutral-400 dark:text-[#6B7C6B]">
                   <X className="w-4 h-4" />
                 </button>
               </div>
@@ -250,19 +273,19 @@ export default function Profile() {
               <form onSubmit={handleSaveProfile} className="space-y-4">
                 <div>
                   <label className="block text-xs font-semibold mb-1.5 text-slate-700 dark:text-[#B0B8A8]">
-                    Full Name
+                    {t("profile.fullName")}
                   </label>
                   <input
                     required
                     value={editName}
                     onChange={e => setEditName(e.target.value)}
                     className="block w-full rounded-xl border px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-colors bg-white dark:bg-[#1E2B22] border-slate-200 dark:border-[#1E2B22] text-slate-900 dark:text-[#E4E6DE]"
-                    placeholder="Enter full name"
+                    placeholder={t("profile.edit.namePlaceholder")}
                   />
                 </div>
                 <div>
                   <label className="block text-xs font-semibold mb-1.5 text-slate-700 dark:text-[#B0B8A8]">
-                    Email
+                    {t("profile.email")}
                   </label>
                   <input
                     required
@@ -270,23 +293,23 @@ export default function Profile() {
                     value={editEmail}
                     onChange={e => setEditEmail(e.target.value)}
                     className="block w-full rounded-xl border px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-colors bg-white dark:bg-[#1E2B22] border-slate-200 dark:border-[#1E2B22] text-slate-900 dark:text-[#E4E6DE]"
-                    placeholder="Enter email"
+                    placeholder={t("profile.edit.emailPlaceholder")}
                   />
                 </div>
 
                 {/* Show current role (read-only) */}
                 <div className="p-3 rounded-xl bg-slate-50 dark:bg-[#0E1410] border border-slate-100 dark:border-[#1E2B22]">
-                  <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 dark:text-[#6B7C6B] mb-1">Role (read-only)</p>
+                  <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 dark:text-[#6B7C6B] mb-1">{t("profile.edit.roleReadOnly")}</p>
                   <p className="text-sm font-semibold text-slate-700 dark:text-[#B0B8A8]">{t(`roles.${user.role}`)}</p>
                 </div>
 
                 <div className="flex gap-3 pt-2">
                   <button
                     type="button"
-                    onClick={() => setShowEdit(false)}
+                    onClick={closeEditModal}
                     className="flex-1 py-2.5 rounded-xl text-sm font-semibold border transition-colors border-slate-200 dark:border-[#1E2B22] text-slate-600 dark:text-[#B0B8A8] hover:bg-slate-50 dark:hover:bg-[#1E2B22]"
                   >
-                    Cancel
+                    {t("common.cancel")}
                   </button>
                   <button
                     type="submit"
@@ -296,7 +319,7 @@ export default function Profile() {
                       flex items-center justify-center gap-2"
                   >
                     <Save className="w-4 h-4" />
-                    {saving ? "Saving..." : "Save Changes"}
+                    {saving ? t("common.saving") : t("profile.edit.saveChanges")}
                   </button>
                 </div>
               </form>

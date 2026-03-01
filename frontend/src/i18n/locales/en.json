@@ -274,6 +274,16 @@
       "fleetUtilization": "Fleet Utilization",
       "alerts": "Alerts"
     },
+    "edit": {
+      "title": "Edit Profile",
+      "namePlaceholder": "Enter full name",
+      "emailPlaceholder": "Enter email",
+      "roleReadOnly": "Role (read-only)",
+      "saveChanges": "Save Changes",
+      "nameEmailRequired": "Name and email are required.",
+      "updateSuccess": "Profile updated successfully.",
+      "updateFailed": "Failed to update profile."
+    },
     "capabilities": {
       "MANAGER": [
         "Full fleet oversight & vehicle management",
@@ -485,6 +495,38 @@
     "map": {
       "title": "Fleet Vehicle Locations",
       "speed": "Speed: {{speed}} km/h"
+    },
+    "cannotDeleteOnTrip": "Cannot delete a driver who is on a trip",
+    "rating": {
+      "safetyScoreTitle": "Safety Score — {{name}}",
+      "unratedTrips": "{{count}} unrated trip(s)",
+      "scrollToRate": "Scroll down to rate {{name}}'s trips",
+      "loadingStats": "Loading stats…",
+      "tripBasedScore": "Trip-Based Score",
+      "avgTripRating": "Avg Trip Rating",
+      "basedOnRated": "Based on {{rated}} of {{total}} completed trips",
+      "tripBreakdown": "Trip Breakdown",
+      "completed": "Completed",
+      "cancelled": "Cancelled",
+      "dispatched": "Dispatched",
+      "totalTrips": "Total Trips",
+      "performanceMetrics": "Performance Metrics",
+      "completionRate": "Completion Rate",
+      "incidents": "Incidents",
+      "cleanRecord": "Clean record",
+      "tripHistory": "Trip History ({{count}})",
+      "noTrips": "No trips found for this driver.",
+      "unratedClickToRate": "Unrated — click to rate",
+      "ratingLabel": "Rating (0–100)",
+      "saveRating": "Save Rating",
+      "recalculateScore": "Recalculate Score",
+      "loadStatsFailed": "Failed to load driver stats.",
+      "scoreRecalculated": "{{name}}'s safety score has been recalculated.",
+      "scoreUpdatedTitle": "Score Updated",
+      "recalculateFailed": "Failed to recalculate score.",
+      "tripRated": "Trip rating saved successfully.",
+      "ratingSavedTitle": "Rating Saved",
+      "rateFailed": "Failed to save trip rating."
     },
     "toast": {
       "deleted": "Driver profile has been deleted.",

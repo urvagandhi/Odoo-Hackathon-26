@@ -54,7 +54,7 @@ export default function ComingSoon() {
         onClick={() => navigate("/dashboard")}
         className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-medium transition-colors ${
           isDark
-            ? "bg-gradient-to-r from-[#22C55E] to-[#16A34A] shadow-lg shadow-emerald-500/20 text-[#E4E6DE]"
+            ? "bg-gradient-to-r from-[#22C55E] to-[#16A34A] shadow-lg shadow-emerald-500/20 text-white"
             : "bg-violet-600 hover:bg-violet-700 text-white"
         }`}
       >

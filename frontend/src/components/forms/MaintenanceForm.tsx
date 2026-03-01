@@ -167,10 +167,10 @@ export function MaintenanceForm({ open, onClose, onSuccess }: MaintenanceFormPro
                 </div>
                 <div>
                   <h2 className={`text-base font-bold ${isDark ? "text-white" : "text-slate-900"}`}>{t("forms.maintenance.title")}</h2>
-                  <p className={`text-xs ${isDark ? "text-[#6B7C6B]" : "text-slate-500"}`}>{t("forms.maintenance.subtitle")}</p>
+                  <p className={`text-xs ${isDark ? "text-[#8FA68F]" : "text-slate-500"}`}>{t("forms.maintenance.subtitle")}</p>
                 </div>
               </div>
-              <button onClick={onClose} className={`p-2 rounded-lg transition-colors ${isDark ? "hover:bg-neutral-700 text-[#6B7C6B]" : "hover:bg-slate-100 text-slate-400"}`}>
+              <button onClick={onClose} aria-label={t("common.close")} className={`p-2 rounded-lg transition-colors ${isDark ? "hover:bg-neutral-700 text-[#8FA68F]" : "hover:bg-slate-100 text-slate-400"}`}>
                 <X className="w-5 h-5" />
               </button>
             </div>
@@ -194,7 +194,7 @@ export function MaintenanceForm({ open, onClose, onSuccess }: MaintenanceFormPro
               )}
 
               {loadingVehicles ? (
-                <div className={`py-8 text-center text-sm ${isDark ? "text-[#6B7C6B]" : "text-slate-500"}`}>
+                <div className={`py-8 text-center text-sm ${isDark ? "text-[#8FA68F]" : "text-slate-500"}`}>
                   <Loader2 className="w-5 h-5 mx-auto mb-2 animate-spin" />
                   {t("forms.maintenance.loadingVehicles")}
                 </div>
@@ -219,8 +219,8 @@ export function MaintenanceForm({ open, onClose, onSuccess }: MaintenanceFormPro
                     <label className={labelCls}>{t("forms.maintenance.serviceType")}</label>
                     <Select className={inputCls} error={!!errors.serviceType} value={form.serviceType} onChange={(e) => handleChange("serviceType", e.target.value)}>
                       <option value="">{t("forms.maintenance.selectType")}</option>
-                      {SERVICE_TYPES.map((t) => (
-                        <option key={t} value={t}>{t.replace(/_/g, " ")}</option>
+                      {SERVICE_TYPES.map((st) => (
+                        <option key={st} value={st}>{st.replace(/_/g, " ")}</option>
                       ))}
                     </Select>
                     {errors.serviceType && <p className={errCls}>{errors.serviceType}</p>}
