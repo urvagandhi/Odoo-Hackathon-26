@@ -99,6 +99,7 @@ export default function Drivers() {
     const [tripStats, setTripStats] = useState<DriverTripStats | null>(null);
     const [driverTrips, setDriverTrips] = useState<DriverTrip[]>([]);
     const [statsLoading, setStatsLoading] = useState(false);
+    const [statsError, setStatsError] = useState("");
     const [ratingTripId, setRatingTripId] = useState<string | null>(null);
     const [ratingValue, setRatingValue] = useState<number>(80);
     const [ratingSubmitting, setRatingSubmitting] = useState(false);
@@ -268,16 +269,24 @@ export default function Drivers() {
         setDriverTrips([]);
         setRatingTripId(null);
         setStatsLoading(true);
+        setStatsError("");
         try {
-            const [stats, trips] = await Promise.all([
+            const [statsResult, tripsResult] = await Promise.allSettled([
                 hrApi.getTripStats(d.id),
                 hrApi.getDriverTrips(d.id),
             ]);
-            setTripStats(stats);
-            setDriverTrips(trips);
-        } catch {
-            setTripStats(null);
-            setDriverTrips([]);
+            if (statsResult.status === "fulfilled") {
+                setTripStats(statsResult.value);
+            } else {
+                const err = statsResult.reason as { response?: { data?: { message?: string }; status?: number }; message?: string };
+                setStatsError(err?.response?.data?.message || err?.message || "Failed to load trip stats");
+            }
+            if (tripsResult.status === "fulfilled") {
+                setDriverTrips(tripsResult.value);
+            }
+        } catch (err: unknown) {
+            const e = err as { response?: { data?: { message?: string } }; message?: string };
+            setStatsError(e?.response?.data?.message || e?.message || "Failed to load trip stats");
         } finally {
             setStatsLoading(false);
         }
@@ -520,6 +529,13 @@ export default function Drivers() {
                                                             className={`p-1.5 rounded-lg transition-colors ${isDark ? "text-[#6B7C6B] hover:text-[#E4E6DE] hover:bg-[#1E2B22]" : "text-neutral-400 hover:text-neutral-700 hover:bg-neutral-100"}`}>
                                                             <Edit3 className="w-4 h-4" />
                                                         </button>
+                                                        {d.status === "ON_TRIP" ? (
+                                                            <button disabled
+                                                                className="p-1.5 rounded-lg text-neutral-300 dark:text-neutral-600 cursor-not-allowed opacity-50"
+                                                                title={t("drivers.cannotDeleteOnTrip")}>
+                                                                <Trash2 className="w-4 h-4" />
+                                                            </button>
+                                                        ) : (
                                                         <AlertDialog
                                                             open={actionDriverId === d.id}
                                                             onOpenChange={(open) => !open && setActionDriverId(null)}
@@ -543,6 +559,7 @@ export default function Drivers() {
                                                                 </AlertDialogFooter>
                                                             </AlertDialogContent>
                                                         </AlertDialog>
+                                                        )}
                                                     </div>
                                                 </td>
                                             </motion.tr>
@@ -971,7 +988,12 @@ export default function Drivers() {
                                 </>
                             ) : (
                                 <div className={`text-center py-8 ${isDark ? "text-[#6B7C6B]" : "text-neutral-400"}`}>
-                                    Failed to load trip stats
+                                    <AlertTriangle className="w-8 h-8 mx-auto mb-2 text-red-400" />
+                                    <p className="text-sm font-medium mb-1">{statsError || "Failed to load trip stats"}</p>
+                                    <button onClick={() => adjustScore(ratingDriver!)}
+                                        className={`text-xs underline ${isDark ? "text-emerald-400" : "text-emerald-600"}`}>
+                                        Retry
+                                    </button>
                                 </div>
                             )}
                         </motion.div>

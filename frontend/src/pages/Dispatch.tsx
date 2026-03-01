@@ -53,11 +53,11 @@ const destIcon = L.divIcon({
     popupAnchor: [0, -16],
 });
 
-const STATUS_CONFIG: Record<string, { labelKey: string; className: string; darkClassName: string; icon: React.ElementType }> = {
-    DRAFT: { labelKey: "dispatch.status.DRAFT", className: "bg-neutral-100 text-neutral-600", darkClassName: "bg-[#1E2B22] text-[#B0B8A8]", icon: Clock },
-    DISPATCHED: { labelKey: "dispatch.status.DISPATCHED", className: "bg-emerald-100 text-emerald-700", darkClassName: "bg-[#162822] text-[#6EEAA0]", icon: Route },
-    COMPLETED: { labelKey: "dispatch.status.COMPLETED", className: "bg-emerald-100 text-emerald-700", darkClassName: "bg-[#14332A] text-[#86EFAC]", icon: CheckCircle2 },
-    CANCELLED: { labelKey: "dispatch.status.CANCELLED", className: "bg-red-100 text-red-600", darkClassName: "bg-[#2D1518] text-[#FCA5A5]", icon: XCircle },
+const STATUS_CONFIG: Record<string, { labelKey: string; className: string; darkClassName: string; icon: React.ElementType; routeColor: string }> = {
+    DRAFT: { labelKey: "dispatch.status.DRAFT", className: "bg-neutral-100 text-neutral-600", darkClassName: "bg-[#1E2B22] text-[#B0B8A8]", icon: Clock, routeColor: "#FBBF24" },
+    DISPATCHED: { labelKey: "dispatch.status.DISPATCHED", className: "bg-emerald-100 text-emerald-700", darkClassName: "bg-[#162822] text-[#6EEAA0]", icon: Route, routeColor: "#3B82F6" },
+    COMPLETED: { labelKey: "dispatch.status.COMPLETED", className: "bg-emerald-100 text-emerald-700", darkClassName: "bg-[#14332A] text-[#86EFAC]", icon: CheckCircle2, routeColor: "#4ADE80" },
+    CANCELLED: { labelKey: "dispatch.status.CANCELLED", className: "bg-red-100 text-red-600", darkClassName: "bg-[#2D1518] text-[#FCA5A5]", icon: XCircle, routeColor: "#EF4444" },
 };
 
 const FIELD = "block w-full rounded-xl border px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-colors";
@@ -484,7 +484,14 @@ export default function Dispatch() {
                                         </Marker>
                                     )}
                                     {routeCoords.length > 1 && (
-                                        <Polyline positions={routeCoords} color="#4ADE80" weight={5} opacity={0.85} />
+                                        <Polyline
+                                            key={`${selectedTrip.id}-${selectedTrip.status}`}
+                                            positions={routeCoords}
+                                            color={STATUS_CONFIG[selectedTrip.status]?.routeColor ?? "#4ADE80"}
+                                            weight={5}
+                                            opacity={0.85}
+                                            dashArray={selectedTrip.status === "CANCELLED" ? "10 8" : undefined}
+                                        />
                                     )}
                                     <MapBounds bounds={mapBounds} />
                                 </MapContainer>
