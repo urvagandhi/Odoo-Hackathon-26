@@ -233,7 +233,7 @@ export default function DriverManagement() {
     if (!scoreDriverId || !scoreReason.trim() || scoreReason.length < 5) return;
     setScoreSubmitting(true);
     try {
-      await hrApi.adjustSafetyScore(scoreDriverId, scoreAdjustment, scoreReason);
+      await hrApi.recalculateScore(scoreDriverId);
       fetchDrivers();
       setScoreModalOpen(false);
       setScoreDriverId(null);

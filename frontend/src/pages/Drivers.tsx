@@ -10,9 +10,9 @@ import { useTranslation } from "react-i18next";
 import { motion, AnimatePresence } from "framer-motion";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
-    AlertTriangle, Award, Calendar, CheckCircle2, ChevronDown, Clock, Download,
+    AlertTriangle, Award, Calendar, CheckCircle2, Clock, Download,
     Edit3, Filter, Mail, MapPin, Phone, Plus, Search, Shield,
-    TrendingDown, Trash2, UserX, Users, X
+    Trash2, UserX, Users, X
 } from "lucide-react";
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import L from "leaflet";
@@ -195,30 +195,6 @@ export default function Drivers() {
         e.preventDefault();
         setLocalError("");
         saveMutation.mutate();
-    };
-
-    const statusMutation = useMutation({
-        mutationFn: ({ id, status }: { id: string, status: string }) => hrApi.updateDriverStatus(id, status),
-        onMutate: async ({ id, status }) => {
-            await queryClient.cancelQueries({ queryKey: ["drivers"] });
-            const previous = queryClient.getQueryData<Driver[]>(["drivers"]);
-            queryClient.setQueryData<Driver[]>(["drivers"], old =>
-                (old ?? []).map(d => d.id === id ? { ...d, status } as Driver : d)
-            );
-            return { previous };
-        },
-        onSuccess: (_data, { status }) => {
-            toast.success(t("drivers.toast.statusUpdated", { name: "", status: status.replace('_', ' ') }), { title: t("drivers.toast.statusUpdatedTitle") });
-        },
-        onError: (_err, _vars, context) => {
-            if (context?.previous) queryClient.setQueryData(["drivers"], context.previous);
-            toast.error(t("drivers.toast.statusUpdateFailed"), { title: t("drivers.toast.statusUpdateFailedTitle") });
-        },
-        onSettled: () => { queryClient.invalidateQueries({ queryKey: ["drivers"] }); }
-    });
-
-    const handleStatusChange = (d: Driver, status: string) => {
-        statusMutation.mutate({ id: d.id, status });
     };
 
     const deleteMutation = useMutation({
