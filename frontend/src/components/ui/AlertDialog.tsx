@@ -181,7 +181,7 @@ export function AlertDialogContent({ children, className = "" }: AlertDialogCont
             className={`
               fixed z-[9991] top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2
               w-full max-w-md
-              ${isDark ? 'bg-neutral-800' : 'bg-white'} rounded-lg shadow-xl
+              ${isDark ? 'bg-[#111A15] border border-[#1E2B22]' : 'bg-white'} rounded-[14px] shadow-xl
               outline-none p-6
               ${className}
             `}
@@ -210,7 +210,7 @@ export function AlertDialogHeader({ children, className = "", ...props }: HTMLAt
 export function AlertDialogTitle({ children, className = "", ...props }: HTMLAttributes<HTMLHeadingElement>) {
   const { isDark } = useTheme();
   return (
-    <h2 className={`text-lg font-semibold leading-tight ${isDark ? 'text-white' : 'text-slate-900'} ${className}`} {...props}>
+    <h2 className={`text-lg font-semibold leading-tight ${isDark ? 'text-[#E4E6DE]' : 'text-slate-900'} ${className}`} {...props}>
       {children}
     </h2>
   );
@@ -221,7 +221,7 @@ export function AlertDialogTitle({ children, className = "", ...props }: HTMLAtt
 export function AlertDialogDescription({ children, className = "", ...props }: HTMLAttributes<HTMLParagraphElement>) {
   const { isDark } = useTheme();
   return (
-    <p className={`text-sm leading-relaxed ${isDark ? 'text-neutral-400' : 'text-slate-500'} ${className}`} {...props}>
+    <p className={`text-sm leading-relaxed ${isDark ? 'text-[#6B7C6B]' : 'text-slate-500'} ${className}`} {...props}>
       {children}
     </p>
   );
@@ -259,7 +259,7 @@ export function AlertDialogCancel({
         inline-flex items-center justify-center
         px-4 py-2 rounded-md
         text-sm font-medium
-        ${isDark ? 'text-neutral-300 hover:bg-neutral-700' : 'text-slate-700 hover:bg-slate-100'}
+        ${isDark ? 'text-[#B0B8A8] hover:bg-[#1E2B22]' : 'text-slate-700 hover:bg-slate-100'}
         transition-colors duration-150
         focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-2
         ${className}
@@ -286,7 +286,7 @@ export function AlertDialogAction({
   const colourClass =
     variant === "destructive"
       ? "bg-red-600 hover:bg-red-700 focus-visible:ring-red-500"
-      : "bg-slate-900 hover:bg-slate-700 focus-visible:ring-slate-700";
+      : "bg-gradient-to-r from-[#22C55E] to-[#16A34A] hover:brightness-110 shadow-lg shadow-emerald-500/15 focus-visible:ring-emerald-500";
 
   return (
     <button

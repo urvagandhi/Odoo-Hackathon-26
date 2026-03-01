@@ -4,10 +4,12 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useNavigate } from "react-router-dom";
 import { NotFoundIllustration } from "../components/feedback/NotFoundIllustration";
+import { useTheme } from "../context/ThemeContext";
 
 export default function NotFound() {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const { isDark } = useTheme();
   const [searchQuery, setSearchQuery] = useState("");
 
   const handleSearch = (e: React.FormEvent) => {
@@ -20,7 +22,7 @@ export default function NotFound() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 flex items-center justify-center p-6 lg:p-8 overflow-hidden relative">
+    <div className={`min-h-screen flex items-center justify-center p-6 lg:p-8 overflow-hidden relative ${isDark ? "bg-[#090D0B]" : "bg-slate-50"}`}>
       {/* Background Pattern */}
       <div className="absolute inset-0 z-0 opacity-[0.03] pointer-events-none" 
         style={{
@@ -40,14 +42,14 @@ export default function NotFound() {
         >
           {/* Brand/Logo (Optional context) */}
           <div className="flex items-center justify-center lg:justify-start gap-2 mb-6 opacity-60">
-             <span className="text-sm font-semibold tracking-wider uppercase text-slate-500">{t("notFound.errorLabel")}</span>
+             <span className={`text-sm font-semibold tracking-wider uppercase ${isDark ? "text-[#4A5C4A]" : "text-slate-500"}`}>{t("notFound.errorLabel")}</span>
           </div>
 
           <div className="space-y-4">
-            <h1 className="text-5xl lg:text-7xl font-bold text-slate-900 tracking-tight leading-tight">
+            <h1 className={`text-5xl lg:text-7xl font-bold tracking-tight leading-tight ${isDark ? "text-[#E4E6DE]" : "text-slate-900"}`}>
               {t("notFound.title")} <span className="text-indigo-600 inline-block transform hover:rotate-12 transition-transform duration-300 cursor-default">{t("notFound.titleHighlight")}</span> {t("notFound.titleEnd")}
             </h1>
-            <p className="text-lg text-slate-600 max-w-md mx-auto lg:mx-0 leading-relaxed">
+            <p className={`text-lg max-w-md mx-auto lg:mx-0 leading-relaxed ${isDark ? "text-[#6B7C6B]" : "text-slate-600"}`}>
               {t("notFound.description")}
             </p>
           </div>
@@ -62,7 +64,7 @@ export default function NotFound() {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder={t("notFound.searchPlaceholder")}
-              className="block w-full pl-11 pr-4 py-3.5 bg-white border border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all shadow-sm group-hover:shadow-md"
+              className={`block w-full pl-11 pr-4 py-3.5 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all ${isDark ? "bg-[#111A15] border border-[#1E2B22] text-[#E4E6DE] placeholder-[#4A5C4A] shadow-none" : "bg-white border border-slate-200 text-slate-900 placeholder-slate-400 shadow-sm group-hover:shadow-md"}`}
             />
           </form>
 
@@ -78,7 +80,7 @@ export default function NotFound() {
             
             <button 
               onClick={() => navigate(-1)}
-              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3.5 bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 font-medium rounded-xl transition-all hover:border-slate-300 shadow-sm hover:shadow-md active:bg-slate-100"
+              className={`w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3.5 font-medium rounded-xl transition-all ${isDark ? "bg-[#111A15] hover:bg-[#182420] border border-[#1E2B22] text-[#B0B8A8] shadow-none" : "bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 hover:border-slate-300 shadow-sm hover:shadow-md active:bg-slate-100"}`}
             >
               <ArrowLeft className="w-4 h-4" />
               {t("notFound.goBack")}
@@ -87,7 +89,7 @@ export default function NotFound() {
             <a 
               href="#" 
               onClick={(e) => { e.preventDefault(); /* Support link logic */ }}
-              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3.5 text-slate-600 hover:text-indigo-600 font-medium transition-colors"
+              className={`w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3.5 font-medium transition-colors ${isDark ? "text-[#6B7C6B] hover:text-indigo-400" : "text-slate-600 hover:text-indigo-600"}`}
             >
               <AlertCircle className="w-4 h-4" />
               {t("notFound.helpCenter")}
@@ -95,7 +97,7 @@ export default function NotFound() {
           </div>
           
           {/* Footer / Copyright */}
-          <div className="pt-12 text-sm text-slate-400">
+          <div className={`pt-12 text-sm ${isDark ? "text-neutral-600" : "text-slate-400"}`}>
             {t("notFound.copyright")}
           </div>
         </motion.div>

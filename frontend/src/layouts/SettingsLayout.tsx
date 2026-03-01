@@ -70,7 +70,7 @@ export function SettingsLayout({
           className="
             flex lg:flex-col gap-1
             overflow-x-auto lg:overflow-visible
-            bg-white dark:bg-neutral-800 rounded-xl border border-slate-200 dark:border-neutral-700 shadow-sm
+            bg-white dark:bg-[#111A15] rounded-xl border border-slate-200 dark:border-[#1E2B22] shadow-sm
             p-2 lg:p-3
             shrink-0
           "
@@ -89,7 +89,7 @@ export function SettingsLayout({
                   focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-1
                   ${isActive
                     ? "bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300"
-                    : "text-slate-600 dark:text-neutral-400 hover:bg-slate-50 dark:hover:bg-neutral-700 hover:text-slate-900 dark:hover:text-white"}
+                    : "text-slate-600 dark:text-[#6B7C6B] hover:bg-slate-50 dark:hover:bg-[#1E2B22] hover:text-slate-900 dark:hover:text-white"}
                 `}
               >
                 <Icon className={`w-4 h-4 shrink-0 ${isActive ? "text-indigo-600 dark:text-indigo-400" : "text-slate-400 dark:text-neutral-500"}`} />
@@ -97,7 +97,7 @@ export function SettingsLayout({
                 {tab.badge && (
                   <span className={`
                     text-xs px-1.5 py-0.5 rounded-full font-medium
-                    ${isActive ? "bg-indigo-100 dark:bg-indigo-900/50 text-indigo-700 dark:text-indigo-300" : "bg-slate-100 dark:bg-neutral-600 text-slate-500 dark:text-neutral-400"}
+                    ${isActive ? "bg-indigo-100 dark:bg-indigo-900/50 text-indigo-700 dark:text-indigo-300" : "bg-slate-100 dark:bg-neutral-600 text-slate-500 dark:text-[#6B7C6B]"}
                   `}>
                     {tab.badge}
                   </span>

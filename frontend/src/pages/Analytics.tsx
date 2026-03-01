@@ -21,10 +21,10 @@ import { useToast } from "../hooks/useToast";
 import { TableSkeleton } from "../components/ui/TableSkeleton";
 import html2canvas from "html2canvas";
 
-const COLORS = ["#10b981", "#f59e0b", "#6366f1", "#ef4444", "#3b82f6", "#8b5cf6"];
+const COLORS = ["#10b981", "#f59e0b", "#6366f1", "#ef4444", "#4ADE80", "#8b5cf6"];
 const card = "rounded-2xl border p-5 transition-all duration-200";
 const lightCard = "bg-white border-neutral-200 shadow-sm hover:shadow-md";
-const darkCard = "bg-neutral-800 border-neutral-700 shadow-sm hover:shadow-md";
+const darkCard = "bg-[#111A15] border-[#1E2B22] shadow-sm hover:shadow-md";
 
 export default function Analytics() {
     const { isDark } = useTheme();
@@ -125,7 +125,7 @@ export default function Analytics() {
                         scale: 2,
                         useCORS: true,
                         logging: false,
-                        backgroundColor: isDark ? "#1f2937" : "#ffffff"
+                        backgroundColor: isDark ? "#111A15" : "#ffffff"
                     });
                     const imgData = canvas.toDataURL('image/png');
                     doc.setFont("helvetica", "bold");
@@ -225,10 +225,10 @@ export default function Analytics() {
             {/* Header */}
             <div className="flex items-center justify-between">
                 <div>
-                    <h1 className={`text-2xl font-bold ${isDark ? "text-white" : "text-neutral-900"}`}>
+                    <h1 className={`text-2xl font-bold ${isDark ? "text-[#E4E6DE]" : "text-neutral-900"}`}>
                         {t("analytics.title")}
                     </h1>
-                    <p className={`text-sm mt-0.5 ${isDark ? "text-neutral-400" : "text-neutral-500"}`}>
+                    <p className={`text-sm mt-0.5 ${isDark ? "text-[#6B7C6B]" : "text-neutral-500"}`}>
                         {t("analytics.subtitle", { year: new Date().getFullYear() })}
                     </p>
                 </div>
@@ -242,14 +242,14 @@ export default function Analytics() {
                         <Download className="w-4 h-4" /> {t("analytics.exportCSV")}
                     </button>
                     <button onClick={load}
-                        className="flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-500 text-white text-sm font-semibold hover:bg-emerald-600 transition-all active:scale-[0.97]">
+                        className={`flex items-center gap-2 px-4 py-2 rounded-xl text-white text-sm font-semibold transition-all active:scale-[0.97] ${isDark ? "bg-gradient-to-r from-[#22C55E] to-[#16A34A] shadow-lg shadow-emerald-500/20" : "bg-emerald-500 hover:bg-emerald-600"}`}>
                         <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} /> {t("common.refresh")}
                     </button>
                 </div>
             </div>
 
             {/* Tab navigation */}
-            <div className={`inline-flex rounded-xl p-1 ${isDark ? "bg-neutral-800" : "bg-neutral-100"}`}>
+            <div className={`inline-flex rounded-xl p-1 ${isDark ? "bg-[#111A15]" : "bg-neutral-100"}`}>
                 {[
                     { key: "overview", label: t("analytics.tabs.overview"), icon: BarChart3 },
                     { key: "fuel", label: t("analytics.tabs.fuelEfficiency"), icon: Fuel },
@@ -257,8 +257,8 @@ export default function Analytics() {
                 ].map(tab => (
                     <button key={tab.key} onClick={() => setActiveTab(tab.key as typeof activeTab)}
                         className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-colors ${activeTab === tab.key
-                            ? "bg-white text-neutral-900 shadow-sm dark:bg-neutral-700 dark:text-white"
-                            : isDark ? "text-neutral-400 hover:text-white" : "text-neutral-500 hover:text-neutral-700"
+                            ? "bg-white text-neutral-900 shadow-sm dark:bg-[#1E2B22] dark:text-[#E4E6DE]"
+                            : isDark ? "text-[#6B7C6B] hover:text-[#E4E6DE]" : "text-neutral-500 hover:text-neutral-700"
                             }`}>
                         <tab.icon className="w-4 h-4" />{tab.label}
                     </button>
@@ -285,7 +285,7 @@ export default function Analytics() {
                         {/* Revenue/cost line chart */}
                         <div className={`${cardClass} lg:col-span-2`} id="revenue-trend-chart">
                             <div className="flex items-center justify-between mb-4">
-                                <h2 className={`text-base font-bold ${isDark ? "text-white" : "text-neutral-900"}`}>{t("analytics.charts.revenueCostTrend")}</h2>
+                                <h2 className={`text-base font-bold ${isDark ? "text-[#E4E6DE]" : "text-neutral-900"}`}>{t("analytics.charts.revenueCostTrend")}</h2>
                                 <div className="flex items-center gap-4 text-xs">
                                     <span className="flex items-center gap-1"><span className="w-3 h-3 rounded-full bg-emerald-500" /> {t("analytics.charts.revenue")}</span>
                                     <span className="flex items-center gap-1"><span className="w-3 h-3 rounded-full bg-amber-500" /> {t("analytics.charts.cost")}</span>
@@ -306,11 +306,11 @@ export default function Analytics() {
                                                     <stop offset="95%" stopColor="#f59e0b" stopOpacity={0} />
                                                 </linearGradient>
                                             </defs>
-                                            <CartesianGrid strokeDasharray="3 3" stroke={isDark ? "#374151" : "#f0f0f0"} />
-                                            <XAxis dataKey="label" tick={{ fontSize: 10, fill: isDark ? "#9CA3AF" : "#6B7280" }} tickFormatter={v => v.split(" ")[0]} />
-                                            <YAxis tick={{ fontSize: 10, fill: isDark ? "#9CA3AF" : "#6B7280" }} tickFormatter={v => `₹${(v / 1000).toFixed(0)}k`} />
+                                            <CartesianGrid strokeDasharray="3 3" stroke={isDark ? "#1E2B22" : "#f0f0f0"} />
+                                            <XAxis dataKey="label" tick={{ fontSize: 10, fill: isDark ? "#6B7C6B" : "#6B7280" }} tickFormatter={v => v.split(" ")[0]} />
+                                            <YAxis tick={{ fontSize: 10, fill: isDark ? "#6B7C6B" : "#6B7280" }} tickFormatter={v => `₹${(v / 1000).toFixed(0)}k`} />
                                             <Tooltip
-                                                contentStyle={{ background: isDark ? "#1f2937" : "#fff", border: "1px solid #e5e7eb", borderRadius: "12px", fontSize: 12 }}
+                                                contentStyle={{ background: isDark ? "#111A15" : "#fff", border: "1px solid #e5e7eb", borderRadius: "12px", fontSize: 12 }}
                                                 formatter={(v: unknown) => String(v)}
                                             />
                                             <Area type="monotone" dataKey="revenue" stroke="#10b981" strokeWidth={2} fill="url(#revGradA)" name="Revenue" />
@@ -328,7 +328,7 @@ export default function Analytics() {
 
                         {/* Expense donut */}
                         <div className={cardClass}>
-                            <h2 className={`text-base font-bold mb-4 ${isDark ? "text-white" : "text-neutral-900"}`}>{t("analytics.charts.expenseBreakdown")}</h2>
+                            <h2 className={`text-base font-bold mb-4 ${isDark ? "text-[#E4E6DE]" : "text-neutral-900"}`}>{t("analytics.charts.expenseBreakdown")}</h2>
                             {loadingMonthly || expenseBreakdown.length > 0 ? (
                                 <ResponsiveContainer width="100%" height={260}>
                                     {!loadingMonthly ? (
@@ -353,9 +353,9 @@ export default function Analytics() {
                                         <div key={e.name} className="flex items-center justify-between text-sm">
                                             <span className="flex items-center gap-2">
                                                 <span className="w-3 h-3 rounded-full" style={{ backgroundColor: COLORS[i] }} />
-                                                <span className={isDark ? "text-neutral-300" : "text-neutral-700"}>{e.name}</span>
+                                                <span className={isDark ? "text-[#B0B8A8]" : "text-neutral-700"}>{e.name}</span>
                                             </span>
-                                            <span className={`font-bold ${isDark ? "text-white" : "text-neutral-900"}`}>₹{e.value.toLocaleString()}</span>
+                                            <span className={`font-bold ${isDark ? "text-[#E4E6DE]" : "text-neutral-900"}`}>₹{e.value.toLocaleString()}</span>
                                         </div>
                                     ))}
                                 </div>
@@ -367,14 +367,14 @@ export default function Analytics() {
                     {(loadingROI || vehicleROI.length > 0) && (
                         <div className={cardClass}>
                             <div className="flex items-center justify-between mb-4">
-                                <h2 className={`text-base font-bold ${isDark ? "text-white" : "text-neutral-900"}`}>{t("analytics.monthly.title")}</h2>
-                                <span className={`text-xs ${isDark ? "text-neutral-400" : "text-neutral-500"}`}>By vehicle</span>
+                                <h2 className={`text-base font-bold ${isDark ? "text-[#E4E6DE]" : "text-neutral-900"}`}>{t("analytics.monthly.title")}</h2>
+                                <span className={`text-xs ${isDark ? "text-[#6B7C6B]" : "text-neutral-500"}`}>By vehicle</span>
                             </div>
                             {loadingROI ? <TableSkeleton /> : (
                                 <div className="overflow-x-auto">
                                     <table className="w-full text-sm">
                                         <thead>
-                                            <tr className={isDark ? "text-neutral-400 border-b border-neutral-700" : "text-neutral-500 border-b border-neutral-100"}>
+                                            <tr className={isDark ? "text-[#6B7C6B] border-b border-[#1E2B22]" : "text-neutral-500 border-b border-neutral-100"}>
                                                 {["#", t("analytics.monthly.title"), t("analytics.charts.revenue"), t("analytics.charts.cost"), t("analytics.charts.profit"), t("analytics.roiTable.roi")].map(h =>
                                                     <th key={h} className="text-left pb-3 pr-4 font-semibold text-xs">{h}</th>
                                                 )}
@@ -382,21 +382,21 @@ export default function Analytics() {
                                         </thead>
                                         <tbody>
                                             {vehicleROI.slice(0, 10).map((v, i) => (
-                                                <tr key={v.vehicleId} className={isDark ? "border-b border-neutral-700/50" : "border-b border-neutral-50"}>
-                                                    <td className={`py-2.5 pr-4 ${isDark ? "text-neutral-500" : "text-neutral-400"}`}>{i + 1}</td>
+                                                <tr key={v.vehicleId} className={isDark ? "border-b border-[#1E2B22]/50" : "border-b border-neutral-50"}>
+                                                    <td className={`py-2.5 pr-4 ${isDark ? "text-[#4A5C4A]" : "text-neutral-400"}`}>{i + 1}</td>
                                                     <td className="py-2.5 pr-4">
                                                         <div className="flex items-center gap-2">
                                                             <div className="w-7 h-7 rounded-full bg-emerald-500/10 flex items-center justify-center">
                                                                 <Truck className="w-3.5 h-3.5 text-emerald-500" />
                                                             </div>
                                                             <div>
-                                                                <p className={`font-semibold text-xs ${isDark ? "text-white" : "text-neutral-900"}`}>{v.licensePlate}</p>
-                                                                <p className={`text-[10px] ${isDark ? "text-neutral-500" : "text-neutral-400"}`}>{v.make} {v.model}</p>
+                                                                <p className={`font-semibold text-xs ${isDark ? "text-[#E4E6DE]" : "text-neutral-900"}`}>{v.licensePlate}</p>
+                                                                <p className={`text-[10px] ${isDark ? "text-[#4A5C4A]" : "text-neutral-400"}`}>{v.make} {v.model}</p>
                                                             </div>
                                                         </div>
                                                     </td>
                                                     <td className="py-2.5 pr-4 text-emerald-500 font-semibold">₹{Number(v.revenue).toLocaleString()}</td>
-                                                    <td className={`py-2.5 pr-4 ${isDark ? "text-neutral-300" : "text-neutral-700"}`}>₹{Number(v.totalCost).toLocaleString()}</td>
+                                                    <td className={`py-2.5 pr-4 ${isDark ? "text-[#B0B8A8]" : "text-neutral-700"}`}>₹{Number(v.totalCost).toLocaleString()}</td>
                                                     <td className={`py-2.5 pr-4 font-bold ${Number(v.profit) >= 0 ? "text-emerald-500" : "text-red-500"}`}>
                                                         <span className="flex items-center gap-1">
                                                             {Number(v.profit) >= 0 ? <ArrowUpRight className="w-3 h-3" /> : <ArrowDownRight className="w-3 h-3" />}
@@ -405,7 +405,7 @@ export default function Analytics() {
                                                     </td>
                                                     <td className="py-2.5">
                                                         <div className="flex items-center gap-2">
-                                                            <div className="flex-1 max-w-[80px] bg-neutral-200 dark:bg-neutral-600 rounded-full h-2 overflow-hidden">
+                                                            <div className="flex-1 max-w-[80px] bg-neutral-200 dark:bg-[#1E2B22] rounded-full h-2 overflow-hidden">
                                                                 <div className={`h-full rounded-full ${parseFloat(v.roi) >= 0 ? "bg-emerald-500" : "bg-red-500"}`}
                                                                     style={{ width: `${Math.min(100, Math.abs(parseFloat(v.roi)))}%` }} />
                                                             </div>
@@ -426,14 +426,14 @@ export default function Analytics() {
                     {/* Monthly report table */}
                     {(loadingMonthly || monthly.filter(m => m.tripsCompleted > 0).length > 0) && (
                         <div className={cardClass}>
-                            <h2 className={`text-base font-bold mb-4 ${isDark ? "text-white" : "text-neutral-900"}`}>
+                            <h2 className={`text-base font-bold mb-4 ${isDark ? "text-[#E4E6DE]" : "text-neutral-900"}`}>
                                 {t("analytics.monthly.title")}
                             </h2>
                             {loadingMonthly ? <TableSkeleton /> : (
                                 <div className="overflow-x-auto">
                                     <table className="w-full text-sm">
                                         <thead>
-                                            <tr className={isDark ? "text-neutral-400 border-b border-neutral-700" : "text-neutral-500 border-b border-neutral-100"}>
+                                            <tr className={isDark ? "text-[#6B7C6B] border-b border-[#1E2B22]" : "text-neutral-500 border-b border-neutral-100"}>
                                                 {[t("analytics.monthly.month"), t("analytics.monthly.trips"), t("analytics.monthly.distance"), t("analytics.monthly.revenue"), t("analytics.monthly.fuel"), t("analytics.monthly.maintenance"), t("analytics.monthly.other"), t("analytics.monthly.totalCost"), t("analytics.monthly.profit")].map(h =>
                                                     <th key={h} className="text-left pb-3 pr-3 font-semibold text-xs">{h}</th>
                                                 )}
@@ -441,14 +441,14 @@ export default function Analytics() {
                                         </thead>
                                         <tbody>
                                             {monthly.filter(m => m.tripsCompleted > 0).map(m => (
-                                                <tr key={m.month} className={isDark ? "border-b border-neutral-700/50" : "border-b border-neutral-50"}>
-                                                    <td className={`py-2.5 pr-3 font-medium ${isDark ? "text-white" : "text-neutral-900"}`}>{m.label}</td>
-                                                    <td className={`py-2.5 pr-3 ${isDark ? "text-neutral-300" : "text-neutral-700"}`}>{m.tripsCompleted}</td>
-                                                    <td className={`py-2.5 pr-3 ${isDark ? "text-neutral-300" : "text-neutral-700"}`}>{m.totalDistanceKm.toLocaleString()}</td>
+                                                <tr key={m.month} className={isDark ? "border-b border-[#1E2B22]/50" : "border-b border-neutral-50"}>
+                                                    <td className={`py-2.5 pr-3 font-medium ${isDark ? "text-[#E4E6DE]" : "text-neutral-900"}`}>{m.label}</td>
+                                                    <td className={`py-2.5 pr-3 ${isDark ? "text-[#B0B8A8]" : "text-neutral-700"}`}>{m.tripsCompleted}</td>
+                                                    <td className={`py-2.5 pr-3 ${isDark ? "text-[#B0B8A8]" : "text-neutral-700"}`}>{m.totalDistanceKm.toLocaleString()}</td>
                                                     <td className="py-2.5 pr-3 text-emerald-500 font-semibold">₹{m.revenue.toLocaleString()}</td>
-                                                    <td className={`py-2.5 pr-3 ${isDark ? "text-neutral-300" : "text-neutral-700"}`}>₹{m.fuelCost.toLocaleString()}</td>
-                                                    <td className={`py-2.5 pr-3 ${isDark ? "text-neutral-300" : "text-neutral-700"}`}>₹{m.maintenanceCost.toLocaleString()}</td>
-                                                    <td className={`py-2.5 pr-3 ${isDark ? "text-neutral-300" : "text-neutral-700"}`}>₹{m.otherExpenses.toLocaleString()}</td>
+                                                    <td className={`py-2.5 pr-3 ${isDark ? "text-[#B0B8A8]" : "text-neutral-700"}`}>₹{m.fuelCost.toLocaleString()}</td>
+                                                    <td className={`py-2.5 pr-3 ${isDark ? "text-[#B0B8A8]" : "text-neutral-700"}`}>₹{m.maintenanceCost.toLocaleString()}</td>
+                                                    <td className={`py-2.5 pr-3 ${isDark ? "text-[#B0B8A8]" : "text-neutral-700"}`}>₹{m.otherExpenses.toLocaleString()}</td>
                                                     <td className="py-2.5 pr-3 text-amber-500 font-semibold">₹{m.totalCost.toLocaleString()}</td>
                                                     <td className={`py-2.5 font-bold ${m.profit >= 0 ? "text-emerald-500" : "text-red-500"}`}>
                                                         {m.profit >= 0 ? "+" : ""}₹{m.profit.toLocaleString()}
@@ -469,14 +469,14 @@ export default function Analytics() {
                 <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
                     {/* Fuel efficiency bar chart */}
                     <div className={cardClass}>
-                        <h2 className={`text-base font-bold mb-4 ${isDark ? "text-white" : "text-neutral-900"}`}>{t("analytics.fuelTable.title")}</h2>
+                        <h2 className={`text-base font-bold mb-4 ${isDark ? "text-[#E4E6DE]" : "text-neutral-900"}`}>{t("analytics.fuelTable.title")}</h2>
                         {fuelEff.filter(f => f.kmPerLiter != null).length > 0 ? (
                             <ResponsiveContainer width="100%" height={320}>
                                 <BarChart data={fuelEff.filter(f => f.kmPerLiter != null)} margin={{ top: 4, right: 4, left: 0, bottom: 0 }}>
-                                    <CartesianGrid strokeDasharray="3 3" stroke={isDark ? "#374151" : "#f0f0f0"} />
-                                    <XAxis dataKey="licensePlate" tick={{ fontSize: 10, fill: isDark ? "#9CA3AF" : "#6B7280" }} />
-                                    <YAxis tick={{ fontSize: 10, fill: isDark ? "#9CA3AF" : "#6B7280" }} />
-                                    <Tooltip contentStyle={{ background: isDark ? "#1f2937" : "#fff", border: "1px solid #e5e7eb", borderRadius: "12px", fontSize: 12 }} />
+                                    <CartesianGrid strokeDasharray="3 3" stroke={isDark ? "#1E2B22" : "#f0f0f0"} />
+                                    <XAxis dataKey="licensePlate" tick={{ fontSize: 10, fill: isDark ? "#6B7C6B" : "#6B7280" }} />
+                                    <YAxis tick={{ fontSize: 10, fill: isDark ? "#6B7C6B" : "#6B7280" }} />
+                                    <Tooltip contentStyle={{ background: isDark ? "#111A15" : "#fff", border: "1px solid #e5e7eb", borderRadius: "12px", fontSize: 12 }} />
                                     <Bar dataKey="kmPerLiter" name="km/L" fill="#10b981" radius={[8, 8, 0, 0]} />
                                 </BarChart>
                             </ResponsiveContainer>
@@ -485,12 +485,12 @@ export default function Analytics() {
 
                     {/* Fuel efficiency table */}
                     <div className={cardClass}>
-                        <h2 className={`text-base font-bold mb-4 ${isDark ? "text-white" : "text-neutral-900"}`}>Fuel Efficiency Details</h2>
+                        <h2 className={`text-base font-bold mb-4 ${isDark ? "text-[#E4E6DE]" : "text-neutral-900"}`}>Fuel Efficiency Details</h2>
                         {loadingFuel ? <TableSkeleton /> : (
                             <div className="overflow-x-auto">
                                 <table className="w-full text-sm">
                                     <thead>
-                                        <tr className={isDark ? "text-neutral-400 border-b border-neutral-700" : "text-neutral-500 border-b border-neutral-100"}>
+                                        <tr className={isDark ? "text-[#6B7C6B] border-b border-[#1E2B22]" : "text-neutral-500 border-b border-neutral-100"}>
                                             {[t("analytics.fuelTable.vehicle"), t("analytics.fuelTable.totalDistance"), t("analytics.fuelTable.totalLiters"), t("analytics.fuelTable.fuelCost"), t("analytics.fuelTable.kmPerL"), t("analytics.fuelTable.costPerKm")].map(h =>
                                                 <th key={h} className="text-left pb-3 pr-4 font-semibold text-xs">{h}</th>
                                             )}
@@ -498,14 +498,14 @@ export default function Analytics() {
                                     </thead>
                                     <tbody>
                                         {fuelEff.map(f => (
-                                            <tr key={f.vehicleId} className={isDark ? "border-b border-neutral-700/50" : "border-b border-neutral-50"}>
+                                            <tr key={f.vehicleId} className={isDark ? "border-b border-[#1E2B22]/50" : "border-b border-neutral-50"}>
                                                 <td className="py-2.5 pr-4">
-                                                    <p className={`font-semibold ${isDark ? "text-white" : "text-neutral-900"}`}>{f.licensePlate}</p>
-                                                    <p className={`text-xs ${isDark ? "text-neutral-500" : "text-neutral-400"}`}>{f.make} {f.model}</p>
+                                                    <p className={`font-semibold ${isDark ? "text-[#E4E6DE]" : "text-neutral-900"}`}>{f.licensePlate}</p>
+                                                    <p className={`text-xs ${isDark ? "text-[#4A5C4A]" : "text-neutral-400"}`}>{f.make} {f.model}</p>
                                                 </td>
-                                                <td className={`py-2.5 pr-4 ${isDark ? "text-neutral-300" : "text-neutral-700"}`}>{Number(f.totalDistanceKm).toLocaleString()} km</td>
-                                                <td className={`py-2.5 pr-4 ${isDark ? "text-neutral-300" : "text-neutral-700"}`}>{Number(f.totalLiters).toFixed(1)} L</td>
-                                                <td className="py-2.5 pr-4 text-blue-500 font-semibold">₹{Number(f.totalFuelCost).toLocaleString()}</td>
+                                                <td className={`py-2.5 pr-4 ${isDark ? "text-[#B0B8A8]" : "text-neutral-700"}`}>{Number(f.totalDistanceKm).toLocaleString()} km</td>
+                                                <td className={`py-2.5 pr-4 ${isDark ? "text-[#B0B8A8]" : "text-neutral-700"}`}>{Number(f.totalLiters).toFixed(1)} L</td>
+                                                <td className="py-2.5 pr-4 text-emerald-500 font-semibold">₹{Number(f.totalFuelCost).toLocaleString()}</td>
                                                 <td className="py-2.5 pr-4">
                                                     {f.kmPerLiter != null ? (
                                                         <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-bold ${Number(f.kmPerLiter) >= 5 ? "bg-emerald-100 text-emerald-700" : Number(f.kmPerLiter) >= 2 ? "bg-amber-100 text-amber-700" : "bg-red-100 text-red-600"}`}>
@@ -513,7 +513,7 @@ export default function Analytics() {
                                                         </span>
                                                     ) : <span className="text-neutral-400">—</span>}
                                                 </td>
-                                                <td className={`py-2.5 ${isDark ? "text-neutral-300" : "text-neutral-700"}`}>
+                                                <td className={`py-2.5 ${isDark ? "text-[#B0B8A8]" : "text-neutral-700"}`}>
                                                     {f.costPerKm != null ? `₹${Number(f.costPerKm).toFixed(2)}` : "—"}
                                                 </td>
                                             </tr>
@@ -531,17 +531,17 @@ export default function Analytics() {
                 <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
                     {/* ROI bar chart */}
                     <div className={cardClass}>
-                        <h2 className={`text-base font-bold mb-4 ${isDark ? "text-white" : "text-neutral-900"}`}>{t("analytics.roiTable.title")}</h2>
-                        <p className={`text-xs mb-4 ${isDark ? "text-neutral-400" : "text-neutral-500"}`}>
+                        <h2 className={`text-base font-bold mb-4 ${isDark ? "text-[#E4E6DE]" : "text-neutral-900"}`}>{t("analytics.roiTable.title")}</h2>
+                        <p className={`text-xs mb-4 ${isDark ? "text-[#6B7C6B]" : "text-neutral-500"}`}>
                             {t("analytics.roiTable.formula")}
                         </p>
                         {vehicleROI.length > 0 ? (
                             <ResponsiveContainer width="100%" height={320}>
                                 <BarChart data={vehicleROI} margin={{ top: 4, right: 4, left: 0, bottom: 0 }}>
-                                    <CartesianGrid strokeDasharray="3 3" stroke={isDark ? "#374151" : "#f0f0f0"} />
-                                    <XAxis dataKey="licensePlate" tick={{ fontSize: 10, fill: isDark ? "#9CA3AF" : "#6B7280" }} />
-                                    <YAxis tick={{ fontSize: 10, fill: isDark ? "#9CA3AF" : "#6B7280" }} tickFormatter={v => `₹${(v / 1000).toFixed(0)}k`} />
-                                    <Tooltip contentStyle={{ background: isDark ? "#1f2937" : "#fff", border: "1px solid #e5e7eb", borderRadius: "12px", fontSize: 12 }}
+                                    <CartesianGrid strokeDasharray="3 3" stroke={isDark ? "#1E2B22" : "#f0f0f0"} />
+                                    <XAxis dataKey="licensePlate" tick={{ fontSize: 10, fill: isDark ? "#6B7C6B" : "#6B7280" }} />
+                                    <YAxis tick={{ fontSize: 10, fill: isDark ? "#6B7C6B" : "#6B7280" }} tickFormatter={v => `₹${(v / 1000).toFixed(0)}k`} />
+                                    <Tooltip contentStyle={{ background: isDark ? "#111A15" : "#fff", border: "1px solid #e5e7eb", borderRadius: "12px", fontSize: 12 }}
                                         formatter={(v: unknown) => String(v)} />
                                     <Bar dataKey="revenue" name="Revenue" fill="#10b981" radius={[4, 4, 0, 0]} stackId="a" />
                                     <Bar dataKey="totalCost" name="Cost" fill="#f59e0b" radius={[4, 4, 0, 0]} stackId="b" />
@@ -552,12 +552,12 @@ export default function Analytics() {
 
                     {/* ROI details table */}
                     <div className={cardClass}>
-                        <h2 className={`text-base font-bold mb-4 ${isDark ? "text-white" : "text-neutral-900"}`}>Vehicle ROI Details</h2>
+                        <h2 className={`text-base font-bold mb-4 ${isDark ? "text-[#E4E6DE]" : "text-neutral-900"}`}>Vehicle ROI Details</h2>
                         {loadingROI ? <TableSkeleton /> : (
                             <div className="overflow-x-auto">
                                 <table className="w-full text-sm">
                                     <thead>
-                                        <tr className={isDark ? "text-neutral-400 border-b border-neutral-700" : "text-neutral-500 border-b border-neutral-100"}>
+                                        <tr className={isDark ? "text-[#6B7C6B] border-b border-[#1E2B22]" : "text-neutral-500 border-b border-neutral-100"}>
                                             {[t("analytics.roiTable.vehicle"), t("analytics.roiTable.revenue"), t("analytics.roiTable.fuelCost"), t("analytics.roiTable.maintenance"), t("analytics.roiTable.expenses"), t("analytics.roiTable.totalCost"), t("analytics.roiTable.profit"), t("analytics.roiTable.roi")].map(h =>
                                                 <th key={h} className="text-left pb-3 pr-3 font-semibold text-xs">{h}</th>
                                             )}
@@ -565,15 +565,15 @@ export default function Analytics() {
                                     </thead>
                                     <tbody>
                                         {vehicleROI.map(v => (
-                                            <tr key={v.vehicleId} className={isDark ? "border-b border-neutral-700/50" : "border-b border-neutral-50"}>
+                                            <tr key={v.vehicleId} className={isDark ? "border-b border-[#1E2B22]/50" : "border-b border-neutral-50"}>
                                                 <td className="py-2.5 pr-3">
-                                                    <p className={`font-semibold ${isDark ? "text-white" : "text-neutral-900"}`}>{v.licensePlate}</p>
-                                                    <p className={`text-xs ${isDark ? "text-neutral-500" : "text-neutral-400"}`}>{v.make} {v.model}</p>
+                                                    <p className={`font-semibold ${isDark ? "text-[#E4E6DE]" : "text-neutral-900"}`}>{v.licensePlate}</p>
+                                                    <p className={`text-xs ${isDark ? "text-[#4A5C4A]" : "text-neutral-400"}`}>{v.make} {v.model}</p>
                                                 </td>
                                                 <td className="py-2.5 pr-3 text-emerald-500 font-semibold">₹{Number(v.revenue).toLocaleString()}</td>
-                                                <td className={`py-2.5 pr-3 ${isDark ? "text-neutral-300" : "text-neutral-700"}`}>₹{Number(v.fuelCost).toLocaleString()}</td>
-                                                <td className={`py-2.5 pr-3 ${isDark ? "text-neutral-300" : "text-neutral-700"}`}>₹{Number(v.maintenanceCost).toLocaleString()}</td>
-                                                <td className={`py-2.5 pr-3 ${isDark ? "text-neutral-300" : "text-neutral-700"}`}>₹{Number(v.expenseCost).toLocaleString()}</td>
+                                                <td className={`py-2.5 pr-3 ${isDark ? "text-[#B0B8A8]" : "text-neutral-700"}`}>₹{Number(v.fuelCost).toLocaleString()}</td>
+                                                <td className={`py-2.5 pr-3 ${isDark ? "text-[#B0B8A8]" : "text-neutral-700"}`}>₹{Number(v.maintenanceCost).toLocaleString()}</td>
+                                                <td className={`py-2.5 pr-3 ${isDark ? "text-[#B0B8A8]" : "text-neutral-700"}`}>₹{Number(v.expenseCost).toLocaleString()}</td>
                                                 <td className="py-2.5 pr-3 text-amber-500 font-semibold">₹{Number(v.totalCost).toLocaleString()}</td>
                                                 <td className={`py-2.5 pr-3 font-bold ${Number(v.profit) >= 0 ? "text-emerald-500" : "text-red-500"}`}>
                                                     {Number(v.profit) >= 0 ? "+" : ""}₹{Number(v.profit).toLocaleString()}
@@ -603,7 +603,7 @@ function FinKpi({ label, value, sub, icon: Icon, color, isDark, loading }: {
     const bgMap: Record<string, { bg: string; darkBg: string; text: string }> = {
         emerald: { bg: "bg-emerald-50", darkBg: "bg-emerald-500/10", text: "text-emerald-600" },
         amber: { bg: "bg-amber-50", darkBg: "bg-amber-500/10", text: "text-amber-600" },
-        blue: { bg: "bg-blue-50", darkBg: "bg-blue-500/10", text: "text-blue-600" },
+        blue: { bg: "bg-emerald-50", darkBg: "bg-emerald-500/10", text: "text-emerald-600" },
         red: { bg: "bg-red-50", darkBg: "bg-red-500/10", text: "text-red-600" },
     };
     const c = bgMap[color] ?? bgMap.emerald;
@@ -612,16 +612,16 @@ function FinKpi({ label, value, sub, icon: Icon, color, isDark, loading }: {
             {loading ? (
                 <div className="space-y-3 relative overflow-hidden">
                     <div className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent dark:via-white/5 via-white/10 to-transparent animate-shimmer" />
-                    <div className={`h-3 w-20 rounded ${isDark ? 'bg-neutral-700' : 'bg-neutral-100'}`} />
-                    <div className={`h-8 w-32 rounded ${isDark ? 'bg-neutral-700' : 'bg-neutral-100'}`} />
-                    <div className={`h-3 w-24 rounded ${isDark ? 'bg-neutral-700' : 'bg-neutral-100'}`} />
+                    <div className={`h-3 w-20 rounded ${isDark ? 'bg-[#1E2B22]' : 'bg-neutral-100'}`} />
+                    <div className={`h-8 w-32 rounded ${isDark ? 'bg-[#1E2B22]' : 'bg-neutral-100'}`} />
+                    <div className={`h-3 w-24 rounded ${isDark ? 'bg-[#1E2B22]' : 'bg-neutral-100'}`} />
                 </div>
             ) : (
                 <div className="flex items-start justify-between">
                     <div>
-                        <p className={`text-xs font-semibold mb-1 ${isDark ? "text-neutral-400" : "text-neutral-500"}`}>{label}</p>
-                        <p className={`text-2xl font-extrabold ${isDark ? "text-white" : "text-neutral-900"}`}>{value}</p>
-                        <p className={`text-xs mt-1 ${isDark ? "text-neutral-500" : "text-neutral-400"}`}>{sub}</p>
+                        <p className={`text-xs font-semibold mb-1 ${isDark ? "text-[#6B7C6B]" : "text-neutral-500"}`}>{label}</p>
+                        <p className={`text-2xl font-extrabold ${isDark ? "text-[#E4E6DE]" : "text-neutral-900"}`}>{value}</p>
+                        <p className={`text-xs mt-1 ${isDark ? "text-[#4A5C4A]" : "text-neutral-400"}`}>{sub}</p>
                     </div>
                     <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${isDark ? c.darkBg : c.bg}`}>
                         <Icon className={`w-5 h-5 ${c.text}`} />
@@ -636,23 +636,23 @@ function EmptyState({ loading, isDark, text, type = "chart" }: { loading: boolea
     if (loading) {
         if (type === "donut") {
             return (
-                <div className={`w-full h-[260px] flex items-center justify-center rounded-xl relative overflow-hidden ${isDark ? 'bg-neutral-800/20' : 'bg-neutral-50/50'}`}>
+                <div className={`w-full h-[260px] flex items-center justify-center rounded-xl relative overflow-hidden ${isDark ? 'bg-[#111A15]/20' : 'bg-neutral-50/50'}`}>
                     <div className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent dark:via-white/5 via-white/20 to-transparent animate-shimmer" />
                     <div className={`w-36 h-36 rounded-full border-[1.5rem] ${isDark ? 'border-neutral-700/50' : 'border-neutral-200/60'}`} />
                 </div>
             );
         }
         return (
-            <div className={`w-full h-[260px] rounded-xl flex items-end gap-3 p-4 relative overflow-hidden ${isDark ? 'bg-neutral-800/20' : 'bg-neutral-50/50'}`}>
+            <div className={`w-full h-[260px] rounded-xl flex items-end gap-3 p-4 relative overflow-hidden ${isDark ? 'bg-[#111A15]/20' : 'bg-neutral-50/50'}`}>
                 <div className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent dark:via-white/5 via-white/20 to-transparent animate-shimmer" />
                 {[40, 70, 45, 90, 65, 80, 50, 85].map((h, i) => (
-                    <div key={i} className={`flex-1 rounded-t-sm ${isDark ? 'bg-neutral-700/40' : 'bg-neutral-200/60'}`} style={{ height: `${h}%` }} />
+                    <div key={i} className={`flex-1 rounded-t-sm ${isDark ? 'bg-[#1E2B22]/40' : 'bg-neutral-200/60'}`} style={{ height: `${h}%` }} />
                 ))}
             </div>
         );
     }
     return (
-        <div className={`h-[260px] flex items-center justify-center ${isDark ? "text-neutral-500" : "text-neutral-400"}`}>
+        <div className={`h-[260px] flex items-center justify-center ${isDark ? "text-[#4A5C4A]" : "text-neutral-400"}`}>
             <BarChart3 className="w-6 h-6 mr-2 opacity-40" />
             {text}
         </div>

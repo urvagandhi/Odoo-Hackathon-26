@@ -136,6 +136,11 @@ model User {
   role               UserRole  @default(DISPATCHER)
   isActive           Boolean   @default(true) @map("is_active")
 
+  // Optional profile fields
+  phone              String?   @db.VarChar(30)
+  bio                String?   @db.Text
+  location           String?   @db.VarChar(120)
+
   // Password reset — token stored hashed, expires in 15 min
   resetToken         String? @map("reset_token")
   resetTokenExpiry   DateTime? @db.Timestamptz() @map("reset_token_expiry")
@@ -321,6 +326,9 @@ model Trip {
 
   // Optional cancellation tracking
   cancelledReason   String? @map("cancelled_reason")
+
+  // Manager-assigned trip rating (0–100), nullable until rated
+  rating            Int?    @map("rating")
 
   createdAt         DateTime   @default(now()) @db.Timestamptz() @map("created_at")
   updatedAt         DateTime   @updatedAt @db.Timestamptz() @map("updated_at")

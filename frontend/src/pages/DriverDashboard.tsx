@@ -154,22 +154,22 @@ export default function DriverDashboard() {
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} 
           className={`rounded-3xl border p-6 flex flex-col md:flex-row md:items-center justify-between gap-4 ${
             isSimulatingTracking 
-              ? isDark ? "bg-blue-900/20 border-blue-500/30" : "bg-blue-50 border-blue-200"
+              ? isDark ? "bg-emerald-900/20 border-emerald-500/30" : "bg-emerald-50 border-emerald-200"
               : isDark ? "bg-slate-900/60 border-slate-700" : "bg-white border-slate-200"
           }`}
         >
           <div className="flex items-center gap-4">
             <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 ${
-              isSimulatingTracking ? "bg-blue-500 text-white shadow-[0_0_20px_rgba(59,130,246,0.5)]" : "bg-slate-100 dark:bg-slate-800 text-slate-400"
+              isSimulatingTracking ? "bg-emerald-500 text-white shadow-[0_0_20px_rgba(74, 222, 128,0.5)]" : "bg-slate-100 dark:bg-slate-800 text-slate-400"
             }`}>
               <Navigation className="w-6 h-6" />
             </div>
             <div>
               <h3 className={`font-bold ${isDark ? "text-slate-100" : "text-slate-900"}`}>{t("driverDashboard.gpsTracker")}</h3>
-              <p className={`text-sm ${isSimulatingTracking ? "text-blue-600 dark:text-blue-400 font-medium" : "text-slate-500 dark:text-slate-400"}`}>
+              <p className={`text-sm ${isSimulatingTracking ? "text-emerald-600 dark:text-emerald-400 font-medium" : "text-slate-500 dark:text-slate-400"}`}>
                 {isSimulatingTracking ? (
                   <span className="flex items-center gap-1.5">
-                    <span className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-ping" />
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping" />
                     {t("driverDashboard.broadcasting")}
                   </span>
                 ) : (
@@ -185,7 +185,7 @@ export default function DriverDashboard() {
               className={`w-full md:w-auto flex items-center justify-center gap-2 px-6 py-2.5 rounded-xl font-bold text-sm transition-all active:scale-95 ${
                 isSimulatingTracking
                   ? "bg-red-500 text-white hover:bg-red-600 shadow-lg shadow-red-500/20"
-                  : "bg-blue-600 text-white hover:bg-blue-700 shadow-lg shadow-blue-500/20"
+                  : "bg-emerald-600 text-white hover:bg-emerald-700 shadow-lg shadow-emerald-500/15"
               }`}
             >
               {isSimulatingTracking ? <Power className="w-4 h-4" /> : <Play className="w-4 h-4" />}
@@ -211,9 +211,9 @@ export default function DriverDashboard() {
               isDark ? "bg-slate-900 border-slate-700 shadow-black/40" : "bg-white border-slate-200 shadow-slate-200/50"
             }`}
           >
-            <div className="absolute top-0 left-0 w-2 h-full bg-blue-500" />
+            <div className="absolute top-0 left-0 w-2 h-full bg-emerald-500" />
             <div className="flex items-start justify-between mb-6">
-              <span className="px-3 py-1 bg-blue-100 text-blue-700 dark:bg-blue-500/10 dark:text-blue-400 text-xs font-bold rounded-full uppercase tracking-wide">
+              <span className="px-3 py-1 bg-emerald-100 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400 text-xs font-bold rounded-full uppercase tracking-wide">
                 {t("driverDashboard.dispatched")}
               </span>
               <span className={`text-sm font-medium ${isDark ? "text-slate-400" : "text-slate-500"}`}>
@@ -223,7 +223,7 @@ export default function DriverDashboard() {
             
             <div className="relative pl-6 pb-6 border-l-2 border-dashed border-slate-200 dark:border-slate-700 ml-2 space-y-6">
               <div className="relative">
-                <div className="absolute -left-[31px] w-4 h-4 rounded-full border-4 border-white dark:border-slate-900 bg-blue-500" />
+                <div className="absolute -left-[31px] w-4 h-4 rounded-full border-4 border-white dark:border-slate-900 bg-emerald-500" />
                 <p className={`text-xs font-semibold mb-1 ${isDark ? "text-slate-400" : "text-slate-500"}`}>{t("driverDashboard.origin")}</p>
                 <p className={`font-bold text-lg ${isDark ? "text-white" : "text-slate-900"}`}>{activeTrip.origin}</p>
               </div>

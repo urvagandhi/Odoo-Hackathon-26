@@ -35,7 +35,7 @@ export default function DashboardShell() {
   }, [sidebarOpen]);
 
   return (
-    <div className={`flex h-screen overflow-hidden ${isDark ? 'bg-neutral-900' : 'bg-[#F8F9FD]'}`}>
+    <div className={`flex h-screen overflow-hidden ${isDark ? 'bg-[#090D0B]' : 'bg-[#F8F9FD]'}`}>
       {/* Mobile backdrop */}
       <div
         className={`fixed inset-0 z-40 bg-black/50 transition-opacity duration-300 md:hidden ${

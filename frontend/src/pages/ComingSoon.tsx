@@ -39,10 +39,10 @@ export default function ComingSoon() {
         transition={{ delay: 0.15, duration: 0.4 }}
         className="text-center space-y-2"
       >
-        <h2 className={`text-2xl font-bold ${isDark ? "text-white" : "text-slate-900"}`}>
+        <h2 className={`text-2xl font-bold ${isDark ? "text-[#E4E6DE]" : "text-slate-900"}`}>
           {pageName}
         </h2>
-        <p className={`text-sm max-w-md ${isDark ? "text-neutral-400" : "text-slate-500"}`}>
+        <p className={`text-sm max-w-md ${isDark ? "text-[#6B7C6B]" : "text-slate-500"}`}>
           {t("comingSoon.description")}
         </p>
       </motion.div>
@@ -54,7 +54,7 @@ export default function ComingSoon() {
         onClick={() => navigate("/dashboard")}
         className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-medium transition-colors ${
           isDark
-            ? "bg-violet-600 hover:bg-violet-500 text-white"
+            ? "bg-gradient-to-r from-[#22C55E] to-[#16A34A] shadow-lg shadow-emerald-500/20 text-[#E4E6DE]"
             : "bg-violet-600 hover:bg-violet-700 text-white"
         }`}
       >

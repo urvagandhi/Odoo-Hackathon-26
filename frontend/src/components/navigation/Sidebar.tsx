@@ -196,12 +196,12 @@ export default function Sidebar({ isOpen = false, onClose }: SidebarProps) {
       transform transition-transform duration-300 ease-in-out
       ${isOpen ? "translate-x-0" : "-translate-x-full"}
       md:static md:z-auto md:translate-x-0 md:shrink-0
-      ${isDark ? 'bg-neutral-900 border-neutral-800' : 'bg-white border-slate-100'}
+      ${isDark ? 'bg-[#0E1410] border-[#1A2620]' : 'bg-white border-slate-100'}
     `}>
       {/* ── Logo ─────────────────────────────────────── */}
-      <div className={`flex items-center gap-3 px-5 h-16 shrink-0 border-b ${isDark ? 'border-neutral-800' : 'border-slate-100'}`}>
+      <div className={`flex items-center gap-3 px-5 h-16 shrink-0 border-b ${isDark ? 'border-[#1A2620]' : 'border-slate-100'}`}>
         <Logo size="sm" className="bg-white" />
-        <span className={`text-[15px] font-bold tracking-tight whitespace-nowrap ${isDark ? 'text-white' : 'text-slate-900'}`}>
+        <span className={`text-[15px] font-bold tracking-tight whitespace-nowrap ${isDark ? 'text-[#E4E6DE]' : 'text-slate-900'}`}>
           FleetFlow
         </span>
         <div className="flex-1" />
@@ -209,7 +209,7 @@ export default function Sidebar({ isOpen = false, onClose }: SidebarProps) {
           <button
             onClick={onClose}
             className={`md:hidden w-8 h-8 rounded-lg flex items-center justify-center transition-colors ${
-              isDark ? "text-neutral-400 hover:bg-neutral-800 hover:text-white" : "text-slate-400 hover:bg-slate-100 hover:text-slate-900"
+              isDark ? "text-[#6B7C6B] hover:bg-[#162018] hover:text-[#E4E6DE]" : "text-slate-400 hover:bg-slate-100 hover:text-slate-900"
             }`}
             aria-label="Close sidebar"
           >
@@ -223,7 +223,7 @@ export default function Sidebar({ isOpen = false, onClose }: SidebarProps) {
         {sections.map((section, sIdx) => (
           <div key={sIdx}>
             {section.titleKey && (
-              <p className={`px-3 mb-2 text-[10px] font-semibold uppercase tracking-[0.12em] ${isDark ? 'text-neutral-600' : 'text-slate-400'}`}>
+              <p className={`px-3 mb-2 text-[10px] font-semibold uppercase tracking-[0.12em] ${isDark ? 'text-[#4A5C4A]' : 'text-slate-400'}`}>
                 {t(section.titleKey)}
               </p>
             )}
@@ -236,11 +236,13 @@ export default function Sidebar({ isOpen = false, onClose }: SidebarProps) {
                     key={item.path}
                     to={item.path}
                     className={`
-                      relative flex items-center gap-3 px-3 py-2.5 rounded-lg text-[13px] font-medium transition-all duration-150
+                      relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] font-medium transition-all duration-200
                       ${active
-                        ? "bg-violet-600 text-white"
+                        ? isDark
+                          ? "text-white"
+                          : "bg-emerald-600 text-white"
                         : isDark
-                          ? "text-neutral-400 hover:text-white hover:bg-neutral-800"
+                          ? "text-[#6B7C6B] hover:text-[#E4E6DE] hover:bg-[#162018]"
                           : "text-slate-500 hover:text-slate-700 hover:bg-slate-50"
                       }
                     `}
@@ -248,7 +250,7 @@ export default function Sidebar({ isOpen = false, onClose }: SidebarProps) {
                     {active && (
                       <motion.div
                         layoutId="sidebar-active"
-                        className="absolute inset-0 rounded-lg bg-violet-600"
+                        className={`absolute inset-0 rounded-xl ${isDark ? 'bg-[#1A2620] border border-[#2A3D30]' : 'bg-emerald-600'}`}
                         transition={{ type: "spring", stiffness: 350, damping: 30 }}
                         style={{ zIndex: -1 }}
                       />
@@ -257,7 +259,7 @@ export default function Sidebar({ isOpen = false, onClose }: SidebarProps) {
                     <span className="flex-1 text-left whitespace-nowrap">{t(item.labelKey)}</span>
                     {item.badge && (
                       <span className={`min-w-[20px] h-5 px-1.5 rounded-full text-[11px] font-bold flex items-center justify-center ${
-                        active ? "bg-white/20 text-white" : "bg-violet-100 text-violet-600"
+                        active ? "bg-white/20 text-white" : isDark ? "bg-[#14332A] text-[#4ADE80]" : "bg-emerald-100 text-emerald-600"
                       }`}>
                         {item.badge}
                       </span>
@@ -271,11 +273,11 @@ export default function Sidebar({ isOpen = false, onClose }: SidebarProps) {
       </nav>
 
       {/* ── Bottom section ────────────────────────────── */}
-      <div className={`p-3 space-y-1 shrink-0 border-t ${isDark ? 'border-neutral-800' : 'border-slate-100'}`}>
+      <div className={`p-3 space-y-1 shrink-0 border-t ${isDark ? 'border-[#1A2620]' : 'border-slate-100'}`}>
         {/* Logout */}
         <button
           onClick={() => { logout(); navigate("/login"); }}
-          className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors text-sm ${isDark ? 'text-neutral-500 hover:text-red-400 hover:bg-red-900/20' : 'text-slate-400 hover:text-red-500 hover:bg-red-50'}`}
+          className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 text-sm ${isDark ? 'text-[#6B7C6B] hover:text-red-400 hover:bg-red-900/15' : 'text-slate-400 hover:text-red-500 hover:bg-red-50'}`}
         >
           <LogOut className="w-4 h-4 shrink-0" />
           <span>{t("common.logout")}</span>

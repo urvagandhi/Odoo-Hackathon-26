@@ -47,7 +47,7 @@ export function StatCard({
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] as const }}
-      className={`rounded-xl border p-5 shadow-sm hover:shadow-md transition-shadow duration-200 ${isDark ? 'bg-neutral-800 border-neutral-700' : 'bg-white border-slate-200'} ${className}`}
+      className={`rounded-[14px] border p-5 transition-all duration-200 ${isDark ? 'bg-[#111A15] border-[#1E2B22] shadow-[0_6px_20px_rgba(0,0,0,0.4)] hover:bg-[#182420] hover:shadow-[0_12px_32px_rgba(0,0,0,0.5)]' : 'bg-white border-slate-200 shadow-sm hover:shadow-md'} ${className}`}
     >
       <div className="flex items-start justify-between gap-3">
         {/* Icon */}
@@ -67,17 +67,17 @@ export function StatCard({
       <div className="mt-3">
         {loading ? (
           <div className="space-y-2">
-            <div className={`relative h-7 w-24 rounded-md overflow-hidden ${isDark ? 'bg-neutral-700' : 'bg-slate-100'}`}>
+            <div className={`relative h-7 w-24 rounded-md overflow-hidden ${isDark ? 'bg-[#1E2B22]' : 'bg-slate-100'}`}>
               <div className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/20 to-transparent animate-shimmer" />
             </div>
-            <div className={`relative h-4 w-32 rounded overflow-hidden ${isDark ? 'bg-neutral-700' : 'bg-slate-100'}`}>
+            <div className={`relative h-4 w-32 rounded overflow-hidden ${isDark ? 'bg-[#1E2B22]' : 'bg-slate-100'}`}>
               <div className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/20 to-transparent animate-shimmer" />
             </div>
           </div>
         ) : (
           <>
-            <p className={`text-2xl font-bold tabular-nums ${isDark ? 'text-white' : 'text-slate-900'}`}>{value}</p>
-            <p className={`text-sm mt-0.5 ${isDark ? 'text-neutral-400' : 'text-slate-500'}`}>{label}</p>
+            <p className={`text-2xl font-bold tabular-nums ${isDark ? 'text-[#E4E6DE]' : 'text-slate-900'}`}>{value}</p>
+            <p className={`text-sm mt-0.5 ${isDark ? 'text-[#6B7C6B]' : 'text-slate-500'}`}>{label}</p>
           </>
         )}
       </div>

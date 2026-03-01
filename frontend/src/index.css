@@ -1,18 +1,29 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* ── Google Font Import ───────────────────────────────── */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+
 /* ── Scroll ───────────────────────────────────────────── */
 html {
   scroll-behavior: smooth;
 }
 
-/* ── Custom Design Tokens ─────────────────────────────── */
+/* ══════════════════════════════════════════════════════════
+   FleetWatch Design System – Olive-Dark Premium Theme
+   Inspired by: Military/forest-dark fleet management UI
+   ══════════════════════════════════════════════════════════ */
+
+/* ── Light Mode Tokens ────────────────────────────────── */
 :root {
-  --color-primary: #7c3aed;
-  --color-primary-hover: #6d28d9;
-  --color-primary-light: #ede9fe;
-  --color-danger: #ef4444;
-  --color-danger-hover: #dc2626;
-  --color-success: #10b981;
+  --color-primary: #22C55E;
+  --color-primary-hover: #16A34A;
+  --color-primary-light: #DCFCE7;
+  --color-danger: #EF4444;
+  --color-danger-hover: #DC2626;
+  --color-success: #22C55E;
+  --color-warning: #F59E0B;
   --color-bg: #F8F9FD;
   --color-surface: #ffffff;
   --color-text: #0f172a;
@@ -21,22 +32,27 @@ html {
   --sidebar-bg: #ffffff;
   --sidebar-border: #f1f5f9;
   --sidebar-text: #64748b;
-  --sidebar-active: #7c3aed;
+  --sidebar-active: #22C55E;
 }
 
-/* ── Dark-mode overrides (toggled via .dark on <html>) ── */
+/* ── Olive-Dark Theme (toggled via .dark on <html>) ───── */
 html.dark {
-  --color-primary: #818cf8;
-  --color-primary-hover: #6366f1;
-  --color-primary-light: #1e1b4b;
-  --color-danger: #f87171;
-  --color-danger-hover: #ef4444;
-  --color-success: #34d399;
-  --color-bg: #0f0f0f;
-  --color-surface: #1a1a1a;
-  --color-text: #f5f5f5;
-  --color-text-muted: #a3a3a3;
-  --color-border: #333333;
+  --color-primary: #4ADE80;
+  --color-primary-hover: #22C55E;
+  --color-primary-light: #14332A;
+  --color-danger: #EF4444;
+  --color-danger-hover: #DC2626;
+  --color-success: #4ADE80;
+  --color-warning: #F59E0B;
+  --color-bg: #090D0B;
+  --color-surface: #111A15;
+  --color-text: #E4E6DE;
+  --color-text-muted: #6B7C6B;
+  --color-border: #1E2B22;
+  --sidebar-bg: #0E1410;
+  --sidebar-border: #1A2620;
+  --sidebar-text: #6B7C6B;
+  --sidebar-active: #4ADE80;
   color-scheme: dark;
 }
 
@@ -50,7 +66,70 @@ body {
   background-color: var(--color-bg);
   color: var(--color-text);
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
+
+/* ── Olive-Dark Background (dark mode) ────────────────── */
+html.dark body {
+  background:
+    radial-gradient(
+      ellipse at top left,
+      rgba(74, 222, 128, 0.03),
+      transparent 50%
+    ),
+    radial-gradient(
+      ellipse at bottom right,
+      rgba(34, 197, 94, 0.02),
+      transparent 50%
+    ),
+    #090D0B;
+}
+
+/* ── Glass Card (olive-tinted) ────────────────────────── */
+.glass-card {
+  background: rgba(17, 26, 21, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(30, 43, 34, 0.7);
+  border-radius: 14px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+  transition: all 0.25s ease;
+}
+.glass-card:hover {
+  background: rgba(24, 36, 28, 0.9);
+  transform: translateY(-1px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+}
+
+/* ── Primary Gradient Button (green) ──────────────────── */
+.btn-premium {
+  background: linear-gradient(135deg, #22C55E, #16A34A);
+  color: #ffffff;
+  border: none;
+  border-radius: 10px;
+  box-shadow: 0 4px 14px rgba(34, 197, 94, 0.25);
+  transition: all 0.25s ease;
+  font-weight: 600;
+}
+.btn-premium:hover {
+  box-shadow: 0 8px 20px rgba(34, 197, 94, 0.35);
+  filter: brightness(1.08);
+  transform: translateY(-1px);
+}
+.btn-premium:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 8px rgba(34, 197, 94, 0.2);
+}
+
+/* ── Status Badges (olive-dark) ───────────────────────── */
+.badge-draft      { background: #1A2620; color: #8B9B8B; }
+.badge-dispatched { background: #162418; color: #6EEAA0; }
+.badge-completed  { background: #14332A; color: #86EFAC; }
+.badge-cancelled  { background: #2D1518; color: #FCA5A5; }
+.badge-available  { background: #14332A; color: #86EFAC; }
+.badge-on-trip    { background: #162822; color: #6EEAA0; }
+.badge-in-shop    { background: #2D2410; color: #FDE68A; }
+.badge-retired    { background: #1A2620; color: #8B9B8B; }
 
 /* ── Smooth page transitions ──────────────────────────── */
 .page-enter {
@@ -127,9 +206,7 @@ html.compact .py-5 { padding-top: 0.75rem; padding-bottom: 0.75rem; }
 html.compact .gap-6 { gap: 1rem; }
 html.compact .gap-5 { gap: 0.75rem; }
 
-/* ── Micro-interactions (Phase 7) ────────────────────── */
-
-/* Button press feedback — add to any CTA */
+/* ── Micro-interactions ──────────────────────────────── */
 .btn-press {
   transition: transform 120ms ease;
 }
@@ -137,7 +214,6 @@ html.compact .gap-5 { gap: 0.75rem; }
   transform: scale(0.97);
 }
 
-/* Card hover lift — add to any interactive card */
 .card-lift {
   transition: transform 200ms ease, box-shadow 200ms ease;
 }
@@ -146,7 +222,7 @@ html.compact .gap-5 { gap: 0.75rem; }
   box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
 }
 html.dark .card-lift:hover {
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
 }
 
 /* Notification badge pulse */
@@ -159,9 +235,62 @@ html.dark .card-lift:hover {
   animation: notifPulse 2s ease-in-out infinite;
 }
 
-/* Smooth focus ring for all interactive elements */
+/* Smooth focus ring */
 :focus-visible {
   outline: 2px solid var(--color-primary);
   outline-offset: 2px;
   border-radius: 4px;
+}
+
+/* ── Premium scrollbar (olive) ────────────────────────── */
+html.dark ::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+html.dark ::-webkit-scrollbar-track {
+  background: transparent;
+}
+html.dark ::-webkit-scrollbar-thumb {
+  background: #1E2B22;
+  border-radius: 3px;
+}
+html.dark ::-webkit-scrollbar-thumb:hover {
+  background: #2A3D30;
+}
+
+/* ── Leaflet fixes ──────────────────────────────────────── */
+
+/* NUCLEAR override: undo ALL Tailwind v4 preflight resets inside Leaflet.
+   Tailwind v4 sets: img { max-width:100%; height:auto } and
+   svg { display:block } which breaks markers, tiles, and polylines. */
+.leaflet-container img {
+  max-width: none !important;
+  max-height: none !important;
+}
+.leaflet-container svg {
+  max-width: none !important;
+  max-height: none !important;
+  overflow: visible !important;
+}
+
+/* Ensure marker pane and overlay pane are ABOVE tile pane */
+.leaflet-marker-pane {
+  z-index: 600 !important;
+}
+.leaflet-overlay-pane {
+  z-index: 400 !important;
+}
+.leaflet-shadow-pane {
+  z-index: 500 !important;
+}
+.leaflet-popup-pane {
+  z-index: 700 !important;
+}
+
+/* Ping animation for custom div markers */
+@keyframes ping {
+  75%, 100% {
+    transform: scale(2);
+    opacity: 0;
+  }
 }

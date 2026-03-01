@@ -168,7 +168,7 @@ export function ExpenseForm({ open, onClose, onSuccess, defaultTab = "fuel" }: E
           ? "bg-neutral-700 text-white border-b-2 border-violet-500"
           : "bg-white text-slate-900 border-b-2 border-violet-600"
         : isDark
-        ? "text-neutral-400 hover:text-neutral-200"
+        ? "text-[#6B7C6B] hover:text-neutral-200"
         : "text-slate-500 hover:text-slate-700"
     }`;
 
@@ -191,11 +191,11 @@ export function ExpenseForm({ open, onClose, onSuccess, defaultTab = "fuel" }: E
             exit={{ x: "100%" }}
             transition={{ type: "spring", damping: 30, stiffness: 300 }}
             className={`fixed right-0 top-0 bottom-0 z-[9991] w-full max-w-lg shadow-2xl flex flex-col ${
-              isDark ? "bg-neutral-800" : "bg-white"
+              isDark ? "bg-[#111A15]" : "bg-white"
             }`}
           >
             {/* Header */}
-            <div className={`flex items-center justify-between px-6 py-4 border-b shrink-0 ${isDark ? "border-neutral-700" : "border-slate-100"}`}>
+            <div className={`flex items-center justify-between px-6 py-4 border-b shrink-0 ${isDark ? "border-[#1E2B22]" : "border-slate-100"}`}>
               <div className="flex items-center gap-3">
                 <div className="w-9 h-9 rounded-lg bg-emerald-600 flex items-center justify-center">
                   {tab === "fuel" ? <Fuel className="w-4.5 h-4.5 text-white" /> : <Receipt className="w-4.5 h-4.5 text-white" />}
@@ -204,18 +204,18 @@ export function ExpenseForm({ open, onClose, onSuccess, defaultTab = "fuel" }: E
                   <h2 className={`text-base font-bold ${isDark ? "text-white" : "text-slate-900"}`}>
                     {tab === "fuel" ? t("forms.expense.fuelTitle") : t("forms.expense.expenseTitle")}
                   </h2>
-                  <p className={`text-xs ${isDark ? "text-neutral-400" : "text-slate-500"}`}>
+                  <p className={`text-xs ${isDark ? "text-[#6B7C6B]" : "text-slate-500"}`}>
                     {tab === "fuel" ? t("forms.expense.fuelSubtitle") : t("forms.expense.expenseSubtitle")}
                   </p>
                 </div>
               </div>
-              <button onClick={onClose} className={`p-2 rounded-lg transition-colors ${isDark ? "hover:bg-neutral-700 text-neutral-400" : "hover:bg-slate-100 text-slate-400"}`}>
+              <button onClick={onClose} className={`p-2 rounded-lg transition-colors ${isDark ? "hover:bg-neutral-700 text-[#6B7C6B]" : "hover:bg-slate-100 text-slate-400"}`}>
                 <X className="w-5 h-5" />
               </button>
             </div>
 
             {/* Tabs */}
-            <div className={`flex px-6 pt-3 border-b ${isDark ? "border-neutral-700" : "border-slate-100"}`}>
+            <div className={`flex px-6 pt-3 border-b ${isDark ? "border-[#1E2B22]" : "border-slate-100"}`}>
               <button className={tabCls(tab === "fuel")} onClick={() => { setTab("fuel"); setErrors({}); setServerError(""); }}>
                 <Fuel className="w-3.5 h-3.5 inline mr-1.5" /> {t("forms.expense.fuelTab")}
               </button>
@@ -233,7 +233,7 @@ export function ExpenseForm({ open, onClose, onSuccess, defaultTab = "fuel" }: E
               )}
 
               {loadingVehicles ? (
-                <div className={`py-8 text-center text-sm ${isDark ? "text-neutral-400" : "text-slate-500"}`}>
+                <div className={`py-8 text-center text-sm ${isDark ? "text-[#6B7C6B]" : "text-slate-500"}`}>
                   <svg className="w-5 h-5 mx-auto mb-2 animate-spin" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
@@ -317,7 +317,7 @@ export function ExpenseForm({ open, onClose, onSuccess, defaultTab = "fuel" }: E
             </form>
 
             {/* Footer */}
-            <div className={`px-6 py-4 border-t shrink-0 flex items-center justify-end gap-3 ${isDark ? "border-neutral-700" : "border-slate-100"}`}>
+            <div className={`px-6 py-4 border-t shrink-0 flex items-center justify-end gap-3 ${isDark ? "border-[#1E2B22]" : "border-slate-100"}`}>
               <button type="button" onClick={onClose} className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${isDark ? "text-neutral-300 hover:bg-neutral-700" : "text-slate-600 hover:bg-slate-100"}`}>
                 {t("common.cancel")}
               </button>

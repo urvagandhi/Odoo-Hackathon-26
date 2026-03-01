@@ -2,6 +2,7 @@ import { DriverStatus, TripStatus, VehicleStatus } from '@prisma/client';
 import prisma from '../../prisma';
 import { ApiError } from '../../middleware/errorHandler';
 import { writeAuditLog, serializeForAudit } from '../../middleware/auditLogger';
+import { hrService } from '../hr/hr.service';
 import {
     CreateTripInput,
     UpdateTripInput,
@@ -265,6 +266,9 @@ export class DispatchService {
                     newValues: { status: TripStatus.COMPLETED, distanceActual: input.distanceActual },
                 });
 
+                // Auto-recalculate driver safety score based on trip data
+                hrService.recalculateDriverScore(trip.driverId).catch(() => {});
+
                 return updatedTrip;
             }
 
@@ -300,6 +304,9 @@ export class DispatchService {
                     newValues: { status: TripStatus.CANCELLED },
                     reason: input.cancelledReason,
                 });
+
+                // Auto-recalculate driver safety score based on trip data
+                hrService.recalculateDriverScore(trip.driverId).catch(() => {});
 
                 return this.getTripById(id);
             }
