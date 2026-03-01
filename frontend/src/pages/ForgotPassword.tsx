@@ -65,7 +65,7 @@ export default function ForgotPassword() {
   return (
     <div
       className={`min-h-screen flex items-center justify-center p-8 transition-colors duration-300 ${
-        isDark ? "bg-neutral-950" : "bg-[#f5f5f0]"
+        isDark ? "bg-[#090D0B]" : "bg-[#f5f5f0]"
       }`}
     >
       {/* Theme toggle */}
@@ -73,7 +73,7 @@ export default function ForgotPassword() {
         onClick={toggleTheme}
         className={`absolute top-6 right-6 w-10 h-10 rounded-xl flex items-center justify-center transition-colors ${
           isDark
-            ? "bg-neutral-800 text-neutral-300 hover:bg-neutral-700"
+            ? "bg-[#111A15] text-[#B0B8A8] hover:bg-[#182420]"
             : "bg-white border border-neutral-200 text-neutral-600 hover:bg-neutral-50"
         }`}
         title={isDark ? t("common.switchToLight") : t("common.switchToDark")}
@@ -94,7 +94,7 @@ export default function ForgotPassword() {
           </div>
           <span
             className={`text-xl font-bold tracking-tight ${
-              isDark ? "text-white" : "text-neutral-900"
+              isDark ? "text-[#E4E6DE]" : "text-neutral-900"
             }`}
           >
             FleetFlow
@@ -115,14 +115,14 @@ export default function ForgotPassword() {
             <div className="space-y-2 mb-8">
               <h2
                 className={`text-2xl font-bold ${
-                  isDark ? "text-white" : "text-neutral-900"
+                  isDark ? "text-[#E4E6DE]" : "text-neutral-900"
                 }`}
               >
                 {t("auth.forgotPassword.title")}
               </h2>
               <p
                 className={`text-sm ${
-                  isDark ? "text-neutral-500" : "text-neutral-500"
+                  isDark ? "text-[#6B7C6B]" : "text-[#4A5C4A]"
                 }`}
               >
                 {t("auth.forgotPassword.description")}
@@ -158,7 +158,7 @@ export default function ForgotPassword() {
               <div>
                 <label
                   className={`block text-sm font-medium mb-2 ${
-                    isDark ? "text-neutral-400" : "text-neutral-700"
+                    isDark ? "text-[#6B7C6B]" : "text-neutral-700"
                   }`}
                 >
                   {t("auth.forgotPassword.emailLabel")}
@@ -166,7 +166,7 @@ export default function ForgotPassword() {
                 <div className="relative">
                   <Mail
                     className={`absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 ${
-                      isDark ? "text-neutral-500" : "text-neutral-400"
+                      isDark ? "text-[#4A5C4A]" : "text-[#6B7C6B]"
                     }`}
                   />
                   <input
@@ -179,12 +179,12 @@ export default function ForgotPassword() {
                     placeholder={t("auth.forgotPassword.emailPlaceholder")}
                     className={`w-full pl-11 pr-4 py-3 rounded-xl text-sm focus:outline-none focus:ring-2 transition-all ${
                       isDark
-                        ? `bg-neutral-900 border text-white placeholder:text-neutral-600 ${
+                        ? `bg-[#111A15] border text-[#E4E6DE] placeholder:text-[#4A5C4A] ${
                             emailError
                               ? "border-red-500/50 focus:ring-red-500/40"
-                              : "border-neutral-800 focus:ring-emerald-500/40 focus:border-transparent"
+                              : "border-[#1E2B22] focus:ring-emerald-500/40 focus:border-transparent"
                           }`
-                        : `bg-white border text-neutral-900 placeholder:text-neutral-400 ${
+                        : `bg-white border text-neutral-900 placeholder:text-[#6B7C6B] ${
                             emailError
                               ? "border-red-300 focus:ring-red-500/30"
                               : "border-neutral-300 focus:ring-emerald-500/30 focus:border-transparent"

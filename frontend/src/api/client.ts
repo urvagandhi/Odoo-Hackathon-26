@@ -46,6 +46,9 @@ export interface AuthUser {
   fullName: string;
   email: string;
   role: UserRole;
+  phone?: string | null;
+  bio?: string | null;
+  location?: string | null;
 }
 
 export interface PaginatedResponse<T> {
@@ -89,6 +92,47 @@ export interface Driver {
   safetyScore: number;
   createdAt: string;
   updatedAt: string;
+}
+
+export interface RatingHistoryEntry {
+  id: string;
+  oldScore: number | null;
+  newScore: number | null;
+  reason: string | null;
+  timestamp: string;
+  adjustedBy: string;
+}
+
+export interface DriverTripStats {
+  completed: number;
+  cancelled: number;
+  dispatched: number;
+  total: number;
+  incidents: number;
+  completionRate: number;
+  score: number;
+  unrated: number;
+  avgRating: number | null;
+}
+
+export interface DriverTrip {
+  id: string;
+  origin: string;
+  destination: string;
+  status: "DRAFT" | "DISPATCHED" | "COMPLETED" | "CANCELLED";
+  rating: number | null;
+  revenue: number | null;
+  distanceEstimated: number;
+  distanceActual: number | null;
+  createdAt: string;
+  completionTime: string | null;
+  cancelledReason: string | null;
+  vehicle: {
+    id: string;
+    licensePlate: string;
+    make: string;
+    model: string;
+  };
 }
 
 export interface Trip {
@@ -243,7 +287,7 @@ export const authApi = {
     const { data } = await apiClient.get<{ success: boolean; data: AuthUser }>("/api/v1/auth/me");
     return data.data;
   },
-  updateProfile: async (payload: { fullName?: string; email?: string }): Promise<AuthUser> => {
+  updateProfile: async (payload: { fullName?: string; email?: string; phone?: string | null; bio?: string | null; location?: string | null }): Promise<AuthUser> => {
     const { data } = await apiClient.patch<{ success: boolean; data: AuthUser }>("/api/v1/auth/me", payload);
     // Update cached user in localStorage
     const cached = localStorage.getItem("auth_user");
@@ -251,6 +295,9 @@ export const authApi = {
       const user = JSON.parse(cached);
       if (payload.fullName) user.fullName = payload.fullName;
       if (payload.email) user.email = payload.email;
+      if (payload.phone !== undefined) user.phone = payload.phone;
+      if (payload.bio !== undefined) user.bio = payload.bio;
+      if (payload.location !== undefined) user.location = payload.location;
       localStorage.setItem("auth_user", JSON.stringify(user));
     }
     return data.data;
@@ -444,8 +491,20 @@ export const hrApi = {
     const { data } = await apiClient.patch<{ success: boolean; data: Driver }>(`/api/v1/drivers/${id}/status`, { status, reason });
     return data.data;
   },
-  adjustSafetyScore: async (id: string, adjustment: number, reason?: string) => {
-    const { data } = await apiClient.patch<{ success: boolean; data: Driver }>(`/api/v1/drivers/${id}/safety-score`, { adjustment, reason });
+  recalculateScore: async (id: string) => {
+    const { data } = await apiClient.patch<{ success: boolean; data: Driver }>(`/api/v1/drivers/${id}/safety-score`, {});
+    return data.data;
+  },
+  getTripStats: async (id: string): Promise<DriverTripStats> => {
+    const { data } = await apiClient.get<{ success: boolean; data: DriverTripStats }>(`/api/v1/drivers/${id}/trip-stats`);
+    return data.data;
+  },
+  getDriverTrips: async (id: string): Promise<DriverTrip[]> => {
+    const { data } = await apiClient.get<{ success: boolean; data: DriverTrip[] }>(`/api/v1/drivers/${id}/trips`);
+    return data.data;
+  },
+  rateTrip: async (driverId: string, tripId: string, rating: number): Promise<unknown> => {
+    const { data } = await apiClient.patch<{ success: boolean; data: unknown }>(`/api/v1/drivers/${driverId}/trips/${tripId}/rate`, { rating });
     return data.data;
   },
   deleteDriver: async (id: string) => {

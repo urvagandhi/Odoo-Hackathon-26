@@ -44,7 +44,7 @@ export function ServerErrorLayout({
   const [detailOpen, setDetailOpen] = useState(false);
 
   return (
-    <div className={`min-h-screen flex items-center justify-center px-4 ${isDark ? "bg-neutral-900" : "bg-slate-50"}`}>
+    <div className={`min-h-screen flex items-center justify-center px-4 ${isDark ? "bg-[#0E1410]" : "bg-slate-50"}`}>
       <div className="max-w-lg w-full text-center">
 
         {/* Animated illustration */}
@@ -116,7 +116,7 @@ export function ServerErrorLayout({
             {title}
           </h1>
 
-          <p className={`text-sm sm:text-base leading-relaxed max-w-sm mx-auto ${isDark ? "text-neutral-400" : "text-slate-500"}`}>
+          <p className={`text-sm sm:text-base leading-relaxed max-w-sm mx-auto ${isDark ? "text-[#6B7C6B]" : "text-slate-500"}`}>
             {message}
           </p>
         </motion.div>
@@ -153,7 +153,7 @@ export function ServerErrorLayout({
               transition-all duration-150
               focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2
               ${isDark
-                ? "bg-neutral-800 text-neutral-200 border border-neutral-600 hover:bg-neutral-700 hover:border-neutral-500 focus-visible:ring-neutral-500 focus-visible:ring-offset-neutral-900"
+                ? "bg-[#111A15] text-neutral-200 border border-neutral-600 hover:bg-neutral-700 hover:border-neutral-500 focus-visible:ring-neutral-500 focus-visible:ring-offset-neutral-900"
                 : "bg-white text-slate-700 border border-slate-200 hover:bg-slate-50 hover:border-slate-300 focus-visible:ring-slate-400"}
             `}
           >
@@ -172,7 +172,7 @@ export function ServerErrorLayout({
           >
             <button
               onClick={() => setDetailOpen((o) => !o)}
-              className={`flex items-center gap-1.5 text-xs transition-colors duration-150 mx-auto ${isDark ? "text-neutral-500 hover:text-neutral-300" : "text-slate-400 hover:text-slate-600"}`}
+              className={`flex items-center gap-1.5 text-xs transition-colors duration-150 mx-auto ${isDark ? "text-neutral-500 hover:text-[#B0B8A8]" : "text-slate-400 hover:text-slate-600"}`}
             >
               <ChevronDown
                 className={`w-3.5 h-3.5 transition-transform duration-200 ${detailOpen ? "rotate-180" : ""}`}

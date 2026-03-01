@@ -25,10 +25,10 @@ interface DataTableProps<T> {
 
 function SkeletonRow({ cols, isDark }: { cols: number; isDark: boolean }) {
   return (
-    <tr className={`border-b last:border-0 ${isDark ? 'border-neutral-700' : 'border-slate-100'}`}>
+    <tr className={`border-b last:border-0 ${isDark ? 'border-[#1E2B22]' : 'border-slate-100'}`}>
       {Array.from({ length: cols }).map((_, i) => (
         <td key={i} className="px-4 py-3">
-          <div className={`relative h-4 rounded overflow-hidden ${isDark ? 'bg-neutral-700' : 'bg-slate-100'}`} style={{ width: `${60 + (i % 3) * 20}%` }}>
+          <div className={`relative h-4 rounded overflow-hidden ${isDark ? 'bg-[#1E2B22]' : 'bg-slate-100'}`} style={{ width: `${60 + (i % 3) * 20}%` }}>
             <div className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/20 to-transparent animate-shimmer" />
           </div>
         </td>
@@ -52,16 +52,16 @@ export function DataTable<T>({
   const resolvedEmptyMessage = emptyMessage ?? t("common.createFirstRecord");
 
   return (
-    <div className={`rounded-xl border shadow-sm overflow-hidden ${isDark ? 'bg-neutral-800 border-neutral-700' : 'bg-white border-slate-200'}`}>
+    <div className={`rounded-[14px] border overflow-hidden ${isDark ? 'bg-[#111A15] border-[#1E2B22] shadow-[0_6px_20px_rgba(0,0,0,0.4)]' : 'bg-white border-slate-200 shadow-sm'}`}>
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
           {/* Header */}
           <thead>
-            <tr className={`border-b ${isDark ? 'border-neutral-700 bg-neutral-800/50' : 'border-slate-200 bg-slate-50'}`}>
+            <tr className={`border-b ${isDark ? 'border-[#1E2B22] bg-[#111A15]/80' : 'border-slate-200 bg-slate-50'}`}>
               {columns.map((col) => (
                 <th
                   key={col.key}
-                  className={`text-left px-4 py-3 text-xs font-semibold uppercase tracking-wide ${isDark ? 'text-neutral-400' : 'text-slate-500'} ${col.className ?? ""}`}
+                  className={`text-left px-4 py-3 text-xs font-semibold uppercase tracking-wide ${isDark ? 'text-[#6B7C6B]' : 'text-slate-500'} ${col.className ?? ""}`}
                 >
                   {col.header}
                 </th>
@@ -78,8 +78,8 @@ export function DataTable<T>({
             ) : rows.length === 0 ? (
               <tr>
                 <td colSpan={columns.length} className="py-16 text-center">
-                  <p className={`text-sm font-medium ${isDark ? 'text-white' : 'text-slate-700'}`}>{resolvedEmptyTitle}</p>
-                  <p className={`text-xs mt-1 ${isDark ? 'text-neutral-500' : 'text-slate-400'}`}>{resolvedEmptyMessage}</p>
+                  <p className={`text-sm font-medium ${isDark ? 'text-[#E4E6DE]' : 'text-slate-700'}`}>{resolvedEmptyTitle}</p>
+                  <p className={`text-xs mt-1 ${isDark ? 'text-[#6B7C6B]' : 'text-slate-400'}`}>{resolvedEmptyMessage}</p>
                 </td>
               </tr>
             ) : (
@@ -88,10 +88,10 @@ export function DataTable<T>({
                   key={rowKey(row)}
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
-                  className={`border-b last:border-0 transition-colors duration-100 ${isDark ? 'border-neutral-700 hover:bg-neutral-700/50' : 'border-slate-100 hover:bg-slate-50'}`}
+                  className={`border-b last:border-0 transition-colors duration-150 ${isDark ? 'border-[#1E2B22] hover:bg-[#182420]' : 'border-slate-100 hover:bg-slate-50'}`}
                 >
                   {columns.map((col) => (
-                    <td key={col.key} className={`px-4 py-3 ${isDark ? 'text-neutral-300' : 'text-slate-700'} ${col.className ?? ""}`}>
+                    <td key={col.key} className={`px-4 py-3 ${isDark ? 'text-[#B0B8A8]' : 'text-slate-700'} ${col.className ?? ""}`}>
                       {col.render(row)}
                     </td>
                   ))}

@@ -325,13 +325,10 @@ All errors return a consistent JSON body with a machine-readable \`error_code\`:
                     status: { type: 'string', enum: ['ON_DUTY', 'OFF_DUTY', 'SUSPENDED'] },
                 },
             },
-            AdjustSafetyScoreRequest: {
+            RecalculateSafetyScoreRequest: {
                 type: 'object',
-                required: ['adjustment', 'reason'],
-                properties: {
-                    adjustment: { type: 'number', example: -10, description: 'Positive or negative delta to apply to safety score' },
-                    reason: { type: 'string', example: 'Over-speed violation on NH-48' },
-                },
+                description: 'No request body required. Triggers server-side recalculation from trip data.',
+                properties: {},
             },
 
             // ── Trip ─────────────────────────────────────────────────────
@@ -947,12 +944,11 @@ All errors return a consistent JSON body with a machine-readable \`error_code\`:
         '/api/v1/drivers/{id}/safety-score': {
             patch: {
                 tags: ['Drivers'],
-                summary: 'Adjust driver safety score',
-                description: 'Applies a positive or negative delta to the driver\'s safety score (clamped to 0–100). **SAFETY_OFFICER or  only.** Every adjustment requires a reason for audit trail.',
-                operationId: 'driversAdjustSafetyScore',
+                summary: 'Recalculate driver safety score',
+                description: 'Triggers server-side recalculation of the driver\'s safety score from trip completion rate, incidents, and per-trip ratings. **MANAGER or SAFETY_OFFICER only.**',
+                operationId: 'driversRecalculateSafetyScore',
                 security: bearerSecurity,
                 parameters: [idParam('id')],
-                requestBody: { required: true, content: { 'application/json': { schema: { $ref: '#/components/schemas/AdjustSafetyScoreRequest' } } } },
                 responses: {
                     200: successSingle('#/components/schemas/Driver', 'Safety score updated'),
                     403: errorResponse('Insufficient role'),

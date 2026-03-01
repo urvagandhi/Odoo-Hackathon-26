@@ -1,9 +1,10 @@
 /**
  * Profile page — shows the authenticated user's details from auth context.
+ * Includes "Edit Profile" button that opens a modal for name/email updates.
  * Follows FleetFlow UI theme: emerald accents, dark-green sidebar palette.
  */
-import { useEffect, useState } from "react";
-import { motion } from "framer-motion";
+import { useEffect, useState, useRef, useCallback } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { useTranslation } from "react-i18next";
 import {
   User,
@@ -15,9 +16,13 @@ import {
   MapPin,
   AlertTriangle,
   CheckCircle2,
+  Edit3,
+  X,
+  Save,
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
-import { analyticsApi, type DashboardKPIs } from "../api/client";
+import { analyticsApi, authApi, type DashboardKPIs } from "../api/client";
+import { useToast } from "../hooks/useToast";
 
 /* ── Animation helpers ────────────────────────────────── */
 
@@ -34,15 +39,40 @@ const itemVariants = {
 
 const ROLE_COLORS: Record<string, { bg: string; text: string; accent: string }> = {
   MANAGER: { bg: "bg-emerald-50 dark:bg-emerald-950/30", text: "text-emerald-700 dark:text-emerald-300", accent: "bg-emerald-600" },
-  DISPATCHER: { bg: "bg-blue-50 dark:bg-blue-950/30", text: "text-blue-700 dark:text-blue-300", accent: "bg-blue-600" },
+  DISPATCHER: { bg: "bg-emerald-50 dark:bg-emerald-950/30", text: "text-emerald-700 dark:text-emerald-300", accent: "bg-emerald-600" },
   SAFETY_OFFICER: { bg: "bg-amber-50 dark:bg-amber-950/30", text: "text-amber-700 dark:text-amber-300", accent: "bg-amber-600" },
   FINANCE_ANALYST: { bg: "bg-violet-50 dark:bg-violet-950/30", text: "text-violet-700 dark:text-violet-300", accent: "bg-violet-600" },
 };
 
 export default function Profile() {
-  const { user } = useAuth();
+  const { user, refreshUser } = useAuth();
   const { t } = useTranslation();
+  const toast = useToast();
   const [kpis, setKpis] = useState<DashboardKPIs | null>(null);
+
+  // Edit profile modal state
+  const [showEdit, setShowEdit] = useState(false);
+  const [editName, setEditName] = useState("");
+  const [editEmail, setEditEmail] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [editError, setEditError] = useState("");
+  const dialogRef = useRef<HTMLDivElement>(null);
+  const previousFocusRef = useRef<HTMLElement | null>(null);
+
+  // Focus management for edit dialog
+  const closeEditModal = useCallback(() => {
+    setShowEdit(false);
+    previousFocusRef.current?.focus();
+  }, []);
+
+  useEffect(() => {
+    if (showEdit) {
+      previousFocusRef.current = document.activeElement as HTMLElement;
+      // Focus the dialog after animation
+      const timer = setTimeout(() => dialogRef.current?.focus(), 100);
+      return () => clearTimeout(timer);
+    }
+  }, [showEdit]);
 
   useEffect(() => {
     if (user?.role === "MANAGER" || user?.role === "FINANCE_ANALYST") {
@@ -51,6 +81,38 @@ export default function Profile() {
   }, [user?.role]);
 
   if (!user) return null;
+
+  const openEditModal = () => {
+    setEditName(user.fullName);
+    setEditEmail(user.email);
+    setEditError("");
+    setShowEdit(true);
+  };
+
+  const handleSaveProfile = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setEditError("");
+    if (!editName.trim() || !editEmail.trim()) {
+      setEditError(t("profile.edit.nameEmailRequired"));
+      return;
+    }
+    setSaving(true);
+    try {
+      await authApi.updateProfile({
+        fullName: editName.trim(),
+        email: editEmail.trim(),
+      });
+      await refreshUser();
+      toast.success(t("profile.edit.updateSuccess"), { title: t("common.profile") });
+      closeEditModal();
+    } catch (err: unknown) {
+      const e = err as { response?: { data?: { message?: string } }; message?: string };
+      const msg = e?.response?.data?.message || e?.message || t("profile.edit.updateFailed");
+      setEditError(msg);
+    } finally {
+      setSaving(false);
+    }
+  };
 
   const roleStyle = ROLE_COLORS[user.role] ?? ROLE_COLORS.MANAGER;
   const initials = user.fullName
@@ -65,14 +127,14 @@ export default function Profile() {
       <motion.div variants={containerVariants} initial="hidden" animate="visible" className="space-y-6">
 
         {/* ── Hero Card ────────────────────────────── */}
-        <motion.div variants={itemVariants} className="relative overflow-hidden bg-white dark:bg-neutral-900 rounded-3xl border border-slate-200 dark:border-neutral-800 shadow-sm">
+        <motion.div variants={itemVariants} className="relative overflow-hidden bg-white dark:bg-[#111A15] rounded-3xl border border-slate-200 dark:border-[#1E2B22] shadow-sm">
           <div className={`h-2 w-full ${roleStyle.accent}`} />
           <div className="p-6 sm:p-10">
             <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6">
 
               {/* Avatar */}
               <div className="relative shrink-0">
-                <div className={`w-24 h-24 sm:w-28 sm:h-28 rounded-full ${roleStyle.bg} flex items-center justify-center border-2 border-white dark:border-neutral-800 shadow`}>
+                <div className={`w-24 h-24 sm:w-28 sm:h-28 rounded-full ${roleStyle.bg} flex items-center justify-center border-2 border-white dark:border-[#1E2B22] shadow`}>
                   <span className={`text-2xl sm:text-3xl font-bold ${roleStyle.text}`}>{initials}</span>
                 </div>
                 <span className="absolute bottom-1 right-1 w-5 h-5 bg-emerald-500 rounded-full border-2 border-white dark:border-neutral-900 shadow-sm" title="Online" />
@@ -93,6 +155,14 @@ export default function Profile() {
                   <Mail className="w-4 h-4" />
                   {user.email}
                 </p>
+                <button
+                  onClick={openEditModal}
+                  className="mt-3 inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-all
+                    bg-emerald-500 text-white hover:bg-emerald-600 active:scale-[0.97] shadow-sm"
+                >
+                  <Edit3 className="w-4 h-4" />
+                  {t("profile.edit.title")}
+                </button>
               </div>
             </div>
           </div>
@@ -102,8 +172,8 @@ export default function Profile() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 
           {/* Contact & Role Details */}
-          <motion.div variants={itemVariants} className="bg-white dark:bg-neutral-900 rounded-2xl border border-slate-200 dark:border-neutral-800 shadow-sm">
-            <div className="px-6 py-5 border-b border-slate-100 dark:border-neutral-800 bg-slate-50/30 dark:bg-neutral-800/30">
+          <motion.div variants={itemVariants} className="bg-white dark:bg-[#111A15] rounded-2xl border border-slate-200 dark:border-[#1E2B22] shadow-sm">
+            <div className="px-6 py-5 border-b border-slate-100 dark:border-[#1E2B22] bg-slate-50/30 dark:bg-[#090D0B]/30">
               <h2 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
                 <User className="w-5 h-5 text-emerald-500" />
                 {t("profile.accountDetails")}
@@ -117,7 +187,7 @@ export default function Profile() {
                 { icon: Calendar, label: t("profile.userId"), value: `#${user.id}` },
               ].map(({ icon: Icon, label, value }) => (
                 <div key={label} className="flex items-start gap-3">
-                  <div className="w-9 h-9 rounded-lg bg-slate-100 dark:bg-neutral-800 flex items-center justify-center shrink-0">
+                  <div className="w-9 h-9 rounded-lg bg-slate-100 dark:bg-[#111A15] flex items-center justify-center shrink-0">
                     <Icon className="w-4 h-4 text-slate-500 dark:text-neutral-400" />
                   </div>
                   <div>
@@ -130,8 +200,8 @@ export default function Profile() {
           </motion.div>
 
           {/* Role Capabilities */}
-          <motion.div variants={itemVariants} className="bg-white dark:bg-neutral-900 rounded-2xl border border-slate-200 dark:border-neutral-800 shadow-sm">
-            <div className="px-6 py-5 border-b border-slate-100 dark:border-neutral-800 bg-slate-50/30 dark:bg-neutral-800/30">
+          <motion.div variants={itemVariants} className="bg-white dark:bg-[#111A15] rounded-2xl border border-slate-200 dark:border-[#1E2B22] shadow-sm">
+            <div className="px-6 py-5 border-b border-slate-100 dark:border-[#1E2B22] bg-slate-50/30 dark:bg-[#090D0B]/30">
               <h2 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
                 <Activity className="w-5 h-5 text-emerald-500" />
                 {t("profile.yourCapabilities")}
@@ -153,11 +223,11 @@ export default function Profile() {
           <motion.div variants={itemVariants} className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {[
               { label: t("profile.kpi.totalVehicles"), value: kpis.fleet.total, icon: Truck, color: "text-emerald-600" },
-              { label: t("profile.kpi.activeTrips"), value: kpis.trips.active, icon: MapPin, color: "text-blue-600" },
+              { label: t("profile.kpi.activeTrips"), value: kpis.trips.active, icon: MapPin, color: "text-emerald-600" },
               { label: t("profile.kpi.fleetUtilization"), value: kpis.fleet.utilizationRate, icon: Activity, color: "text-violet-600" },
               { label: t("profile.kpi.alerts"), value: kpis.alerts.maintenanceAlerts + kpis.alerts.expiringLicenses + kpis.alerts.suspendedDrivers, icon: AlertTriangle, color: "text-amber-600" },
             ].map(({ label, value, icon: Icon, color }) => (
-              <div key={label} className="bg-white dark:bg-neutral-900 rounded-2xl border border-slate-200 dark:border-neutral-800 p-5 shadow-sm">
+              <div key={label} className="bg-white dark:bg-[#111A15] rounded-2xl border border-slate-200 dark:border-[#1E2B22] p-5 shadow-sm">
                 <Icon className={`w-5 h-5 ${color} mb-2`} />
                 <p className="text-2xl font-bold text-slate-900 dark:text-white">{value}</p>
                 <p className="text-xs text-slate-500 dark:text-neutral-400 mt-1">{label}</p>
@@ -166,6 +236,97 @@ export default function Profile() {
           </motion.div>
         )}
       </motion.div>
+
+      {/* ── Edit Profile Modal ─────────────────────────── */}
+      <AnimatePresence>
+        {showEdit && (
+          <motion.div
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4"
+            onClick={e => e.target === e.currentTarget && closeEditModal()}
+            onKeyDown={e => e.key === "Escape" && closeEditModal()}
+          >
+            <motion.div
+              ref={dialogRef}
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="edit-profile-title"
+              initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }}
+              className="w-full max-w-md rounded-3xl border p-6 shadow-2xl bg-white dark:bg-[#111A15] border-slate-200 dark:border-[#1E2B22]"
+            >
+              <div className="flex items-center justify-between mb-5">
+                <h2 id="edit-profile-title" className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                  <Edit3 className="w-5 h-5 text-emerald-500" />
+                  {t("profile.edit.title")}
+                </h2>
+                <button onClick={closeEditModal} aria-label={t("common.close")} className="p-1.5 rounded-lg transition-colors hover:bg-neutral-100 dark:hover:bg-[#1E2B22] text-neutral-400 dark:text-[#6B7C6B]">
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+
+              {editError && (
+                <div className="mb-4 text-sm rounded-xl p-3 flex items-center gap-2 text-red-500 dark:text-[#FCA5A5] bg-red-50 dark:bg-[#2D1518]/30 border border-red-100 dark:border-[#2D1518]">
+                  <AlertTriangle className="w-4 h-4 shrink-0" />{editError}
+                </div>
+              )}
+
+              <form onSubmit={handleSaveProfile} className="space-y-4">
+                <div>
+                  <label className="block text-xs font-semibold mb-1.5 text-slate-700 dark:text-[#B0B8A8]">
+                    {t("profile.fullName")}
+                  </label>
+                  <input
+                    required
+                    value={editName}
+                    onChange={e => setEditName(e.target.value)}
+                    className="block w-full rounded-xl border px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-colors bg-white dark:bg-[#1E2B22] border-slate-200 dark:border-[#1E2B22] text-slate-900 dark:text-[#E4E6DE]"
+                    placeholder={t("profile.edit.namePlaceholder")}
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold mb-1.5 text-slate-700 dark:text-[#B0B8A8]">
+                    {t("profile.email")}
+                  </label>
+                  <input
+                    required
+                    type="email"
+                    value={editEmail}
+                    onChange={e => setEditEmail(e.target.value)}
+                    className="block w-full rounded-xl border px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-colors bg-white dark:bg-[#1E2B22] border-slate-200 dark:border-[#1E2B22] text-slate-900 dark:text-[#E4E6DE]"
+                    placeholder={t("profile.edit.emailPlaceholder")}
+                  />
+                </div>
+
+                {/* Show current role (read-only) */}
+                <div className="p-3 rounded-xl bg-slate-50 dark:bg-[#0E1410] border border-slate-100 dark:border-[#1E2B22]">
+                  <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 dark:text-[#6B7C6B] mb-1">{t("profile.edit.roleReadOnly")}</p>
+                  <p className="text-sm font-semibold text-slate-700 dark:text-[#B0B8A8]">{t(`roles.${user.role}`)}</p>
+                </div>
+
+                <div className="flex gap-3 pt-2">
+                  <button
+                    type="button"
+                    onClick={closeEditModal}
+                    className="flex-1 py-2.5 rounded-xl text-sm font-semibold border transition-colors border-slate-200 dark:border-[#1E2B22] text-slate-600 dark:text-[#B0B8A8] hover:bg-slate-50 dark:hover:bg-[#1E2B22]"
+                  >
+                    {t("common.cancel")}
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={saving}
+                    className="flex-1 py-2.5 rounded-xl text-sm font-semibold transition-all disabled:opacity-60
+                      bg-emerald-500 text-white hover:bg-emerald-600 dark:bg-gradient-to-r dark:from-[#22C55E] dark:to-[#16A34A] dark:shadow-lg dark:shadow-emerald-500/20
+                      flex items-center justify-center gap-2"
+                  >
+                    <Save className="w-4 h-4" />
+                    {saving ? t("common.saving") : t("profile.edit.saveChanges")}
+                  </button>
+                </div>
+              </form>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

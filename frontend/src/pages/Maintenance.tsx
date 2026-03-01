@@ -63,7 +63,7 @@ export default function Maintenance() {
         addLogMutation.mutate(form);
     };
 
-    const inputClass = `${FIELD} ${isDark ? "bg-neutral-700 border-neutral-600 text-white placeholder-neutral-400" : "bg-white border-neutral-200 text-neutral-900 placeholder-neutral-400"}`;
+    const inputClass = `${FIELD} ${isDark ? "bg-[#1E2B22] border-[#1E2B22] text-[#E4E6DE] placeholder-[#4A5C4A]" : "bg-white border-neutral-200 text-neutral-900 placeholder-neutral-400"}`;
 
     const totalCost = logs.reduce((sum, l) => sum + Number(l.cost), 0);
 
@@ -71,17 +71,17 @@ export default function Maintenance() {
         <div className="max-w-[1200px] mx-auto space-y-5">
             <div className="flex items-center justify-between">
                 <div>
-                    <h1 className={`text-2xl font-bold ${isDark ? "text-white" : "text-neutral-900"}`}>{t("maintenance.title")}</h1>
-                    <p className={`text-sm ${isDark ? "text-neutral-400" : "text-neutral-500"}`}>{t("maintenance.subtitle")}</p>
+                    <h1 className={`text-2xl font-bold ${isDark ? "text-[#E4E6DE]" : "text-neutral-900"}`}>{t("maintenance.title")}</h1>
+                    <p className={`text-sm ${isDark ? "text-[#6B7C6B]" : "text-neutral-500"}`}>{t("maintenance.subtitle")}</p>
                 </div>
-                <button onClick={() => { setError(""); setShowModal(true); }} className="flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-500 text-white text-sm font-semibold hover:bg-emerald-600 transition-all active:scale-[0.97]">
+                <button onClick={() => { setError(""); setShowModal(true); }} className={`flex items-center gap-2 px-4 py-2 rounded-xl text-white text-sm font-semibold transition-all active:scale-[0.97] ${isDark ? "bg-gradient-to-r from-[#22C55E] to-[#16A34A] shadow-lg shadow-emerald-500/20" : "bg-emerald-500 hover:bg-emerald-600"}`}>
                     <Plus className="w-4 h-4" /> {t("maintenance.logService")}
                 </button>
             </div>
 
             {/* Vehicle selector */}
-            <div className={`p-4 rounded-2xl border ${isDark ? "bg-neutral-800 border-neutral-700" : "bg-white border-neutral-200 shadow-sm"}`}>
-                <label className={`block text-xs font-semibold mb-2 ${isDark ? "text-neutral-300" : "text-neutral-700"}`}>{t("maintenance.selectVehicle")}</label>
+            <div className={`p-4 border ${isDark ? "rounded-[14px] shadow-[0_6px_20px_rgba(0,0,0,0.35)] bg-[#111A15] border-[#1E2B22]" : "rounded-2xl bg-white border-neutral-200 shadow-sm"}`}>
+                <label className={`block text-xs font-semibold mb-2 ${isDark ? "text-[#B0B8A8]" : "text-neutral-700"}`}>{t("maintenance.selectVehicle")}</label>
                 <Select value={selectedVehicle} onChange={e => setSelectedVehicle(e.target.value)} className={`${inputClass} max-w-full sm:max-w-[360px]`}>
                     <option value="">{t("maintenance.allVehicles")}</option>
                     {vehicles.map(v => (
@@ -92,14 +92,14 @@ export default function Maintenance() {
                     ))}
                 </Select>
                 {selectedVehicle && logs.length > 0 && (
-                    <p className={`mt-2 text-xs ${isDark ? "text-neutral-400" : "text-neutral-500"}`}>
+                    <p className={`mt-2 text-xs ${isDark ? "text-[#6B7C6B]" : "text-neutral-500"}`}>
                         {t("maintenance.serviceCount", { count: logs.length, total: totalCost.toLocaleString() })} <span className="font-bold text-amber-500">₹{totalCost.toLocaleString()}</span>
                     </p>
                 )}
             </div>
 
             {/* Maintenance log table */}
-            <div className={`rounded-2xl border overflow-hidden ${isDark ? "bg-neutral-800 border-neutral-700" : "bg-white border-neutral-200 shadow-sm"}`}>
+            <div className={`border overflow-hidden ${isDark ? "rounded-[14px] shadow-[0_6px_20px_rgba(0,0,0,0.35)] bg-[#111A15] border-[#1E2B22]" : "rounded-2xl bg-white border-neutral-200 shadow-sm"}`}>
                 {!selectedVehicle ? (
                     <div className="flex flex-col items-center justify-center h-40 text-neutral-400">
                         <Wrench className="w-10 h-10 mb-2 opacity-30" />
@@ -124,7 +124,7 @@ export default function Maintenance() {
                     <div className="overflow-x-auto">
                     <table className="w-full text-sm min-w-[700px]">
                         <thead>
-                            <tr className={`text-xs font-semibold uppercase tracking-wide border-b ${isDark ? "text-neutral-400 border-neutral-700 bg-neutral-900/30" : "text-neutral-500 border-neutral-100 bg-neutral-50"}`}>
+                            <tr className={`text-xs font-semibold uppercase tracking-wide border-b ${isDark ? "text-[#6B7C6B] border-[#1E2B22] bg-[#090D0B]/30" : "text-neutral-500 border-neutral-100 bg-neutral-50"}`}>
                                 {[t("maintenance.columns.date"), t("maintenance.columns.serviceType"), t("maintenance.columns.description"), t("maintenance.columns.cost"), t("maintenance.columns.odometer"), t("maintenance.columns.shop"), t("maintenance.columns.nextDue")].map(h =>
                                     <th key={h} className="text-left px-4 py-3">{h}</th>)}
                             </tr>
@@ -132,21 +132,21 @@ export default function Maintenance() {
                         <tbody>
                             {logs.map((log, i) => (
                                 <motion.tr key={log.id} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: i * 0.04 }}
-                                    className={`border-b last:border-0 ${isDark ? "border-neutral-700" : "border-neutral-50"}`}
+                                    className={`border-b last:border-0 ${isDark ? "border-[#1E2B22]" : "border-neutral-50"}`}
                                 >
-                                    <td className={`px-4 py-3 ${isDark ? "text-neutral-300" : "text-neutral-700"}`}>
+                                    <td className={`px-4 py-3 ${isDark ? "text-[#B0B8A8]" : "text-neutral-700"}`}>
                                         {new Date(log.serviceDate).toLocaleDateString("en-IN")}
                                     </td>
-                                    <td className={`px-4 py-3 font-semibold ${isDark ? "text-white" : "text-neutral-900"}`}>{log.serviceType}</td>
-                                    <td className={`px-4 py-3 ${isDark ? "text-neutral-400" : "text-neutral-500"}`}>{log.description || "—"}</td>
+                                    <td className={`px-4 py-3 font-semibold ${isDark ? "text-[#E4E6DE]" : "text-neutral-900"}`}>{log.serviceType}</td>
+                                    <td className={`px-4 py-3 ${isDark ? "text-[#6B7C6B]" : "text-neutral-500"}`}>{log.description || "—"}</td>
                                     <td className="px-4 py-3 text-amber-500 font-bold">₹{Number(log.cost).toLocaleString()}</td>
-                                    <td className={`px-4 py-3 ${isDark ? "text-neutral-300" : "text-neutral-600"}`}>{Number(log.odometerAtService).toLocaleString()} km</td>
-                                    <td className={`px-4 py-3 ${isDark ? "text-neutral-400" : "text-neutral-500"}`}>
+                                    <td className={`px-4 py-3 ${isDark ? "text-[#B0B8A8]" : "text-neutral-600"}`}>{Number(log.odometerAtService).toLocaleString()} km</td>
+                                    <td className={`px-4 py-3 ${isDark ? "text-[#6B7C6B]" : "text-neutral-500"}`}>
                                         {[log.shopName, log.technicianName].filter(Boolean).join(" / ") || "—"}
                                     </td>
                                     <td className="px-4 py-3">
                                         {log.nextServiceDue ? (
-                                            <span className={`text-xs px-2 py-0.5 rounded-full ${new Date(log.nextServiceDue) <= new Date() ? "bg-red-100 text-red-600" : "bg-emerald-100 text-emerald-700"}`}>
+                                            <span className={`text-xs px-2 py-0.5 rounded-full ${new Date(log.nextServiceDue) <= new Date() ? (isDark ? "bg-[#2D1518]/30 text-[#FCA5A5]" : "bg-red-100 text-red-600") : (isDark ? "bg-[#14332A] text-[#86EFAC]" : "bg-emerald-100 text-emerald-700")}`}>
                                                 {new Date(log.nextServiceDue).toLocaleDateString("en-IN")}
                                             </span>
                                         ) : "—"}
@@ -167,16 +167,16 @@ export default function Maintenance() {
                         onClick={e => e.target === e.currentTarget && setShowModal(false)}
                     >
                         <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }}
-                            className={`w-full max-w-xl rounded-3xl border p-6 shadow-2xl ${isDark ? "bg-neutral-800 border-neutral-700" : "bg-white"}`}
+                            className={`w-full max-w-xl border p-6 ${isDark ? "rounded-[14px] shadow-[0_6px_20px_rgba(0,0,0,0.35)] bg-[#111A15] border-[#1E2B22]" : "rounded-3xl shadow-2xl bg-white"}`}
                         >
                             <div className="flex items-center justify-between mb-5">
-                                <h2 className={`text-lg font-bold ${isDark ? "text-white" : "text-neutral-900"}`}>{t("maintenance.form.title")}</h2>
-                                <button onClick={() => setShowModal(false)} className="p-1.5 rounded-lg text-neutral-400 hover:bg-neutral-100 transition-colors"><X className="w-4 h-4" /></button>
+                                <h2 className={`text-lg font-bold ${isDark ? "text-[#E4E6DE]" : "text-neutral-900"}`}>{t("maintenance.form.title")}</h2>
+                                <button onClick={() => setShowModal(false)} className={`p-1.5 rounded-lg text-neutral-400 transition-colors ${isDark ? "hover:bg-[#1E2B22]" : "hover:bg-neutral-100"}`}><X className="w-4 h-4" /></button>
                             </div>
-                            {error && <div className="mb-4 p-3 rounded-xl bg-red-50 border border-red-100 text-red-600 text-sm flex items-center gap-2"><AlertTriangle className="w-4 h-4" />{error}</div>}
+                            {error && <div className={`mb-4 p-3 rounded-xl text-sm flex items-center gap-2 ${isDark ? "bg-[#2D1518]/30 border border-[#2D1518] text-[#FCA5A5]" : "bg-red-50 border border-red-100 text-red-600"}`}><AlertTriangle className="w-4 h-4" />{error}</div>}
                             <form onSubmit={handleSave} className="space-y-4">
                                 <div>
-                                    <label className={`block text-xs font-semibold mb-1.5 ${isDark ? "text-neutral-300" : "text-neutral-700"}`}>{t("maintenance.form.vehicle")} *</label>
+                                    <label className={`block text-xs font-semibold mb-1.5 ${isDark ? "text-[#B0B8A8]" : "text-neutral-700"}`}>{t("maintenance.form.vehicle")} *</label>
                                     <Select required value={selectedVehicle} onChange={e => setSelectedVehicle(e.target.value)} className={inputClass}>
                                         <option value="">{t("maintenance.selectVehicle")}</option>
                                         {vehicles.map(v => <option key={v.id} value={v.id}>{v.licensePlate} — {v.make} {v.model}</option>)}
@@ -184,45 +184,45 @@ export default function Maintenance() {
                                 </div>
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                     <div>
-                                        <label className={`block text-xs font-semibold mb-1.5 ${isDark ? "text-neutral-300" : "text-neutral-700"}`}>{t("maintenance.form.serviceType")} *</label>
+                                        <label className={`block text-xs font-semibold mb-1.5 ${isDark ? "text-[#B0B8A8]" : "text-neutral-700"}`}>{t("maintenance.form.serviceType")} *</label>
                                         <input required value={form.serviceType} onChange={(e) => setForm(f => ({ ...f, serviceType: e.target.value }))} className={inputClass} placeholder={t("maintenance.form.serviceTypePlaceholder")} />
                                     </div>
                                     <div>
-                                        <label className={`block text-xs font-semibold mb-1.5 ${isDark ? "text-neutral-300" : "text-neutral-700"}`}>{t("maintenance.form.cost")} *</label>
+                                        <label className={`block text-xs font-semibold mb-1.5 ${isDark ? "text-[#B0B8A8]" : "text-neutral-700"}`}>{t("maintenance.form.cost")} *</label>
                                         <input required type="number" min="0" value={form.cost || ""} onChange={(e) => setForm(f => ({ ...f, cost: +e.target.value }))} className={inputClass} placeholder="5000" />
                                     </div>
                                 </div>
                                 <div>
-                                    <label className={`block text-xs font-semibold mb-1.5 ${isDark ? "text-neutral-300" : "text-neutral-700"}`}>{t("maintenance.form.description")}</label>
+                                    <label className={`block text-xs font-semibold mb-1.5 ${isDark ? "text-[#B0B8A8]" : "text-neutral-700"}`}>{t("maintenance.form.description")}</label>
                                     <input value={form.description} onChange={(e) => setForm(f => ({ ...f, description: e.target.value }))} className={inputClass} placeholder={t("maintenance.form.descriptionPlaceholder")} />
                                 </div>
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                     <div>
-                                        <label className={`block text-xs font-semibold mb-1.5 ${isDark ? "text-neutral-300" : "text-neutral-700"}`}>{t("maintenance.form.odometer")} *</label>
+                                        <label className={`block text-xs font-semibold mb-1.5 ${isDark ? "text-[#B0B8A8]" : "text-neutral-700"}`}>{t("maintenance.form.odometer")} *</label>
                                         <input required type="number" min="0" value={form.odometerAtService || ""} onChange={(e) => setForm(f => ({ ...f, odometerAtService: +e.target.value }))} className={inputClass} />
                                     </div>
                                     <div>
-                                        <label className={`block text-xs font-semibold mb-1.5 ${isDark ? "text-neutral-300" : "text-neutral-700"}`}>{t("maintenance.form.serviceDate")} *</label>
+                                        <label className={`block text-xs font-semibold mb-1.5 ${isDark ? "text-[#B0B8A8]" : "text-neutral-700"}`}>{t("maintenance.form.serviceDate")} *</label>
                                         <input required type="date" value={form.serviceDate} onChange={(e) => setForm(f => ({ ...f, serviceDate: e.target.value }))} className={inputClass} />
                                     </div>
                                 </div>
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                     <div>
-                                        <label className={`block text-xs font-semibold mb-1.5 ${isDark ? "text-neutral-300" : "text-neutral-700"}`}>{t("maintenance.form.shopName")}</label>
+                                        <label className={`block text-xs font-semibold mb-1.5 ${isDark ? "text-[#B0B8A8]" : "text-neutral-700"}`}>{t("maintenance.form.shopName")}</label>
                                         <input value={form.shopName} onChange={(e) => setForm(f => ({ ...f, shopName: e.target.value }))} className={inputClass} placeholder={t("maintenance.form.shopPlaceholder")} />
                                     </div>
                                     <div>
-                                        <label className={`block text-xs font-semibold mb-1.5 ${isDark ? "text-neutral-300" : "text-neutral-700"}`}>{t("maintenance.form.technician")}</label>
+                                        <label className={`block text-xs font-semibold mb-1.5 ${isDark ? "text-[#B0B8A8]" : "text-neutral-700"}`}>{t("maintenance.form.technician")}</label>
                                         <input value={form.technicianName} onChange={(e) => setForm(f => ({ ...f, technicianName: e.target.value }))} className={inputClass} placeholder={t("maintenance.form.technicianPlaceholder")} />
                                     </div>
                                 </div>
                                 <div>
-                                    <label className={`block text-xs font-semibold mb-1.5 ${isDark ? "text-neutral-300" : "text-neutral-700"}`}>{t("maintenance.form.nextServiceDue")}</label>
+                                    <label className={`block text-xs font-semibold mb-1.5 ${isDark ? "text-[#B0B8A8]" : "text-neutral-700"}`}>{t("maintenance.form.nextServiceDue")}</label>
                                     <input type="date" value={form.nextServiceDue} onChange={(e) => setForm(f => ({ ...f, nextServiceDue: e.target.value }))} className={inputClass} />
                                 </div>
                                 <div className="flex gap-3 pt-2">
-                                    <button type="button" onClick={() => setShowModal(false)} className={`flex-1 py-2.5 rounded-xl text-sm font-semibold border transition-colors ${isDark ? "border-neutral-600 text-neutral-300 hover:bg-neutral-700" : "border-neutral-200 text-neutral-600 hover:bg-neutral-50"}`}>{t("common.cancel")}</button>
-                                    <button type="submit" disabled={addLogMutation.isPending} className="flex-1 py-2.5 rounded-xl text-sm font-semibold bg-amber-500 text-white hover:bg-amber-600 disabled:opacity-60 transition-colors">
+                                    <button type="button" onClick={() => setShowModal(false)} className={`flex-1 py-2.5 rounded-xl text-sm font-semibold border transition-colors ${isDark ? "border-[#1E2B22] text-[#B0B8A8] hover:bg-[#1E2B22]" : "border-neutral-200 text-neutral-600 hover:bg-neutral-50"}`}>{t("common.cancel")}</button>
+                                    <button type="submit" disabled={addLogMutation.isPending} className={`flex-1 py-2.5 rounded-xl text-sm font-semibold text-white disabled:opacity-60 transition-all ${isDark ? "bg-gradient-to-r from-[#22C55E] to-[#16A34A] shadow-lg shadow-emerald-500/20" : "bg-amber-500 hover:bg-amber-600"}`}>
                                         {addLogMutation.isPending ? t("common.saving") : t("maintenance.logService")}
                                     </button>
                                 </div>

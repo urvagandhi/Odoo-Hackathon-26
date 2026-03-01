@@ -54,10 +54,10 @@ const INCIDENT_TYPES = [
 const STATUS_OPTIONS = ["OPEN", "INVESTIGATING", "RESOLVED", "CLOSED"] as const;
 
 const statusColor: Record<string, string> = {
-  OPEN: "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400",
-  INVESTIGATING: "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400",
-  RESOLVED: "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400",
-  CLOSED: "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400",
+  OPEN: "bg-red-100 text-red-700 dark:bg-[#2D1518]/30 dark:text-[#FCA5A5]",
+  INVESTIGATING: "bg-amber-100 text-amber-700 dark:bg-[#2D2410] dark:text-[#FDE68A]",
+  RESOLVED: "bg-emerald-100 text-emerald-700 dark:bg-[#162822] dark:text-[#6EEAA0]",
+  CLOSED: "bg-emerald-100 text-emerald-700 dark:bg-[#14332A] dark:text-[#86EFAC]",
 };
 
 export default function Incidents() {
@@ -227,7 +227,7 @@ export default function Incidents() {
   ];
 
   return (
-    <div className={`min-h-screen p-6 ${isDark ? "bg-neutral-900" : "bg-slate-50"}`}>
+    <div className={`min-h-screen p-6 ${isDark ? "bg-[#090D0B]" : "bg-slate-50"}`}>
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
@@ -235,10 +235,10 @@ export default function Incidents() {
             <AlertTriangle className="w-5 h-5 text-white" />
           </div>
           <div>
-            <h1 className={`text-xl font-bold ${isDark ? "text-white" : "text-slate-900"}`}>
+            <h1 className={`text-xl font-bold ${isDark ? "text-[#E4E6DE]" : "text-slate-900"}`}>
               {t("incidents.title")}
             </h1>
-            <p className={`text-sm ${isDark ? "text-neutral-400" : "text-slate-500"}`}>
+            <p className={`text-sm ${isDark ? "text-[#6B7C6B]" : "text-slate-500"}`}>
               {t("incidents.subtitle")}
             </p>
           </div>
@@ -246,7 +246,7 @@ export default function Incidents() {
         {canCreate && (
           <button
             onClick={() => setFormOpen(true)}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-red-600 hover:bg-red-500 text-white text-sm font-medium transition-colors"
+            className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg text-white text-sm font-medium transition-all ${isDark ? "bg-gradient-to-r from-[#22C55E] to-[#16A34A] shadow-lg shadow-emerald-500/20" : "bg-red-600 hover:bg-red-500"}`}
           >
             <Plus className="w-4 h-4" />
             {t("incidents.reportIncident")}
@@ -266,11 +266,11 @@ export default function Incidents() {
             key={s.label}
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
-            className={`p-4 rounded-xl border ${isDark ? "bg-neutral-800 border-neutral-700" : "bg-white border-slate-200"}`}
+            className={`p-4 rounded-[14px] border ${isDark ? "bg-[#111A15] border-[#1E2B22] shadow-[0_6px_20px_rgba(0,0,0,0.35)]" : "bg-white border-slate-200"}`}
           >
             <div className={`w-2 h-2 rounded-full ${s.color} mb-2`} />
-            <p className={`text-2xl font-bold ${isDark ? "text-white" : "text-slate-900"}`}>{s.value}</p>
-            <p className={`text-xs ${isDark ? "text-neutral-400" : "text-slate-500"}`}>{s.label}</p>
+            <p className={`text-2xl font-bold ${isDark ? "text-[#E4E6DE]" : "text-slate-900"}`}>{s.value}</p>
+            <p className={`text-xs ${isDark ? "text-[#6B7C6B]" : "text-slate-500"}`}>{s.label}</p>
           </motion.div>
         ))}
       </div>
@@ -279,10 +279,10 @@ export default function Incidents() {
       <div className="flex flex-wrap items-center gap-3 mb-4">
         <div
           className={`flex items-center gap-2 px-3 py-2 rounded-lg border text-sm w-full sm:w-64 ${
-            isDark ? "bg-neutral-800 border-neutral-700 text-white" : "bg-white border-slate-200 text-slate-900"
+            isDark ? "bg-[#111A15] border-[#1E2B22] text-[#E4E6DE]" : "bg-white border-slate-200 text-slate-900"
           }`}
         >
-          <Search className={`w-4 h-4 ${isDark ? "text-neutral-400" : "text-slate-400"}`} />
+          <Search className={`w-4 h-4 ${isDark ? "text-[#6B7C6B]" : "text-slate-400"}`} />
           <input
             className="bg-transparent outline-none w-full placeholder-current opacity-60"
             placeholder={t("incidents.searchPlaceholder")}
@@ -294,7 +294,7 @@ export default function Incidents() {
           value={statusFilter}
           onChange={(e) => { setStatusFilter(e.target.value); setPage(1); }}
           className={`px-3 py-2 rounded-lg border text-sm transition-colors focus:outline-none focus:ring-2 focus:ring-violet-500/30 ${
-            isDark ? "bg-neutral-800 border-neutral-700 text-white" : "bg-white border-slate-200 text-slate-900"
+            isDark ? "bg-[#111A15] border-[#1E2B22] text-[#E4E6DE]" : "bg-white border-slate-200 text-slate-900"
           }`}
         >
           <option value="">{t("incidents.allStatuses")}</option>
@@ -317,21 +317,21 @@ export default function Incidents() {
       {/* Pagination */}
       {totalPages > 1 && (
         <div className="flex items-center justify-between mt-4">
-          <p className={`text-xs ${isDark ? "text-neutral-500" : "text-slate-400"}`}>
+          <p className={`text-xs ${isDark ? "text-[#4A5C4A]" : "text-slate-400"}`}>
             {t("common.page")} {page} {t("common.of")} {totalPages}
           </p>
           <div className="flex items-center gap-1">
             <button
               disabled={page <= 1}
               onClick={() => setPage((p) => p - 1)}
-              className={`p-1.5 rounded-lg transition-colors disabled:opacity-30 ${isDark ? "hover:bg-neutral-700 text-neutral-400" : "hover:bg-slate-100 text-slate-500"}`}
+              className={`p-1.5 rounded-lg transition-colors disabled:opacity-30 ${isDark ? "hover:bg-[#1E2B22] text-[#6B7C6B]" : "hover:bg-slate-100 text-slate-500"}`}
             >
               <ChevronLeft className="w-4 h-4" />
             </button>
             <button
               disabled={page >= totalPages}
               onClick={() => setPage((p) => p + 1)}
-              className={`p-1.5 rounded-lg transition-colors disabled:opacity-30 ${isDark ? "hover:bg-neutral-700 text-neutral-400" : "hover:bg-slate-100 text-slate-500"}`}
+              className={`p-1.5 rounded-lg transition-colors disabled:opacity-30 ${isDark ? "hover:bg-[#1E2B22] text-[#6B7C6B]" : "hover:bg-slate-100 text-slate-500"}`}
             >
               <ChevronRight className="w-4 h-4" />
             </button>
@@ -345,17 +345,17 @@ export default function Incidents() {
           <motion.div
             initial={{ scale: 0.95, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
-            className={`w-full max-w-md rounded-2xl p-6 shadow-2xl ${isDark ? "bg-neutral-800" : "bg-white"}`}
+            className={`w-full max-w-md rounded-2xl p-6 shadow-2xl ${isDark ? "bg-[#111A15]" : "bg-white"}`}
           >
             <div className="flex items-center justify-between mb-4">
-              <h3 className={`text-lg font-bold ${isDark ? "text-white" : "text-slate-900"}`}>
+              <h3 className={`text-lg font-bold ${isDark ? "text-[#E4E6DE]" : "text-slate-900"}`}>
                 {t("incidents.closeModal.title")}
               </h3>
               <button onClick={() => setCloseModal(null)}>
-                <X className={`w-5 h-5 ${isDark ? "text-neutral-400" : "text-slate-400"}`} />
+                <X className={`w-5 h-5 ${isDark ? "text-[#6B7C6B]" : "text-slate-400"}`} />
               </button>
             </div>
-            <p className={`text-sm mb-3 ${isDark ? "text-neutral-400" : "text-slate-500"}`}>
+            <p className={`text-sm mb-3 ${isDark ? "text-[#6B7C6B]" : "text-slate-500"}`}>
               {t("incidents.closeModal.closing")} <strong>{closeModal.title}</strong>
             </p>
             <textarea
@@ -364,13 +364,13 @@ export default function Incidents() {
               value={resolution}
               onChange={(e) => setResolution(e.target.value)}
               className={`w-full px-3 py-2 rounded-lg border text-sm resize-none ${
-                isDark ? "bg-neutral-700 border-neutral-600 text-white" : "bg-slate-50 border-slate-200 text-slate-900"
+                isDark ? "bg-[#1E2B22] border-[#1E2B22] text-[#E4E6DE]" : "bg-slate-50 border-slate-200 text-slate-900"
               }`}
             />
             <div className="flex justify-end gap-2 mt-4">
               <button
                 onClick={() => setCloseModal(null)}
-                className={`px-4 py-2 rounded-lg text-sm ${isDark ? "text-neutral-400 hover:bg-neutral-700" : "text-slate-500 hover:bg-slate-100"}`}
+                className={`px-4 py-2 rounded-lg text-sm border ${isDark ? "border-[#1E2B22] text-[#B0B8A8] hover:bg-[#1E2B22]" : "border-transparent text-slate-500 hover:bg-slate-100"}`}
               >
                 {t("common.cancel")}
               </button>
@@ -448,7 +448,7 @@ function IncidentFormModal({
   };
 
   const inputCls = `w-full px-3 py-2 rounded-lg border text-sm ${
-    isDark ? "bg-neutral-700 border-neutral-600 text-white" : "bg-slate-50 border-slate-200 text-slate-900"
+    isDark ? "bg-[#1E2B22] border-[#1E2B22] text-[#E4E6DE]" : "bg-slate-50 border-slate-200 text-slate-900"
   }`;
 
   return (
@@ -456,23 +456,23 @@ function IncidentFormModal({
       <motion.div
         initial={{ scale: 0.95, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
-        className={`w-full max-w-lg rounded-2xl p-6 shadow-2xl max-h-[85vh] overflow-y-auto ${isDark ? "bg-neutral-800" : "bg-white"}`}
+        className={`w-full max-w-lg rounded-2xl p-6 shadow-2xl max-h-[85vh] overflow-y-auto ${isDark ? "bg-[#111A15]" : "bg-white"}`}
       >
         <div className="flex items-center justify-between mb-5">
-          <h3 className={`text-lg font-bold ${isDark ? "text-white" : "text-slate-900"}`}>
+          <h3 className={`text-lg font-bold ${isDark ? "text-[#E4E6DE]" : "text-slate-900"}`}>
             {t("incidents.createModal.title")}
           </h3>
           <button onClick={onClose}>
-            <X className={`w-5 h-5 ${isDark ? "text-neutral-400" : "text-slate-400"}`} />
+            <X className={`w-5 h-5 ${isDark ? "text-[#6B7C6B]" : "text-slate-400"}`} />
           </button>
         </div>
 
-        {error && <div className="mb-4 p-3 rounded-xl bg-red-50 border border-red-100 text-red-600 text-sm">{error}</div>}
+        {error && <div className={`mb-4 p-3 rounded-xl text-sm ${isDark ? "bg-[#2D1518]/30 border border-[#2D1518] text-[#FCA5A5]" : "bg-red-50 border border-red-100 text-red-600"}`}>{error}</div>}
 
         <div className="space-y-4">
           {/* Title */}
           <div>
-            <label className={`text-xs font-medium mb-1 block ${isDark ? "text-neutral-300" : "text-slate-600"}`}>
+            <label className={`text-xs font-medium mb-1 block ${isDark ? "text-[#B0B8A8]" : "text-slate-600"}`}>
               {t("incidents.createModal.titleField")}
             </label>
             <input className={inputCls} value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} placeholder={t("incidents.createModal.titlePlaceholder")} />
@@ -481,7 +481,7 @@ function IncidentFormModal({
           {/* Type + Date row */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-              <label className={`text-xs font-medium mb-1 block ${isDark ? "text-neutral-300" : "text-slate-600"}`}>
+              <label className={`text-xs font-medium mb-1 block ${isDark ? "text-[#B0B8A8]" : "text-slate-600"}`}>
                 {t("incidents.createModal.type")}
               </label>
               <select className={inputCls} value={form.incidentType} onChange={(e) => setForm({ ...form, incidentType: e.target.value })}>
@@ -491,7 +491,7 @@ function IncidentFormModal({
               </select>
             </div>
             <div>
-              <label className={`text-xs font-medium mb-1 block ${isDark ? "text-neutral-300" : "text-slate-600"}`}>
+              <label className={`text-xs font-medium mb-1 block ${isDark ? "text-[#B0B8A8]" : "text-slate-600"}`}>
                 {t("incidents.createModal.date")}
               </label>
               <input type="datetime-local" className={inputCls} value={form.incidentDate} onChange={(e) => setForm({ ...form, incidentDate: e.target.value })} />
@@ -500,7 +500,7 @@ function IncidentFormModal({
 
           {/* Description */}
           <div>
-            <label className={`text-xs font-medium mb-1 block ${isDark ? "text-neutral-300" : "text-slate-600"}`}>
+            <label className={`text-xs font-medium mb-1 block ${isDark ? "text-[#B0B8A8]" : "text-slate-600"}`}>
               {t("incidents.createModal.description")}
             </label>
             <textarea rows={3} className={`${inputCls} resize-none`} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} placeholder={t("incidents.createModal.descriptionPlaceholder")} />
@@ -509,13 +509,13 @@ function IncidentFormModal({
           {/* Location + Damage row */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-              <label className={`text-xs font-medium mb-1 block ${isDark ? "text-neutral-300" : "text-slate-600"}`}>
+              <label className={`text-xs font-medium mb-1 block ${isDark ? "text-[#B0B8A8]" : "text-slate-600"}`}>
                 {t("incidents.createModal.location")}
               </label>
               <input className={inputCls} value={form.location} onChange={(e) => setForm({ ...form, location: e.target.value })} placeholder={t("incidents.createModal.locationPlaceholder")} />
             </div>
             <div>
-              <label className={`text-xs font-medium mb-1 block ${isDark ? "text-neutral-300" : "text-slate-600"}`}>
+              <label className={`text-xs font-medium mb-1 block ${isDark ? "text-[#B0B8A8]" : "text-slate-600"}`}>
                 {t("incidents.createModal.damageEstimate")}
               </label>
               <input type="number" min="0" className={inputCls} value={form.damageEstimate} onChange={(e) => setForm({ ...form, damageEstimate: e.target.value })} />
@@ -525,20 +525,20 @@ function IncidentFormModal({
           {/* Injuries checkbox */}
           <label className="flex items-center gap-2 cursor-pointer">
             <input type="checkbox" checked={form.injuriesReported} onChange={(e) => setForm({ ...form, injuriesReported: e.target.checked })} className="rounded" />
-            <span className={`text-sm ${isDark ? "text-neutral-300" : "text-slate-700"}`}>
+            <span className={`text-sm ${isDark ? "text-[#B0B8A8]" : "text-slate-700"}`}>
               {t("incidents.createModal.injuriesReported")}
             </span>
           </label>
         </div>
 
         <div className="flex justify-end gap-2 mt-6">
-          <button onClick={onClose} className={`px-4 py-2 rounded-lg text-sm ${isDark ? "text-neutral-400 hover:bg-neutral-700" : "text-slate-500 hover:bg-slate-100"}`}>
+          <button onClick={onClose} className={`px-4 py-2 rounded-lg text-sm border ${isDark ? "border-[#1E2B22] text-[#B0B8A8] hover:bg-[#1E2B22]" : "border-transparent text-slate-500 hover:bg-slate-100"}`}>
             {t("common.cancel")}
           </button>
           <button
             disabled={submitting || form.title.length < 3 || form.description.length < 10}
             onClick={handleSubmit}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-red-600 hover:bg-red-500 text-white text-sm font-medium disabled:opacity-40 transition-colors"
+            className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg text-white text-sm font-medium disabled:opacity-40 transition-all ${isDark ? "bg-gradient-to-r from-[#22C55E] to-[#16A34A] shadow-lg shadow-emerald-500/20" : "bg-red-600 hover:bg-red-500"}`}
           >
             {submitting ? t("common.saving") : t("incidents.createModal.submitReport")}
           </button>

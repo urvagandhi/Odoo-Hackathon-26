@@ -50,7 +50,7 @@ function Toggle({
         relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full
         border-2 border-transparent transition-colors duration-200 ease-in-out
         focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2
-        ${checked ? "bg-indigo-600" : "bg-slate-200 dark:bg-neutral-600"}
+        ${checked ? "bg-indigo-600" : "bg-slate-200 dark:bg-[#1E2B22]"}
       `}
     >
       <span
@@ -69,29 +69,30 @@ function Toggle({
    ──────────────────────────────────────────────────────── */
 
 const inputCls =
-  "w-full px-3.5 py-2.5 rounded-lg border text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-shadow duration-150 border-slate-200 bg-white text-slate-800 placeholder:text-slate-400 dark:border-neutral-600 dark:bg-neutral-700 dark:text-white dark:placeholder:text-neutral-400";
+  "w-full px-3.5 py-2.5 rounded-lg border text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-shadow duration-150 border-slate-200 bg-white text-slate-800 placeholder:text-slate-400 dark:border-[#1E2B22] dark:bg-[#1E2B22] dark:text-[#E4E6DE] dark:placeholder:text-[#4A5C4A]";
 
 const btnPrimaryCls =
   "inline-flex items-center gap-2 px-4 py-2.5 rounded-lg bg-indigo-600 text-white text-sm font-medium hover:bg-indigo-700 transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed";
 
-const labelCls = "block text-sm font-medium text-slate-700 dark:text-neutral-300 mb-1.5";
+const labelCls = "block text-sm font-medium text-slate-700 dark:text-[#B0B8A8] mb-1.5";
 
 /* ────────────────────────────────────────────────────────
    Account Tab — wired to PATCH /api/v1/auth/me
    ──────────────────────────────────────────────────────── */
 
 function AccountTab() {
-  const { user } = useAuth();
+  const { user, refreshUser } = useAuth();
   const toast = useToast();
   const { t } = useTranslation();
+  const [showDanger, setShowDanger] = useState(false);
   const nameParts = (user?.fullName ?? "").split(" ");
   const [form, setForm] = useState({
     firstName: nameParts[0] ?? "",
     lastName: nameParts.slice(1).join(" ") ?? "",
     email: user?.email ?? "",
-    bio: "",
-    phone: "",
-    location: "",
+    bio: user?.bio ?? "",
+    phone: user?.phone ?? "",
+    location: user?.location ?? "",
   });
   const [saving, setSaving] = useState(false);
 
@@ -110,7 +111,14 @@ function AccountTab() {
     }
     setSaving(true);
     try {
-      await authApi.updateProfile({ fullName, email: form.email.trim() });
+      await authApi.updateProfile({
+        fullName,
+        email: form.email.trim(),
+        phone: form.phone.trim() || null,
+        bio: form.bio.trim() || null,
+        location: form.location.trim() || null,
+      });
+      await refreshUser();   // ← refresh AuthContext so name/email update everywhere
       toast.success(t("settings.account.profileSavedMsg"), { title: t("settings.account.profileSaved") });
     } catch (err: unknown) {
       const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message ?? t("settings.account.updateFailedMsg");
@@ -160,7 +168,16 @@ function AccountTab() {
         </div>
       </SectionCard>
 
-      {/* Danger zone */}
+      {/* Danger zone — buried like Instagram (not immediately visible) */}
+      <div className="mt-8">
+        <button
+          onClick={() => setShowDanger(v => !v)}
+          className="text-xs text-neutral-400 dark:text-[#4A5C4A] hover:text-red-400 transition-colors"
+        >
+          {showDanger ? t("settings.account.hideDangerZone", "Hide advanced options") : t("settings.account.showDangerZone", "Show advanced options...")}
+        </button>
+      </div>
+      {showDanger && (
       <SectionCard title={t("settings.account.dangerZone")} description={t("settings.account.dangerZoneDesc")}>
         <div className="flex items-center justify-between p-4 rounded-lg border border-red-200 bg-red-50/50 dark:border-red-800 dark:bg-red-900/20">
           <div>
@@ -177,6 +194,7 @@ function AccountTab() {
           </button>
         </div>
       </SectionCard>
+      )}
     </div>
   );
 }
@@ -191,8 +209,8 @@ function SecurityTab() {
   const [show, setShow] = useState({ current: false, new: false, confirm: false });
   const [passwords, setPasswords] = useState({ current: "", new: "", confirm: "" });
   const [saving, setSaving] = useState(false);
-  const [twoFA, setTwoFA] = useState(false);
-  const [sessions, setSessions] = useState(true);
+  const [twoFA, setTwoFA] = useState(() => localStorage.getItem("fleetflow_2fa") === "true");
+  const [sessions, setSessions] = useState(() => localStorage.getItem("fleetflow_sessions") !== "false");
 
   const toggle = (k: keyof typeof show) => () => setShow((p) => ({ ...p, [k]: !p[k] }));
 
@@ -273,7 +291,7 @@ function SecurityTab() {
           ))}
           {/* Password requirements hint */}
           {passwords.new.length > 0 && (
-            <div className="text-xs space-y-1 text-slate-500 dark:text-neutral-400">
+            <div className="text-xs space-y-1 text-slate-500 dark:text-[#6B7C6B]">
               <p className={passwords.new.length >= 8 ? "text-emerald-600 dark:text-emerald-400" : ""}>
                 {passwords.new.length >= 8 ? "\u2713" : "\u2022"} {t("settings.security.reqMinChars")}
               </p>
@@ -290,30 +308,30 @@ function SecurityTab() {
 
       <SectionCard title={t("settings.security.twoFactorAuth")} description={t("settings.security.twoFactorAuthDesc")}>
         <div className="space-y-4">
-          <div className="flex items-center justify-between p-4 rounded-lg bg-slate-50 dark:bg-neutral-700/50">
+          <div className="flex items-center justify-between p-4 rounded-lg bg-slate-50 dark:bg-[#111A15]/50">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-lg bg-indigo-100 dark:bg-indigo-900/40 flex items-center justify-center">
                 <Smartphone className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
               </div>
               <div>
-                <p className="text-sm font-medium text-slate-800 dark:text-white">{t("settings.security.authenticatorApp")}</p>
-                <p className="text-xs text-slate-500 dark:text-neutral-400 mt-0.5">{t("settings.security.authenticatorAppDesc")}</p>
+                <p className="text-sm font-medium text-slate-800 dark:text-[#E4E6DE]">{t("settings.security.authenticatorApp")}</p>
+                <p className="text-xs text-slate-500 dark:text-[#6B7C6B] mt-0.5">{t("settings.security.authenticatorAppDesc")}</p>
               </div>
             </div>
-            <Toggle id="toggle-2fa" checked={twoFA} onChange={setTwoFA} />
+            <Toggle id="toggle-2fa" checked={twoFA} onChange={(v) => { setTwoFA(v); localStorage.setItem("fleetflow_2fa", String(v)); toast.success(v ? t("settings.security.twoFAEnabled", "Two-factor authentication enabled") : t("settings.security.twoFADisabled", "Two-factor authentication disabled")); }} />
           </div>
 
-          <div className="flex items-center justify-between p-4 rounded-lg bg-slate-50 dark:bg-neutral-700/50">
+          <div className="flex items-center justify-between p-4 rounded-lg bg-slate-50 dark:bg-[#111A15]/50">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-lg bg-emerald-100 dark:bg-emerald-900/40 flex items-center justify-center">
                 <Monitor className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
               </div>
               <div>
-                <p className="text-sm font-medium text-slate-800 dark:text-white">{t("settings.security.activeSessions")}</p>
-                <p className="text-xs text-slate-500 dark:text-neutral-400 mt-0.5">{t("settings.security.activeSessionsDesc")}</p>
+                <p className="text-sm font-medium text-slate-800 dark:text-[#E4E6DE]">{t("settings.security.activeSessions")}</p>
+                <p className="text-xs text-slate-500 dark:text-[#6B7C6B] mt-0.5">{t("settings.security.activeSessionsDesc")}</p>
               </div>
             </div>
-            <Toggle id="toggle-sessions" checked={sessions} onChange={setSessions} />
+            <Toggle id="toggle-sessions" checked={sessions} onChange={(v) => { setSessions(v); localStorage.setItem("fleetflow_sessions", String(v)); toast.success(v ? t("settings.security.sessionsEnabled", "Session management enabled") : t("settings.security.sessionsDisabled", "Session management disabled")); }} />
           </div>
         </div>
       </SectionCard>
@@ -373,12 +391,12 @@ function NotificationsTab() {
         </button>
       }
     >
-      <div className="divide-y divide-slate-100 dark:divide-neutral-700">
+      <div className="divide-y divide-slate-100 dark:divide-[#1E2B22]">
         {ITEMS.map((item) => (
           <div key={String(item.key)} className="flex items-center justify-between py-4 first:pt-0 last:pb-0">
             <div>
-              <p className="text-sm font-medium text-slate-800 dark:text-white">{t(item.titleKey)}</p>
-              <p className="text-xs text-slate-500 dark:text-neutral-400 mt-0.5">{t(item.descKey)}</p>
+              <p className="text-sm font-medium text-slate-800 dark:text-[#E4E6DE]">{t(item.titleKey)}</p>
+              <p className="text-xs text-slate-500 dark:text-[#6B7C6B] mt-0.5">{t(item.descKey)}</p>
             </div>
             <Toggle id={`toggle-${String(item.key)}`} checked={prefs[item.key]} onChange={toggle(item.key)} />
           </div>
@@ -460,17 +478,17 @@ function AppearanceTab() {
                   flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all duration-200
                   ${active
                     ? "border-indigo-500 bg-indigo-50 dark:bg-indigo-900/30 shadow-sm"
-                    : "border-slate-200 dark:border-neutral-600 bg-white dark:bg-neutral-700/50 hover:border-slate-300 dark:hover:border-neutral-500 hover:bg-slate-50 dark:hover:bg-neutral-700"}
+                    : "border-slate-200 dark:border-[#1E2B22] bg-white dark:bg-[#111A15]/50 hover:border-slate-300 dark:hover:border-[#1E2B22] hover:bg-slate-50 dark:hover:bg-[#182420]"}
                 `}
               >
-                <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${active ? "bg-indigo-100 dark:bg-indigo-900/50" : "bg-slate-100 dark:bg-neutral-600"}`}>
-                  <tm.icon className={`w-5 h-5 ${active ? "text-indigo-600 dark:text-indigo-400" : "text-slate-400 dark:text-neutral-400"}`} />
+                <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${active ? "bg-indigo-100 dark:bg-indigo-900/50" : "bg-slate-100 dark:bg-[#1E2B22]"}`}>
+                  <tm.icon className={`w-5 h-5 ${active ? "text-indigo-600 dark:text-indigo-400" : "text-slate-400 dark:text-[#6B7C6B]"}`} />
                 </div>
                 <div className="text-center">
-                  <p className={`text-sm font-semibold ${active ? "text-indigo-700 dark:text-indigo-300" : "text-slate-800 dark:text-white"}`}>
+                  <p className={`text-sm font-semibold ${active ? "text-indigo-700 dark:text-indigo-300" : "text-slate-800 dark:text-[#E4E6DE]"}`}>
                     {t(tm.labelKey)}
                   </p>
-                  <p className="text-xs text-slate-500 dark:text-neutral-400 mt-0.5">{t(tm.descKey)}</p>
+                  <p className="text-xs text-slate-500 dark:text-[#6B7C6B] mt-0.5">{t(tm.descKey)}</p>
                 </div>
                 {active && <span className="text-xs font-medium text-indigo-600 dark:text-indigo-400">{t("settings.appearance.active")}</span>}
               </button>
@@ -508,10 +526,10 @@ function AppearanceTab() {
             </select>
           </div>
 
-          <div className="flex items-center justify-between p-4 rounded-lg bg-slate-50 dark:bg-neutral-700/50">
+          <div className="flex items-center justify-between p-4 rounded-lg bg-slate-50 dark:bg-[#111A15]/50">
             <div>
-              <p className="text-sm font-medium text-slate-800 dark:text-white">{t("settings.appearance.compactMode")}</p>
-              <p className="text-xs text-slate-500 dark:text-neutral-400 mt-0.5">
+              <p className="text-sm font-medium text-slate-800 dark:text-[#E4E6DE]">{t("settings.appearance.compactMode")}</p>
+              <p className="text-xs text-slate-500 dark:text-[#6B7C6B] mt-0.5">
                 {t("settings.appearance.compactModeDesc")}
               </p>
             </div>

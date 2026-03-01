@@ -154,12 +154,12 @@ export function MaintenanceForm({ open, onClose, onSuccess }: MaintenanceFormPro
             exit={{ x: "100%" }}
             transition={{ type: "spring", damping: 30, stiffness: 300 }}
             className={`fixed right-0 top-0 bottom-0 z-[9991] w-full max-w-lg shadow-2xl flex flex-col ${
-              isDark ? "bg-neutral-800" : "bg-white"
+              isDark ? "bg-[#111A15]" : "bg-white"
             }`}
           >
             {/* Header */}
             <div className={`flex items-center justify-between px-6 py-4 border-b shrink-0 ${
-              isDark ? "border-neutral-700" : "border-slate-100"
+              isDark ? "border-[#1E2B22]" : "border-slate-100"
             }`}>
               <div className="flex items-center gap-3">
                 <div className="w-9 h-9 rounded-lg bg-amber-600 flex items-center justify-center">
@@ -167,10 +167,10 @@ export function MaintenanceForm({ open, onClose, onSuccess }: MaintenanceFormPro
                 </div>
                 <div>
                   <h2 className={`text-base font-bold ${isDark ? "text-white" : "text-slate-900"}`}>{t("forms.maintenance.title")}</h2>
-                  <p className={`text-xs ${isDark ? "text-neutral-400" : "text-slate-500"}`}>{t("forms.maintenance.subtitle")}</p>
+                  <p className={`text-xs ${isDark ? "text-[#8FA68F]" : "text-slate-500"}`}>{t("forms.maintenance.subtitle")}</p>
                 </div>
               </div>
-              <button onClick={onClose} className={`p-2 rounded-lg transition-colors ${isDark ? "hover:bg-neutral-700 text-neutral-400" : "hover:bg-slate-100 text-slate-400"}`}>
+              <button onClick={onClose} aria-label={t("common.close")} className={`p-2 rounded-lg transition-colors ${isDark ? "hover:bg-neutral-700 text-[#8FA68F]" : "hover:bg-slate-100 text-slate-400"}`}>
                 <X className="w-5 h-5" />
               </button>
             </div>
@@ -194,7 +194,7 @@ export function MaintenanceForm({ open, onClose, onSuccess }: MaintenanceFormPro
               )}
 
               {loadingVehicles ? (
-                <div className={`py-8 text-center text-sm ${isDark ? "text-neutral-400" : "text-slate-500"}`}>
+                <div className={`py-8 text-center text-sm ${isDark ? "text-[#8FA68F]" : "text-slate-500"}`}>
                   <Loader2 className="w-5 h-5 mx-auto mb-2 animate-spin" />
                   {t("forms.maintenance.loadingVehicles")}
                 </div>
@@ -219,8 +219,8 @@ export function MaintenanceForm({ open, onClose, onSuccess }: MaintenanceFormPro
                     <label className={labelCls}>{t("forms.maintenance.serviceType")}</label>
                     <Select className={inputCls} error={!!errors.serviceType} value={form.serviceType} onChange={(e) => handleChange("serviceType", e.target.value)}>
                       <option value="">{t("forms.maintenance.selectType")}</option>
-                      {SERVICE_TYPES.map((t) => (
-                        <option key={t} value={t}>{t.replace(/_/g, " ")}</option>
+                      {SERVICE_TYPES.map((st) => (
+                        <option key={st} value={st}>{st.replace(/_/g, " ")}</option>
                       ))}
                     </Select>
                     {errors.serviceType && <p className={errCls}>{errors.serviceType}</p>}
@@ -275,7 +275,7 @@ export function MaintenanceForm({ open, onClose, onSuccess }: MaintenanceFormPro
             </form>
 
             {/* Footer */}
-            <div className={`px-6 py-4 border-t shrink-0 flex items-center justify-end gap-3 ${isDark ? "border-neutral-700" : "border-slate-100"}`}>
+            <div className={`px-6 py-4 border-t shrink-0 flex items-center justify-end gap-3 ${isDark ? "border-[#1E2B22]" : "border-slate-100"}`}>
               <button type="button" onClick={onClose} className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${isDark ? "text-neutral-300 hover:bg-neutral-700" : "text-slate-600 hover:bg-slate-100"}`}>
                 {t("common.cancel")}
               </button>

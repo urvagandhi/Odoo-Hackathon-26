@@ -106,7 +106,7 @@ export default function Layout() {
   const handleLogout = () => { logout(); navigate("/login"); };
 
   return (
-    <div className={`min-h-screen flex transition-colors duration-300 ${isDark ? "bg-slate-950" : "bg-slate-50"}`}>
+    <div className={`min-h-screen flex transition-colors duration-300 ${isDark ? "bg-[#090D0B]" : "bg-slate-50"}`}>
       {/* ═══ MOBILE BACKDROP ════════════════════════════════ */}
       <div
         className={`fixed inset-0 z-40 bg-black/50 transition-opacity duration-300 md:hidden ${
@@ -122,18 +122,18 @@ export default function Layout() {
         transform transition-transform duration-300 ease-in-out
         ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}
         md:static md:z-auto md:translate-x-0 md:w-[260px] md:shrink-0
-        ${isDark ? "bg-slate-950 border-slate-800 text-slate-300" : "bg-white border-slate-200 text-slate-600"}
+        ${isDark ? "bg-[#090D0B] border-[#1E2B22] text-[#B0B8A8]" : "bg-white border-slate-200 text-slate-600"}
       `}>
         {/* Logo + Mobile Close */}
         <div className="px-5 pt-6 pb-6 flex items-center justify-between">
           <Link to="/dashboard" className="flex items-center gap-2.5 group">
             <div className={`w-9 h-9 rounded-xl flex items-center justify-center shadow-lg transition-transform group-hover:scale-105 overflow-hidden ${
-              isDark ? "bg-slate-900 shadow-blue-900/50" : "bg-white shadow-blue-200"
+              isDark ? "bg-[#0E1410] shadow-emerald-900/50" : "bg-white shadow-emerald-200"
             }`}>
               <img src="/logo-premium.png" alt="FleetFlow" className="w-full h-full object-cover" />
             </div>
             <span className={`text-xl font-bold tracking-tight bg-clip-text text-transparent ${
-              isDark ? "bg-gradient-to-r from-blue-400 to-teal-400" : "bg-gradient-to-r from-blue-700 to-teal-600"
+              isDark ? "bg-gradient-to-r from-emerald-400 to-teal-400" : "bg-gradient-to-r from-emerald-700 to-teal-600"
             }`}>
               FleetFlow
             </span>
@@ -141,7 +141,7 @@ export default function Layout() {
           <button
             onClick={() => setSidebarOpen(false)}
             className={`md:hidden w-8 h-8 rounded-lg flex items-center justify-center transition-colors ${
-              isDark ? "text-slate-400 hover:bg-slate-800 hover:text-slate-100" : "text-slate-500 hover:bg-slate-100 hover:text-slate-900"
+              isDark ? "text-[#6B7C6B] hover:bg-[#111A15] hover:text-[#E4E6DE]" : "text-slate-500 hover:bg-slate-100 hover:text-slate-900"
             }`}
             aria-label="Close sidebar"
           >
@@ -152,25 +152,25 @@ export default function Layout() {
         {/* Live KPI mini-stats */}
         {kpis && (
           <div className={`mx-4 mb-4 p-3.5 rounded-2xl border transition-colors ${
-            isDark ? "bg-slate-900/50 border-slate-800/80 backdrop-blur-sm" : "bg-slate-50 border-slate-100"
+            isDark ? "bg-[#0E1410]/50 border-[#1E2B22]/80 backdrop-blur-sm" : "bg-slate-50 border-slate-100"
           }`}>
-            <p className={`text-[10px] font-bold uppercase tracking-wider mb-3 ${isDark ? "text-blue-400" : "text-blue-600"}`}>{t("layout.fleetOverview")}</p>
+            <p className={`text-[10px] font-bold uppercase tracking-wider mb-3 ${isDark ? "text-emerald-400" : "text-emerald-600"}`}>{t("layout.fleetOverview")}</p>
             <div className="grid grid-cols-2 gap-y-3 gap-x-2">
               <div className="text-center">
-                <p className={`text-xl font-extrabold ${isDark ? "text-slate-100" : "text-slate-900"}`}>{kpis.fleet.onTrip}</p>
-                <p className={`text-[10px] font-medium ${isDark ? "text-slate-500" : "text-slate-500"}`}>{t("layout.onTrip")}</p>
+                <p className={`text-xl font-extrabold ${isDark ? "text-[#E4E6DE]" : "text-slate-900"}`}>{kpis.fleet.onTrip}</p>
+                <p className={`text-[10px] font-medium ${isDark ? "text-[#4A5C4A]" : "text-slate-500"}`}>{t("layout.onTrip")}</p>
               </div>
               <div className="text-center">
                 <p className={`text-xl font-extrabold ${isDark ? "text-teal-400" : "text-teal-600"}`}>{kpis.fleet.available}</p>
-                <p className={`text-[10px] font-medium ${isDark ? "text-slate-500" : "text-slate-500"}`}>{t("layout.available")}</p>
+                <p className={`text-[10px] font-medium ${isDark ? "text-[#4A5C4A]" : "text-slate-500"}`}>{t("layout.available")}</p>
               </div>
               <div className="text-center">
                 <p className={`text-xl font-extrabold ${isDark ? "text-amber-400" : "text-amber-600"}`}>{kpis.fleet.inShop}</p>
-                <p className={`text-[10px] font-medium ${isDark ? "text-slate-500" : "text-slate-500"}`}>{t("layout.inShop")}</p>
+                <p className={`text-[10px] font-medium ${isDark ? "text-[#4A5C4A]" : "text-slate-500"}`}>{t("layout.inShop")}</p>
               </div>
               <div className="text-center">
-                <p className={`text-xl font-extrabold ${isDark ? "text-slate-100" : "text-slate-900"}`}>{kpis.fleet.utilizationRate}</p>
-                <p className={`text-[10px] font-medium ${isDark ? "text-slate-500" : "text-slate-500"}`}>{t("layout.utilization")}</p>
+                <p className={`text-xl font-extrabold ${isDark ? "text-[#E4E6DE]" : "text-slate-900"}`}>{kpis.fleet.utilizationRate}</p>
+                <p className={`text-[10px] font-medium ${isDark ? "text-[#4A5C4A]" : "text-slate-500"}`}>{t("layout.utilization")}</p>
               </div>
             </div>
           </div>
@@ -196,7 +196,7 @@ export default function Layout() {
           </div>
         )}
 
-        <div className={`mx-4 border-t mb-4 ${isDark ? "border-slate-800" : "border-slate-200"}`} />
+        <div className={`mx-4 border-t mb-4 ${isDark ? "border-[#1E2B22]" : "border-slate-200"}`} />
 
         {/* Navigation */}
         <nav className="flex-1 px-3 space-y-1">
@@ -206,11 +206,11 @@ export default function Layout() {
               : location.pathname.startsWith(item.path);
             
             const activeClass = isDark
-              ? "bg-blue-600/10 text-blue-400 border-blue-500/20"
-              : "bg-blue-50 text-blue-700 border-blue-200";
+              ? "bg-emerald-600/10 text-emerald-400 border-emerald-500/20"
+              : "bg-emerald-50 text-emerald-700 border-emerald-200";
               
             const idleClass = isDark
-              ? "text-slate-400 hover:text-slate-200 hover:bg-slate-800/50 border-transparent"
+              ? "text-[#6B7C6B] hover:text-[#E4E6DE] hover:bg-[#111A15]/50 border-transparent"
               : "text-slate-600 hover:text-slate-900 hover:bg-slate-100 border-transparent";
 
             return (
@@ -234,14 +234,14 @@ export default function Layout() {
       <div className="flex-1 flex flex-col min-w-0">
         {/* Top bar */}
         <header className={`border-b px-4 md:px-6 py-3.5 transition-colors duration-300 z-10 sticky top-0 backdrop-blur-md ${
-          isDark ? "bg-slate-950/80 border-slate-800" : "bg-white/80 border-slate-200"
+          isDark ? "bg-[#090D0B]/80 border-[#1E2B22]" : "bg-white/80 border-slate-200"
         }`}>
           <div className="flex items-center gap-3">
             {/* Mobile hamburger */}
             <button
               onClick={() => setSidebarOpen(true)}
               className={`md:hidden w-10 h-10 rounded-full flex items-center justify-center transition-colors ${
-                isDark ? "text-slate-400 hover:bg-slate-800 hover:text-slate-100" : "text-slate-500 hover:bg-slate-100 hover:text-slate-900"
+                isDark ? "text-[#6B7C6B] hover:bg-[#111A15] hover:text-[#E4E6DE]" : "text-slate-500 hover:bg-slate-100 hover:text-slate-900"
               }`}
               aria-label="Open menu"
             >
@@ -255,7 +255,7 @@ export default function Layout() {
             <button
               onClick={toggleTheme}
               className={`w-10 h-10 rounded-full flex items-center justify-center transition-colors ${
-                isDark ? "text-slate-400 hover:bg-slate-800 hover:text-slate-100" : "text-slate-500 hover:bg-slate-100 hover:text-slate-900"
+                isDark ? "text-[#6B7C6B] hover:bg-[#111A15] hover:text-[#E4E6DE]" : "text-slate-500 hover:bg-slate-100 hover:text-slate-900"
               }`}
               title={isDark ? t("common.switchToLight") : t("common.switchToDark")}
             >
@@ -267,81 +267,97 @@ export default function Layout() {
               <button
                 onClick={() => setShowNotifs(v => !v)}
                 className={`relative w-10 h-10 rounded-full flex items-center justify-center transition-colors ${
-                  isDark ? "text-slate-400 hover:bg-slate-800 hover:text-slate-100" : "text-slate-500 hover:bg-slate-100 hover:text-slate-900"
+                  isDark ? "text-[#6B7C6B] hover:bg-[#111A15] hover:text-[#E4E6DE]" : "text-slate-500 hover:bg-slate-100 hover:text-slate-900"
                 }`}>
                 <Bell className="w-5 h-5" />
                 {kpis && (kpis.alerts.maintenanceAlerts + kpis.alerts.expiringLicenses + kpis.alerts.suspendedDrivers + kpis.fleet.retired) > 0 && (
-                  <span className={`absolute top-2 right-2 w-2.5 h-2.5 bg-red-500 rounded-full border-2 ${isDark ? "border-slate-950" : "border-white"}`} />
+                  <span className={`absolute top-2 right-2 w-2.5 h-2.5 bg-red-500 rounded-full border-2 ${isDark ? "border-[#090D0B]" : "border-white"}`} />
                 )}
               </button>
               {showNotifs && (
                 <div className={`absolute right-0 top-12 z-50 w-80 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] border overflow-hidden transition-all ${
-                  isDark ? "bg-slate-900 border-slate-700/50" : "bg-white border-slate-200"
+                  isDark ? "bg-[#0E1410] border-[#1E2B22]/50" : "bg-white border-slate-200"
                 }`}>
                   <div className={`px-4 py-3 border-b font-bold text-sm flex items-center justify-between ${
-                    isDark ? "border-slate-800 text-slate-100" : "border-slate-100 text-slate-900"
+                    isDark ? "border-[#1E2B22] text-[#E4E6DE]" : "border-slate-100 text-slate-900"
                   }`}>
                     <span>{t("layout.notifications")}</span>
                     {kpis && <span className="text-[10px] px-2.5 py-1 rounded-full bg-red-500/10 text-red-500 font-bold uppercase tracking-wider">{t("layout.notifNew", { count: kpis.alerts.maintenanceAlerts + kpis.alerts.expiringLicenses + kpis.alerts.suspendedDrivers + kpis.fleet.retired })}</span>}
                   </div>
                   <div className="max-h-64 overflow-y-auto">
                     {kpis && kpis.alerts.maintenanceAlerts > 0 && (
-                      <div className={`px-4 py-3 flex items-start gap-3 border-b ${isDark ? "border-neutral-700" : "border-neutral-50"}`}>
+                      <button onClick={() => { setShowNotifs(false); navigate("/maintenance"); }}
+                        className={`w-full text-left px-4 py-3 flex items-start gap-3 border-b hover:bg-amber-500/5 transition-colors ${isDark ? "border-[#1E2B22]" : "border-neutral-50"}`}>
                         <div className="w-8 h-8 rounded-lg bg-amber-500/10 flex items-center justify-center shrink-0">
                           <Wrench className="w-4 h-4 text-amber-500" />
                         </div>
-                        <div>
+                        <div className="flex-1 min-w-0">
                           <p className={`text-sm font-medium ${isDark ? "text-white" : "text-neutral-900"}`}>{t("layout.maintenanceAlert")}</p>
-                          <p className={`text-xs mt-0.5 ${isDark ? "text-neutral-400" : "text-neutral-500"}`}>{t("layout.maintenanceAlertMsg", { count: kpis.alerts.maintenanceAlerts })}</p>
-                          <p className="text-[10px] text-amber-500 font-medium mt-1">{t("layout.highPriority")}</p>
+                          <p className={`text-xs mt-0.5 ${isDark ? "text-[#6B7C6B]" : "text-neutral-500"}`}>{t("layout.maintenanceAlertMsg", { count: kpis.alerts.maintenanceAlerts })}</p>
+                          <div className="flex items-center justify-between mt-1">
+                            <p className="text-[10px] text-amber-500 font-medium">{t("layout.highPriority")}</p>
+                            <span className="text-[10px] text-emerald-500 font-semibold">View →</span>
+                          </div>
                         </div>
-                      </div>
+                      </button>
                     )}
                     {kpis && kpis.alerts.expiringLicenses > 0 && (
-                      <div className={`px-4 py-3 flex items-start gap-3 border-b ${isDark ? "border-neutral-700" : "border-neutral-50"}`}>
+                      <button onClick={() => { setShowNotifs(false); navigate("/drivers"); }}
+                        className={`w-full text-left px-4 py-3 flex items-start gap-3 border-b hover:bg-red-500/5 transition-colors ${isDark ? "border-[#1E2B22]" : "border-neutral-50"}`}>
                         <div className="w-8 h-8 rounded-lg bg-red-500/10 flex items-center justify-center shrink-0">
                           <Shield className="w-4 h-4 text-red-500" />
                         </div>
-                        <div>
+                        <div className="flex-1 min-w-0">
                           <p className={`text-sm font-medium ${isDark ? "text-white" : "text-neutral-900"}`}>{t("layout.licenseExpiryWarning")}</p>
-                          <p className={`text-xs mt-0.5 ${isDark ? "text-neutral-400" : "text-neutral-500"}`}>{t("layout.licenseExpiryMsg", { count: kpis.alerts.expiringLicenses })}</p>
-                          <p className="text-[10px] text-red-500 font-medium mt-1">{t("layout.urgent")}</p>
+                          <p className={`text-xs mt-0.5 ${isDark ? "text-[#6B7C6B]" : "text-neutral-500"}`}>{t("layout.licenseExpiryMsg", { count: kpis.alerts.expiringLicenses })}</p>
+                          <div className="flex items-center justify-between mt-1">
+                            <p className="text-[10px] text-red-500 font-medium">{t("layout.urgent")}</p>
+                            <span className="text-[10px] text-emerald-500 font-semibold">View Drivers →</span>
+                          </div>
                         </div>
-                      </div>
+                      </button>
                     )}
                     {kpis && kpis.alerts.suspendedDrivers > 0 && (
-                      <div className={`px-4 py-3 flex items-start gap-3 border-b ${isDark ? "border-neutral-700" : "border-neutral-50"}`}>
+                      <button onClick={() => { setShowNotifs(false); navigate("/drivers"); }}
+                        className={`w-full text-left px-4 py-3 flex items-start gap-3 border-b hover:bg-violet-500/5 transition-colors ${isDark ? "border-[#1E2B22]" : "border-neutral-50"}`}>
                         <div className="w-8 h-8 rounded-lg bg-violet-500/10 flex items-center justify-center shrink-0">
                           <AlertTriangle className="w-4 h-4 text-violet-500" />
                         </div>
-                        <div>
+                        <div className="flex-1 min-w-0">
                           <p className={`text-sm font-medium ${isDark ? "text-white" : "text-neutral-900"}`}>{t("layout.suspendedDrivers")}</p>
-                          <p className={`text-xs mt-0.5 ${isDark ? "text-neutral-400" : "text-neutral-500"}`}>{t("layout.suspendedDriversMsg", { count: kpis.alerts.suspendedDrivers })}</p>
-                          <p className="text-[10px] text-violet-500 font-medium mt-1">{t("layout.actionRequired")}</p>
+                          <p className={`text-xs mt-0.5 ${isDark ? "text-[#6B7C6B]" : "text-neutral-500"}`}>{t("layout.suspendedDriversMsg", { count: kpis.alerts.suspendedDrivers })}</p>
+                          <div className="flex items-center justify-between mt-1">
+                            <p className="text-[10px] text-violet-500 font-medium">{t("layout.actionRequired")}</p>
+                            <span className="text-[10px] text-emerald-500 font-semibold">Review →</span>
+                          </div>
                         </div>
-                      </div>
+                      </button>
                     )}
                     {kpis && kpis.fleet.retired > 0 && (
-                      <div className={`px-4 py-3 flex items-start gap-3 border-b ${isDark ? "border-neutral-700" : "border-neutral-50"}`}>
+                      <button onClick={() => { setShowNotifs(false); navigate("/fleet"); }}
+                        className={`w-full text-left px-4 py-3 flex items-start gap-3 border-b hover:bg-neutral-500/5 transition-colors ${isDark ? "border-[#1E2B22]" : "border-neutral-50"}`}>
                         <div className="w-8 h-8 rounded-lg bg-neutral-500/10 flex items-center justify-center shrink-0">
                           <Car className="w-4 h-4 text-neutral-500" />
                         </div>
-                        <div>
+                        <div className="flex-1 min-w-0">
                           <p className={`text-sm font-medium ${isDark ? "text-white" : "text-neutral-900"}`}>{t("layout.retiredVehicles")}</p>
-                          <p className={`text-xs mt-0.5 ${isDark ? "text-neutral-400" : "text-neutral-500"}`}>{t("layout.retiredVehiclesMsg", { count: kpis.fleet.retired })}</p>
-                          <p className="text-[10px] text-neutral-500 font-medium mt-1">{t("layout.informational")}</p>
+                          <p className={`text-xs mt-0.5 ${isDark ? "text-[#6B7C6B]" : "text-neutral-500"}`}>{t("layout.retiredVehiclesMsg", { count: kpis.fleet.retired })}</p>
+                          <div className="flex items-center justify-between mt-1">
+                            <p className="text-[10px] text-neutral-500 font-medium">{t("layout.informational")}</p>
+                            <span className="text-[10px] text-emerald-500 font-semibold">View Fleet →</span>
+                          </div>
                         </div>
-                      </div>
+                      </button>
                     )}
-                    {kpis && kpis.fleet.inShop === 0 && kpis.alerts.expiringLicenses === 0 && kpis.alerts.suspendedDrivers === 0 && kpis.fleet.retired === 0 && (
+                    {kpis && kpis.alerts.maintenanceAlerts === 0 && kpis.alerts.expiringLicenses === 0 && kpis.alerts.suspendedDrivers === 0 && kpis.fleet.retired === 0 && (
                       <div className="px-4 py-8 text-center">
-                        <Bell className={`w-8 h-8 mx-auto mb-2 ${isDark ? "text-neutral-600" : "text-neutral-300"}`} />
-                        <p className={`text-sm ${isDark ? "text-neutral-400" : "text-neutral-500"}`}>{t("layout.allClear")}</p>
+                        <Bell className={`w-8 h-8 mx-auto mb-2 ${isDark ? "text-[#4A5C4A]" : "text-neutral-300"}`} />
+                        <p className={`text-sm ${isDark ? "text-[#6B7C6B]" : "text-neutral-500"}`}>{t("layout.allClear")}</p>
                       </div>
                     )}
                   </div>
-                  <div className={`px-4 py-3 border-t text-center ${isDark ? "border-slate-800 bg-slate-900/50" : "border-slate-100 bg-slate-50/50"}`}>
-                    <button onClick={() => { setShowNotifs(false); navigate("/dashboard"); }} className="text-xs text-blue-500 font-bold hover:text-blue-600 transition-colors">{t("common.viewDashboard")}</button>
+                  <div className={`px-4 py-3 border-t text-center ${isDark ? "border-[#1E2B22] bg-[#0E1410]/50" : "border-slate-100 bg-slate-50/50"}`}>
+                    <button onClick={() => { setShowNotifs(false); navigate("/dashboard"); }} className="text-xs text-emerald-500 font-bold hover:text-emerald-600 transition-colors">{t("common.viewDashboard")}</button>
                   </div>
                 </div>
               )}
@@ -351,20 +367,20 @@ export default function Layout() {
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <button className={`flex items-center gap-2.5 p-1 pr-3 rounded-full transition-colors border ${
-                  isDark ? "hover:bg-slate-800/80 border-transparent hover:border-slate-700" : "hover:bg-slate-50 border-transparent hover:border-slate-200"
+                  isDark ? "hover:bg-[#111A15]/80 border-transparent hover:border-[#1E2B22]" : "hover:bg-slate-50 border-transparent hover:border-slate-200"
                 }`}>
-                  <div className="w-8 h-8 rounded-full bg-blue-600 text-white font-bold flex items-center justify-center text-xs shadow-sm">
+                  <div className="w-8 h-8 rounded-full bg-emerald-600 text-white font-bold flex items-center justify-center text-xs shadow-sm">
                     {initials}
                   </div>
                   <div className="hidden sm:block text-left">
-                    <p className={`text-sm font-bold leading-tight ${isDark ? "text-slate-200" : "text-slate-900"}`}>
+                    <p className={`text-sm font-bold leading-tight ${isDark ? "text-[#E4E6DE]" : "text-slate-900"}`}>
                       {user?.fullName ?? "User"}
                     </p>
-                    <p className={`text-[10px] font-medium leading-tight uppercase tracking-wide ${isDark ? "text-slate-500" : "text-slate-500"}`}>
+                    <p className={`text-[10px] font-medium leading-tight uppercase tracking-wide ${isDark ? "text-[#4A5C4A]" : "text-slate-500"}`}>
                       {t(`roleLabelsShort.${user?.role ?? ""}`)}
                     </p>
                   </div>
-                  <ChevronDown className={`w-4 h-4 ml-1 ${isDark ? "text-slate-500" : "text-slate-400"}`} />
+                  <ChevronDown className={`w-4 h-4 ml-1 ${isDark ? "text-[#4A5C4A]" : "text-slate-400"}`} />
                 </button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="min-w-[220px]">
@@ -394,7 +410,7 @@ export default function Layout() {
         </header>
 
         {/* Page content */}
-        <main className={`flex-1 overflow-y-auto p-4 md:p-6 lg:p-8 transition-colors duration-300 ${isDark ? "bg-[#0B1120]" : "bg-slate-50/50"}`}>
+        <main className={`flex-1 overflow-y-auto p-4 md:p-6 lg:p-8 transition-colors duration-300 ${isDark ? "bg-[#090D0B]" : "bg-slate-50/50"}`}>
           <Outlet />
         </main>
       </div>

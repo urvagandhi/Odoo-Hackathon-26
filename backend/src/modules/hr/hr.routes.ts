@@ -42,11 +42,32 @@ hrRouter.patch(
     hrController.updateStatus.bind(hrController),
 );
 
-// PATCH /api/v1/drivers/:id/safety-score  — Safety Officer only (Driver Compliance ownership)
+// PATCH /api/v1/drivers/:id/safety-score  — Recalculate from trip data (Manager + Safety Officer)
 hrRouter.patch(
     '/:id/safety-score',
-    authorize([UserRole.SAFETY_OFFICER]),
+    authorize([UserRole.MANAGER, UserRole.SAFETY_OFFICER]),
     hrController.adjustSafetyScore.bind(hrController),
+);
+
+// GET /api/v1/drivers/:id/trip-stats  — Trip-based rating breakdown
+hrRouter.get(
+    '/:id/trip-stats',
+    authorize([UserRole.MANAGER, UserRole.SAFETY_OFFICER]),
+    hrController.getTripStats.bind(hrController),
+);
+
+// GET /api/v1/drivers/:id/trips  — List all trips for a driver with ratings
+hrRouter.get(
+    '/:id/trips',
+    authorize([UserRole.MANAGER, UserRole.SAFETY_OFFICER, UserRole.DISPATCHER]),
+    hrController.getDriverTrips.bind(hrController),
+);
+
+// PATCH /api/v1/drivers/:driverId/trips/:tripId/rate  — Rate a completed trip (Manager + Safety Officer)
+hrRouter.patch(
+    '/:id/trips/:tripId/rate',
+    authorize([UserRole.MANAGER, UserRole.SAFETY_OFFICER]),
+    hrController.rateTrip.bind(hrController),
 );
 
 // DELETE /api/v1/drivers/:id  — Manager only (soft-delete)

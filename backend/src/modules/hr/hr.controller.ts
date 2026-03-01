@@ -4,7 +4,6 @@ import {
     CreateDriverSchema,
     UpdateDriverSchema,
     DriverStatusUpdateSchema,
-    AdjustSafetyScoreSchema,
     DriverQuerySchema,
 } from './hr.validator';
 
@@ -50,9 +49,38 @@ export class HrController {
 
     async adjustSafetyScore(req: Request, res: Response, next: NextFunction): Promise<void> {
         try {
-            const input = AdjustSafetyScoreSchema.parse(req.body);
-            const driver = await hrService.adjustSafetyScore(BigInt(req.params.id), input, BigInt(req.user!.sub));
+            const driverId = BigInt(req.params.id);
+            await hrService.recalculateDriverScore(driverId);
+            const driver = await hrService.getDriverById(driverId);
             res.json({ success: true, data: driver });
+        } catch (err) { next(err); }
+    }
+
+    async getTripStats(req: Request, res: Response, next: NextFunction): Promise<void> {
+        try {
+            const stats = await hrService.getDriverTripStats(BigInt(req.params.id));
+            res.json({ success: true, data: stats });
+        } catch (err) { next(err); }
+    }
+
+    async getDriverTrips(req: Request, res: Response, next: NextFunction): Promise<void> {
+        try {
+            const trips = await hrService.getDriverTrips(BigInt(req.params.id));
+            res.json({ success: true, data: trips });
+        } catch (err) { next(err); }
+    }
+
+    async rateTrip(req: Request, res: Response, next: NextFunction): Promise<void> {
+        try {
+            const driverId = BigInt(req.params.id);
+            const tripId = BigInt(req.params.tripId);
+            const { rating } = req.body;
+            if (typeof rating !== 'number' || rating < 0 || rating > 100) {
+                res.status(400).json({ success: false, message: 'Rating must be a number between 0 and 100.' });
+                return;
+            }
+            const trip = await hrService.rateTripForDriver(driverId, tripId, rating);
+            res.json({ success: true, data: trip });
         } catch (err) { next(err); }
     }
 

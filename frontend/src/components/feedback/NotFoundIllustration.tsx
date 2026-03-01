@@ -19,10 +19,10 @@ export function NotFoundIllustration() {
         initial={{ y: 20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 0.8, ease: "easeOut" }}
-        className={`relative z-10 w-64 h-48 border-4 rounded-xl shadow-2xl flex items-center justify-center overflow-hidden ${isDark ? 'bg-neutral-800 border-neutral-700' : 'bg-white border-slate-200'}`}
+        className={`relative z-10 w-64 h-48 border-4 rounded-xl shadow-2xl flex items-center justify-center overflow-hidden ${isDark ? 'bg-[#111A15] border-[#1E2B22]' : 'bg-white border-slate-200'}`}
       >
         {/* Screen Content */}
-        <div className={`absolute inset-0 flex flex-col items-center justify-center gap-2 ${isDark ? 'bg-neutral-900' : 'bg-slate-50'}`}>
+        <div className={`absolute inset-0 flex flex-col items-center justify-center gap-2 ${isDark ? 'bg-[#0E1410]' : 'bg-slate-50'}`}>
           <motion.div
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
@@ -76,7 +76,7 @@ function FloatingIcon({
       initial={{ y: 20, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
       transition={{ delay, duration: 0.5 }}
-      className={`p-3 rounded-xl shadow-lg border ${isDark ? 'bg-neutral-800 border-neutral-700' : 'bg-white border-slate-100'} ${className}`}
+      className={`p-3 rounded-xl shadow-lg border ${isDark ? 'bg-[#111A15] border-[#1E2B22]' : 'bg-white border-slate-100'} ${className}`}
     >
       <motion.div
         animate={{ y: [0, -10, 0] }}
